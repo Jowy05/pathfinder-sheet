@@ -4458,5 +4458,8 @@ html[data-cyber="on"] .cy-sound-fab {
   /* ── Ocultar columna ACC en móvil (ahorra ~42px) ── */
   #initiative-tracker-panel .ini-acc-th,
   #initiative-tracker-panel .ini-act-cell       { display: none; }
+
+  /* ── Ocultar botón duplicar en móvil (ahorra ~22px) ── */
+  #initiative-tracker-panel .ini-dup            { display: none; }
 }
 
