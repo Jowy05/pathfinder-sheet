@@ -4368,3 +4368,39 @@ html[data-cyber="on"] .cy-sound-fab {
   background: #00f0ff;
 }
 
+/* ============================================================
+   RESPONSIVE MOBILE — fixes de overflow en viewports ≤ 600px
+   ============================================================ */
+@media screen and (max-width: 600px) {
+  .panel, .sheet-header { overflow-x: hidden; }
+
+  .save-row {
+    grid-template-columns: 6em repeat(5, 1fr);
+    gap: 4px;
+    font-size: 11px;
+  }
+  .save-row input { font-size: 11px; padding: 1px 2px; }
+  .save-name { font-size: 10px; }
+  .save-col-head { font-size: 10px; }
+
+  .stat-grid { grid-template-columns: 1fr 1fr !important; }
+  .two-col { grid-template-columns: 1fr !important; }
+
+  .char-photo-wrap { width: 64px; height: 80px; }
+  .sheet-header h1 { padding-right: 52px; font-size: 13px; }
+
+  .header-fields { grid-template-columns: 1fr 1fr; }
+  .header-fields.row2 { grid-template-columns: 1fr 1fr; }
+
+  .header-actions { flex-direction: column; gap: 6px; }
+  .header-search { max-width: 100%; min-width: 0; flex: none; width: 100%; }
+  #global-search { width: 100%; }
+
+  select { min-width: 0 !important; max-width: 100% !important; }
+
+  .alt-speeds { flex-wrap: wrap; }
+
+  .class-row-top { grid-template-columns: 1fr; }
+  .class-row-top-labels { grid-template-columns: 1fr; }
+}
+
