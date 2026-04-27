@@ -4438,5 +4438,21 @@ html[data-cyber="on"] .cy-sound-fab {
   .class-features-actions,
   .weapon-actions,
   .btr-actions { flex-wrap: wrap; }
+
+  /* ── INI TABLE: cabe en pantalla sin scroll ── */
+  #initiative-tracker-panel .ini-table      { min-width: 0 !important; width: 100%; font-size: 11px; }
+  #initiative-tracker-panel .ini-row .ini-name { min-width: 55px !important; width: auto; }
+  #initiative-tracker-panel .ini-row .ini-init { width: 30px !important; }
+  #initiative-tracker-panel .ini-row .ini-dex  { width: 30px !important; }
+  #initiative-tracker-panel .ini-row .ini-hp   { width: 32px !important; font-size: 11px; }
+  #initiative-tracker-panel .ini-hp-cell        { min-width: 0 !important; white-space: normal; }
+  #initiative-tracker-panel .ini-hp-inputs      { gap: 1px; font-size: 10px; }
+  #initiative-tracker-panel .ini-act            { font-size: 10px; width: 14px; height: 14px; padding: 0; }
+  #initiative-tracker-panel .ini-act-cell       { white-space: nowrap; }
+  #initiative-tracker-panel .ini-dup,
+  #initiative-tracker-panel .ini-del            { width: 20px !important; height: 20px !important; font-size: 11px; }
+  #initiative-tracker-panel .ini-actions-cell   { gap: 2px; }
+  #initiative-tracker-panel .ini-table th,
+  #initiative-tracker-panel .ini-table td       { padding: 2px 2px; }
 }
 
