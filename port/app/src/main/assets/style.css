@@ -4372,44 +4372,69 @@ html[data-cyber="on"] .cy-sound-fab {
    RESPONSIVE MOBILE — fixes de overflow en viewports ≤ 600px
    ============================================================ */
 @media screen and (max-width: 600px) {
-  .sheet-header { overflow-x: hidden; }
 
-  .header-main { flex-direction: column; align-items: center; }
-  .char-photo-wrap { align-self: center; margin-bottom: 4px; }
-  .header-content { width: 100%; }
-
-  .skill-panel-inner-left,
-  .skill-panel-inner-right { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-
-  #initiative-tracker-panel .ini-btn-row .btn-add { flex: 1 1 auto; text-align: center; }
-
-  .save-row {
-    grid-template-columns: 6em repeat(5, 1fr);
-    gap: 4px;
-    font-size: 11px;
+  /* ── HARD CLIP: evita cascade de overflow al body ── */
+  .sheet-container, .panel, .sheet-header, .zone-divider {
+    overflow-x: hidden;
   }
-  .save-row input { font-size: 11px; padding: 1px 2px; }
-  .save-name { font-size: 10px; }
-  .save-col-head { font-size: 10px; }
 
-  .stat-grid { grid-template-columns: 1fr 1fr !important; }
-  .two-col { grid-template-columns: 1fr !important; }
+  /* ── SCROLL EXPLÍCITO donde se necesita deslizar ── */
+  .ini-table-scroll              { overflow-x: auto !important; }
+  .skill-panel-inner-left,
+  .skill-panel-inner-right       { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
 
-  .char-photo-wrap { width: 64px; height: 80px; }
+  /* ── HEADER: foto encima del título ── */
+  .header-main  { flex-direction: column; align-items: center; }
+  .char-photo-wrap { align-self: center; margin-bottom: 4px; width: 72px; height: 90px; }
+  .header-content  { width: 100%; }
   .sheet-header h1 { padding-right: 52px; font-size: 13px; }
 
-  .header-fields { grid-template-columns: 1fr 1fr; }
-  .header-fields.row2 { grid-template-columns: 1fr 1fr; }
+  /* ── HEADER FIELDS: 2 columnas ── */
+  .header-fields       { grid-template-columns: 1fr 1fr; }
+  .header-fields.row2  { grid-template-columns: 1fr 1fr; }
 
-  .header-actions { flex-direction: column; gap: 6px; }
-  .header-search { max-width: 100%; min-width: 0; flex: none; width: 100%; }
-  #global-search { width: 100%; }
+  /* ── HEADER ACTIONS: apilado vertical ── */
+  .header-actions  { flex-direction: column; gap: 6px; }
+  .header-search   { max-width: 100%; min-width: 0; flex: none; width: 100%; }
+  #global-search   { width: 100%; }
 
+  /* ── INITIATIVE BUTTONS: apilado vertical ── */
+  #initiative-tracker-panel .ini-btn-row {
+    flex-direction: column;
+  }
+  #initiative-tracker-panel .ini-btn-row .btn-add {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* ── SAVES: columnas fluidas ── */
+  .save-row {
+    grid-template-columns: 5em repeat(5, 1fr);
+    gap: 3px;
+    font-size: 11px;
+  }
+  .save-row input  { font-size: 11px; padding: 1px 2px; }
+  .save-name       { font-size: 10px; }
+  .save-col-head   { font-size: 10px; }
+
+  /* ── GRIDS: reducir columnas ── */
+  .stat-grid  { grid-template-columns: 1fr 1fr !important; }
+  .cond-grid  { grid-template-columns: 1fr 1fr !important; }
+  .two-col    { grid-template-columns: 1fr !important; }
+
+  /* ── SELECTS: sin min-width fijo ── */
   select { min-width: 0 !important; max-width: 100% !important; }
 
+  /* ── VELOCIDADES ALTERNATIVAS ── */
   .alt-speeds { flex-wrap: wrap; }
 
-  .class-row-top { grid-template-columns: 1fr; }
+  /* ── CLASE/ARQUETIPO ── */
+  .class-row-top        { grid-template-columns: 1fr; }
   .class-row-top-labels { grid-template-columns: 1fr; }
+
+  /* ── FILAS DE BOTONES múltiples: wrap ── */
+  .class-features-actions,
+  .weapon-actions,
+  .btr-actions { flex-wrap: wrap; }
 }
 
