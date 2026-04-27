@@ -4078,13 +4078,14 @@ input[type=checkbox]{
   background:#5a5a5a;
 }
 
+#initiative-tracker-panel .ini-table tbody tr { height: 38px; }
+#initiative-tracker-panel .ini-table td { vertical-align: middle; }
 #initiative-tracker-panel .ini-actions-cell {
   display:flex;
   gap:3px;
   align-items:center;
   justify-content:flex-end;
   white-space:nowrap;
-  height:100%;
 }
 #initiative-tracker-panel .ini-dup,
 #initiative-tracker-panel .ini-del {
