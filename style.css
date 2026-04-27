@@ -4449,7 +4449,8 @@ html[data-cyber="on"] .cy-sound-fab {
   #initiative-tracker-panel .ini-row .ini-hp   { width: 22px !important; font-size: 9px; height: 18px; }
   #initiative-tracker-panel .ini-hp-cell        { min-width: 0 !important; white-space: nowrap; }
   #initiative-tracker-panel .ini-hp-inputs      { gap: 1px; font-size: 9px; }
-  #initiative-tracker-panel .ini-hp-bar         { height: 3px; margin-top: 1px; }
+  #initiative-tracker-panel .ini-hp-bar         { display: none; }
+  #initiative-tracker-panel .ini-table th       { white-space: nowrap; overflow: hidden; }
   #initiative-tracker-panel .ini-act            { font-size: 9px; width: 11px; height: 11px; padding: 0; line-height: 11px; }
   #initiative-tracker-panel .ini-act-cell       { white-space: nowrap; }
   #initiative-tracker-panel .ini-dup,
