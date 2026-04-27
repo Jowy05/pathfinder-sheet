@@ -1,0 +1,97 @@
+[
+  {
+    "id": "battle",
+    "name": {"es": "Batalla", "en": "Battle"},
+    "curse_name": {"es": "Maldición del Oráculo", "en": "Oracle's Curse"},
+    "skills": ["intimidate","knowledge_engineering","perception","ride"],
+    "spells": ["Escudo Mágico","Fuerza de Toro","Velocidad de Víbora","Explosión de Llamas","Marca de la Justicia","Aguijón de Ira","Hoja Arcana","Armadura de Fuerza","Lluvia de Meteoros"],
+    "revelations": [
+      {"id":"battle.skill","name":{"es":"Maestría en Combate","en":"Combat Skill"},"min_level":1,"desc":{"es":"Proficiencia con armadura pesada y escudos.","en":"Proficiency with heavy armor and shields."}},
+      {"id":"battle.warSight","name":{"es":"Visión de Guerra","en":"War Sight"},"min_level":7,"desc":{"es":"Puedes actuar siempre en sorpresa, y ves invisibilidad.","en":"Always act in surprise round, can see invisible."}},
+      {"id":"battle.ironSkin","name":{"es":"Piel de Hierro","en":"Iron Skin"},"min_level":11,"desc":{"es":"1/día: Piel de Hierro como poder mágico. Nv 15+: 2/día.","en":"1/day: ironSkin as spell-like. Lv 15+: 2/day."}}
+    ]
+  },
+  {
+    "id": "bones",
+    "name": {"es": "Huesos", "en": "Bones"},
+    "skills": ["bluff","disguise","intimidate","stealth"],
+    "spells": ["Causar Miedo","Toque Enfermante","Animar Muertos (menor)","Infectar","Enfermar","Maldición","Control No Muertos","Crear No Muertos","Crear No Muertos Mayor"],
+    "revelations": [
+      {"id":"bones.undeadRes","name":{"es":"Resistencia a No Muertos","en":"Undead Resistance"},"min_level":1,"desc":{"es":"+4 a tiros contra enfermedades, escalofríos y efectos de no muertos.","en":"+4 on saves vs disease, fear, and undead effects."}},
+      {"id":"bones.channelNeg","name":{"es":"Canal Negativo","en":"Negative Channel"},"min_level":1,"desc":{"es":"Canal de energía negativa (como clérigo de tu nivel).","en":"Channel negative energy as a cleric of your level."}},
+      {"id":"bones.boneFist","name":{"es":"Puño de Hueso","en":"Bone Fist"},"min_level":7,"desc":{"es":"Ataques sin armas como si tuvieras Puño Brutal. +1d6 dmg.","en":"Unarmed attacks as if you had Greater Unarmed Strike. +1d6 dmg."}}
+    ]
+  },
+  {
+    "id": "flame",
+    "name": {"es": "Llama", "en": "Flame"},
+    "skills": ["acrobatics","craft","intimidate","survival"],
+    "spells": ["Manos Ardientes","Resistencia al Frío","Bola de Fuego","Muro de Fuego","Nube Ígnea","Proyectil Ígneo","Escudo de Llamas","Invocar Elemental (Fuego)","Tormenta de Fuego"],
+    "revelations": [
+      {"id":"flame.touchFlame","name":{"es":"Toque Llameante","en":"Touch of Flame"},"min_level":1,"desc":{"es":"Toque: 1d6 fuego +1 por 2 niveles. 3+CAR usos/día.","en":"Touch: 1d6 fire +1 per 2 levels. 3+CHA uses/day."}},
+      {"id":"flame.flameBreath","name":{"es":"Aliento de Fuego","en":"Burning Breath"},"min_level":7,"desc":{"es":"Cono de fuego 15 ft: 4d6 daño (Ref mitad). 1/día.","en":"15 ft cone: 4d6 fire (Ref half). 1/day."}},
+      {"id":"flame.metamagicChannel","name":{"es":"Canal de Metamagia (Fuego)","en":"Metamagic Channel"},"min_level":11,"desc":{"es":"Ampliar Area en conjuros de fuego sin incrementar nivel de conjuro.","en":"Widen Area on fire spells without increasing spell level."}}
+    ]
+  },
+  {
+    "id": "heavens",
+    "name": {"es": "Cielos", "en": "Heavens"},
+    "skills": ["fly","knowledge_arcana","perception","survival"],
+    "spells": ["Color Spray","Hipnotismo","Danza de Luces","Luz del Día","Destello","Magia Colorida","Arco Iris","Lluvia de Meteoritos","Prismático (Muro)"],
+    "revelations": [
+      {"id":"heavens.comet","name":{"es":"Cometa","en":"Comet"},"min_level":1,"desc":{"es":"Rayo de energía cósmico: 4d4+1/nivel (máx +10) daño. Ataque de toque distancia.","en":"Cosmic ray: 4d4 + 1/level (max +10) dmg. Ranged touch attack."}},
+      {"id":"heavens.starlight","name":{"es":"Luz Estelar","en":"Starlight Agility"},"min_level":7,"desc":{"es":"+4 Agilidad y velocidad +10 ft durante 1 ronda/nivel. 1/día.","en":"+4 Dexterity and +10 ft speed for 1 round/level. 1/day."}}
+    ]
+  },
+  {
+    "id": "life",
+    "name": {"es": "Vida", "en": "Life"},
+    "skills": ["diplomacy","heal","perception","sense_motive"],
+    "spells": ["Curar Heridas Leves","Curar Heridas Moderadas","Curar Heridas Graves","Curar Heridas Críticas","Curar a Distancia","Curar Heridas Masivas","Regenerar","Curar Heridas Masivas Críticas","Curar Todo"],
+    "revelations": [
+      {"id":"life.channel","name":{"es":"Canal de Energía Positiva","en":"Channel Energy"},"min_level":1,"desc":{"es":"Canal positivo (como clérigo del doble de nivel de oráculo −2).","en":"Positive channel (as cleric of double oracle level −2)."}},
+      {"id":"life.lifeLeak","name":{"es":"Absorber Vida","en":"Life Link"},"min_level":1,"desc":{"es":"Vincula a una criatura/nivel de oráculo. Transfiere hasta 5 PG de daño/ronda desde vinculados a ti.","en":"Link oracle level creatures. Transfer up to 5 HP of damage/round from linked to you."}},
+      {"id":"life.enhancedCures","name":{"es":"Curación Mejorada","en":"Enhanced Cures"},"min_level":7,"desc":{"es":"Conjuros de curación curan máx de dados + modificadores adicionales.","en":"Cure spells heal max dice + additional modifiers."}}
+    ]
+  },
+  {
+    "id": "nature",
+    "name": {"es": "Naturaleza", "en": "Nature"},
+    "skills": ["fly","handle_animal","knowledge_nature","survival"],
+    "spells": ["Enredar","Hablar con Animales","Llamar Bestias","Planta Espinosa","Andar por Árboles","Comunión con Naturaleza","Animales Creados","Llama Sagrada","Tormenta"],
+    "revelations": [
+      {"id":"nature.animalCompanion","name":{"es":"Compañero Animal","en":"Animal Companion"},"min_level":1,"desc":{"es":"Compañero animal como druida de nivel oráculo −2.","en":"Animal companion as druid of oracle level −2."}},
+      {"id":"nature.wildshape","name":{"es":"Forma Natural","en":"Wild Shape"},"min_level":7,"desc":{"es":"Forma Natural como druida de tu nivel oráculo.","en":"Wild Shape as druid of your oracle level."}}
+    ]
+  },
+  {
+    "id": "stone",
+    "name": {"es": "Piedra", "en": "Stone"},
+    "skills": ["appraise","craft","knowledge_dungeoneering","survival"],
+    "spells": ["Enredar (barro)","Piel de Roca","Muro de Piedra","Forma Pétrea","Aguijón de Piedra","Muro de Hierro","Cuerpo de Roca","Tormenta de Arena","Terremoto"],
+    "revelations": [
+      {"id":"stone.earthGlide","name":{"es":"Deslizamiento Terrestre","en":"Earth Glide"},"min_level":7,"desc":{"es":"Muévete a través de tierra y roca como si nadaras. 1 ronda/nivel oráculo por día.","en":"Move through earth and stone as if swimming. 1 round/oracle level per day."}},
+      {"id":"stone.stoneFist","name":{"es":"Puños de Piedra","en":"Stone Fist"},"min_level":1,"desc":{"es":"Golpes sin arma cuentan como +1 y aturden 1 ronda (Fort niega). 3+CAR usos.","en":"Unarmed strikes count as +1 and stagger 1 round (Fort negates). 3+CHA uses."}}
+    ]
+  },
+  {
+    "id": "waves",
+    "name": {"es": "Olas", "en": "Waves"},
+    "skills": ["acrobatics","escape_artist","knowledge_nature","swim"],
+    "spells": ["Niebla","Bruma","Bola de Agua","Muro de Hielo","Torbellino","Caminante de Agua","Tormenta de Granizo","Tormenta","Maelstrom"],
+    "revelations": [
+      {"id":"waves.icyTouch","name":{"es":"Toque Helado","en":"Icy Touch"},"min_level":1,"desc":{"es":"Toque: 1d6 frío + entumecido 1 ronda. 3+CAR usos/día.","en":"Touch: 1d6 cold + staggered 1 round. 3+CHA uses/day."}},
+      {"id":"waves.waterWalk","name":{"es":"Caminar sobre el Agua","en":"Water Walk"},"min_level":7,"desc":{"es":"Caminas sobre el agua y eres inmune a ser derribado por ella. Permanente.","en":"Walk on water, immune to being knocked down by it. Permanent."}}
+    ]
+  },
+  {
+    "id": "wind",
+    "name": {"es": "Viento", "en": "Wind"},
+    "skills": ["fly","acrobatics","stealth","survival"],
+    "spells": ["Manos Heladas","Golpe de Viento","Bola de Fuego (rayo)","Muro de Viento","Nube Atronadora","Volar","Torbellino","Tormenta de Hielo","Tormenta Eléctrica"],
+    "revelations": [
+      {"id":"wind.thunderbolt","name":{"es":"Rayo Relámpago","en":"Thunderbolt"},"min_level":7,"desc":{"es":"Rayo de relámpago 30 ft: 1d6/2 niveles (Refl mitad). 1/día.","en":"30 ft lightning bolt: 1d6/2 levels (Ref half). 1/day."}},
+      {"id":"wind.gusts","name":{"es":"Ráfaga de Viento","en":"Gaseous Form"},"min_level":1,"desc":{"es":"Inmune a ataques de gases y nieblas. 3+CAR usos/día de viento deflector (+4 CA vs proyectiles).","en":"Immune to gas/fog attacks. 3+CHA uses of deflect missiles (+4 AC vs ranged)."}}
+    ]
+  }
+]

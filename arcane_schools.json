@@ -1,0 +1,110 @@
+[
+  {
+    "id": "abjuration",
+    "name": {"es": "Abjuración", "en": "Abjuration"},
+    "powers": [
+      {"id": "abjuration.resistance", "min_level": 1, "uses": "3+int",
+       "name": {"es": "Resistencia Protectora", "en": "Protective Ward"},
+       "desc": {"es": "Toca a aliado: +1 bonificación de resistencia a salvaciones por 1 minuto (+1 por cada 5 niveles de mago).", "en": "Touch an ally: +1 resistance bonus to saves for 1 min (+1 per 5 wizard levels)."}},
+      {"id": "abjuration.energyabsorption", "min_level": 6, "uses": "clvl",
+       "name": {"es": "Absorción de Energía", "en": "Energy Absorption"},
+       "desc": {"es": "Absorbe puntos de daño de energía igual a tu nivel de mago (usos/día = nivel).", "en": "Absorb energy damage up to your wizard level in points per use (uses/day = level)."}}
+    ]
+  },
+  {
+    "id": "conjuration",
+    "name": {"es": "Conjuración", "en": "Conjuration"},
+    "powers": [
+      {"id": "conjuration.acidDart", "min_level": 1, "uses": "3+int",
+       "name": {"es": "Dardo Ácido", "en": "Acid Dart"},
+       "desc": {"es": "Proyectil de ácido como ataque de toque a distancia: 1d6+1 por 2 niveles de mago. 30 ft.", "en": "Acid ray as ranged touch: 1d6 + 1 per 2 wizard levels. 30 ft."}},
+      {"id": "conjuration.dimDoor", "min_level": 8, "uses": "1",
+       "name": {"es": "Puerta Dimensional (menor)", "en": "Dimensional Steps"},
+       "desc": {"es": "Te teletransportas hasta 5 ft × nivel de mago por día (en incrementos de 5 ft).", "en": "Teleport up to 5 ft × wizard level per day (in 5 ft increments)."}}
+    ]
+  },
+  {
+    "id": "divination",
+    "name": {"es": "Adivinación", "en": "Divination"},
+    "powers": [
+      {"id": "divination.forewarned", "min_level": 1, "uses": null,
+       "name": {"es": "Presciencia", "en": "Forewarned"},
+       "desc": {"es": "Siempre puedes actuar en la sorpresa. +1 a iniciativa por cada 2 niveles de mago.", "en": "Always act in surprise round. +1 to initiative per 2 wizard levels."}},
+      {"id": "divination.scrying", "min_level": 8, "uses": "1",
+       "name": {"es": "Visión Verdadera (menor)", "en": "Diviner's Fortune"},
+       "desc": {"es": "1/día: visión verdadera durante 1 ronda/nivel.", "en": "1/day: true seeing for 1 round/level."}}
+    ]
+  },
+  {
+    "id": "enchantment",
+    "name": {"es": "Encantamiento", "en": "Enchantment"},
+    "powers": [
+      {"id": "enchantment.daze", "min_level": 1, "uses": "3+int",
+       "name": {"es": "Toque Aturdidor", "en": "Dazing Touch"},
+       "desc": {"es": "Toque CaC: criatura aturdida 1 ronda (sin salvación, solo funciona en seres con DG ≤ nivel de mago).", "en": "Melee touch: creature dazed 1 round (no save, works on HD ≤ wizard level)."}},
+      {"id": "enchantment.aura", "min_level": 8, "uses": "1",
+       "name": {"es": "Aura de Encantamiento", "en": "Aura of Despair"},
+       "desc": {"es": "Aura de 30 ft: enemigos –2 a tiradas durante 1 ronda/nivel. 1/día.", "en": "30 ft aura: enemies –2 on rolls for 1 round/level. 1/day."}}
+    ]
+  },
+  {
+    "id": "evocation",
+    "name": {"es": "Evocación", "en": "Evocation"},
+    "powers": [
+      {"id": "evocation.intensify", "min_level": 1, "uses": "3+int",
+       "name": {"es": "Rayo Intenso", "en": "Intense Spells"},
+       "desc": {"es": "Toque/proyectil de energía: +½ nivel de mago al daño. Los conjuros de daño ganan +1 dmg/dado.", "en": "Energy ray: +½ wizard level to damage. Damage spells gain +1 dmg/die."}},
+      {"id": "evocation.forceMissile", "min_level": 1, "uses": "3+int",
+       "name": {"es": "Proyectil de Fuerza", "en": "Force Missile"},
+       "desc": {"es": "Proyectil de fuerza que ignora cobertura: 1d4+1 por cada 2 niveles de mago.", "en": "Force missile ignoring cover: 1d4 + 1 per 2 wizard levels."}}
+    ]
+  },
+  {
+    "id": "illusion",
+    "name": {"es": "Ilusión", "en": "Illusion"},
+    "powers": [
+      {"id": "illusion.blinding", "min_level": 1, "uses": "3+int",
+       "name": {"es": "Destello Cegador", "en": "Blinding Ray"},
+       "desc": {"es": "Rayo cegador a distancia: cegado 1 ronda (Fort niega; a ciegas 1d4 rondas si falla).", "en": "Ranged blinding ray: blinded 1 round (Fort negates; blind 1d4 rounds on fail)."}},
+      {"id": "illusion.invisField", "min_level": 8, "uses": "1",
+       "name": {"es": "Campo de Invisibilidad", "en": "Invisibility Field"},
+       "desc": {"es": "Invisibilidad grupal 10 ft: tú y aliados invisibles 1 ronda/nivel. 1/día.", "en": "Group invisibility 10 ft: you and allies invisible 1 round/level. 1/day."}}
+    ]
+  },
+  {
+    "id": "necromancy",
+    "name": {"es": "Nigromancia", "en": "Necromancy"},
+    "powers": [
+      {"id": "necromancy.powerOverUndead", "min_level": 1, "uses": "3+int",
+       "name": {"es": "Control de No Muertos", "en": "Power Over Undead"},
+       "desc": {"es": "Canal de energía negativa (como clérigo nivel = nivel mago) para controlar no muertos.", "en": "Channel negative energy (as cleric level = wizard level) to control undead."}},
+      {"id": "necromancy.lifeSight", "min_level": 8, "uses": "clvl",
+       "name": {"es": "Vista de la Vida", "en": "Life Sight"},
+       "desc": {"es": "Percepción ciega 10 ft para detectar criaturas vivas y no muertas. 1 ronda/nivel de mago total/día.", "en": "Blindsight 10 ft to detect living and undead. 1 round/wizard level total/day."}}
+    ]
+  },
+  {
+    "id": "transmutation",
+    "name": {"es": "Transmutación", "en": "Transmutation"},
+    "powers": [
+      {"id": "transmutation.physicalEnhancement", "min_level": 1, "uses": null,
+       "name": {"es": "Mejora Física", "en": "Physical Enhancement"},
+       "desc": {"es": "+1 bonificación de mejora a FUE, DES o CON (elige 1). +1 por cada 5 niveles de mago.", "en": "+1 enhancement bonus to STR, DEX, or CON (choose 1). +1 per 5 wizard levels."}},
+      {"id": "transmutation.telekinesis", "min_level": 8, "uses": "3+int",
+       "name": {"es": "Mano Telequinética", "en": "Telekinetic Fist"},
+       "desc": {"es": "Ataque de toque: 1d4+1 daño por 2 niveles de mago como ataque a distancia (30 ft).", "en": "Touch attack: 1d4 + 1 dmg per 2 wizard levels as ranged attack (30 ft)."}}
+    ]
+  },
+  {
+    "id": "universal",
+    "name": {"es": "Universal", "en": "Universal"},
+    "powers": [
+      {"id": "universal.handOfApprentice", "min_level": 1, "uses": "3+int",
+       "name": {"es": "Mano del Aprendiz", "en": "Hand of the Apprentice"},
+       "desc": {"es": "Lanza tu arma como proyectil mágico: BAB + INT (en lugar de FUE/DES). Regresa tras el ataque.", "en": "Throw your weapon as a magic projectile: BAB + INT (instead of STR/DEX). Returns after."}},
+      {"id": "universal.metamagicMastery", "min_level": 8, "uses": "1",
+       "name": {"es": "Maestría de Metamagia", "en": "Metamagic Mastery"},
+       "desc": {"es": "1/día: aplica cualquier dote de metamagia conocida a un conjuro sin aumentar el tiempo de lanzamiento.", "en": "1/day: apply any known metamagic feat to a spell without increasing casting time."}}
+    ]
+  }
+]

@@ -1,0 +1,270 @@
+/* ============================================================
+   D20 3D — Cubo CSS de 6 caras con números (1-20 vía JS).
+   Adapta colores al tema activo.
+   ============================================================ */
+
+.d20-stage {
+  width: 240px;
+  height: 240px;
+  perspective: 1000px;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto;
+  /* Tema medieval / pergamino (default) */
+  --die-stroke: #8a6820;
+  --die-stroke-2: #c8a060;
+  --die-bg: linear-gradient(145deg, #fdf5df 0%, #e8cfa0 60%, #c8a060 100%);
+  --die-text: #3d2510;
+  --die-text-glow: rgba(200,160,96,0.5);
+  --die-glow: rgba(200,160,96,0.55);
+  --die-corner: #7a0010;
+  --die-crit: #d4a017;     /* dorado intenso para crit medieval */
+  --die-fumble: #7a0010;   /* carmesí para pifia medieval */
+}
+
+body[data-cyber="on"] .d20-stage {
+  --die-stroke: #00f0ff;
+  --die-stroke-2: rgba(0,240,255,0.4);
+  --die-bg:
+    linear-gradient(145deg, rgba(0,240,255,0.18) 0%, rgba(0,240,255,0.04) 60%, rgba(255,42,147,0.08) 100%),
+    rgba(8, 14, 26, 0.92);
+  --die-text: #00f0ff;
+  --die-text-glow: rgba(0,240,255,0.7);
+  --die-glow: rgba(0,240,255,0.55);
+  --die-corner: #ff2a93;
+  --die-crit: #f8ef02;
+  --die-fumble: #ff2a93;
+}
+
+/* Halo */
+.d20-stage::before {
+  content: '';
+  position: absolute;
+  width: 220px; height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--die-glow) 0%, transparent 60%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms;
+  z-index: 0;
+}
+.d20-stage.rolling::before {
+  opacity: 1;
+  animation: dieHalo 500ms ease-in-out infinite;
+}
+@keyframes dieHalo {
+  0%,100% { opacity: 0.4; transform: scale(1); }
+  50%     { opacity: 0.95; transform: scale(1.18); }
+}
+
+/* Cube wrapper */
+.d20 {
+  position: relative;
+  width: 130px;
+  height: 130px;
+  transform-style: preserve-3d;
+  cursor: pointer;
+  animation: d20Idle 12s linear infinite;
+  z-index: 2;
+}
+.d20.rolling { animation: d20Roll 1500ms cubic-bezier(0.2,0.7,0.3,1) forwards; }
+
+@keyframes d20Idle {
+  0%   { transform: rotateX(-20deg) rotateY(-30deg); }
+  50%  { transform: rotateX(20deg)  rotateY(150deg); }
+  100% { transform: rotateX(-20deg) rotateY(330deg); }
+}
+@keyframes d20Roll {
+  0%   { transform: rotateX(0)      rotateY(0)      rotateZ(0); }
+  100% { transform: rotateX(var(--rest-x,1440deg)) rotateY(var(--rest-y,1440deg)) rotateZ(var(--rest-z,360deg)); }
+}
+
+/* Cube faces — 6 base faces */
+.d20 .face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', 'Orbitron', serif;
+  font-weight: 900;
+  font-size: 56px;
+  background: var(--die-bg);
+  border: 2px solid var(--die-stroke);
+  color: var(--die-text);
+  text-shadow: 0 0 12px var(--die-text-glow), 0 1px 0 rgba(255,255,255,0.4);
+  box-shadow:
+    inset 0 0 22px rgba(0,0,0,0.12),
+    inset 0 0 4px rgba(255,255,255,0.2),
+    0 0 14px var(--die-glow);
+  backface-visibility: hidden;
+  transition: background 300ms, border-color 300ms, color 300ms;
+}
+body[data-cyber="on"] .d20 .face {
+  font-family: 'Orbitron', sans-serif;
+  text-shadow: 0 0 12px var(--die-text-glow), 0 0 22px rgba(0,240,255,0.5);
+  box-shadow:
+    inset 0 0 22px rgba(0,240,255,0.18),
+    inset 0 0 4px rgba(255,255,255,0.15),
+    0 0 14px var(--die-glow);
+}
+
+/* Inner border ring */
+.d20 .face::before {
+  content: '';
+  position: absolute;
+  top: 6px; left: 6px; right: 6px; bottom: 6px;
+  border: 1px solid var(--die-stroke-2);
+  pointer-events: none;
+}
+/* Decorative corner */
+.d20 .face::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 14px; height: 14px;
+  border-top: 1px solid var(--die-corner);
+  border-left: 1px solid var(--die-corner);
+  pointer-events: none;
+}
+
+/* Position 6 faces of a cube */
+.d20 .f-front  { transform: rotateY(  0deg) translateZ(65px); }
+.d20 .f-back   { transform: rotateY(180deg) translateZ(65px); }
+.d20 .f-right  { transform: rotateY( 90deg) translateZ(65px); }
+.d20 .f-left   { transform: rotateY(-90deg) translateZ(65px); }
+.d20 .f-top    { transform: rotateX( 90deg) translateZ(65px); }
+.d20 .f-bottom { transform: rotateX(-90deg) translateZ(65px); }
+
+/* Crit / fumble glow — colores del tema */
+.d20.crit .face   { border-color: var(--die-crit) !important; color: var(--die-crit) !important; text-shadow: 0 0 14px var(--die-crit), 0 0 28px var(--die-crit) !important; box-shadow: inset 0 0 24px rgba(0,0,0,0.15), 0 0 22px var(--die-crit) !important; }
+.d20.fumble .face { border-color: var(--die-fumble) !important; color: var(--die-fumble) !important; text-shadow: 0 0 14px var(--die-fumble), 0 0 28px var(--die-fumble) !important; box-shadow: inset 0 0 24px rgba(0,0,0,0.15), 0 0 22px var(--die-fumble) !important; }
+
+/* Result label */
+.d20-result {
+  position: absolute;
+  bottom: -10px; left: 50%;
+  transform: translateX(-50%) scale(0);
+  font-family: 'Cinzel', 'Orbitron', serif;
+  font-weight: 900;
+  font-size: 32px;
+  letter-spacing: 2px;
+  color: var(--die-text);
+  text-shadow: 0 0 14px var(--die-text-glow);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 3;
+}
+body[data-cyber="on"] .d20-result { font-family: 'Orbitron', sans-serif; }
+.d20-result.show { animation: resultAppear 600ms cubic-bezier(0.2,1,0.3,1) forwards; }
+.d20-result.crit  { color: var(--die-crit); text-shadow: 0 0 18px var(--die-crit); }
+.d20-result.fumble{ color: var(--die-fumble); text-shadow: 0 0 18px var(--die-fumble); }
+@keyframes resultAppear {
+  0%   { opacity: 0; transform: translateX(-50%) scale(0.3); filter: blur(8px); }
+  60%  { opacity: 1; transform: translateX(-50%) scale(1.25); filter: blur(0); }
+  100% { opacity: 1; transform: translateX(-50%) scale(1); }
+}
+
+/* ============================================================
+   HP BAR · CARDIOGRAFÍA dinámica (ritmo según HP %)
+   ============================================================ */
+.hp-bar {
+  position: relative;
+  /* JS escribe --hp-rate (segundos por ciclo) en función del % vida */
+  --hp-rate: 2s;
+}
+
+/* Smooth transition of the heartbeat rate variable so it ramps gradually
+   instead of snapping when HP changes. Requires @property registration. */
+@property --hp-rate {
+  syntax: '<time>';
+  inherits: true;
+  initial-value: 2s;
+}
+.hp-bar {
+  transition: --hp-rate 1.6s cubic-bezier(0.4, 0, 0.3, 1);
+}
+
+.hp-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='22' viewBox='0 0 200 22' preserveAspectRatio='none'><path d='M0,11 L20,11 L25,11 L28,4 L32,18 L36,8 L40,11 L70,11 L75,11 L78,4 L82,18 L86,8 L90,11 L120,11 L125,11 L128,4 L132,18 L136,8 L140,11 L170,11 L175,11 L178,4 L182,18 L186,8 L190,11 L200,11' fill='none' stroke='%2300f0ff' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-size: 200px 100%;
+  background-repeat: repeat-x;
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  transition: opacity 400ms ease;
+}
+body[data-cyber="on"] .hp-bar::after {
+  opacity: 0.9;
+  animation: ecgScroll var(--hp-rate, 2s) linear infinite, ecgPulse var(--hp-rate, 2s) ease-in-out infinite;
+  filter: drop-shadow(0 0 4px #00f0ff);
+}
+@keyframes ecgScroll {
+  from { background-position: 0 0; }
+  to   { background-position: -200px 0; }
+}
+@keyframes ecgPulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+
+body[data-cyber="on"] .hp-bar-fill {
+  animation: hpHeartbeat var(--hp-rate, 2s) ease-in-out infinite;
+}
+@keyframes hpHeartbeat {
+  0%, 60%, 100% { opacity: 0.92; }
+  10%           { opacity: 1; }
+  25%           { opacity: 0.96; }
+}
+
+/* Dying state (0 HP or negative, but still alive) — faint, slow blip */
+.hp-bar.dying::after {
+  /* Mostly flat line with a tiny weak blip — much less peak height */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='22' viewBox='0 0 200 22' preserveAspectRatio='none'><path d='M0,11 L80,11 L88,11 L92,8 L96,14 L100,11 L200,11' fill='none' stroke='%23ff2a93' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  opacity: 0.85 !important;
+  filter: drop-shadow(0 0 5px #ff2a93);
+  animation: ecgScroll var(--hp-rate, 4s) linear infinite, ecgPulseDying var(--hp-rate, 4s) ease-in-out infinite;
+}
+body[data-cyber="off"] .hp-bar.dying::after { opacity: 0.65 !important; }
+
+@keyframes ecgPulseDying {
+  0%, 100% { opacity: 0.5; }
+  50%      { opacity: 0.95; }
+}
+
+/* Override the default ::after for dying so it works in both themes */
+body[data-cyber="off"] .hp-bar.dying::after {
+  display: block;
+  animation: ecgScroll var(--hp-rate, 4s) linear infinite;
+}
+
+.hp-bar.dying .hp-bar-fill,
+body[data-cyber="on"] .hp-bar.dying .hp-bar-fill {
+  animation: hpDyingPulse var(--hp-rate, 4s) ease-in-out infinite;
+}
+@keyframes hpDyingPulse {
+  0%, 100% { opacity: 0.5; }
+  50%      { opacity: 0.9; }
+}
+
+/* Flatline — heart stopped */
+.hp-bar.flatline::after {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='22' viewBox='0 0 200 22' preserveAspectRatio='none'><path d='M0,11 L200,11' fill='none' stroke='%237a0010' stroke-width='1.2' stroke-linecap='round'/></svg>");
+  opacity: 0.7 !important;
+  animation: none !important;
+  filter: drop-shadow(0 0 3px rgba(122,0,16,0.6));
+  display: block;
+}
+body[data-cyber="on"] .hp-bar.flatline::after {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='22' viewBox='0 0 200 22' preserveAspectRatio='none'><path d='M0,11 L200,11' fill='none' stroke='%23ff2a93' stroke-width='1.2' stroke-linecap='round'/></svg>");
+  filter: drop-shadow(0 0 6px #ff2a93);
+}
+
+.hp-bar.flatline .hp-bar-fill,
+body[data-cyber="on"] .hp-bar.flatline .hp-bar-fill {
+  animation: none !important;
+  filter: brightness(0.4) saturate(0.5) !important;
+}

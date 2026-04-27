@@ -1,0 +1,656 @@
+/* ============================================================
+   FICHA PATHFINDER · CYBERPUNK OVERLAY
+   Capa visual opcional sobre el look pergamino.
+   Activar con: <html data-cyber="on">  (toggle desde menú de temas)
+   ============================================================ */
+
+:root {
+  --cy-bg:        #060810;
+  --cy-bg-2:      #0c0f1a;
+  --cy-cyan:      #00f0ff;
+  --cy-cyan-soft: #4be3ff;
+  --cy-magenta:   #ff2a93;
+  --cy-magenta-2: #ff00aa;
+  --cy-yellow:    #f8ef02;
+  --cy-text:      #d8eaff;
+  --cy-text-dim:  #6f8aa6;
+  --cy-glass:     rgba(8, 14, 26, 0.55);
+  --cy-border:    rgba(0, 240, 255, 0.35);
+  --cy-grid:      rgba(0, 240, 255, 0.07);
+  --ff-cyber:'Orbitron',system-ui,sans-serif;
+}
+
+/* @property allows smooth interpolation of the heartbeat rate */
+@property --hp-rate {
+  syntax: '<time>';
+  inherits: true;
+  initial-value: 2s;
+}
+
+html[data-cyber="on"] body {
+  color: var(--cy-text) !important;
+  background: var(--cy-bg) !important;
+  background-image:
+    radial-gradient(ellipse at 20% 10%, rgba(255, 42, 147, 0.18) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 90%, rgba(0, 240, 255, 0.18) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(120, 0, 200, 0.08) 0%, transparent 70%),
+    linear-gradient(180deg, var(--cy-bg) 0%, var(--cy-bg-2) 100%) !important;
+  transition: background 600ms ease;
+}
+
+/* Animated grid floor — animado con transform (GPU) en vez de background-position (repaint) */
+html[data-cyber="on"] body::before {
+  content: '';
+  position: fixed;
+  /* Lo agrandamos para que el translate no muestre bordes */
+  top: -60px; left: -60px; right: -60px; bottom: -60px;
+  background-image:
+    linear-gradient(var(--cy-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--cy-grid) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+  animation: cyGridDrift 30s linear infinite;
+  mask-image: radial-gradient(ellipse at 50% 60%, black 0%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 60%, black 0%, transparent 80%);
+  will-change: transform;
+  transform: translateZ(0);
+}
+@keyframes cyGridDrift {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(60px, 60px, 0); }
+}
+
+/* Scanlines overlay — animado con transform */
+html[data-cyber="on"] body::after {
+  content: '';
+  position: fixed; inset: -60px 0 0 0;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(0, 240, 255, 0.025) 0px,
+    rgba(0, 240, 255, 0.025) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+  z-index: 9000;
+  mix-blend-mode: screen;
+  animation: cyScanScroll 8s linear infinite;
+  will-change: transform;
+}
+@keyframes cyScanScroll {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(0, 60px, 0); }
+}
+
+/* ── Header ── */
+html[data-cyber="on"] .sheet-header h1,
+html[data-cyber="on"] .sheet-header .header-title {
+  font-family: var(--ff-cyber) !important;
+  color: var(--cy-cyan) !important;
+  text-shadow:
+    0 0 12px rgba(0, 240, 255, 0.7),
+    0 0 30px rgba(0, 240, 255, 0.4),
+    2px 0 0 var(--cy-magenta),
+    -2px 0 0 var(--cy-cyan-soft);
+  letter-spacing: 4px;
+  animation: cyTitleGlitch 6s infinite;
+}
+@keyframes cyTitleGlitch {
+  0%, 92%, 100% { text-shadow: 0 0 12px rgba(0,240,255,0.7), 0 0 30px rgba(0,240,255,0.4), 2px 0 0 var(--cy-magenta), -2px 0 0 var(--cy-cyan-soft); }
+  93%   { text-shadow: 0 0 12px rgba(0,240,255,0.7), -3px 0 0 var(--cy-magenta), 3px 0 0 var(--cy-cyan-soft); transform: translateX(-1px); }
+  94%   { text-shadow: 0 0 12px rgba(0,240,255,0.7), 4px 0 0 var(--cy-magenta), -4px 0 0 var(--cy-cyan-soft); transform: translateX(2px); }
+  95%   { text-shadow: 0 0 12px rgba(0,240,255,0.7), -2px 0 0 var(--cy-magenta), 2px 0 0 var(--cy-cyan-soft); transform: translateX(0); }
+}
+
+/* ── Glassmorphism panels ──
+   PERF NOTE: backdrop-filter es MUY caro cuando se aplica a >20 paneles.
+   Reducimos blur a 6px y no aplicamos saturate (saturate forzaba repaint extra). */
+html[data-cyber="on"] .panel {
+  background:
+    linear-gradient(135deg, rgba(0, 240, 255, 0.04) 0%, rgba(255, 42, 147, 0.04) 100%),
+    var(--cy-glass) !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--cy-border) !important;
+  border-radius: 0 !important;
+  /* HUD chamfer corners */
+  clip-path: polygon(
+    14px 0, calc(100% - 4px) 0, 100% 4px, 100% calc(100% - 14px),
+    calc(100% - 14px) 100%, 4px 100%, 0 calc(100% - 4px), 0 14px
+  );
+  box-shadow:
+    0 0 0 1px rgba(0, 240, 255, 0.15),
+    0 8px 32px rgba(0, 240, 255, 0.08),
+    inset 0 0 60px rgba(0, 240, 255, 0.03) !important;
+  color: var(--cy-text) !important;
+  position: relative;
+  /* Forzar a su propia capa de composición → GPU-accelerated */
+  transform: translateZ(0);
+  contain: layout paint;
+}
+/* Si el usuario prefiere reduced-motion o pantalla pequeña, quitar blur entero */
+@media (prefers-reduced-motion: reduce), (max-width: 800px) {
+  html[data-cyber="on"] .panel {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+html[data-cyber="on"] .panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--cy-cyan) 30%, var(--cy-cyan) 70%, transparent 100%);
+  opacity: 0.7;
+  box-shadow: 0 0 12px var(--cy-cyan);
+  pointer-events: none;
+}
+html[data-cyber="on"] .panel::after {
+  content: '';
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 22px; height: 22px;
+  border-top: 1px solid var(--cy-magenta);
+  border-right: 1px solid var(--cy-magenta);
+  opacity: 0.7;
+  pointer-events: none;
+}
+html[data-cyber="on"] .panel h2,
+html[data-cyber="on"] .panel h3 {
+  font-family: var(--ff-cyber) !important;
+  color: var(--cy-cyan) !important;
+  border-bottom-color: rgba(0, 240, 255, 0.3) !important;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+html[data-cyber="on"] .panel p,
+html[data-cyber="on"] .panel label,
+html[data-cyber="on"] .panel span,
+html[data-cyber="on"] .panel small,
+html[data-cyber="on"] .panel td,
+html[data-cyber="on"] .panel th { color: var(--cy-text) !important; }
+
+/* Inputs / selects / textareas inside panels */
+html[data-cyber="on"] .panel input[type="text"],
+html[data-cyber="on"] .panel input[type="number"],
+html[data-cyber="on"] .panel input[type="search"],
+html[data-cyber="on"] .panel select,
+html[data-cyber="on"] .panel textarea {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid rgba(0, 240, 255, 0.4) !important;
+  color: var(--cy-cyan) !important;
+  font-family: var(--ff-cyber) !important;
+  border-radius: 0 !important;
+}
+html[data-cyber="on"] .panel input.derived,
+html[data-cyber="on"] .panel input[readonly] {
+  background: rgba(0, 240, 255, 0.05) !important;
+  color: var(--cy-cyan-soft) !important;
+}
+
+/* Holographic intro animation when toggling on */
+html[data-cyber="on"] .panel.holo-in {
+  animation: cyHoloIn 800ms cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+}
+@keyframes cyHoloIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scaleY(0.6);
+    filter: brightness(2.5) blur(8px) hue-rotate(60deg);
+  }
+  40% {
+    opacity: 0.8;
+    filter: brightness(1.6) blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+    filter: none;
+  }
+}
+
+/* ── Buttons cyber (excludes .btn-lang and FABs which need to keep their absolute positioning) ── */
+html[data-cyber="on"] .btn-add,
+html[data-cyber="on"] .btn-refresh,
+html[data-cyber="on"] .btn-save-note,
+html[data-cyber="on"] .btn-mode,
+html[data-cyber="on"] .roll-all-btn,
+html[data-cyber="on"] .ini-next-btn,
+html[data-cyber="on"] .ini-reset-btn,
+html[data-cyber="on"] .btr-clear,
+html[data-cyber="on"] .concentration-check-btn,
+html[data-cyber="on"] button[onclick*="roll"],
+html[data-cyber="on"] button[onclick*="Roll"] {
+  font-family: var(--ff-cyber) !important;
+  font-weight: 600 !important;
+  background: linear-gradient(180deg, rgba(0, 240, 255, 0.10), rgba(0, 240, 255, 0.02)) !important;
+  color: var(--cy-cyan) !important;
+  border: 1px solid var(--cy-cyan) !important;
+  border-radius: 0 !important;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.15), inset 0 0 12px rgba(0, 240, 255, 0.05) !important;
+  transform: translate(var(--mx, 0px), var(--my, 0px));
+  transition: box-shadow 200ms ease, color 200ms ease, background 200ms ease;
+  position: relative;
+  overflow: hidden;
+}
+html[data-cyber="on"] .btn-add:hover,
+html[data-cyber="on"] .btn-refresh:hover,
+html[data-cyber="on"] .btn-save-note:hover,
+html[data-cyber="on"] .btn-mode:hover,
+html[data-cyber="on"] .roll-all-btn:hover,
+html[data-cyber="on"] .ini-next-btn:hover,
+html[data-cyber="on"] button[onclick*="roll"]:hover {
+  background: linear-gradient(180deg, rgba(0, 240, 255, 0.22), rgba(0, 240, 255, 0.06)) !important;
+  color: #fff !important;
+  box-shadow:
+    0 0 18px rgba(0, 240, 255, 0.55),
+    0 0 32px rgba(0, 240, 255, 0.25),
+    inset 0 0 16px rgba(0, 240, 255, 0.1) !important;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.8);
+}
+
+/* .btn-lang — preserves position:absolute; top:12px; right:16px from style.css */
+html[data-cyber="on"] .btn-lang {
+  background: rgba(0, 0, 0, 0.55) !important;
+  border: 1px solid var(--cy-cyan) !important;
+  color: var(--cy-cyan) !important;
+  border-radius: 0 !important;
+  font-family: var(--ff-cyber) !important;
+  letter-spacing: 0.15em;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.35), inset 0 0 8px rgba(0, 240, 255, 0.1);
+  text-shadow: 0 0 6px rgba(0, 240, 255, 0.6);
+  /* DO NOT set position/transform/clip-path — keep style.css layout intact */
+}
+html[data-cyber="on"] .btn-lang:hover,
+html[data-cyber="on"] .btn-lang:focus-visible {
+  background: var(--cy-cyan) !important;
+  color: #050810 !important;
+  text-shadow: none !important;
+  box-shadow: 0 0 18px var(--cy-cyan), 0 0 30px rgba(0, 240, 255, 0.5);
+}
+
+/* Magenta variants for "danger" / important actions */
+html[data-cyber="on"] .ini-reset-btn,
+html[data-cyber="on"] .btr-clear {
+  border-color: var(--cy-magenta) !important;
+  color: var(--cy-magenta) !important;
+  background: linear-gradient(180deg, rgba(255, 42, 147, 0.12), rgba(255, 42, 147, 0.03)) !important;
+}
+
+/* Ripple */
+html[data-cyber="on"] button .ripple {
+  position: absolute; border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0);
+  background: radial-gradient(circle, rgba(0,240,255,0.55) 0%, rgba(0,240,255,0) 70%);
+  animation: cyRipple 600ms ease-out forwards;
+}
+@keyframes cyRipple {
+  to { transform: translate(-50%, -50%) scale(20); opacity: 0; }
+}
+
+/* ── HP bar cyber + dynamic heartbeat ── */
+html[data-cyber="on"] .hp-bar {
+  background: rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid var(--cy-border) !important;
+  border-radius: 0 !important;
+  height: 22px !important;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  position: relative;
+  overflow: visible;
+  --hp-rate: 2s;
+  transition: --hp-rate 1.6s cubic-bezier(0.4, 0, 0.3, 1);
+}
+html[data-cyber="on"] .hp-bar-fill {
+  background: linear-gradient(90deg, var(--cy-magenta) 0%, #ff5edc 50%, var(--cy-cyan) 100%) !important;
+  box-shadow: 0 0 10px rgba(255, 42, 147, 0.6), inset 0 0 8px rgba(255,255,255,0.3) !important;
+  animation: cyHpHeartbeat var(--hp-rate, 2s) ease-in-out infinite;
+  position: relative;
+}
+html[data-cyber="on"] .hp-bar-fill::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    90deg, transparent 0px, transparent 6px, rgba(255,255,255,0.18) 6px, rgba(255,255,255,0.18) 7px
+  );
+  animation: cyHpStripes 1.5s linear infinite;
+}
+@keyframes cyHpHeartbeat {
+  /* Solo opacity → GPU composited, sin repaint */
+  0%, 60%, 100% { opacity: 0.92; }
+  10%           { opacity: 1; }
+  25%           { opacity: 0.96; }
+}
+@keyframes cyHpStripes { to { background-position: 14px 0; } }
+
+/* ECG line scrolling on top of HP bar */
+html[data-cyber="on"] .hp-bar::after {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='22' viewBox='0 0 200 22' preserveAspectRatio='none'><path d='M0,11 L20,11 L25,11 L28,4 L32,18 L36,8 L40,11 L70,11 L75,11 L78,4 L82,18 L86,8 L90,11 L120,11 L125,11 L128,4 L132,18 L136,8 L140,11 L170,11 L175,11 L178,4 L182,18 L186,8 L190,11 L200,11' fill='none' stroke='%2300f0ff' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-size: 200px 100%;
+  background-repeat: repeat-x;
+  opacity: 0.85;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  animation: cyEcgScroll var(--hp-rate, 2s) linear infinite;
+  filter: drop-shadow(0 0 4px #00f0ff);
+}
+@keyframes cyEcgScroll {
+  from { background-position: 0 0; }
+  to   { background-position: -200px 0; }
+}
+
+/* Dying state (HP <= 0 but not dead) */
+html[data-cyber="on"] .hp-bar.cy-dying::after {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='22' viewBox='0 0 200 22' preserveAspectRatio='none'><path d='M0,11 L80,11 L88,11 L92,8 L96,14 L100,11 L200,11' fill='none' stroke='%23ff2a93' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  filter: drop-shadow(0 0 5px #ff2a93);
+}
+html[data-cyber="on"] .hp-bar.cy-dying .hp-bar-fill {
+  animation: cyHpDying var(--hp-rate, 4s) ease-in-out infinite;
+  background: linear-gradient(90deg, #7a0010, #3a0008) !important;
+}
+@keyframes cyHpDying {
+  0%, 100% { opacity: 0.5; }
+  50%      { opacity: 0.9; }
+}
+
+/* Flatline state (HP <= -CON) */
+html[data-cyber="on"] .hp-bar.cy-flatline::after {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='22' viewBox='0 0 200 22' preserveAspectRatio='none'><path d='M0,11 L200,11' fill='none' stroke='%23ff2a93' stroke-width='1.2' stroke-linecap='round'/></svg>");
+  animation: none;
+  filter: drop-shadow(0 0 6px #ff2a93);
+}
+html[data-cyber="on"] .hp-bar.cy-flatline .hp-bar-fill {
+  animation: none !important;
+  filter: brightness(0.4) saturate(0.5);
+  background: linear-gradient(90deg, #3a0008, #7a0010) !important;
+}
+
+/* HP container labels */
+html[data-cyber="on"] .hp-container input,
+html[data-cyber="on"] .hp-temp-row input {
+  background: rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid var(--cy-cyan) !important;
+  color: var(--cy-cyan) !important;
+  font-family: var(--ff-cyber) !important;
+}
+
+/* ── Single die (free roll d20) — adapt visual to cyber ── */
+html[data-cyber="on"] .single-die {
+  background: linear-gradient(145deg, rgba(0,240,255,0.18) 0%, rgba(0,240,255,0.04) 60%, rgba(255,42,147,0.08) 100%),
+              rgba(8, 14, 26, 0.92) !important;
+  border: 2px solid var(--cy-cyan) !important;
+  color: var(--cy-cyan) !important;
+  text-shadow: 0 0 12px rgba(0,240,255,0.7), 0 0 22px rgba(0,240,255,0.5);
+  box-shadow:
+    inset 0 0 22px rgba(0,240,255,0.18),
+    0 0 18px rgba(0,240,255,0.4) !important;
+  font-family: var(--ff-cyber) !important;
+}
+html[data-cyber="on"] .single-die-number { color: var(--cy-cyan) !important; }
+html[data-cyber="on"] .single-die-type   { color: var(--cy-magenta) !important; font-family: var(--ff-cyber) !important; }
+html[data-cyber="on"] .single-die.cy-crit {
+  border-color: var(--cy-yellow) !important;
+  color: var(--cy-yellow) !important;
+  text-shadow: 0 0 14px var(--cy-yellow), 0 0 28px var(--cy-yellow) !important;
+  box-shadow: inset 0 0 24px rgba(248,239,2,0.2), 0 0 30px var(--cy-yellow) !important;
+}
+html[data-cyber="on"] .single-die.cy-fumble {
+  border-color: var(--cy-magenta) !important;
+  color: var(--cy-magenta) !important;
+  text-shadow: 0 0 14px var(--cy-magenta), 0 0 28px var(--cy-magenta) !important;
+  box-shadow: inset 0 0 24px rgba(255,42,147,0.2), 0 0 30px var(--cy-magenta) !important;
+}
+
+/* ── HP dice (per-level d-faces) — cyber treatment ── */
+html[data-cyber="on"] .die-hp {
+  background: linear-gradient(145deg, rgba(0,240,255,0.18) 0%, rgba(0,240,255,0.04) 60%, rgba(255,42,147,0.10) 100%),
+              rgba(8, 14, 26, 0.92) !important;
+  border: 1.5px solid var(--cy-cyan) !important;
+  color: var(--cy-cyan) !important;
+  font-family: var(--ff-cyber) !important;
+  text-shadow: 0 0 8px rgba(0,240,255,0.7);
+  box-shadow:
+    inset 0 0 14px rgba(0,240,255,0.18),
+    0 0 12px rgba(0,240,255,0.4) !important;
+}
+html[data-cyber="on"] .die-hp .die-hp-number,
+html[data-cyber="on"] .die-hp .die-hp-type { color: var(--cy-cyan) !important; }
+html[data-cyber="on"] .die-hp:hover {
+  border-color: var(--cy-magenta) !important;
+  box-shadow:
+    inset 0 0 18px rgba(255,42,147,0.2),
+    0 0 18px var(--cy-magenta) !important;
+}
+html[data-cyber="on"] .die-hp.rolling {
+  animation-duration: 0.55s;
+}
+
+/* HP-die result input field */
+html[data-cyber="on"] .die-hp-result {
+  background: rgba(0,0,0,0.5) !important;
+  color: var(--cy-cyan) !important;
+  border: 1px solid var(--cy-cyan) !important;
+  font-family: var(--ff-cyber) !important;
+}
+
+/* Sparks tinting */
+html[data-cyber="on"] .die-spark {
+  background: var(--cy-cyan) !important;
+  box-shadow: 0 0 8px var(--cy-cyan), 0 0 14px rgba(0,240,255,0.6) !important;
+}
+
+/* 3D cube (if rendered) */
+html[data-cyber="on"] .die-cube-face {
+  background:
+    linear-gradient(145deg, rgba(0,240,255,0.25) 0%, rgba(0,240,255,0.05) 60%, rgba(255,42,147,0.15) 100%),
+    rgba(8, 14, 26, 0.9) !important;
+  border: 1px solid var(--cy-cyan) !important;
+  box-shadow: inset 0 0 14px rgba(0,240,255,0.18) !important;
+}
+html[data-cyber="on"] .die-cube-face::before,
+html[data-cyber="on"] .die-cube-face::after {
+  color: var(--cy-magenta) !important;
+  opacity: 0.7;
+}
+html[data-cyber="on"] .die-cube-label {
+  color: var(--cy-cyan) !important;
+  text-shadow: 0 0 8px rgba(0,240,255,0.8);
+  font-family: var(--ff-cyber) !important;
+}
+
+/* ── Critical hit screen shake ── */
+.cy-shake-screen { animation: cyShake 360ms cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+@keyframes cyShake {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-6px, -4px); }
+  20% { transform: translate(7px, 3px); }
+  30% { transform: translate(-8px, 5px); }
+  40% { transform: translate(6px, -6px); }
+  50% { transform: translate(-5px, 4px); }
+  60% { transform: translate(7px, -3px); }
+  70% { transform: translate(-4px, 5px); }
+  80% { transform: translate(5px, -2px); }
+  90% { transform: translate(-3px, 3px); }
+}
+
+/* FX overlay for confetti, cursor trail, banners */
+#cy-fx-overlay {
+  position: fixed; inset: 0; pointer-events: none; z-index: 9500; overflow: hidden;
+}
+.cy-confetti-piece {
+  position: absolute;
+  width: 8px; height: 14px;
+  top: 50%; left: 50%;
+  pointer-events: none;
+  opacity: 0;
+  animation: cyConfettiBurst 1600ms cubic-bezier(0.2, 0.6, 0.3, 1) forwards;
+}
+@keyframes cyConfettiBurst {
+  0%   { opacity: 1; transform: translate(-50%,-50%) rotate(var(--rot,0deg)); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(calc(var(--rot,0deg) + 720deg)); }
+}
+
+.cy-cursor-dot {
+  position: fixed;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9700;
+  background: radial-gradient(circle, var(--cy-cyan), transparent 70%);
+  mix-blend-mode: screen;
+  animation: cyTrailFade 700ms linear forwards;
+  transform: translate(-50%, -50%);
+}
+@keyframes cyTrailFade {
+  0%   { opacity: 0.9; transform: translate(-50%,-50%) scale(1); }
+  100% { opacity: 0;   transform: translate(-50%,-50%) scale(0.2); }
+}
+html:not([data-cyber="on"]) .cy-cursor-dot { display: none; }
+
+/* Crit / fumble banner */
+.cy-crit-banner {
+  position: fixed;
+  top: 38%; left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  font-family: var(--ff-cyber);
+  font-size: 64px;
+  font-weight: 900;
+  letter-spacing: 8px;
+  z-index: 9800;
+  pointer-events: none;
+  opacity: 0;
+  text-shadow: 0 0 30px currentColor;
+}
+.cy-crit-banner.crit-nat20 { color: var(--cy-cyan); animation: cyCritBanner 1400ms cubic-bezier(0.2, 0.8, 0.3, 1) forwards; }
+.cy-crit-banner.crit-fumble{ color: var(--cy-magenta); animation: cyCritBanner 1400ms cubic-bezier(0.2, 0.8, 0.3, 1) forwards; }
+@keyframes cyCritBanner {
+  0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.3); filter: blur(20px); }
+  20%  { opacity: 1; transform: translate(-50%,-50%) scale(1.15); filter: blur(0); }
+  60%  { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%,-50%) scale(1.4); filter: blur(8px); }
+}
+
+/* Theme menu cyber styling */
+html[data-cyber="on"] .theme-menu {
+  background: rgba(8, 14, 26, 0.92) !important;
+  border: 1px solid var(--cy-cyan) !important;
+  border-radius: 0 !important;
+  box-shadow: 0 0 24px rgba(0,240,255,0.3) !important;
+  color: var(--cy-text) !important;
+}
+html[data-cyber="on"] .theme-menu-title { color: var(--cy-cyan) !important; font-family: var(--ff-cyber) !important; }
+html[data-cyber="on"] .theme-option { color: var(--cy-text) !important; }
+html[data-cyber="on"] .theme-option:hover { background: rgba(0,240,255,0.08) !important; }
+html[data-cyber="on"] .theme-option[aria-checked="true"] { background: rgba(0,240,255,0.15) !important; color: var(--cy-cyan) !important; }
+
+/* The cyber toggle row inside theme menu */
+.theme-menu-cyber-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-top: 8px;
+  border-top: 1px dashed currentColor;
+  font-family: var(--ff-cyber);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+}
+.theme-menu-cyber-row .label { display: flex; align-items: center; gap: 8px; }
+.theme-menu-cyber-row .switch {
+  width: 36px; height: 18px; border-radius: 999px;
+  background: rgba(0,0,0,0.2); position: relative; transition: background 250ms ease;
+  flex-shrink: 0;
+}
+.theme-menu-cyber-row .switch::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: currentColor;
+  transition: all 250ms cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+.theme-menu-cyber-row[data-cyber-active="true"] .switch { background: rgba(0,240,255,0.25); box-shadow: inset 0 0 8px rgba(0,240,255,0.3); }
+.theme-menu-cyber-row[data-cyber-active="true"] .switch::after { left: 20px; background: var(--cy-cyan); box-shadow: 0 0 10px var(--cy-cyan); }
+
+/* Reduce motion respect */
+@media (prefers-reduced-motion: reduce) {
+  html[data-cyber="on"] body::before,
+  html[data-cyber="on"] body::after,
+  html[data-cyber="on"] .hp-bar-fill,
+  html[data-cyber="on"] .hp-bar::after { animation: none !important; }
+}
+
+/* ============================================================
+   SOUND TOGGLE FAB · visible SÓLO en modo cyberpunk
+   ============================================================ */
+.cy-sound-fab {
+  position: fixed;
+  right: 78px;
+  bottom: 18px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.18);
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), transparent 60%),
+    linear-gradient(135deg, #2a1f12 0%, #1a1208 100%);
+  color: #c8a060;
+  font-size: 20px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+  z-index: 10000;
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  padding: 0;
+}
+
+/* Mostrar solo en modo cyberpunk */
+html[data-cyber="on"] .cy-sound-fab {
+  display: flex;
+  border-color: rgba(0,240,255,0.5);
+  background:
+    radial-gradient(circle at 30% 30%, rgba(0,240,255,0.18), transparent 60%),
+    linear-gradient(135deg, #0a1422 0%, #050810 100%);
+  color: #00f0ff;
+  box-shadow: 0 0 16px rgba(0,240,255,0.4), inset 0 0 6px rgba(0,240,255,0.2);
+}
+
+.cy-sound-fab:hover { transform: scale(1.06); box-shadow: 0 6px 20px rgba(0,0,0,0.6); }
+.cy-sound-fab:active { transform: scale(0.96); }
+.cy-sound-fab:focus-visible { outline: 2px solid #c8a060; outline-offset: 3px; }
+.cy-sound-fab[aria-pressed="false"] {
+  color: #6b5a48;
+  filter: grayscale(0.4);
+}
+.cy-sound-fab[aria-pressed="false"]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  background: 
+    linear-gradient(45deg, transparent 48%, #ff2a93 48%, #ff2a93 52%, transparent 52%),
+    linear-gradient(-45deg, transparent 48%, #ff2a93 48%, #ff2a93 52%, transparent 52%);
+  filter: drop-shadow(0 0 4px rgba(255,42,147,0.6));
+}
+
+html[data-cyber="on"] .cy-sound-fab[aria-pressed="false"] {
+  color: #4a6878;
+  border-color: rgba(255,42,147,0.4);
+  box-shadow: 0 0 12px rgba(255,42,147,0.3);
+}
+@media print { .cy-sound-fab { display: none !important; } }

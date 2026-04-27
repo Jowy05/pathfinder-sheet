@@ -1,0 +1,1208 @@
+{
+  "_schema": "Cada arquetipo actúa como diff sobre su clase base. Solo incluye campos que CAMBIAN respecto a classes.json. Campos ausentes = usar valor de la clase base. class_skills_add/remove para cambios parciales, class_skills para reemplazo completo.",
+
+  "invulnerable_rager": {
+    "class": "barbarian",
+    "name": "Invulnerable Rager",
+    "name_es": "Rabioso Invulnerable",
+    "source": "Advanced Player's Guide",
+    "description_es": "Sustituye esquiva sobrenatural y RD por Resistencia Invulnerable (RD/— igual a la mitad del nivel) y resistencia a un entorno natural. Énfasis en absorber daño directo.",
+    "features_removed": ["Uncanny Dodge", "Improved Uncanny Dodge", "Damage Reduction", "Trap Sense"],
+    "features_gained": [
+      { "name": "Invulnerability", "description_es": "RD/— igual a la mitad del nivel del bárbaro. Mitad de esta RD aplica contra ataques mágicos." },
+      { "name": "Extreme Endurance", "description_es": "Resistencia a un tipo de entorno: calor, frío, electricidad o fuego. Escala con el nivel." }
+    ]
+  },
+
+  "titan_mauler": {
+    "class": "barbarian",
+    "name": "Titan Mauler",
+    "name_es": "Machacador Titán",
+    "source": "Ultimate Combat",
+    "description_es": "Puede blandir armas diseñadas para criaturas de una categoría mayor con penalizador reducido. Sus poderes de furia incluyen capacidades para armas gigantescas.",
+    "features_removed": ["Rage Powers (2nd, 6th, 10th, 14th, 18th)"],
+    "features_gained": [
+      { "name": "Big Game Hunter", "description_es": "+1 a daño cuerpo a cuerpo contra criaturas de mayor tamaño." },
+      { "name": "Massive Weapons", "description_es": "Penalizador reducido por usar armas de una categoría mayor. A nivel 3 puede usarlas sin penalizador de ataque." },
+      { "name": "Titanic Rage", "description_es": "En furia puede aumentar su tamaño una categoría (como Agrandar Persona)." }
+    ]
+  },
+
+  "archaeologist": {
+    "class": "bard",
+    "name": "Archaeologist",
+    "name_es": "Arqueólogo",
+    "source": "Ultimate Combat",
+    "class_skills_add": ["disable_device"],
+    "description_es": "Cambia las actuaciones musicales por suerte personal (Archaeologist's Luck, +1 escalable a ataque/daño/salvaciones/habilidades). Más explorador solitario que apoyo de grupo.",
+    "features_removed": ["Bardic Performance", "Versatile Performance", "Well-Versed"],
+    "features_gained": [
+      { "name": "Archaeologist's Luck (Ex)", "description_es": "Rondas por día igual a 4 + mod CARs. Otorga bonificación de suerte +1 (escala a +4 a nivel 19) a tiradas de ataque, daño, salvaciones y habilidades." },
+      { "name": "Trap Sense (Ex)", "description_es": "Bonificación de +1 por cada 3 niveles a CA y salvaciones contra trampas." },
+      { "name": "Rogue Talent", "description_es": "Gana talentos de pícaro en lugar de actuaciones adicionales." },
+      { "name": "Uncanny Dodge / Evasion", "description_es": "Obtiene esquiva sobrenatural a nivel 2 y Evasión a nivel 6." }
+    ]
+  },
+
+  "court_bard": {
+    "class": "bard",
+    "name": "Court Bard",
+    "name_es": "Bardo Cortesano",
+    "source": "Advanced Player's Guide",
+    "description_es": "Cambia actuaciones inspiradoras por ridículo social y sátira que imponen penalizadores a enemigos en lugar de bonificar aliados. Maestro de la intriga cortesana.",
+    "features_removed": ["Inspire Courage", "Inspire Competence", "Dirge of Doom", "Frightening Tune", "Bardic Knowledge", "Lore Master", "Jack of All Trades"],
+    "features_gained": [
+      { "name": "Satire (Su)", "description_es": "Penalizador –1 (escala a –4) a tiradas de ataque, salvaciones y verificaciones de habilidad de todos los enemigos que puedan oír." },
+      { "name": "Mockery (Su)", "description_es": "Penalizador de moral –2 al atributo de un objetivo individual." },
+      { "name": "Scandal (Su)", "description_es": "Penalizador a verificaciones de Carisma de un objetivo durante 24 horas." },
+      { "name": "Heraldic Expertise", "description_es": "+2 a verificaciones de Conocimiento (historia, nobleza, local) y Diplomacia." }
+    ]
+  },
+
+  "crusader": {
+    "class": "cleric",
+    "name": "Crusader",
+    "name_es": "Cruzado",
+    "source": "Ultimate Combat",
+    "description_es": "Intercambia canalización de energía y parte de la magia por dones de combate adicionales y capacidad de compartir efectos de conjuro con múltiples aliados.",
+    "features_removed": ["Channel Energy", "Bonus Domain Feats"],
+    "features_gained": [
+      { "name": "Bonus Feats", "description_es": "Gana dones de combate adicionales a niveles 1, 3, 5, 7... en lugar de los dones de dominio estándar." },
+      { "name": "Legion's Blessing (Su)", "description_es": "Puede lanzar conjuros de toque beneficiosos sobre múltiples aliados con una acción de asalto completo." }
+    ]
+  },
+
+  "ecclesitheurge": {
+    "class": "cleric",
+    "name": "Ecclesitheurge",
+    "name_es": "Eclesiteurgo",
+    "source": "Advanced Class Guide",
+    "description_es": "Renuncia a toda armadura por maestría divina ampliada: dominio secundario intercambiable diariamente y símbolo sagrado vinculado que potencia conjuros.",
+    "features_removed": ["Armor Proficiency (light, medium, heavy)", "Shield Proficiency"],
+    "features_gained": [
+      { "name": "Powerful Domain (Su)", "description_es": "Dominio primario otorga un uso adicional de poderes de dominio por día." },
+      { "name": "Bonded Holy Symbol (Su)", "description_es": "Su símbolo sagrado actúa como objeto vinculado que puede aumentar el DC de sus conjuros o recuperar un conjuro por día." },
+      { "name": "Wandering Domain", "description_es": "A nivel 4 puede cambiar su dominio secundario diariamente al preparar conjuros." }
+    ]
+  },
+
+  "blight_druid": {
+    "class": "druid",
+    "name": "Blight Druid",
+    "name_es": "Druida de la Plaga",
+    "source": "Advanced Player's Guide",
+    "class_skills_add": ["intimidate"],
+    "class_skills_remove": ["ride"],
+    "description_es": "Druida de la corrupción. Empatía con alimañas (vermin) en lugar de animales, inmunidad a enfermedades y poder para difundir plagas. Acompañante de criatura plaga o corrupta.",
+    "features_removed": ["Animal Companion", "Wild Empathy", "Trackless Step", "Resist Nature's Lure", "Venom Immunity", "A Thousand Faces"],
+    "features_gained": [
+      { "name": "Vermin Empathy (Ex)", "description_es": "Funciona como Wild Empathy pero con insectos, arañas y otras alimañas." },
+      { "name": "Miasma (Su)", "description_es": "Aura de enfermedad con alcance escalable. Criaturas que fallen contra ella contraen una enfermedad." },
+      { "name": "Plagued (Ex)", "description_es": "Inmunidad a enfermedades. Puede transmitir enfermedades mediante el toque." }
+    ]
+  },
+
+  "urban_druid": {
+    "class": "druid",
+    "name": "Urban Druid",
+    "name_es": "Druida Urbano",
+    "source": "Advanced Player's Guide",
+    "class_skills_add": ["disable_device", "knowledge_local", "stealth"],
+    "class_skills_remove": ["survival", "ride", "knowledge_nature"],
+    "description_es": "Druida de ciudades y civilización. Terrenos favorecidos urbanos, detección de trampas, lista de conjuros con magia social. Sin forma animal, con forma urbana alternativa.",
+    "features_removed": ["Spontaneous Casting (Summon Nature's Ally)", "Animal Companion", "Woodland Stride", "Trackless Step", "Resist Nature's Lure", "Venom Immunity"],
+    "features_gained": [
+      { "name": "Spontaneous Casting", "description_es": "Lanza conjuros de encantamiento espontáneamente en lugar de Llamar a la Naturaleza." },
+      { "name": "Mental Strength (Ex)", "description_es": "Bonificación de +2 a salvaciones contra encantamientos y efectos de miedo." },
+      { "name": "Lorekeeper (Ex)", "description_es": "Puede usar Conocimiento (local) como habilidad de clase para identificar monstruos humanoides." }
+    ]
+  },
+
+  "two_handed_fighter": {
+    "class": "fighter",
+    "name": "Two-Handed Fighter",
+    "name_es": "Guerrero a Dos Manos",
+    "source": "Advanced Player's Guide",
+    "description_es": "Especialista en armas a dos manos. Shattering Strike destruye armaduras, Backswing añade doble bonificador de FUE al daño en el 2º ataque. Sin entrenamiento en armadura.",
+    "features_removed": ["Bravery", "Armor Training (1st–4th)", "Armor Mastery"],
+    "features_gained": [
+      { "name": "Shattering Strike (Ex)", "description_es": "+1 por cada 4 niveles a tiradas de ataque y daño para destrozar (sunder) objetos." },
+      { "name": "Backswing (Ex)", "description_es": "En el 2º ataque de asalto completo añade doble bonificador de FUE al daño." },
+      { "name": "Piledriver (Ex)", "description_es": "Puede hacer empuje o derribo como maniobra libre después de un golpe." },
+      { "name": "Overhand Chop (Ex)", "description_es": "Con ataques estándar (no asalto completo) añade doble bonificador de FUE al daño." }
+    ]
+  },
+
+  "two_weapon_warrior": {
+    "class": "fighter",
+    "name": "Two-Weapon Warrior",
+    "name_es": "Guerrero de Dos Armas",
+    "source": "Advanced Player's Guide",
+    "description_es": "Especialista en lucha con dos armas. Ataques con ambas armas como acción estándar, ataques de oportunidad simultáneos y bonificaciones escalables a dos armas.",
+    "features_removed": ["Armor Training 1", "Armor Training 2", "Weapon Training 1–4", "Armor Mastery"],
+    "features_gained": [
+      { "name": "Doublestrike (Ex)", "description_es": "Como acción estándar puede atacar una vez con cada arma." },
+      { "name": "Improved Balance (Ex)", "description_es": "Reduce penalizador de ataque con arma secundaria en –1 adicional." },
+      { "name": "Equal Opportunity (Ex)", "description_es": "Cuando hace un ataque de oportunidad, puede atacar con ambas armas." },
+      { "name": "Deft Doublestrike (Ex)", "description_es": "Cuando golpea al mismo objetivo con ambas armas en el mismo turno puede intentar desarmar o aturdir sin acción adicional." }
+    ]
+  },
+
+  "qinggong_monk": {
+    "class": "monk",
+    "name": "Qinggong Monk",
+    "name_es": "Monje Qinggong",
+    "source": "Ultimate Magic",
+    "description_es": "Reemplaza habilidades estándar del monje por poderes ki personalizables elegidos de una lista. Máxima flexibilidad táctica para adaptar el monje a cualquier concepto.",
+    "features_removed": ["Slow Fall", "High Jump", "Wholeness of Body", "Diamond Body", "Abundant Step", "Diamond Soul", "Quivering Palm", "Timeless Body", "Tongue of Sun and Moon", "Empty Body", "Perfect Self"],
+    "features_gained": [
+      { "name": "Ki Powers (Su/Sp)", "description_es": "Cada habilidad eliminada se reemplaza por un poder ki elegido de la lista de qinggong según el nivel requerido. Incluye conjuros como habilidades, poderes defensivos y ofensivos." }
+    ]
+  },
+
+  "master_of_many_styles": {
+    "class": "monk",
+    "name": "Master of Many Styles",
+    "name_es": "Maestro de Múltiples Estilos",
+    "source": "Ultimate Combat",
+    "description_es": "Puede adoptar múltiples posturas de estilo marcial simultáneamente. A nivel 6 inicia dos estilos a la vez; a nivel alto combina hasta cinco estilos activos.",
+    "features_removed": ["Bonus Feats (standard selection)", "Flurry of Blows", "Perfect Self"],
+    "features_gained": [
+      { "name": "Fuse Style (Ex)", "description_es": "Puede estar en dos estilos marciales simultáneamente. Los beneficios de ambos estilos se aplican a la vez." },
+      { "name": "Maneuver Training (modified)", "description_es": "Bonus feats deben ser dones de estilo marcial o sus prerrequisitos." }
+    ]
+  },
+
+  "holy_gun": {
+    "class": "paladin",
+    "name": "Holy Gun",
+    "name_es": "Pistola Sagrada",
+    "source": "Ultimate Combat",
+    "description_es": "Sustituye Smite Evil cuerpo a cuerpo por Smite Evil con armas de fuego a distancia. Divine Bond mejora el arma de fuego en lugar de la montura o espada.",
+    "features_removed": ["Detect Evil", "Smite Evil (melee)", "Divine Bond (weapon/mount)"],
+    "features_gained": [
+      { "name": "Smite Evil (ranged)", "description_es": "Smite Evil funciona con ataques de arma de fuego. +CARs a ataque, +nivel a daño contra el objetivo." },
+      { "name": "Divine Bond (firearm)", "description_es": "Mejora el arma de fuego con propiedades sagradas en lugar de montura o espada." },
+      { "name": "Holy Grit", "description_es": "Usa Carisma para recuperar grit (si multiclase con pistolero) en lugar de Sabiduría." }
+    ]
+  },
+
+  "sacred_servant": {
+    "class": "paladin",
+    "name": "Sacred Servant",
+    "name_es": "Siervo Sagrado",
+    "source": "Advanced Player's Guide",
+    "description_es": "Obtiene acceso a un dominio de su deidad y puede convocar aliados celestiales. Divine Bond llama criaturas sagradas en lugar de mejorar armas.",
+    "features_removed": [],
+    "features_gained": [
+      { "name": "Domain", "description_es": "Obtiene un dominio de su deidad con sus poderes otorgados (como clérigo de mitad de nivel)." },
+      { "name": "Divine Bond (celestial ally)", "description_es": "Convoca archon, ángel u otra criatura sagrada como aliado temporal en lugar de potenciar un arma." }
+    ]
+  },
+
+  "urban_ranger": {
+    "class": "ranger",
+    "name": "Urban Ranger",
+    "name_es": "Explorador Urbano",
+    "source": "Advanced Player's Guide",
+    "class_skills_add": ["disable_device", "knowledge_local"],
+    "class_skills_remove": ["handle_animal", "knowledge_nature"],
+    "description_es": "Versión urbana del explorador. Terreno favorecido solo urbano/subterráneo, detección de trampas, habilidades de sigilo en ciudades.",
+    "features_removed": ["Handle Animal (class skill)", "Knowledge (Nature) (class skill)", "Endurance", "Woodland Stride", "Camouflage", "Hide in Plain Sight (wilderness)"],
+    "features_gained": [
+      { "name": "Disable Device (class skill)", "description_es": "Añade Desactivar Artefacto a habilidades de clase." },
+      { "name": "Trapfinding", "description_es": "Gana Trapfinding como el pícaro a nivel 3." },
+      { "name": "Blend In", "description_es": "Puede usar Sigilo en áreas concurridas (sustituye Hide in Plain Sight pero solo en ciudades)." }
+    ]
+  },
+
+  "beast_master": {
+    "class": "ranger",
+    "name": "Beast Master",
+    "name_es": "Amo de Bestias",
+    "source": "Advanced Player's Guide",
+    "description_es": "Puede tener múltiples compañeros animales, repartiendo niveles de explorador entre ellos. Sacrifica el vínculo con el grupo por tener una manada propia.",
+    "features_removed": ["Hunter's Bond (party)"],
+    "features_gained": [
+      { "name": "Animal Companions (multiple)", "description_es": "A nivel 4 puede tener un segundo compañero animal. Los niveles de explorador se reparten entre todos los compañeros activos." }
+    ]
+  },
+
+  "knife_master": {
+    "class": "rogue",
+    "name": "Knife Master",
+    "name_es": "Maestro del Cuchillo",
+    "source": "Ultimate Combat",
+    "description_es": "Ataque furtivo con dagas y armas similares usa d8 en lugar de d6. Blade Sense: bonificación de esquiva escalable a la CA contra armas cortantes.",
+    "features_removed": ["Trapfinding", "Trap Sense"],
+    "features_gained": [
+      { "name": "Hidden Blade", "description_es": "+1 a verificaciones de Prestidigitación para ocultar dagas y navajas. Gana Conceal Spell-Like Ability como don adicional." },
+      { "name": "Sneak Stab (Ex)", "description_es": "Ataque furtivo con dagas/navajas/armas similares usa d8 en lugar de d6; con cualquier otra arma usa d4." },
+      { "name": "Blade Sense (Ex)", "description_es": "+1 de esquiva a la CA por cada 3 niveles de pícaro contra ataques de armas cortantes." }
+    ]
+  },
+
+  "scout": {
+    "class": "rogue",
+    "name": "Scout",
+    "name_es": "Explorador",
+    "source": "Advanced Player's Guide",
+    "description_es": "Puede aplicar ataque furtivo en carga si se ha movido 10+ pies. A nivel 8, cualquier round donde se mueva 10+ pies aplica ataque furtivo.",
+    "features_removed": ["Trapfinding", "Trap Sense"],
+    "features_gained": [
+      { "name": "Scout's Charge (Ex)", "description_es": "Siempre que el explorador carga, aplica ataque furtivo como si el objetivo estuviera flanqueado, si se ha movido al menos 10 pies antes de atacar." },
+      { "name": "Skirmisher (Ex)", "description_es": "A nivel 8, cualquier round en que se mueva más de 10 pies aplica ataque furtivo en su primer ataque." }
+    ]
+  },
+
+  "crossblooded": {
+    "class": "sorcerer",
+    "name": "Crossblooded",
+    "name_es": "Sangre Mezclada",
+    "source": "Ultimate Magic",
+    "saves": { "fort": "bad", "ref": "bad", "will": "bad" },
+    "description_es": "Selecciona dos linajes distintos y obtiene poderes/dones de ambos, pero con un conjuro conocido menos por nivel y penalizador –2 a Voluntad. Gran versatilidad a alto coste.",
+    "features_removed": ["1 Spell Known per level"],
+    "features_gained": [
+      { "name": "Two Bloodlines", "description_es": "Selecciona poderes de linaje, dones de linaje y arcanas de dos linajes distintos de forma alternada por nivel." }
+    ]
+  },
+
+  "wildblooded": {
+    "class": "sorcerer",
+    "name": "Wildblooded",
+    "name_es": "Sangre Salvaje",
+    "source": "Ultimate Magic",
+    "description_es": "Aplica una variante mutada a un linaje existente, modificando la arcana y ciertos poderes de linaje. Ej: variante Sage usa INT en lugar de CARs.",
+    "features_removed": [],
+    "features_gained": [
+      { "name": "Bloodline Mutation", "description_es": "La arcana de linaje y uno o más poderes de linaje son reemplazados por versiones mutadas que cambian el funcionamiento fundamental del linaje." }
+    ]
+  },
+
+  "exploiter_wizard": {
+    "class": "wizard",
+    "name": "Exploiter Wizard",
+    "name_es": "Mago Explotador",
+    "source": "Advanced Class Guide",
+    "description_es": "Cambia el vínculo arcano y la escuela arcana por la reserva arcana y las explotaciones del Arcanista. Niveles de mago determinan los puntos de reserva.",
+    "features_removed": ["Arcane Bond", "Arcane School"],
+    "features_gained": [
+      { "name": "Arcane Reservoir", "description_es": "Reserva arcana como el Arcanista (3 + la mitad del nivel). Puede gastar puntos para mejorar conjuros." },
+      { "name": "Arcanist Exploit", "description_es": "Obtiene explotaciones de arcanista a nivel 1 y cada 4 niveles. Nivel efectivo = nivel de mago." }
+    ]
+  },
+
+  "spellslinger": {
+    "class": "wizard",
+    "name": "Spellslinger",
+    "name_es": "Pistolero Arcano",
+    "source": "Ultimate Combat",
+    "description_es": "Canaliza conjuros a través de un arma de fuego arcana como ataques de toque a distancia. Sin trucos ni herramientas tradicionales del mago.",
+    "features_removed": ["Arcane Bond", "Scribe Scroll", "Cantrips", "Arcane School"],
+    "features_gained": [
+      { "name": "Arcane Gun (Su)", "description_es": "Arma de fuego especial que puede canalizar conjuros de toque como ataques de toque a distancia. El alcance del conjuro pasa a ser el del arma." },
+      { "name": "Mage Bullets (Su)", "description_es": "Puede usar componentes de conjuro para crear munición mágica especial." }
+    ]
+  },
+
+  "vivisectionist": {
+    "class": "alchemist",
+    "name": "Vivisectionist",
+    "name_es": "Viviseccionista",
+    "source": "Ultimate Magic",
+    "description_es": "Reemplaza bombas por ataque furtivo con progresión de pícaro. Accede a talentos de pícaro como descubrimientos. Combate cuerpo a cuerpo con pociones.",
+    "features_removed": ["Bomb"],
+    "features_gained": [
+      { "name": "Sneak Attack", "description_es": "Ataque furtivo que progresa como pícaro (1d6 a nivel 1, +1d6 cada 2 niveles)." },
+      { "name": "Rogue Talents", "description_es": "Puede seleccionar talentos de pícaro como descubrimientos adicionales de alquimista." }
+    ]
+  },
+
+  "grenadier": {
+    "class": "alchemist",
+    "name": "Grenadier",
+    "name_es": "Granadero",
+    "source": "Pathfinder Society Field Guide",
+    "description_es": "Sacrifica el dominio del veneno por lanzamiento de bombas mejorado, infusión de arma alquímica y explosiones dirigidas.",
+    "features_removed": ["Brew Potion", "Poison Resistance", "Poison Use", "Swift Poisoning", "Poison Immunity"],
+    "features_gained": [
+      { "name": "Martial Weapon Proficiency", "description_es": "Gana competencia con todas las armas marciales." },
+      { "name": "Alchemical Weapon (Su)", "description_es": "Como acción rápida infunde un arma con un extracto de alquimista, añadiendo sus efectos al próximo golpe." },
+      { "name": "Directed Blast (Su)", "description_es": "Puede detonar una bomba para que afecte un cono de 6 m en lugar de área de explosión estándar." }
+    ]
+  },
+
+  "beast_rider": {
+    "class": "cavalier",
+    "name": "Beast Rider",
+    "name_es": "Jinete de Bestias",
+    "source": "Ultimate Combat",
+    "description_es": "Puede montar criaturas exóticas (osos, dinosaurios, tiburones...) en lugar del caballo estándar, con el entrenamiento adecuado.",
+    "features_removed": ["Expert Trainer", "Horse Mastery"],
+    "features_gained": [
+      { "name": "Exotic Mount", "description_es": "Puede seleccionar criaturas exóticas como montura. La lista varía por tamaño del caballero y nivel." }
+    ]
+  },
+
+  "standard_bearer": {
+    "class": "cavalier",
+    "name": "Standard Bearer",
+    "name_es": "Portaestandarte",
+    "source": "Advanced Player's Guide",
+    "description_es": "Su enseña otorga mayores bonificaciones morales a aliados. El estandarte puede inspirar cargas, valentía y devoción. Rol de líder de campo de batalla.",
+    "features_removed": ["Charge Bonus (standard)"],
+    "features_gained": [
+      { "name": "Banner (enhanced)", "description_es": "El estandarte otorga +2 moral a salvaciones contra miedo y +1 moral a ataques en carga (en lugar de +1/+0). Escala más rápido." },
+      { "name": "Inspire Courage", "description_es": "Puede usar su estandarte para otorgar bonificación de actuación a aliados cercanos, como bardo de la mitad de su nivel." }
+    ]
+  },
+
+  "pistolero": {
+    "class": "gunslinger",
+    "name": "Pistolero",
+    "name_es": "Pistolero",
+    "source": "Ultimate Combat",
+    "description_es": "Especializado exclusivamente en pistolas. Puede ocultarlas y usarlas en cuerpo a cuerpo sin provocar ataques de oportunidad. Daño mejorado a corta distancia.",
+    "features_removed": ["Gunsmith (rifle/musket training)", "Up Close and Deadly"],
+    "features_gained": [
+      { "name": "Pistol Training (Ex)", "description_es": "Gun Training solo aplica a pistolas. Puede añadir mod DES al daño de pistola a cualquier alcance." },
+      { "name": "Up Close and Deadly (Ex)", "description_es": "Gasta 1 Grit para añadir daño adicional en ataques con pistola a bocajarro (distancia cuerpo a cuerpo)." }
+    ]
+  },
+
+  "mysterious_stranger": {
+    "class": "gunslinger",
+    "name": "Mysterious Stranger",
+    "name_es": "Forastero Misterioso",
+    "source": "Ultimate Combat",
+    "description_es": "Usa Carisma en lugar de Sabiduría para Grit y sus hazañas. A nivel 11 añade CARs al daño de pistola. El pistolero dramático y carismático.",
+    "features_removed": ["Gun Training (standard)"],
+    "features_gained": [
+      { "name": "Grit (CHA-based)", "description_es": "Reserva de Grit basada en Carisma en lugar de Sabiduría." },
+      { "name": "Luck of the Devil (Ex)", "description_es": "Puede gastar 1 Grit para añadir CARs a cualquier tirada de salvación." },
+      { "name": "Focused Aim (Ex)", "description_es": "A nivel 11, puede gastar 1 Grit para añadir CARs al daño de todas las pistolas ese turno." }
+    ]
+  },
+
+  "sanctified_slayer": {
+    "class": "inquisitor",
+    "name": "Sanctified Slayer",
+    "name_es": "Matador Santificado",
+    "source": "Advanced Class Guide",
+    "description_es": "Combina mecánicas del Matador con el Inquisidor. Objetivo Estudiado y talentos de matador en lugar de tácticas de grupo. Asesino solitario y preciso.",
+    "features_removed": ["Stern Gaze", "Cunning Initiative", "Solo Tactics", "Teamwork Feats"],
+    "features_gained": [
+      { "name": "Studied Target (Ex)", "description_es": "Como el Matador: bonificador escalonado a ataque, daño y habilidades contra un objetivo estudiado con acción de movimiento." },
+      { "name": "Slayer Talents", "description_es": "Obtiene talentos de matador a niveles 4, 8, 12, 16, 20 en lugar de dones de trabajo en equipo." }
+    ]
+  },
+
+  "spellbreaker": {
+    "class": "inquisitor",
+    "name": "Spellbreaker",
+    "name_es": "Rompeconjuros",
+    "source": "Advanced Player's Guide",
+    "description_es": "Especializado en destruir lanzadores de conjuros. Bonificaciones contra magia activa, Disruptive mejorado y capacidad de negar conjuros específicos.",
+    "features_removed": ["Judgment 2nd", "Judgment 8th", "Judgment 16th", "Solo Tactics", "Teamwork Feats"],
+    "features_gained": [
+      { "name": "Foil Casting (Ex)", "description_es": "El inquisidor puede negar la concentración de un lanzador de conjuros con una acción inmediata (tirada de ataque vs DC de concentración)." },
+      { "name": "Disruptive (bonus feat)", "description_es": "Obtiene Disruptive como don adicional, aumentando la DC de concentración para lanzadores adyacentes." },
+      { "name": "Fighter Training", "description_es": "Cuenta como guerrero de la mitad de su nivel para requisitos de dones de combate." }
+    ]
+  },
+
+  "eldritch_archer": {
+    "class": "magus",
+    "name": "Eldritch Archer",
+    "name_es": "Arquero Arcano",
+    "source": "Ultimate Magic",
+    "description_es": "Combate mágico a distancia con arcos y ballestas. Ranged Spellstrike canaliza conjuros de toque a través de flechas disparadas.",
+    "features_removed": ["Spell Combat (melee)"],
+    "features_gained": [
+      { "name": "Ranged Spell Combat (Ex)", "description_es": "Puede usar Combate Mágico con arcos/ballestas en lugar de solo cuerpo a cuerpo. Penalizador de –2 a ataques de arco al hacerlo." },
+      { "name": "Ranged Spellstrike (Su)", "description_es": "Puede canalizar conjuros de toque a través de una flecha disparada. El alcance del conjuro pasa a ser el del arma." }
+    ]
+  },
+
+  "hexcrafter": {
+    "class": "magus",
+    "name": "Hexcrafter",
+    "name_es": "Artífice de Maleficios",
+    "source": "Ultimate Magic",
+    "class_skills_add": ["use_magic_device"],
+    "description_es": "Permite seleccionar maleficios de bruja como arcanas de magus. Puede aplicar maleficios mediante Spellstrike. Acceso parcial a la lista de conjuros de bruja.",
+    "features_removed": [],
+    "features_gained": [
+      { "name": "Hex Arcana", "description_es": "Puede seleccionar maleficios de bruja como arcanas de magus. El mago utiliza su nivel de magus para el DC y la duración de los maleficios." },
+      { "name": "Hex Magus (Su)", "description_es": "Puede aplicar maleficios mediante Spellstrike en lugar de un conjuro. El maleficio afecta al objetivo golpeado." },
+      { "name": "Accursed Strike (Sp)", "description_es": "Puede aplicar maleficios de forma diferida a través de ataques preparados." }
+    ]
+  },
+
+  "seeker": {
+    "class": "oracle",
+    "name": "Seeker",
+    "name_es": "Buscador",
+    "source": "Advanced Player's Guide",
+    "class_skills_add": ["disable_device", "perception"],
+    "description_es": "Sacrifica dos revelaciones por capacidades de explorador de ruinas: Trapfinding a nivel 2 y Trap Sense a nivel 7. Oráculo orientado a la exploración.",
+    "features_removed": ["Revelation (2nd level)", "Revelation (7th level)"],
+    "features_gained": [
+      { "name": "Trapfinding", "description_es": "A nivel 2, gana Trapfinding como el pícaro para detectar y desactivar trampas mágicas." },
+      { "name": "Trap Sense (Ex)", "description_es": "A nivel 7, gana bonificación de +2 a CA y salvaciones contra trampas." }
+    ]
+  },
+
+  "ancient_lorekeeper": {
+    "class": "oracle",
+    "name": "Ancient Lorekeeper",
+    "name_es": "Guardián del Saber Antiguo",
+    "source": "Advanced Player's Guide",
+    "description_es": "Solo para elfos. Reemplaza la revelación de nivel 5 por acceso a conjuros arcanos de la lista de mago/hechicero como conjuros adicionales conocidos.",
+    "features_removed": ["Revelation (5th level)"],
+    "features_gained": [
+      { "name": "Arcane Archivist (Su)", "description_es": "A nivel 5, puede aprender un número de conjuros arcanos de mago/hechicero igual a su mod CARs, añadiéndolos como conjuros adicionales conocidos del oráculo." }
+    ]
+  },
+
+  "synthesist": {
+    "class": "summoner",
+    "name": "Synthesist",
+    "name_es": "Sintetista",
+    "source": "Ultimate Magic",
+    "description_es": "Fusiona la esencia del eidolón en su propio cuerpo. Obtiene habilidades físicas del eidolón como PG temporales. Sin eidolón externo.",
+    "features_removed": ["Eidolon (external)", "Bond Senses", "Life Bond", "Shield Ally", "Maker's Call", "Transposition", "Greater Shield Ally", "Merge Forms"],
+    "features_gained": [
+      { "name": "Fused Eidolon", "description_es": "El eidolón se fusiona con el convocador. Gana las habilidades físicas (FUE, DES, CON, armadura natural, ataques) como capa sobre sus propias estadísticas mentales." },
+      { "name": "Fused Link (Su)", "description_es": "La conexión con el eidolón fundido cura PG del convocador cuando el eidolón recibiría daño letal." }
+    ]
+  },
+
+  "master_summoner": {
+    "class": "summoner",
+    "name": "Master Summoner",
+    "name_es": "Gran Convocador",
+    "source": "Ultimate Magic",
+    "description_es": "Intercambia un eidolón poderoso por múltiples criaturas convocadas simultáneas. Eidolón más débil (Lesser Eidolon) pero convocaciones múltiples activas.",
+    "features_removed": ["Bond Senses"],
+    "features_gained": [
+      { "name": "Lesser Eidolon", "description_es": "Su eidolón es más débil: pool de evolución reducido a la mitad." },
+      { "name": "Multiple Summons", "description_es": "Puede mantener múltiples Summon Monster activos simultáneamente cuando el eidolón no está desplegado. Sin límite normal de una sola convocación activa." }
+    ]
+  },
+
+  "hedge_witch": {
+    "class": "witch",
+    "name": "Hedge Witch",
+    "name_es": "Bruja Rústica",
+    "source": "Ultimate Magic",
+    "description_es": "Enfocada en curación rural. Lanzamiento espontáneo de conjuros de curación y capacidad de absorber veneno o enfermedad de otros mediante conjuro.",
+    "features_removed": ["Hex (4th level)", "Hex (8th level)"],
+    "features_gained": [
+      { "name": "Spontaneous Healing", "description_es": "Puede convertir conjuros preparados en conjuros de curación espontáneamente (como clérigo con curación)." },
+      { "name": "Empathic Healing (Su)", "description_es": "Puede absorber veneno o enfermedad de otro ser al tocarlo, transfiriéndolo a sí misma." }
+    ]
+  },
+
+  "winter_witch": {
+    "class": "witch",
+    "name": "Winter Witch",
+    "name_es": "Bruja Invernal",
+    "source": "Inner Sea Magic",
+    "description_es": "Especializada en magia de frío. DC de conjuros de frío aumentado, resistencia al frío escalable. No puede lanzar conjuros de fuego. Familiar de animal ártico.",
+    "features_removed": ["Hex (4th level)"],
+    "features_gained": [
+      { "name": "Cold Flesh (Ex)", "description_es": "Resistencia al frío 5 a nivel 1, aumenta a 10 a nivel 5, 20 a nivel 10, e inmunidad a nivel 15." },
+      { "name": "Icy Stare (Su)", "description_es": "Su mal de ojo aplica la condición de entumecimiento en lugar del penalizador normal." },
+      { "name": "Frozen Caress (Su)", "description_es": "Añade 1d4 de daño por frío a ataques de toque y conjuros de toque." }
+    ]
+  },
+
+  "blade_adept": {
+    "class": "arcanist",
+    "name": "Blade Adept",
+    "name_es": "Adepto de la Hoja",
+    "source": "Advanced Class Guide",
+    "class_skills_add": ["intimidate"],
+    "description_es": "Combina lanzamiento de conjuros con combate cuerpo a cuerpo mediante espada inteligente vinculada. Accede a explotaciones de magus y Spellstrike.",
+    "features_removed": ["Arcanist Exploit (1st level)", "Arcanist Exploit (9th level)", "Exploit (3rd)", "Familiar"],
+    "features_gained": [
+      { "name": "Black Blade (Ex)", "description_es": "Espada inteligente vinculada que usa la reserva arcana del arcanista. Gana capacidades de Magus Black Blade." },
+      { "name": "Spell Strike", "description_es": "Puede canalizar conjuros de toque a través de su espada negra." },
+      { "name": "Magus Arcana", "description_es": "Puede seleccionar arcanas de magus en lugar de explotaciones en ciertos niveles." }
+    ]
+  },
+
+  "brown_fur_transmuter": {
+    "class": "arcanist",
+    "name": "Brown-Fur Transmuter",
+    "name_es": "Transmutador de Piel Parda",
+    "source": "Advanced Class Guide",
+    "description_es": "Especialista en transmutación. Amplifica bonificadores de atributos para aliados, comparte conjuros de transmutación personal, y transformación permanente a nivel 20.",
+    "features_removed": ["Arcanist Exploit (3rd)", "Arcanist Exploit (9th)", "Magical Supremacy (20th)"],
+    "features_gained": [
+      { "name": "Transform (Su)", "description_es": "Puede amplificar bonificaciones de mejora de atributo hasta +6 (de +2/+4 estándar) al lanzar sobre aliados, gastando 1 punto de reserva." },
+      { "name": "Share Transmutation", "description_es": "Puede lanzar conjuros de transmutación personal (rango personal) sobre otros mediante toque." },
+      { "name": "Greater Transmuter (Su)", "description_es": "A nivel 20, se transforma permanentemente en una forma transmutada poderosa de su elección." }
+    ]
+  },
+
+  "steelblood": {
+    "class": "bloodrager",
+    "name": "Steelblood",
+    "name_es": "Sangre de Acero",
+    "source": "Advanced Class Guide",
+    "class_skills_add": ["knowledge_engineering"],
+    "description_es": "Especialista en armadura pesada. Blood Deflection gasta conjuros para CA. Formación progresiva en armadura. Sacrifica velocidad y esquiva sobrenatural.",
+    "features_removed": ["Fast Movement", "Uncanny Dodge", "Improved Uncanny Dodge", "Damage Reduction"],
+    "features_gained": [
+      { "name": "Armor Training (Ex)", "description_es": "Gana Formación en Armadura como el guerrero, reduciendo penalizadores y aumentando DES máxima en armadura." },
+      { "name": "Blood Deflection (Su)", "description_es": "En furia puede gastar un conjuro preparado para obtener un bonificador de escudo a la CA igual al nivel del conjuro durante 1 minuto." },
+      { "name": "Inured to Armor (Ex)", "description_es": "No aplica la reducción de velocidad por armadura pesada." }
+    ]
+  },
+
+  "primalist": {
+    "class": "bloodrager",
+    "name": "Primalist",
+    "name_es": "Primalista",
+    "source": "Advanced Class Guide",
+    "description_es": "Permite incorporar poderes de furia de bárbaro en lugar de poderes de linaje de sangre a niveles 4+. Cada reemplazo otorga 2 poderes de furia.",
+    "features_removed": [],
+    "features_gained": [
+      { "name": "Rage Powers", "description_es": "A nivel 4 y cada 4 niveles puede reemplazar un poder de linaje de sangre por 2 poderes de furia de bárbaro. No puede seleccionar poderes que requieran furia de bárbaro estándar." }
+    ]
+  },
+
+  "exemplar": {
+    "class": "brawler",
+    "name": "Exemplar",
+    "name_es": "Ejemplar",
+    "source": "Advanced Class Guide",
+    "description_es": "Líder inspirador. Sus aliados cercanos no quedan sorprendidos. Gana actuaciones de inspiración y otorga dones de trabajo en equipo temporales mediante displays marciales.",
+    "features_removed": ["Unarmed Strike (standard progression)", "Close Weapon Mastery", "Maneuver Training", "AC Bonus", "Brawler's Strike"],
+    "features_gained": [
+      { "name": "Inspiring Prowess (Ex)", "description_es": "Todos los aliados en 9 m no quedan sorprendidos mientras el Ejemplar esté consciente al inicio del combate." },
+      { "name": "Exemplar Arts", "description_es": "Puede otorgar temporalmente un don de trabajo en equipo que conozca a los aliados dentro de su alcance como acción de movimiento." }
+    ]
+  },
+
+  "steel_breaker": {
+    "class": "brawler",
+    "name": "Steel-Breaker",
+    "name_es": "Rompedor de Acero",
+    "source": "Advanced Class Guide",
+    "description_es": "Analiza debilidades de criaturas para ignorar defensas. Sunder Training especializado. Bonificaciones de ataque basadas en el tipo de criatura.",
+    "features_removed": ["Brawler's Strike"],
+    "features_gained": [
+      { "name": "Sunder Training (Ex)", "description_es": "Maneuver Training se aplica solo a Sunder. Bonificador adicional a tiradas de destrozar y para ignorar dureza." },
+      { "name": "Weakness Finder (Ex)", "description_es": "Puede analizar las debilidades de tipo de criatura para obtener bonificadores de ataque y penetración contra ese tipo específico." }
+    ]
+  },
+
+  "feral_hunter": {
+    "class": "hunter",
+    "name": "Feral Hunter",
+    "name_es": "Cazador Feral",
+    "source": "Advanced Class Guide",
+    "description_es": "Sin compañero animal: el cazador adopta formas animales permanentes. Gana Wild Shape y puede invocar manadas de animales temporales.",
+    "features_removed": ["Animal Companion", "Animal Focus (share)", "Hunter Tactics", "Speak with Master", "Precise Companion", "Bonus Tricks", "Empathic Link", "Raise Animal Companion", "Teamwork Feats (6,9,12,15,18)"],
+    "features_gained": [
+      { "name": "Feral Focus (Ex)", "description_es": "Puede aplicar Animal Focus directamente a sí mismo permanentemente sin depender de un compañero. El número de enfoques activos escala con el nivel." },
+      { "name": "Wild Shape (Su)", "description_es": "A nivel 4 gana Wild Shape como druida del mismo nivel." },
+      { "name": "Summon Feral Kin (Sp)", "description_es": "A niveles altos puede invocar una manada de animales como Llamar a la Naturaleza." }
+    ]
+  },
+
+  "divine_hunter": {
+    "class": "hunter",
+    "name": "Divine Hunter",
+    "name_es": "Cazador Divino",
+    "source": "Advanced Class Guide",
+    "description_es": "Canaliza poder divino eligiendo un dominio de deidad. El compañero animal gana la plantilla celestial o infernal.",
+    "features_removed": [],
+    "features_gained": [
+      { "name": "Domain", "description_es": "A nivel 3, selecciona un dominio de su deidad (como clérigo de nivel equivalente). Obtiene los poderes de dominio pero no los conjuros de ranura de dominio adicionales." },
+      { "name": "Sanctified Animal", "description_es": "Su compañero animal gana la plantilla Celestial (bien) o Infernal (mal) según el alineamiento del cazador." }
+    ]
+  },
+
+  "sleuth": {
+    "class": "investigator",
+    "name": "Sleuth",
+    "name_es": "Detective",
+    "source": "Advanced Class Guide",
+    "description_es": "Sustituye la alquimia por un sistema de suerte basado en CARs. Gana hazañas de pistolero adaptadas: movilidad, evasión y tiradas adicionales.",
+    "features_removed": ["Alchemy", "Swift Alchemy"],
+    "features_gained": [
+      { "name": "Luck Pool (Ex)", "description_es": "Pool de suerte igual a mod CARs (mínimo 1). Se recupera al descansar. Alimenta sus hazañas." },
+      { "name": "Deeds (Ex)", "description_es": "Gana hazañas similares al pistolero (Uncanny Initiative, Unflinching, Quick Thinking) alimentadas por el Pool de Suerte." }
+    ]
+  },
+
+  "empiricist": {
+    "class": "investigator",
+    "name": "Empiricist",
+    "name_es": "Empiricista",
+    "source": "Advanced Class Guide",
+    "description_es": "Usa Inteligencia para todas las habilidades. Bonificaciones de perspicacia contra ilusiones y posesión. Master Intellect final: mejora ilimitada de habilidades.",
+    "features_removed": ["Poison Lore", "Poison Resistance", "Swift Alchemy", "True Inspiration"],
+    "features_gained": [
+      { "name": "Ceaseless Observation (Ex)", "description_es": "Usa el modificador de INT en lugar del modificador habitual para todas las habilidades (Percepción, Desactivar Artefacto, Engañar, etc.)." },
+      { "name": "Unfailing Logic (Ex)", "description_es": "Bonificación de perspicacia escalable a salvaciones contra ilusiones (tipo [phantasm] y [figment]) y posesión." },
+      { "name": "Master Intellect (Ex)", "description_es": "A nivel 20, puede gastar Inspiración en cualquier verificación de habilidad sin límite de usos." }
+    ]
+  },
+
+  "spirit_guide": {
+    "class": "shaman",
+    "name": "Spirit Guide",
+    "name_es": "Guía de Espíritus",
+    "source": "Advanced Class Guide",
+    "description_es": "Accede a Revelaciones de Oráculo a través de su espíritu vagante. Puente entre la tradición del chamán y del oráculo.",
+    "features_removed": ["Hex (4th level)", "Hex (8th level)"],
+    "features_gained": [
+      { "name": "Oracle Revelations", "description_es": "A nivel 4 y 8, puede usar su espíritu vagante para acceder a revelaciones del misterio de oráculo asociado a ese espíritu en lugar de un maleficio." }
+    ]
+  },
+
+  "unsworn_shaman": {
+    "class": "shaman",
+    "name": "Unsworn Shaman",
+    "name_es": "Chamán Sin Juramento",
+    "source": "Advanced Class Guide",
+    "description_es": "Sin espíritu primario. Solo espíritu vagante pero puede cambiar entre múltiples espíritus vagantes distintos cada día. Enorme versatilidad, sin profundidad.",
+    "features_removed": ["Spirit (primary)", "Spirit Animal", "Spirit Magic", "Greater Spirit", "True Spirit", "Manifestation"],
+    "features_gained": [
+      { "name": "Multiple Wandering Spirits", "description_es": "Puede tener un número de espíritus vagantes distintos por día igual a 1 + 1 por cada 6 niveles. Elige cuál está activo al preparar conjuros." }
+    ]
+  },
+
+  "totemic_skald": {
+    "class": "skald",
+    "name": "Totemic Skald",
+    "name_es": "Escaldo Totémico",
+    "source": "Inner Sea Races",
+    "description_es": "Su canción de furia solo otorga poderes de furia de un único tótem elegido al principio. Más profundo en su tótem pero sin versatilidad de otros poderes.",
+    "features_removed": [],
+    "features_gained": [
+      { "name": "Totem Song (Su)", "description_es": "La canción de furia solo puede conceder poderes de furia del tótem elegido (oso, espíritu, piel). Los aliados afectados por la canción solo reciben poderes de ese tótem específico." }
+    ]
+  },
+
+  "court_poet": {
+    "class": "skald",
+    "name": "Court Poet",
+    "name_es": "Poeta Cortesano",
+    "source": "Ultimate Intrigue",
+    "description_es": "Más bardo que bárbaro. Reemplaza la furia inspirada por actuaciones sociales que bonifican aliados en entornos cortesanos y debilitan enemigos.",
+    "features_removed": ["Inspired Rage", "Song of Strength"],
+    "features_gained": [
+      { "name": "Hymn of Valor (Su)", "description_es": "En lugar de inducir furia, su actuación otorga bonificadores de moral a salvaciones y habilidades sociales a aliados en zonas cortesanas." },
+      { "name": "Stinging Verse (Su)", "description_es": "Actuación que impone penalizadores de moral a las tiradas de Diplomacia y Persuasión del objetivo." }
+    ]
+  },
+
+  "bounty_hunter": {
+    "class": "slayer",
+    "name": "Bounty Hunter",
+    "name_es": "Cazarrecompensas",
+    "source": "Advanced Class Guide",
+    "description_es": "Especializado en capturar objetivos con vida. Ataques furtivos otorgan bonificadores a agarres. Puede noquear objetivos estudiados en lugar de matarlos.",
+    "features_removed": ["Dirty Trick (2nd)", "Submission Hold (6th)", "Incapacitate (10th)"],
+    "features_gained": [
+      { "name": "Grappling Strike (Ex)", "description_es": "Puede comenzar un agarre como parte del ataque furtivo que active la condición sin provocar ataque de oportunidad." },
+      { "name": "Target of Opportunity (Ex)", "description_es": "Puede usar ataque furtivo de daño no letal contra su objetivo estudiado para intentar dejarlo inconsciente." }
+    ]
+  },
+
+  "sniper": {
+    "class": "slayer",
+    "name": "Sniper",
+    "name_es": "Francotirador",
+    "source": "Advanced Class Guide",
+    "description_es": "Gana Hide in Plain Sight para permanecer oculto tras disparos. Aplica ataque furtivo a largo alcance. Studied Target funciona a distancia máxima del arma.",
+    "features_removed": ["Stalker (7th)"],
+    "features_gained": [
+      { "name": "Sniper Training (Ex)", "description_es": "Puede aplicar ataque furtivo a cualquier distancia siempre que el objetivo esté a distancia de arma." },
+      { "name": "Hide in Plain Sight (Ex)", "description_es": "Puede ocultarse incluso bajo observación directa mientras no esté en combate cuerpo a cuerpo." }
+    ]
+  },
+
+  "inspired_blade": {
+    "class": "swashbuckler",
+    "name": "Inspired Blade",
+    "name_es": "Hoja Inspirada",
+    "source": "Advanced Class Guide",
+    "description_es": "Solo para rapier. Recupera Panache de CHA e INT combinados. Weapon Finesse automático con rapier. Rango de amenaza mejorado a nivel alto.",
+    "features_removed": [],
+    "features_gained": [
+      { "name": "Inspired Panache", "description_es": "Pool de Panache igual a CHA + INT modificadores (mínimo 1). Recupera Panache al confirmar críticos con rapier además del modo estándar." },
+      { "name": "Inspired Finesse", "description_es": "Obtiene Weapon Finesse con rapier automáticamente a nivel 1. A nivel 5, puede añadir INT al daño con rapier además de FUE o DES." }
+    ]
+  },
+
+  "daring_champion": {
+    "class": "swashbuckler",
+    "name": "Daring Champion",
+    "name_es": "Campeón Audaz",
+    "source": "Advanced Class Guide",
+    "class_skills_add": ["handle_animal", "ride"],
+    "description_es": "Combina espadachín con caballero. Reemplaza algunas hazañas por Desafío de caballero y Orden. Duelo con honor y código caballeresco.",
+    "features_removed": ["Opportune Parry and Riposte", "Precise Strike", "Swashbuckler Finesse"],
+    "features_gained": [
+      { "name": "Challenge (Ex)", "description_es": "Obtiene la capacidad de Desafío del Caballero (1/día a nivel 1, +1 por cada 3 niveles). El objetivo del desafío recibe daño extra igual al nivel." },
+      { "name": "Order (Ex)", "description_es": "Pertenece a una orden de caballería, obteniendo sus beneficios de habilidad, edictos y capacidades de orden." }
+    ]
+  },
+
+  "sacred_fist": {
+    "class": "warpriest",
+    "name": "Sacred Fist",
+    "name_es": "Puño Sagrado",
+    "source": "Advanced Class Guide",
+    "description_es": "Luchador desarmado sagrado. Flurry of Blows, bonificación de CA de SAB, reserva de ki y dones de estilo marcial. Las manos son el arma sagrada.",
+    "features_removed": ["Sacred Weapon", "Focus Weapon", "Bonus Feats (3rd level)", "Sacred Armor"],
+    "features_gained": [
+      { "name": "Flurry of Blows (Ex)", "description_es": "Puede realizar Lluvia de Golpes con armas desarmadas como monje de su nivel de sacerdote de guerra." },
+      { "name": "AC Bonus (Ex)", "description_es": "Cuando sin armadura y sin escudo, añade mod SAB a la CA como monje." },
+      { "name": "Ki Pool (Su)", "description_es": "Reserva de ki igual a ½ nivel + mod SAB. Puede gastarla para ataques adicionales, velocidad o CA." },
+      { "name": "Style Feats", "description_es": "Los dones adicionales de nivel 6, 12 y 18 deben ser dones de Estilo Marcial." }
+    ]
+  },
+
+  "arsenal_chaplain": {
+    "class": "warpriest",
+    "name": "Arsenal Chaplain",
+    "name_es": "Capellán de Arsenal",
+    "source": "Advanced Class Guide",
+    "description_es": "Reemplaza la restricción de arma sagrada enfocada por Formación en Armas de guerrero progresiva. Puede tratar cualquier arma como sagrada.",
+    "features_removed": ["Focus Weapon (single weapon restriction)"],
+    "features_gained": [
+      { "name": "Weapon Training (Ex)", "description_es": "Gana Formación en Armas como el guerrero, progresivamente con un grupo de armas adicional cada 6 niveles." },
+      { "name": "Versatile Sacred Weapon", "description_es": "Puede aplicar el dado de daño sagrado a cualquier arma del grupo de entrenamiento, no solo al arma de enfoque." }
+    ]
+  },
+
+  "kinetic_knight": {
+    "class": "kineticist",
+    "name": "Kinetic Knight",
+    "name_es": "Caballero Cinético",
+    "source": "Psychic Anthology",
+    "class_skills_add": ["climb", "ride", "sense_motive", "swim"],
+    "class_skills_remove": ["acrobatics", "heal"],
+    "description_es": "Guerrero acorazado cinético. Hoja Elemental obligatoria (cuerpo a cuerpo). CON califica para requisitos de dones. Armadura y escudo sintonizados con su magia.",
+    "features_removed": ["Kinetic Blast (ranged options)", "Most Infusions", "Metakinesis", "Infusion 3rd", "Supercharge"],
+    "features_gained": [
+      { "name": "Kinetic Blade (mandatory)", "description_es": "La única forma de Kinetic Blast disponible es el Kinetic Blade (cuerpo a cuerpo). Todas las infusiones de blast deben ser de sustancia." },
+      { "name": "Armor Channel (Su)", "description_es": "Puede usar Gatherpower mientras lleva armadura y escudo sin penalizador al lanzamiento." },
+      { "name": "Resolve (Ex)", "description_es": "Gana Resolución como el samurái: puede estabilizarse automáticamente y gastar reserva de resolución para continuar luchando herido." }
+    ]
+  },
+
+  "overwhelming_soul": {
+    "class": "kineticist",
+    "name": "Overwhelming Soul",
+    "name_es": "Alma Abrumadora",
+    "source": "Occult Origins",
+    "description_es": "Elimina el Burn (daño no letal). Usa Carisma en lugar de Constitución para poderes salvajes. Sin autosacrificio pero con menor poder bruto.",
+    "features_removed": ["Burn (nonlethal damage mechanic)", "Internal Buffer", "Metakinesis (higher levels)"],
+    "features_gained": [
+      { "name": "CHA-based Powers", "description_es": "Usa CARs en lugar de CON para el DC de los poderes salvajes, la bonificación de Kinetic Blast y el límite de Burn." },
+      { "name": "No-Burn Gather Power", "description_es": "Puede acumular poder sin tomar puntos de Burn, pero con una límite de poder acumulado menor que el cinético estándar." }
+    ]
+  },
+
+  "storyteller": {
+    "class": "medium",
+    "name": "Storyteller",
+    "name_es": "Narrador",
+    "source": "Occult Adventures",
+    "description_es": "Cambia la canalización espiritual por narrativa mágica. Actuación bárdica a través de historias con bonificaciones a conocimiento. Puede atrapar objetivos en relatos.",
+    "features_removed": ["Spirit Seance Boon", "Spirit Bonus", "Spirit Surge", "Shared Seance", "Taboo", "Haunt Channeler", "Propitiation", "Trance of Three", "Connection Channel", "Spirit Mastery", "Astral Beacon"],
+    "features_gained": [
+      { "name": "Bardic Performance (Story)", "description_es": "Gana actuación bárdica con un subconjunto de actuaciones basadas en narración oral en lugar de música." },
+      { "name": "Lore of the Told (Ex)", "description_es": "Bonificación de perspicacia escalable a verificaciones de Conocimiento (todas) cuando narra historias relevantes." },
+      { "name": "Captivating Story (Sp)", "description_es": "A nivel alto puede atrapar a un objetivo dentro de un relato (similar a Maze), incapacitándolo mientras el narrador mantiene la historia activa." }
+    ]
+  },
+
+  "spirit_dancer": {
+    "class": "medium",
+    "name": "Spirit Dancer",
+    "name_es": "Danzarín de Espíritus",
+    "source": "Occult Adventures",
+    "description_es": "Puede cambiar de espíritu durante el combate como acción libre. A nivel alto canaliza dos espíritus simultáneamente. Rotación táctica de espíritus.",
+    "features_removed": ["Spirit (fixed)", "Spirit Bonus", "Spirit Surge", "Taboo", "Shared Seance", "Trance of Three", "Spacious Soul", "Astral Beacon"],
+    "features_gained": [
+      { "name": "Spirit Dance (Su)", "description_es": "Puede cambiar de espíritu canalizado como acción libre una vez por ronda. Tiene un número de rondas de danza iguales a 3 + mod CARs." },
+      { "name": "Dual Spirit (Su)", "description_es": "A nivel 12, puede canalizar dos espíritus simultáneamente durante la danza, obteniendo los beneficios de ambos." }
+    ]
+  },
+
+  "fey_trickster": {
+    "class": "mesmerist",
+    "name": "Fey Trickster",
+    "name_es": "Tramposo Feérico",
+    "source": "Ultimate Intrigue",
+    "class_skills_add": ["knowledge_nature", "survival"],
+    "class_skills_remove": ["knowledge_planes", "spellcraft"],
+    "description_es": "Lanzador divino feérico con lista de druida/explorador. Gana Woodland Stride, ilusiones sociales y transformación feérica permanente a nivel alto.",
+    "features_removed": ["Towering Ego", "Touch Treatment", "Rule Minds"],
+    "features_gained": [
+      { "name": "Woodland Stride (Ex)", "description_es": "Se mueve por terreno natural sin penalizadores ni daño de espinas o plantas mágicas." },
+      { "name": "Fey Tricks (Sp)", "description_es": "Puede lanzar una serie de conjuros ilusorios como poderes mágicos de forma espontánea usando sus niveles de hipnotizador." },
+      { "name": "Fey Form", "description_es": "A nivel alto se transforma permanentemente en un ser feérico, obteniendo el subtipo Hada y visión en la oscuridad." }
+    ]
+  },
+
+  "cult_master": {
+    "class": "mesmerist",
+    "name": "Cult Master",
+    "name_es": "Maestro de Cultos",
+    "source": "Occult Adventures",
+    "description_es": "Líder carismático de cultos. Mirada fanática, curación psicológica de seguidores y transferencia de conciencia a seguidores a nivel máximo.",
+    "features_removed": ["Consummate Liar", "Painful Stare", "Touch Treatment (3rd, 6th)", "Bold Stare (7th)", "Touch Treatment (10th, 14th)", "Rule Minds"],
+    "features_gained": [
+      { "name": "Fanaticism (Su)", "description_es": "Sus trucos de hipnotizador pueden hacer que los seguidores realicen acciones de autosacrificio sin hacer tiradas de Voluntad adicionales." },
+      { "name": "Disciple's Aura (Ex)", "description_es": "Los seguidores bajo su influencia proporcionan escudo emocional, dando al maestro bonificaciones de moral basadas en cuántos seguidores tiene activos." },
+      { "name": "Body Jump (Su)", "description_es": "A nivel 20, puede transferir su conciencia al cuerpo de un seguidor como mente en blanco." }
+    ]
+  },
+
+  "battle_host": {
+    "class": "occultist",
+    "name": "Battle Host",
+    "name_es": "Anfitrión de Batalla",
+    "source": "Occult Adventures",
+    "description_es": "Canaliza toda la magia a través de un único objeto vinculado (arma/armadura/escudo). Invoca guerreros espirituales y otorga capacidades sobrehumanas.",
+    "features_removed": ["Multiple Implements", "Shift Focus", "Magic Circles", "Binding Circles", "Fast Circles", "Aura Sight"],
+    "features_gained": [
+      { "name": "Panoply Bond (Su)", "description_es": "Un único objeto (arma, armadura o escudo) sirve como todo su sistema de implementos. Todo el foco mental se concentra en él." },
+      { "name": "Heroic Splendor (Su)", "description_es": "Puede gastar foco para otorgar a aliados capacidades sobrehumanas temporales (vuelo, visión, fuerza)." },
+      { "name": "Ghost Warrior (Sp)", "description_es": "Invoca guerreros espectrales vinculados al objeto para ayudar en combate." }
+    ]
+  },
+
+  "necroccultist": {
+    "class": "occultist",
+    "name": "Necroccultist",
+    "name_es": "Necrooculista",
+    "source": "Occult Adventures",
+    "description_es": "Especialista en necromancia. Consume restos de criaturas para información, invoca enjambres de espíritus dañinos y drena niveles negativos.",
+    "features_removed": ["Object Reading", "Aura Sight", "Outside Contact", "Bonus (14th)"],
+    "features_gained": [
+      { "name": "Death Knell (Su)", "description_es": "Consumiendo restos de una criatura muerta, obtiene memorias o conocimientos del difunto (como Leer Magia pero para información biográfica)." },
+      { "name": "Ghostly Horde (Sp)", "description_es": "Invoca un enjambre de espíritus que causa daño de energía negativa en área." },
+      { "name": "Life Drain (Su)", "description_es": "Puede drenar niveles negativos de enemigos y transferirlos a aliados como puntos de resistencia temporales." }
+    ]
+  },
+
+  "amnesiac": {
+    "class": "psychic",
+    "name": "Amnesiac",
+    "name_es": "Amnésico",
+    "source": "Occult Adventures",
+    "description_es": "Psíquico con memoria suprimida. Lista limitada de conjuros conocidos recuperados mediante meditación diaria. Spell Recollection recupera conjuros adicionales como acción rápida.",
+    "features_removed": [],
+    "features_gained": [
+      { "name": "Spell Recollection (Su)", "description_es": "Como acción rápida una vez por hora, puede intentar recordar un conjuro de su lista que no tenga preparado. Si tiene éxito (tirada de Concentración), lo añade a su lista disponible hoy." },
+      { "name": "Fragmented Magic", "description_es": "Número de conjuros conocidos reducido, pero puede recuperar cualquier conjuro de nivel adecuado de la lista completa de psíquico mediante Spell Recollection." }
+    ]
+  },
+
+  "formless_adept": {
+    "class": "psychic",
+    "name": "Formless Adept",
+    "name_es": "Adepto Sin Forma",
+    "source": "Occult Adventures",
+    "description_es": "Se transforma progresivamente en forma etérea (borrosa, gaseosa, incorpórea). Usa CARs para reserva fénica. Bonificaciones de conjuro mientras es informe.",
+    "features_removed": ["Discipline", "Discipline Powers", "Phrenic Amplification (1st)", "Discipline Spells", "Phrenic Amplification (15th)", "Remade Self"],
+    "features_gained": [
+      { "name": "Formless (Su)", "description_es": "A nivel 3 puede volverse borroso (20% fallo de conjuro). A nivel 7 gaseoso, a nivel 13 incorpóreo durante rondas/día escalables." },
+      { "name": "CHA Phrenic Pool", "description_es": "La reserva fénica usa CARs en lugar de INT para el número de puntos." },
+      { "name": "Formless Magic (Su)", "description_es": "Cuando está en forma gaseosa o incorpórea, ciertos conjuros no requieren componentes físicos." }
+    ]
+  },
+
+  "ectoplasmatist": {
+    "class": "spiritualist",
+    "name": "Ectoplasmatist",
+    "name_es": "Ectoplasmatista",
+    "source": "Occult Adventures",
+    "description_es": "Se infunde con ectoplasma en lugar de convocar un fantasma. Manifiesta latigazos de ectoplasma como armas, combinando conjuros con ataques de látigo.",
+    "features_removed": ["Etheric Tether", "Phantom", "Shared/Fused Consciousness", "Spiritual Bond", "Empowered Consciousness", "Bonded Manifestation", "Phantom Recall", "Dual Bond", "Spiritual/Greater Spiritual Interference"],
+    "features_gained": [
+      { "name": "Ectoplasmic Lash (Su)", "description_es": "Manifiesta un látigo o tentáculo de ectoplasma como arma natural de 1d6 + ½ nivel con alcance de 3 m. Puede hacer múltiples ataques con él." },
+      { "name": "Ectoplasmic Armor (Su)", "description_es": "Bonificación de armadura natural escalable igual a ½ su nivel de espiritista mientras el ectoplasma esté manifestado." }
+    ]
+  },
+
+  "involutionist": {
+    "class": "spiritualist",
+    "name": "Involutionist",
+    "name_es": "Involucionista",
+    "source": "Adventurer's Guide",
+    "description_es": "Crea su fantasma desde su propia alma. Usa componentes verbales/somáticos estándar. El fantasma puede otorgar maleficios de bruja.",
+    "features_removed": [],
+    "features_gained": [
+      { "name": "Soul Phantom", "description_es": "El fantasma se genera desde la propia alma del espiritista en lugar de vincularse a un espíritu exterior. No puede ser destruido permanentemente mientras el espiritista viva." },
+      { "name": "Witch Hexes", "description_es": "El fantasma puede otorgar al espiritista maleficios de bruja en lugar de los poderes de fusión estándar." }
+    ]
+  },
+
+  "sword_saint": {
+    "class": "samurai",
+    "name": "Sword Saint",
+    "name_es": "Santo de la Espada",
+    "source": "Ultimate Combat",
+    "description_es": "Maestro del iaijutsu: desenvaine y golpe en un solo movimiento. Iaijutsu Challenge añade daño extra al primer golpe. Sin mecánicas de montura.",
+    "features_removed": ["Weapon Expertise", "Mounted Archer", "Demanding Challenge", "Resolve", "Greater Resolve", "True Resolve"],
+    "features_gained": [
+      { "name": "Iaijutsu Challenge (Ex)", "description_es": "Al inicio del combate, si puede desenvainar su arma, puede designar un objetivo como desafío de iaijutsu. El primer golpe exitoso añade daño extra igual a su nivel." },
+      { "name": "Iaijutsu Focus (Ex)", "description_es": "Puede realizar un ataque de oportunidad en el turno del enemigo cuando este se mueve hacia él, atacando mientras desenvaina." },
+      { "name": "Certain Strike (Ex)", "description_es": "Puede declarar Certain Strike antes de atacar para relanzar el dado de daño y quedarse con el mejor resultado." }
+    ]
+  },
+
+  "warrior_of_the_holy_land": {
+    "class": "samurai",
+    "name": "Warrior of the Holy Land",
+    "name_es": "Guerrero de la Tierra Santa",
+    "source": "Ultimate Combat",
+    "description_es": "Samurái sin montura dedicado a defender tierras sagradas. Gana poderes divinos similares al inquisidor; su poder viene de la tierra y el deber.",
+    "features_removed": ["Mount", "Expert Trainer", "Mounted Archer"],
+    "features_gained": [
+      { "name": "Holy Judgment (Su)", "description_es": "Gana la capacidad Juicio del Inquisidor con un número de usos por día igual a ½ nivel de samurái. Puede activar 1 juicio por uso." },
+      { "name": "Blessed (Ex)", "description_es": "Gana bonificador de competencia a salvaciones igual al modificador de SAB cuando defiende tierras designadas como sagradas." }
+    ]
+  },
+
+  "poisoner": {
+    "class": "ninja",
+    "name": "Poisoner",
+    "name_es": "Envenenador",
+    "source": "Ultimate Combat",
+    "description_es": "Sacrifica cuatro poderes ki por maestría avanzada en venenos. Puede crear venenos con sus manos, inmunidad a propios venenos, venenos de efecto instantáneo.",
+    "features_removed": ["Ki Powers (4th, 8th, 10th, 16th)"],
+    "features_gained": [
+      { "name": "Poison Touch (Su)", "description_es": "Puede crear un veneno de toque una vez por día que aplica daño de atributo. El número de usos y la potencia escalan con el nivel." },
+      { "name": "Poison Immunity (Ex)", "description_es": "A nivel 8, inmune a todos los venenos propios. A nivel 12, inmune a todos los venenos." },
+      { "name": "Instant Poison (Su)", "description_es": "Puede aplicar venenos en armas como acción rápida en lugar de estándar." }
+    ]
+  },
+
+  "deadly_courtesan": {
+    "class": "ninja",
+    "name": "Deadly Courtesan",
+    "name_es": "Cortesana Letal",
+    "source": "Ultimate Intrigue",
+    "class_skills_add": ["bluff", "disguise", "perform"],
+    "description_es": "Ninja social infiltrada en altas esferas. Sacrifica progresión de ataque furtivo por talentos de intriga social. Elimina objetivos sin levantar sospechas.",
+    "features_removed": ["Sneak Attack 2d6", "Sneak Attack 5d6", "Uncanny Dodge", "Improved Uncanny Dodge"],
+    "features_gained": [
+      { "name": "Social Graces (Ex)", "description_es": "Gana bonificaciones a habilidades sociales escalables cuando se infiltra en un grupo o institución durante tiempo." },
+      { "name": "Courtly Killer (Ex)", "description_es": "Puede aplicar ataque furtivo a víctimas que hayan consumido veneno de su preparación, aunque estén alertas." }
+    ]
+  },
+
+  "iron_tyrant": {
+    "class": "antipaladin",
+    "name": "Iron Tyrant",
+    "name_es": "Tirano de Hierro",
+    "source": "Ultimate Combat",
+    "description_es": "Especializado en armadura completa y terror. Capacidades basadas en armadura: Spellsurge, Armor of Damnation. Sin curación negativa pero con defensa aplastante.",
+    "features_removed": ["Channel Negative Energy", "Cruelties", "Aura of Despair (standard)", "Unholy Champion"],
+    "features_gained": [
+      { "name": "Armor of Damnation (Su)", "description_es": "Su armadura otorga bonificación de escudo adicional contra criaturas del bien igual a ½ su nivel de antipaladín." },
+      { "name": "Spellsurge (Su)", "description_es": "Puede lanzar conjuros de contacto a través de ataques de armadura cargada (como embestidas o atropellos) como acción gratuita." },
+      { "name": "Heavy Dominance (Ex)", "description_es": "No sufre penalizadores de velocidad por armadura pesada. La CA de armadura de su armadura pesada aumenta +2." }
+    ]
+  },
+
+  "dread_vanguard": {
+    "class": "antipaladin",
+    "name": "Dread Vanguard",
+    "name_es": "Vanguardia del Terror",
+    "source": "Inner Sea Gods",
+    "description_es": "Portador de estandarte oscuro. Irradia miedo en área. Su presencia debilita la voluntad de los aliados del bien. Líder de ejércitos del mal.",
+    "features_removed": ["Touch of Corruption", "Aura of Despair (standard)", "Unholy Champion"],
+    "features_gained": [
+      { "name": "Dread Banner (Su)", "description_es": "Puede enarbolar un estandarte oscuro que irradia Aura de Miedo en radio igual a 9 m × la mitad de su nivel." },
+      { "name": "Terrifying Charge (Su)", "description_es": "Al cargar bajo su estandarte, todos los enemigos en 9 m deben superar una tirada de Voluntad o quedar asustados durante 1d4 rondas." }
+    ]
+  },
+
+  "adaptive_shifter": {
+    "class": "shifter",
+    "name": "Adaptive Shifter",
+    "name_es": "Cambiante Adaptable",
+    "source": "Ultimate Wilderness",
+    "description_es": "Sus aspectos animales evolucionan con el nivel. Puede cambiar las habilidades de su aspecto activo entre encuentros. Mayor versatilidad táctica.",
+    "features_removed": ["Chimeric Aspect", "Shifter's Fury"],
+    "features_gained": [
+      { "name": "Adaptive Aspect (Su)", "description_es": "Una vez por día puede recalibrar las habilidades de su aspecto activo, eligiendo qué capacidades activa de entre las disponibles para ese aspecto." },
+      { "name": "Improved Aspect Evolution", "description_es": "Los aspectos del cambiante adaptable evolucionan más rápido, obteniendo la mejora de nivel más alto a niveles impares." }
+    ]
+  },
+
+  "wild_effigy": {
+    "class": "shifter",
+    "name": "Wild Effigy",
+    "name_es": "Efigie Salvaje",
+    "source": "Ultimate Wilderness",
+    "description_es": "Se transforma en formas de enjambre o agrupaciones de criaturas. Resistencias basadas en constituyentes. Ataques de área en forma de enjambre.",
+    "features_removed": ["Shifter Claws", "Chimeric Aspect"],
+    "features_gained": [
+      { "name": "Swarm Form (Su)", "description_es": "Puede tomar una forma de enjambre que otorga resistencia a daño físico no mágico, inmunidad a efectos de flanqueo y ataques de área de enjambre." },
+      { "name": "Effigy Aspect (Su)", "description_es": "Sus aspectos animales se manifiestan como cualidades del enjambre (enjambre de ratas para rapidez, abejas para veneno, etc.)." }
+    ]
+  },
+
+  "brute": {
+    "class": "vigilante",
+    "name": "Brute",
+    "name_es": "Bruto",
+    "source": "Ultimate Intrigue",
+    "description_es": "Su identidad de vigilante es una forma monstruosa. Gana poderes tipo furia en lugar de talentos sociales. Doble vida literalmente bestial.",
+    "features_removed": ["Vigilante Specialization (Avenger only)", "Social Talents (2nd, 8th, 14th)"],
+    "features_gained": [
+      { "name": "Monster Form (Ex)", "description_es": "Su identidad de vigilante es una forma física monstruosa (hombre bestia). Gana bonificadores de FUE y naturalmente, y garras o mordiscos como arma natural." },
+      { "name": "Brute Talents", "description_es": "En lugar de talentos sociales gana poderes de furia: puede seleccionar poderes de furia de bárbaro como talentos de bruto." }
+    ]
+  },
+
+  "wildsoul": {
+    "class": "vigilante",
+    "name": "Wildsoul",
+    "name_es": "Alma Salvaje",
+    "source": "Ultimate Intrigue",
+    "description_es": "Incorpora el sistema de Enfoque Animal del Cazador. Aplica enfoques animales en ambas identidades.",
+    "features_removed": ["Vigilante Talent (8th level)"],
+    "features_gained": [
+      { "name": "Animal Focus (Ex)", "description_es": "Obtiene la capacidad Animal Focus del cazador a nivel 2. Puede tener 1 enfoque activo (2 a nivel 8) aplicado a sí mismo en cualquier identidad." },
+      { "name": "Wild Talents", "description_es": "Algunos talentos de vigilante se reemplazan por capacidades adicionales de enfoque animal." }
+    ]
+  },
+
+  "scaled_fist": {
+    "class": "unchained_monk",
+    "name": "Scaled Fist",
+    "name_es": "Puño Escamado",
+    "source": "Advanced Class Guide",
+    "description_es": "Monje de dragón que usa Carisma en lugar de Sabiduría para CA y ki. Dragon Style automático. Mecánicas dracónicas: terror, aliento ki, resistencias.",
+    "features_removed": ["Stunning Fist", "Diamond Soul"],
+    "features_gained": [
+      { "name": "CHA-based AC Bonus", "description_es": "Usa CARs en lugar de SAB para la bonificación de CA cuando está sin armadura." },
+      { "name": "CHA-based Ki Pool", "description_es": "La reserva ki se basa en CARs en lugar de SAB." },
+      { "name": "Dragon Ferocity (Ex)", "description_es": "Puede gastar 1 punto de ki para infundir terror dracónico: el objetivo debe superar Voluntad o quedarse asustado 1d4+1 rondas." },
+      { "name": "Dragon Style (bonus feat)", "description_es": "Obtiene Dragon Style de forma automática a nivel 1 sin requisitos previos." }
+    ]
+  },
+
+  "zen_archer": {
+    "class": "unchained_monk",
+    "name": "Zen Archer",
+    "name_es": "Arquero Zen",
+    "source": "Advanced Player's Guide",
+    "description_es": "El arco es su camino de meditación marcial. Flurry of Blows con arcos, Perfect Strike para elegir mejor dado, y ki para alcance extendido.",
+    "features_removed": ["Flurry of Blows (melee)", "Unarmed Strike", "Evasion", "Maneuver Training", "Fast Movement"],
+    "features_gained": [
+      { "name": "Flurry of Blows (archery)", "description_es": "Puede usar Lluvia de Golpes con arco corto o largo, arco compuesto, y arco de monje." },
+      { "name": "Perfect Strike (Ex)", "description_es": "Una vez por turno puede relanzar el dado de ataque con el arco; si tiene éxito en ambos, elige el resultado. También puede relanzar el daño." },
+      { "name": "Ki Archery (Su)", "description_es": "Gastando 1 ki puede aumentar el alcance del arco en 30 pies." },
+      { "name": "Bonus Feats (archery)", "description_es": "Los dones adicionales de monje deben ser dones de arco (Point-Blank Shot, Precise Shot, etc.)." }
+    ]
+  },
+
+  "scout_unchained_rogue": {
+    "class": "unchained_rogue",
+    "name": "Scout",
+    "name_es": "Explorador",
+    "source": "Advanced Player's Guide",
+    "description_es": "Aplica ataque furtivo en carga si se ha movido 10+ pies. A nivel 8 aplica ataque furtivo cualquier round con movimiento de 10+ pies.",
+    "features_removed": ["Finesse Training (3rd level)", "Danger Sense (3rd level)"],
+    "features_gained": [
+      { "name": "Scout's Charge (Ex)", "description_es": "Al cargar (habiendo movido 10+ pies antes), aplica ataque furtivo al objetivo como si estuviera flanqueado." },
+      { "name": "Skirmisher (Ex)", "description_es": "A nivel 8, cualquier round en que se mueva 10+ pies aplica ataque furtivo en su primer ataque de ese round." }
+    ]
+  },
+
+  "thug": {
+    "class": "unchained_rogue",
+    "name": "Thug",
+    "name_es": "Matón",
+    "source": "Advanced Player's Guide",
+    "description_es": "Pícaro de fuerza bruta. Ataque furtivo aplica Staggered. Frightening usa Intimidar como parte de ataque. Brutal Beating penaliza permanentemente a asustados.",
+    "features_removed": ["Finesse Training", "Trapfinding"],
+    "features_gained": [
+      { "name": "Frightening (Ex)", "description_es": "Puede usar Intimidar para asustar a un enemigo como parte de una acción estándar de ataque (en lugar de acción estándar separada)." },
+      { "name": "Brutal Beating (Ex)", "description_es": "Cuando aplica ataque furtivo, el objetivo asustado queda Staggered (aturdido leve) durante 1d4+1 rondas en lugar del efecto normal de ataque furtivo." }
+    ]
+  },
+
+  "titan_mauler_unchained": {
+    "class": "unchained_barbarian",
+    "name": "Titan Mauler",
+    "name_es": "Machacador Titán",
+    "source": "Ultimate Combat",
+    "description_es": "Puede blandir armas gigantescas con penalizador reducido. Titanic Rage aumenta tamaño durante furia. Énfasis en daño bruto sobre defensa.",
+    "features_removed": [],
+    "features_gained": [
+      { "name": "Big Game Hunter (Ex)", "description_es": "+1 a tiradas de daño cuerpo a cuerpo contra criaturas de categoría de tamaño mayor." },
+      { "name": "Massive Weapons (Ex)", "description_es": "Puede blandir armas de una categoría mayor con penalizador –2 (en lugar de –4). A nivel 3 puede hacerlo sin penalizador." },
+      { "name": "Titanic Rage (Su)", "description_es": "Durante la furia puede aumentar su tamaño una categoría (como Agrandar Persona). Esto cancela otros efectos de tamaño menores." }
+    ]
+  },
+
+  "elemental_kin": {
+    "class": "unchained_barbarian",
+    "name": "Elemental Kin",
+    "name_es": "Pariente Elemental",
+    "source": "Inner Sea Races",
+    "description_es": "Solo para enanos. Reemplaza Trap Sense por resistencia elemental. Poderes de furia con temática de fuego, tierra, agua o aire según herencia enana.",
+    "features_removed": ["Trap Sense"],
+    "features_gained": [
+      { "name": "Elemental Resistance (Ex)", "description_es": "Resistencia 5 a un elemento (fuego, frío, electricidad o ácido) según el linaje elemental enano del personaje. Escala a 10 a nivel 8." },
+      { "name": "Elemental Rage Powers", "description_es": "Los poderes de furia disponibles incluyen poderes elementales únicos (ráfaga de llamas, terreno dificultoso de tierra, etc.) basados en el elemento elegido." }
+    ]
+  },
+
+  "monster_knight": {
+    "class": "unchained_summoner",
+    "name": "Monster Knight",
+    "name_es": "Caballero Monstruo",
+    "source": "Legendary Games (3rd Party)",
+    "saves": { "fort": "good", "ref": "bad", "will": "good" },
+    "skill_points": 4,
+    "class_skills": ["bluff","climb","craft","diplomacy","handle_animal","intimidate","profession","ride","sense_motive","swim"],
+    "description_es": "Convocador desencadenado que renuncia completamente a su magia por convertirse en caballero montado en su eidolón. Combina sistema de Caballero (Desafío + Orden) con montura eidolón. Sin conjuros, máximo potencial de carga montada.",
+    "features_removed": ["Spellcasting (all spells)", "Summon Monster", "Bond Senses", "Transposition", "Merge Forms", "Shield Ally", "Greater Shield Ally", "Gate", "Twin Eidolon"],
+    "features_gained": [
+      { "name": "Challenge (Ex)", "level": 1, "description_es": "1/día a nivel 1, +1/día cada 3 niveles (máx 7/día a nivel 19). Daño extra igual al nivel en ataques cuerpo a cuerpo contra el objetivo. A niveles 7/13/19 gana +1/+2/+3 a ataque vs el objetivo." },
+      { "name": "Eidolon Mount (Ex)", "level": 1, "description_es": "Eidolón modificado con evolución de montura de nivel 1. Cura naturalmente 3 PG × DG / día. Debe usar forma cuadrúpeda o serpentina. Puede renunciar a todos los ataques del eidolón para obtener la evolución Grande gratis." },
+      { "name": "Life Link (Su)", "level": 1, "description_es": "Sin cambios respecto al convocador desencadenado base." },
+      { "name": "Order (Ex)", "level": 1, "description_es": "Obtiene la Orden del Caballero: edictos, beneficios de desafío de orden, bonificaciones de habilidad. Habilidades adicionales de orden a niveles 2, 8 y 15." },
+      { "name": "Focused Charge (Ex)", "level": 3, "description_es": "+4 a tiradas de ataque en carga montada (en lugar de +2). No sufre penalizador a CA después de cargar mientras está montado." },
+      { "name": "Monster Tactics (Ex)", "level": 5, "description_es": "Don de combate o trabajo en equipo adicional a niveles 5, 12 y 17. El eidolón montura obtiene automáticamente cualquier don de trabajo en equipo que aprenda el caballero, ignorando requisitos." },
+      { "name": "Mascot (Ex)", "level": 9, "description_es": "Con el eidolón consciente y visible, todos los aliados en 18 m reciben +2 moral a salvaciones contra miedo y +1 moral a ataques en carga." },
+      { "name": "Mighty Charge (Ex)", "level": 11, "description_es": "Duplica el rango de amenaza en carga montada. Tras ataque exitoso puede hacer una maniobra gratuita (empuje/desarmar/destrozar/derribar) sin provocar AoO." },
+      { "name": "Supreme Charge (Ex)", "level": 20, "description_es": "Carga montada: doble daño (triple con lanza). Con Spirited Charge: triple (cuádruple con lanza). Crítico confirmado en carga: objetivo aturdido 1d4 rondas (Voluntad CD 10+BAB base = tambaleante)." }
+    ]
+  },
+
+  "shadow_caller": {
+    "class": "unchained_summoner",
+    "name": "Shadow Caller",
+    "name_es": "Invocador de Sombras",
+    "source": "Pathfinder RPG (3rd Party - Rite Publishing)",
+    "description_es": "Convoca criaturas del Plano de Sombra en lugar de los planos estándar. Su eidolón tiene subtipo Sombra con resistencia a energía negativa y visión en penumbra mejorada.",
+    "features_removed": ["Summon Monster (standard list)"],
+    "features_gained": [
+      { "name": "Shadow Conjuration", "description_es": "La lista de Summon Monster se reemplaza por criaturas de sombra equivalentes. Las criaturas convocadas tienen el subtipo Sombra y resistencia a daño de energía negativa." },
+      { "name": "Shadow Eidolon", "description_es": "El eidolón tiene el subtipo Sombra: resistencia a frío 5, visión en la oscuridad, y puede ocultarse en áreas de penumbra (Sigilo como si fueran oscuras)." }
+    ]
+  }
+
+}

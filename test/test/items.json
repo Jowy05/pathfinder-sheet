@@ -1,0 +1,31 @@
+{
+  "potions": [
+    { "id": "cure_light",      "name": "Poción de curación leve",          "effect": "Cura 1d8+1 PG",                               "spell_level": 1, "weight": 0.1, "value_gp": 50   },
+    { "id": "cure_moderate",   "name": "Poción de curación moderada",       "effect": "Cura 2d8+3 PG",                               "spell_level": 3, "weight": 0.1, "value_gp": 300  },
+    { "id": "cure_serious",    "name": "Poción de curación grave",          "effect": "Cura 3d8+6 PG",                               "spell_level": 5, "weight": 0.1, "value_gp": 750  },
+    { "id": "cure_critical",   "name": "Poción de curación mayor",          "effect": "Cura 4d8+9 PG",                               "spell_level": 7, "weight": 0.1, "value_gp": 1400 },
+    { "id": "resist_fire",     "name": "Poción de resistencia al fuego",    "effect": "Resistencia al Fuego 10 durante 10 min/nvl",   "spell_level": 3, "weight": 0.1, "value_gp": 300  },
+    { "id": "bears_endurance", "name": "Poción de entereza del oso",        "effect": "+4 a Constitución durante 1 min/nvl",          "spell_level": 2, "weight": 0.1, "value_gp": 300  },
+    { "id": "cats_grace",      "name": "Poción de agilidad del gato",       "effect": "+4 a Destreza durante 1 min/nvl",              "spell_level": 2, "weight": 0.1, "value_gp": 300  },
+    { "id": "owls_wisdom",     "name": "Poción de sabiduría del búho",      "effect": "+4 a Sabiduría durante 1 min/nvl",             "spell_level": 2, "weight": 0.1, "value_gp": 300  },
+    { "id": "foxs_cunning",    "name": "Poción de astucia del zorro",       "effect": "+4 a Inteligencia durante 1 min/nvl",          "spell_level": 2, "weight": 0.1, "value_gp": 300  },
+    { "id": "eagles_splendor", "name": "Poción de despliegue del águila",   "effect": "+4 a Carisma durante 1 min/nvl",               "spell_level": 2, "weight": 0.1, "value_gp": 300  }
+  ],
+  "gear": [
+    { "id": "rope_hemp",       "name": "Cuerda de cáñamo (15 m)",           "effect": "Resistencia a la rotura: 2 puntos de daño",    "weight": 10, "value_gp": 1   },
+    { "id": "rope_silk",       "name": "Cuerda de seda (15 m)",             "effect": "Resistencia a la rotura: 4 puntos de daño",    "weight": 5,  "value_gp": 10  },
+    { "id": "waterskin",       "name": "Odre",                              "effect": "Contiene 2 litros de líquido",                 "weight": 1,  "value_gp": 1   },
+    { "id": "torch",           "name": "Antorcha",                          "effect": "Ilumina 6 m, dura 1 hora",                    "weight": 1,  "value_gp": 0.01},
+    { "id": "lantern",         "name": "Farol (bullseye)",                  "effect": "Ilumina 18 m en cono, dura 6 horas por frasco","weight": 3,  "value_gp": 12  },
+    { "id": "rations",         "name": "Raciones de viaje (1 día)",         "effect": "Sustento para un día",                        "weight": 1,  "value_gp": 0.5 },
+    { "id": "bedroll",         "name": "Saco de dormir",                    "effect": "Descanso cómodo en exteriores",               "weight": 5,  "value_gp": 0.1 },
+    { "id": "grappling_hook",  "name": "Garfio",                            "effect": "Necesario para escalar con cuerda",           "weight": 4,  "value_gp": 1   },
+    { "id": "thieves_tools",   "name": "Herramientas de ladrón",            "effect": "+2 a Inutilizar Mecanismo",                   "weight": 1,  "value_gp": 30  },
+    { "id": "healer_kit",      "name": "Botiquín",                          "effect": "+2 a Curar; 10 usos",                         "weight": 1,  "value_gp": 50  },
+    { "id": "tent",            "name": "Tienda de campaña",                 "effect": "Refugio para 2 personas",                     "weight": 20, "value_gp": 10  },
+    { "id": "blanket",         "name": "Manta",                             "effect": "Protección contra el frío",                   "weight": 3,  "value_gp": 0.5 },
+    { "id": "flint_steel",     "name": "Yesca y eslabón",                   "effect": "Encender fuego en 1 minuto",                  "weight": 0,  "value_gp": 1   },
+    { "id": "ink_pen",         "name": "Pluma y tintero",                   "effect": "Para escribir documentos",                    "weight": 0,  "value_gp": 8   },
+    { "id": "backpack",        "name": "Mochila",                           "effect": "Contiene hasta 50 libras de objetos",         "weight": 2,  "value_gp": 2   }
+  ]
+}

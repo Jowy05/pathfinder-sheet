@@ -1,0 +1,11 @@
+{
+  "fine":       { "name": "Fino",         "name_en": "Fine",        "ac_attack_mod": 8,  "cmb_cmd_mod": -8, "stealth_mod": 16,  "fly_mod": 8,  "carry_capacity_multiplier": 0.125 },
+  "diminutive": { "name": "Diminuto",     "name_en": "Diminutive",  "ac_attack_mod": 4,  "cmb_cmd_mod": -4, "stealth_mod": 12,  "fly_mod": 6,  "carry_capacity_multiplier": 0.25  },
+  "tiny":       { "name": "Menudo",       "name_en": "Tiny",        "ac_attack_mod": 2,  "cmb_cmd_mod": -2, "stealth_mod": 8,   "fly_mod": 4,  "carry_capacity_multiplier": 0.5   },
+  "small":      { "name": "Pequeño",      "name_en": "Small",       "ac_attack_mod": 1,  "cmb_cmd_mod": -1, "stealth_mod": 4,   "fly_mod": 2,  "carry_capacity_multiplier": 0.75  },
+  "medium":     { "name": "Mediano",      "name_en": "Medium",      "ac_attack_mod": 0,  "cmb_cmd_mod": 0,  "stealth_mod": 0,   "fly_mod": 0,  "carry_capacity_multiplier": 1     },
+  "large":      { "name": "Grande",       "name_en": "Large",       "ac_attack_mod": -1, "cmb_cmd_mod": 1,  "stealth_mod": -4,  "fly_mod": -2, "carry_capacity_multiplier": 2     },
+  "huge":       { "name": "Enorme",       "name_en": "Huge",        "ac_attack_mod": -2, "cmb_cmd_mod": 2,  "stealth_mod": -8,  "fly_mod": -4, "carry_capacity_multiplier": 4     },
+  "gargantuan": { "name": "Gargantuesco", "name_en": "Gargantuan",  "ac_attack_mod": -4, "cmb_cmd_mod": 4,  "stealth_mod": -12, "fly_mod": -6, "carry_capacity_multiplier": 8     },
+  "colossal":   { "name": "Colosal",      "name_en": "Colossal",    "ac_attack_mod": -8, "cmb_cmd_mod": 8,  "stealth_mod": -16, "fly_mod": -8, "carry_capacity_multiplier": 16    }
+}

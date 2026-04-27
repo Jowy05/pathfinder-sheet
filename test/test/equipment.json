@@ -1,0 +1,63 @@
+{
+  "weapons": [
+    { "id": "dagger",        "name": "Puñal",               "style": "melee1h", "damage": "1d4",   "crit": "19-20/x2", "type": "P",  "weight": 1  },
+    { "id": "shortsword",    "name": "Espada corta",         "style": "finesse", "damage": "1d6",   "crit": "19-20/x2", "type": "P",  "weight": 2  },
+    { "id": "longsword",     "name": "Espada larga",         "style": "melee1h", "damage": "1d8",   "crit": "19-20/x2", "type": "C",  "weight": 4  },
+    { "id": "scimitar",      "name": "Cimitarra",            "style": "melee1h", "damage": "1d6",   "crit": "18-20/x2", "type": "C",  "weight": 4  },
+    { "id": "bastard_sword", "name": "Espada bastarda",      "style": "melee1h", "damage": "1d10",  "crit": "19-20/x2", "type": "C",  "weight": 6  },
+    { "id": "greatsword",    "name": "Gran espada",          "style": "melee2h", "damage": "2d6",   "crit": "19-20/x2", "type": "C",  "weight": 8  },
+    { "id": "handaxe",       "name": "Hacha de mano",        "style": "melee1h", "damage": "1d6",   "crit": "20/x3",    "type": "C",  "weight": 3  },
+    { "id": "battleaxe",     "name": "Hacha de batalla",     "style": "melee1h", "damage": "1d8",   "crit": "20/x3",    "type": "C",  "weight": 6  },
+    { "id": "greataxe",      "name": "Gran hacha",           "style": "melee2h", "damage": "1d12",  "crit": "20/x3",    "type": "C",  "weight": 12 },
+    { "id": "light_mace",    "name": "Maza ligera",          "style": "melee1h", "damage": "1d6",   "crit": "20/x2",    "type": "Co", "weight": 4  },
+    { "id": "warhammer",     "name": "Martillo de guerra",   "style": "melee1h", "damage": "1d8",   "crit": "20/x3",    "type": "Co", "weight": 5  },
+    { "id": "falcata",       "name": "Falcata",              "style": "melee2h", "damage": "2d4",   "crit": "18-20/x2", "type": "C",  "weight": 4  },
+    { "id": "rapier",        "name": "Florete",              "style": "finesse", "damage": "1d6",   "crit": "18-20/x2", "type": "P",  "weight": 2  },
+    { "id": "short_spear",   "name": "Lanza corta",          "style": "melee1h", "damage": "1d6",   "crit": "20/x2",    "type": "P",  "weight": 3  },
+    { "id": "spear",         "name": "Lanza",                "style": "melee1h", "damage": "1d8",   "crit": "20/x3",    "type": "P",  "weight": 6  },
+    { "id": "halberd",       "name": "Alabarda",             "style": "melee2h", "damage": "1d10",  "crit": "20/x3",    "type": "P",  "weight": 12 },
+    { "id": "club",          "name": "Garrote",              "style": "melee1h", "damage": "1d6",   "crit": "20/x2",    "type": "Co", "weight": 3  },
+    { "id": "quarterstaff",  "name": "Bastón",               "style": "melee2h", "damage": "1d6",   "crit": "20/x2",    "type": "Co", "weight": 4  }
+  ],
+  "armors": [
+    { "id": "viajero",           "name": "Atuendo de Viajero",      "armor_type": "none",   "ca_bonus": 0, "max_dex": 99, "acp": 0,  "arcane_failure": 0,  "weight": 5  },
+    { "id": "explorador",        "name": "Atuendo de Explorador",   "armor_type": "none",   "ca_bonus": 0, "max_dex": 99, "acp": 0,  "arcane_failure": 0,  "weight": 8  },
+    { "id": "erudito",           "name": "Atuendo de Erudito",      "armor_type": "none",   "ca_bonus": 0, "max_dex": 99, "acp": 0,  "arcane_failure": 0,  "weight": 6  },
+    { "id": "monje",             "name": "Atuendo de Monje",        "armor_type": "none",   "ca_bonus": 0, "max_dex": 99, "acp": 0,  "arcane_failure": 0,  "weight": 2  },
+    { "id": "real",              "name": "Atuendo Real",            "armor_type": "none",   "ca_bonus": 0, "max_dex": 99, "acp": 0,  "arcane_failure": 0,  "weight": 15 },
+    { "id": "shinobi",           "name": "Shinobi Shozoku",         "armor_type": "none",   "ca_bonus": 0, "max_dex": 99, "acp": 0,  "arcane_failure": 0,  "weight": 2  },
+    { "id": "ignifugo",          "name": "Atuendo Ignífugo",        "armor_type": "none",   "ca_bonus": 0, "max_dex": 99, "acp": 0,  "arcane_failure": 0,  "weight": 10 },
+
+    { "id": "padded",            "name": "Acolchada (Padded)",      "armor_type": "light",  "ca_bonus": 1, "max_dex": 8,  "acp": 0,  "arcane_failure": 5,  "weight": 10 },
+    { "id": "silk_ceremonial",   "name": "Ceremonial de Seda",      "armor_type": "light",  "ca_bonus": 1, "max_dex": 99, "acp": 0,  "arcane_failure": 0,  "weight": 4  },
+    { "id": "haramaki",          "name": "Haramaki",                "armor_type": "light",  "ca_bonus": 1, "max_dex": 99, "acp": 0,  "arcane_failure": 0,  "weight": 1  },
+    { "id": "chainshirt",        "name": "Camisote Mallas",         "armor_type": "light",  "ca_bonus": 4, "max_dex": 4,  "acp": -2, "arcane_failure": 20, "weight": 25 },
+    { "id": "lamellar_cuir",     "name": "Coraza Loriga",           "armor_type": "light",  "ca_bonus": 2, "max_dex": 4,  "acp": 0,  "arcane_failure": 5,  "weight": 8  },
+    { "id": "studded_leather",   "name": "Cuero Tachonado",         "armor_type": "light",  "ca_bonus": 3, "max_dex": 5,  "acp": -1, "arcane_failure": 15, "weight": 20 },
+    { "id": "leather_lamellar",  "name": "Loriga de Cuero",         "armor_type": "light",  "ca_bonus": 4, "max_dex": 3,  "acp": -2, "arcane_failure": 20, "weight": 25 },
+
+    { "id": "breastplate",       "name": "Coraza (Breastplate)",    "armor_type": "medium", "ca_bonus": 6, "max_dex": 3,  "acp": -4, "arcane_failure": 25, "weight": 30 },
+    { "id": "kikko",             "name": "Armadura Kikko",          "armor_type": "medium", "ca_bonus": 5, "max_dex": 4,  "acp": -3, "arcane_failure": 20, "weight": 30 },
+    { "id": "four_mirror",       "name": "Cuatro Espejos",          "armor_type": "medium", "ca_bonus": 6, "max_dex": 2,  "acp": -5, "arcane_failure": 30, "weight": 45 },
+    { "id": "scale_mail",        "name": "Cota de Escamas",         "armor_type": "medium", "ca_bonus": 5, "max_dex": 3,  "acp": -4, "arcane_failure": 25, "weight": 30 },
+    { "id": "do_maru",           "name": "Do-maru",                 "armor_type": "medium", "ca_bonus": 5, "max_dex": 4,  "acp": -4, "arcane_failure": 25, "weight": 30 },
+    { "id": "agile_breastplate", "name": "Coraza Ágil",             "armor_type": "medium", "ca_bonus": 6, "max_dex": 3,  "acp": -4, "arcane_failure": 25, "weight": 25 },
+    { "id": "chainmail",         "name": "Cota de Mallas",          "armor_type": "medium", "ca_bonus": 6, "max_dex": 2,  "acp": -5, "arcane_failure": 30, "weight": 40 },
+
+    { "id": "full_plate",        "name": "Armadura Completa",       "armor_type": "heavy",  "ca_bonus": 9, "max_dex": 1,  "acp": -6, "arcane_failure": 35, "weight": 50 },
+    { "id": "stoneplate",        "name": "Stoneplate",              "armor_type": "heavy",  "ca_bonus": 9, "max_dex": 1,  "acp": -6, "arcane_failure": 35, "weight": 75 },
+    { "id": "o_yoroi",           "name": "O-yoroi",                 "armor_type": "heavy",  "ca_bonus": 8, "max_dex": 2,  "acp": -6, "arcane_failure": 35, "weight": 45 },
+    { "id": "banded_mail",       "name": "Cota de Bandas",          "armor_type": "heavy",  "ca_bonus": 7, "max_dex": 1,  "acp": -6, "arcane_failure": 35, "weight": 35 },
+    { "id": "agile_half_plate",  "name": "Placas Mitad Ágil",       "armor_type": "heavy",  "ca_bonus": 8, "max_dex": 0,  "acp": -7, "arcane_failure": 40, "weight": 55 },
+    { "id": "iron_lamellar",     "name": "Loriga de Hierro",        "armor_type": "heavy",  "ca_bonus": 7, "max_dex": 0,  "acp": -7, "arcane_failure": 40, "weight": 50 },
+    { "id": "tatami_do",         "name": "Tatami-do",               "armor_type": "heavy",  "ca_bonus": 7, "max_dex": 3,  "acp": -6, "arcane_failure": 35, "weight": 45 },
+
+    { "id": "buckler",           "name": "Broquel (Buckler)",        "armor_type": "shield", "ca_bonus": 1, "max_dex": 99, "acp": -1,  "arcane_failure": 5,  "weight": 5  },
+    { "id": "light_steel",       "name": "Escudo Ligero (Acero)",    "armor_type": "shield", "ca_bonus": 1, "max_dex": 99, "acp": -1,  "arcane_failure": 5,  "weight": 6  },
+    { "id": "heavy_steel",       "name": "Escudo Pesado (Acero)",    "armor_type": "shield", "ca_bonus": 2, "max_dex": 99, "acp": -2,  "arcane_failure": 15, "weight": 15 },
+    { "id": "tower_shield",      "name": "Escudo Pavés (Tower)",     "armor_type": "shield", "ca_bonus": 4, "max_dex": 99, "acp": -10, "arcane_failure": 50, "weight": 45 },
+    { "id": "madu_steel",        "name": "Madu (Acero)",             "armor_type": "shield", "ca_bonus": 1, "max_dex": 99, "acp": -2,  "arcane_failure": 5,  "weight": 6  },
+    { "id": "light_wood",        "name": "Escudo Ligero (Madera)",   "armor_type": "shield", "ca_bonus": 1, "max_dex": 99, "acp": -1,  "arcane_failure": 5,  "weight": 5  },
+    { "id": "klar",              "name": "Klar",                     "armor_type": "shield", "ca_bonus": 1, "max_dex": 99, "acp": -1,  "arcane_failure": 5,  "weight": 6  }
+  ]
+}

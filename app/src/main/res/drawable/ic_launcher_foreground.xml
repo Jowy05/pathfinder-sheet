@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Shield shape -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M54,18 L78,28 L78,56 Q78,72 54,86 Q30,72 30,56 L30,28 Z"/>
+    <!-- Inner shield outline -->
+    <path
+        android:fillColor="#8B4513"
+        android:pathData="M54,24 L74,33 L74,55 Q74,69 54,81 Q34,69 34,55 L34,33 Z"/>
+    <!-- Letter P for Pathfinder -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M46,40 L46,68 L50,68 L50,57 L56,57 Q62,57 62,48.5 Q62,40 56,40 Z M50,43.5 L55.5,43.5 Q58.5,43.5 58.5,48.5 Q58.5,53.5 55.5,53.5 L50,53.5 Z"/>
+</vector>

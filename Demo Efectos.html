@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ficha Pathfinder · Demo FX</title>
+<link rel="icon" type="image/png" href="icono.png">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400&family=Orbitron:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="demo.css?v=9">
+<link rel="stylesheet" href="demo-loader.css?v=9">
+<link rel="stylesheet" href="demo-d20.css?v=9">
+</head>
+<body data-cyber="off">
+
+<!-- Master toggle (cyber on/off) -->
+<button class="cyber-master-toggle" id="cyber-master-toggle" type="button" title="Activar / desactivar modo Cyberpunk">
+  <span class="switch" aria-hidden="true"></span>
+  <span>CYBERPUNK MODE</span>
+</button>
+<button class="sound-toggle" id="sound-toggle" type="button" title="Activar / desactivar sonido">🔇</button>
+
+<div class="demo-shell">
+
+  <h1 class="demo-title">FICHA PATHFINDER · FX DEMO</h1>
+  <p class="demo-subtitle">Activa CYBERPUNK MODE arriba a la derecha para alternar entre el look pergamino y la capa neón</p>
+
+  <!-- 1. PANELES + GLASSMORPHISM -->
+  <div class="demo-grid">
+    <div class="panel">
+      <span class="demo-section-tag">// 01 · Panel base</span>
+      <h2>⚔ Combate</h2>
+      <p>Este es un panel de la ficha actual. Mantiene su estructura: cabecera con título, contenido, etc. El toggle de Cyberpunk lo convierte en cristal con scanlines, esquinas chamfered tipo HUD y un borde neón que respira.</p>
+      <p>Al activar el modo, los paneles entran con un <strong>efecto holograma</strong> (escaneo vertical + glow + glitch breve).</p>
+      <div class="btn-row">
+        <button class="btn">Tirar Iniciativa</button>
+        <button class="btn btn-primary">Ataque +12</button>
+        <button class="btn">Salvación</button>
+      </div>
+      <small style="margin-top:10px;display:block;">↑ Botones magnéticos. Pásales el cursor.</small>
+    </div>
+
+    <div class="panel">
+      <span class="demo-section-tag">// 02 · Vida</span>
+      <h2>♥ Puntos de Golpe</h2>
+      <div class="hp-row">
+        <span>PG</span>
+        <input type="number" id="hp-current-demo" value="42">
+        <span>/</span>
+        <input type="number" id="hp-max-demo" value="68">
+        <span style="margin-left:14px;">CON</span>
+        <input type="number" id="hp-con-demo" value="14" title="Modificador de Constitución (umbral de muerte en HP negativos)" style="width:60px;">
+      </div>
+      <div class="hp-bar"><div class="hp-bar-fill" id="hp-fill-demo" style="width:62%"></div></div>
+      <div class="hp-status" id="hp-status-demo" style="margin-top:8px;font-family:'Cinzel',serif;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;opacity:0.85;">Consciente</div>
+      <p style="margin-top:14px;">A menos HP, <strong>más rápido el latido</strong>. Al llegar a <strong>0 HP</strong> el ritmo se desploma y va decayendo en negativos hasta que <strong>HP ≤ −CON</strong>, donde el corazón se <strong>para por completo</strong> (regla de muerte de Pathfinder).</p>
+      <div class="btn-row">
+        <button class="btn" onclick="document.getElementById('hp-current-demo').value=(+document.getElementById('hp-current-demo').value)-8; document.getElementById('hp-current-demo').dispatchEvent(new Event('input'))">−8 daño</button>
+        <button class="btn" onclick="document.getElementById('hp-current-demo').value=Math.min(+document.getElementById('hp-max-demo').value,(+document.getElementById('hp-current-demo').value)+5); document.getElementById('hp-current-demo').dispatchEvent(new Event('input'))">+5 curar</button>
+        <button class="btn" onclick="document.getElementById('hp-current-demo').value=0; document.getElementById('hp-current-demo').dispatchEvent(new Event('input'))">→ 0 HP</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. D20 3D -->
+  <div class="demo-grid full">
+    <div class="panel">
+      <span class="demo-section-tag">// 03 · D20 3D real</span>
+      <h2>⚂ Tirada D20</h2>
+      <p>Toca el dado o usa los botones. Al sacar <strong>20 natural</strong>: confeti + pantalla tiembla + banner "NAT 20". Al sacar <strong>1</strong>: pifia con shake y banner.</p>
+      <div class="dice-stage">
+        <div class="d20-stage" id="dice-stage-1">
+          <div class="d20" id="d20-1">
+            <div class="face f-front"  data-pos="front">17</div>
+            <div class="face f-back"   data-pos="back">3</div>
+            <div class="face f-right"  data-pos="right">11</div>
+            <div class="face f-left"   data-pos="left">8</div>
+            <div class="face f-top"    data-pos="top">20</div>
+            <div class="face f-bottom" data-pos="bottom">14</div>
+          </div>
+          <div class="d20-result" id="dice-result-1"></div>
+        </div>
+      </div>
+      <div class="btn-row" style="justify-content:center;margin-top:50px;">
+        <button class="btn" data-roll="#dice-stage-1">Tirar D20</button>
+        <button class="btn btn-primary" data-roll="#dice-stage-1" data-force="20">Forzar 20 (crit)</button>
+        <button class="btn" data-roll="#dice-stage-1" data-force="1">Forzar 1 (pifia)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. CHIPS + EFECTOS DE INTERFAZ -->
+  <div class="demo-grid">
+    <div class="panel">
+      <span class="demo-section-tag">// 04 · Estado &amp; chips</span>
+      <h2>⚐ Condiciones</h2>
+      <p>Los chips de condiciones, dotes y rasgos heredan el look del modo activo. En Cyberpunk pierden el redondeo y se convierten en tags monoespaciados.</p>
+      <div style="margin-top:10px;">
+        <span class="chip">FATIGADO 3rd</span>
+        <span class="chip">BENDECIDO 1m</span>
+        <span class="chip">VOLAR x2</span>
+        <span class="chip">CRIT ×3</span>
+      </div>
+      <p style="margin-top:14px;font-size:12px;color:rgba(0,0,0,0.6);">El cursor deja una <strong>estela de luz</strong> mientras Cyberpunk está activo.</p>
+    </div>
+
+    <div class="panel">
+      <span class="demo-section-tag">// 05 · Botones &amp; feedback</span>
+      <h2>⚙ Acciones</h2>
+      <p>Cada botón tiene: <strong>magnetismo sutil</strong> (sigue al cursor), <strong>glow al hover</strong>, <strong>ripple al click</strong> y <strong>blip de sonido</strong> opcional. Activa el sonido con el botón 🔇 arriba.</p>
+      <div class="btn-row">
+        <button class="btn">Refrescar</button>
+        <button class="btn">Imprimir</button>
+        <button class="btn btn-primary">Guardar</button>
+        <button class="btn">Cargar</button>
+        <button class="btn">Concentración</button>
+      </div>
+      <p style="margin-top:14px;font-size:12px;">Tip: en Cyberpunk los <em>primarios</em> brillan magenta, los <em>secundarios</em> cian.</p>
+    </div>
+  </div>
+
+  <!-- 4. NOTAS DE INTEGRACIÓN -->
+  <div class="demo-grid full">
+    <div class="panel">
+      <span class="demo-section-tag">// 06 · Cómo se integra</span>
+      <h2>↪ Plan de integración</h2>
+      <p><strong>1.</strong> El modo Cyberpunk se activa con <code>document.body.dataset.cyber = 'on'</code> — toda la capa visual cuelga de ese atributo, así no rompe el CSS pergamino existente.</p>
+      <p><strong>2.</strong> En la ficha real, el toggle vivirá dentro del menú de temas (junto a <em>Cerezo</em>, <em>Maniqka</em>, <em>Royal</em>) como interruptor independiente que se puede combinar con cualquier tema base.</p>
+      <p><strong>3.</strong> El loader inicial (3s sincronizados con la carga real de los JSONs) reemplazará al estado actual de la web abriéndose en blanco.</p>
+      <p><strong>4.</strong> Los efectos JS (magnético, ripple, cursor, confeti, shake, dado 3D) se cargan desde <code>fx.js</code> y se enganchan automáticamente a los botones existentes y al sistema actual de tirada de dados.</p>
+      <p><strong>5.</strong> <code>prefers-reduced-motion</code> y bandera global para desactivar partículas en Android si fuese necesario.</p>
+    </div>
+  </div>
+
+</div><!-- /.demo-shell -->
+
+<script src="demo-loader.js?v=9"></script>
+<script src="demo-fx.js?v=9"></script>
+</body>
+</html>

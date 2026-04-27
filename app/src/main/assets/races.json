@@ -1,0 +1,140 @@
+[
+  {
+    "id": "human",
+    "name": { "es": "Humano", "en": "Human" },
+    "speed": 30, "size": "Medium", "abilityMods": {}, "anyBonus": 2,
+    "traits": [
+      { "id": "human_bonus_feat",   "name": { "es": "Dote extra",             "en": "Bonus Feat"          }, "description": { "es": "Los humanos obtienen una dote extra al nivel 1.", "en": "Humans gain one extra feat at 1st level." } },
+      { "id": "human_skilled",      "name": { "es": "Talentoso",              "en": "Skilled"             }, "description": { "es": "+1 rango de habilidad adicional por nivel.", "en": "+1 additional skill rank per level." } }
+    ]
+  },
+  {
+    "id": "elf",
+    "name": { "es": "Elfo", "en": "Elf" },
+    "speed": 30, "size": "Medium", "abilityMods": {"dex": 2, "int": 2, "con": -2},
+    "traits": [
+      { "id": "elf_elven_magic",    "name": { "es": "Magia Élfica",           "en": "Elven Magic"         }, "description": { "es": "+2 a Conocimiento mágico para identificar objetos o conjuros. +2 a la CD de conjuros.", "en": "+2 to Spellcraft to identify magic items or spells. +2 to spell DCs." } },
+      { "id": "elf_keen_senses",    "name": { "es": "Sentidos Agudos",        "en": "Keen Senses"         }, "description": { "es": "+2 a Percepción.", "en": "+2 to Perception." } },
+      { "id": "elf_low_light",      "name": { "es": "Visión en Luz Tenue",    "en": "Low-Light Vision"    }, "description": { "es": "Ve el doble de lejos que los humanos con luz escasa.", "en": "See twice as far as humans in dim light." } },
+      { "id": "elf_weapon_fam",     "name": { "es": "Familiaridad con Armas", "en": "Weapon Familiarity"  }, "description": { "es": "Competente con arco largo, arco largo de mano, espada larga y espada de mano. Las armas élficas se tratan como marciales.", "en": "Proficient with longbow, shortbow, longsword, and rapier. Elven weapons are martial weapons." } },
+      { "id": "elf_immunity",       "name": { "es": "Inmunidad Élfica",       "en": "Elven Immunities"    }, "description": { "es": "Inmune al sueño mágico. +2 a tiradas vs encantamientos.", "en": "Immune to magic sleep. +2 vs enchantment spells and effects." } }
+    ]
+  },
+  {
+    "id": "dwarf",
+    "name": { "es": "Enano", "en": "Dwarf" },
+    "speed": 20, "size": "Medium", "abilityMods": {"con": 2, "wis": 2, "cha": -2},
+    "traits": [
+      { "id": "dwarf_hardy",        "name": { "es": "Resistente",             "en": "Hardy"               }, "description": { "es": "+2 a tiradas de salvación vs veneno, conjuros y efectos mágicos.", "en": "+2 to saves vs poison, spells, and spell-like effects." } },
+      { "id": "dwarf_stability",    "name": { "es": "Estabilidad",            "en": "Stability"           }, "description": { "es": "+4 a CMD vs derribo y empuje.", "en": "+4 CMD vs bull rush and trip while on the ground." } },
+      { "id": "dwarf_greed",        "name": { "es": "Codicia",                "en": "Greed"               }, "description": { "es": "+2 a Valorar objetos de metal o piedra.", "en": "+2 to Appraise related to metal or stone items." } },
+      { "id": "dwarf_stonecunning", "name": { "es": "Astucia en Piedra",      "en": "Stonecunning"        }, "description": { "es": "+2 a Percepción vs trampas de piedra; cálculo automático a 10 ft.", "en": "+2 to Perception vs stone traps; automatic check within 10 ft." } },
+      { "id": "dwarf_darkvision",   "name": { "es": "Visión en la Oscuridad", "en": "Darkvision"          }, "description": { "es": "60 ft de visión en oscuridad total.", "en": "60 ft darkvision." } },
+      { "id": "dwarf_hatred",       "name": { "es": "Odio",                   "en": "Hatred"              }, "description": { "es": "+1 a ataques vs orcos y goblinoides.", "en": "+1 on attacks vs orcs and goblinoids." } },
+      { "id": "dwarf_weapon_fam",   "name": { "es": "Familiaridad con Armas", "en": "Weapon Familiarity"  }, "description": { "es": "Competente con hacha de guerra enana y martillo enano. Las armas enanas son marciales.", "en": "Proficient with dwarven waraxe and dwarven urgrosh. Dwarven weapons are martial." } }
+    ]
+  },
+  {
+    "id": "halfling",
+    "name": { "es": "Mediano", "en": "Halfling" },
+    "speed": 20, "size": "Small", "abilityMods": {"dex": 2, "cha": 2, "str": -2},
+    "traits": [
+      { "id": "half_fearless",      "name": { "es": "Sin Miedo",              "en": "Fearless"            }, "description": { "es": "+2 a tiradas de salvación vs miedo.", "en": "+2 to saves vs fear." } },
+      { "id": "half_halfling_luck", "name": { "es": "Suerte Mediana",         "en": "Halfling Luck"       }, "description": { "es": "+1 a todas las tiradas de salvación.", "en": "+1 to all saving throws." } },
+      { "id": "half_keen_senses",   "name": { "es": "Sentidos Agudos",        "en": "Keen Senses"         }, "description": { "es": "+2 a Percepción.", "en": "+2 to Perception." } },
+      { "id": "half_sure_footed",   "name": { "es": "Pie Firme",              "en": "Sure-Footed"         }, "description": { "es": "+2 a Acrobacias y Sigilo.", "en": "+2 to Acrobatics and Stealth." } },
+      { "id": "half_weapon_fam",    "name": { "es": "Familiaridad con Armas", "en": "Weapon Familiarity"  }, "description": { "es": "Las armas medianas son marciales.", "en": "Halfling weapons are martial weapons." } }
+    ]
+  },
+  {
+    "id": "gnome",
+    "name": { "es": "Gnomo", "en": "Gnome" },
+    "speed": 20, "size": "Small", "abilityMods": {"con": 2, "cha": 2, "str": -2},
+    "traits": [
+      { "id": "gnome_defensive",    "name": { "es": "Entrenamiento Defensivo","en": "Defensive Training"  }, "description": { "es": "+4 a CA vs gigantes.", "en": "+4 dodge bonus to AC vs giants." } },
+      { "id": "gnome_hatred",       "name": { "es": "Odio",                   "en": "Hatred"              }, "description": { "es": "+1 a ataques vs humanoides reptiloides y goblinoides.", "en": "+1 on attacks vs reptilian humanoids and goblinoids." } },
+      { "id": "gnome_illusion",     "name": { "es": "Magia de Ilusión",       "en": "Illusion Resistance" }, "description": { "es": "+2 a TS vs ilusiones. CD de conjuros de ilusión +1.", "en": "+2 to saves vs illusions. +1 DC for illusion spells." } },
+      { "id": "gnome_keen_senses",  "name": { "es": "Sentidos Agudos",        "en": "Keen Senses"         }, "description": { "es": "+2 a Percepción.", "en": "+2 to Perception." } },
+      { "id": "gnome_low_light",    "name": { "es": "Visión en Luz Tenue",    "en": "Low-Light Vision"    }, "description": { "es": "Ve el doble que los humanos con luz escasa.", "en": "See twice as far as humans in dim light." } },
+      { "id": "gnome_weapon_fam",   "name": { "es": "Familiaridad con Armas", "en": "Weapon Familiarity"  }, "description": { "es": "Las armas gnomas son marciales.", "en": "Gnome weapons are martial weapons." } }
+    ]
+  },
+  {
+    "id": "half_elf",
+    "name": { "es": "Semielfo", "en": "Half-Elf" },
+    "speed": 30, "size": "Medium", "abilityMods": {}, "anyBonus": 2,
+    "traits": [
+      { "id": "half_elf_adaptability","name": { "es": "Adaptabilidad",        "en": "Adaptability"        }, "description": { "es": "Dote de competencia extra (Perspicacia, Habilidad o Pericia).", "en": "Bonus feat (Skill Focus, Skill Training, or similar)." } },
+      { "id": "half_elf_elven_blood","name": { "es": "Sangre Élfica",         "en": "Elven Blood"         }, "description": { "es": "Cuenta como elfo y humano para efectos raciales.", "en": "Counts as both elf and human for racial effects." } },
+      { "id": "half_elf_keen",      "name": { "es": "Sentidos Agudos",        "en": "Keen Senses"         }, "description": { "es": "+2 a Percepción.", "en": "+2 to Perception." } },
+      { "id": "half_elf_low_light", "name": { "es": "Visión en Luz Tenue",    "en": "Low-Light Vision"    }, "description": { "es": "Ve el doble que los humanos con luz escasa.", "en": "See twice as far as humans in dim light." } },
+      { "id": "half_elf_multitalented","name":{ "es": "Multifacético",        "en": "Multitalented"       }, "description": { "es": "Dos clases favoritas en lugar de una.", "en": "Two favored classes instead of one." } }
+    ]
+  },
+  {
+    "id": "half_orc",
+    "name": { "es": "Semiorco", "en": "Half-Orc" },
+    "speed": 30, "size": "Medium", "abilityMods": {}, "anyBonus": 2,
+    "traits": [
+      { "id": "half_orc_ferocity",  "name": { "es": "Ferocidad",              "en": "Ferocity"            }, "description": { "es": "1/día cuando se reduce a 0 o menos PG puede actuar como si tuviera 1 PG durante 1 ronda.", "en": "1/day when reduced to 0 HP, may act as if at 1 HP for 1 round." } },
+      { "id": "half_orc_darkvision","name": { "es": "Visión en la Oscuridad", "en": "Darkvision"          }, "description": { "es": "60 ft de visión en oscuridad total.", "en": "60 ft darkvision." } },
+      { "id": "half_orc_orc_blood", "name": { "es": "Sangre Orca",            "en": "Orc Blood"           }, "description": { "es": "Cuenta como orco y humano para efectos raciales.", "en": "Counts as both orc and human for racial effects." } },
+      { "id": "half_orc_weapon_fam","name": { "es": "Familiaridad con Armas", "en": "Weapon Familiarity"  }, "description": { "es": "Competente con cimitarra y cuchillo de uro. Las armas orcas son marciales.", "en": "Proficient with greataxe and falchion. Orc weapons are martial." } },
+      { "id": "half_orc_intimidate","name": { "es": "Intimidación",           "en": "Intimidating"        }, "description": { "es": "+2 a Intimidar.", "en": "+2 to Intimidate." } }
+    ]
+  },
+  {
+    "id": "aasimar",
+    "name": { "es": "Aasimar", "en": "Aasimar" },
+    "speed": 30, "size": "Medium", "abilityMods": {"wis": 2, "cha": 2},
+    "traits": [
+      { "id": "aas_celestial_resist","name":{ "es": "Resistencia Celestial",  "en": "Celestial Resistance" }, "description": { "es": "Resistencia al ácido 5, al frío 5 y a la electricidad 5.", "en": "Acid resist 5, cold resist 5, electricity resist 5." } },
+      { "id": "aas_skilled",        "name": { "es": "Habilidoso",             "en": "Skilled"             }, "description": { "es": "+2 a Diplomacia y Percepción.", "en": "+2 to Diplomacy and Perception." } },
+      { "id": "aas_spell_like",     "name": { "es": "Habilidad de Conjuro",   "en": "Spell-Like Ability"  }, "description": { "es": "1/día: Luz diurna (NL = nivel del personaje).", "en": "1/day: Daylight (CL = character level)." } },
+      { "id": "aas_darkvision",     "name": { "es": "Visión en la Oscuridad", "en": "Darkvision"          }, "description": { "es": "60 ft de visión en oscuridad total.", "en": "60 ft darkvision." } }
+    ]
+  },
+  {
+    "id": "tiefling",
+    "name": { "es": "Tiefling", "en": "Tiefling" },
+    "speed": 30, "size": "Medium", "abilityMods": {"dex": 2, "int": 2, "cha": -2},
+    "traits": [
+      { "id": "tief_fiendish_resist","name":{ "es": "Resistencia Infernal",   "en": "Fiendish Resistance"  }, "description": { "es": "Resistencia al frío 5, al fuego 5 y a la electricidad 5.", "en": "Cold resist 5, electricity resist 5, fire resist 5." } },
+      { "id": "tief_skilled",       "name": { "es": "Habilidoso",             "en": "Skilled"             }, "description": { "es": "+2 a Engañar y Sigilo.", "en": "+2 to Bluff and Stealth." } },
+      { "id": "tief_spell_like",    "name": { "es": "Habilidad de Conjuro",   "en": "Spell-Like Ability"  }, "description": { "es": "1/día: Oscuridad (NL = nivel del personaje).", "en": "1/day: Darkness (CL = character level)." } },
+      { "id": "tief_darkvision",    "name": { "es": "Visión en la Oscuridad", "en": "Darkvision"          }, "description": { "es": "60 ft de visión en oscuridad total.", "en": "60 ft darkvision." } }
+    ]
+  },
+  {
+    "id": "catfolk",
+    "name": { "es": "Gatuno", "en": "Catfolk" },
+    "speed": 30, "size": "Medium", "abilityMods": {"dex": 2, "cha": 2, "wis": -2},
+    "traits": [
+      { "id": "cat_sprinter",       "name": { "es": "Velocista",              "en": "Sprinter"            }, "description": { "es": "+10 ft de velocidad al cargar, correr o retirada.", "en": "+10 ft speed when charging, running, or withdrawing." } },
+      { "id": "cat_nat_hunter",     "name": { "es": "Cazador Natural",        "en": "Natural Hunter"      }, "description": { "es": "+2 a Percepción, Sigilo y Supervivencia.", "en": "+2 to Perception, Stealth, and Survival." } },
+      { "id": "cat_low_light",      "name": { "es": "Visión en Luz Tenue",    "en": "Low-Light Vision"    }, "description": { "es": "Ve el doble que los humanos con luz escasa.", "en": "See twice as far as humans in dim light." } }
+    ]
+  },
+  {
+    "id": "tengu",
+    "name": { "es": "Tengu", "en": "Tengu" },
+    "speed": 30, "size": "Medium", "abilityMods": {"dex": 2, "wis": 2, "con": -2},
+    "traits": [
+      { "id": "tengu_senses",       "name": { "es": "Sentidos Agudos",        "en": "Senses"              }, "description": { "es": "+2 a Percepción.", "en": "+2 to Perception." } },
+      { "id": "tengu_sword_trained","name": { "es": "Entrenado en Espadas",   "en": "Sword-Trained"       }, "description": { "es": "Competente con todas las espadas.", "en": "Proficient with all swords." } },
+      { "id": "tengu_gifted_ling",  "name": { "es": "Políglota",              "en": "Gifted Linguist"     }, "description": { "es": "+4 a Linguística, aprende 2 idiomas por punto de INT en lugar de 1.", "en": "+4 to Linguistics, learn 2 languages per INT mod instead of 1." } },
+      { "id": "tengu_low_light",    "name": { "es": "Visión en Luz Tenue",    "en": "Low-Light Vision"    }, "description": { "es": "Ve el doble que los humanos con luz escasa.", "en": "See twice as far as humans in dim light." } }
+    ]
+  },
+  {
+    "id": "kitsune",
+    "name": { "es": "Kitsune", "en": "Kitsune" },
+    "speed": 30, "size": "Medium", "abilityMods": {"dex": 2, "cha": 2, "str": -2},
+    "traits": [
+      { "id": "kit_agile",          "name": { "es": "Ágil",                   "en": "Agile"               }, "description": { "es": "+2 a Acrobacias.", "en": "+2 to Acrobatics." } },
+      { "id": "kit_kitsune_magic",  "name": { "es": "Magia Kitsune",          "en": "Kitsune Magic"       }, "description": { "es": "+1 a CD de ilusiones y encantamientos. 1/día: Dazzle.", "en": "+1 to DC of illusion and enchantment spells. 1/day: Dazzle." } },
+      { "id": "kit_change_shape",   "name": { "es": "Cambiar de Forma",       "en": "Change Shape"        }, "description": { "es": "Puede asumir la apariencia de un humano concreto (como el conjuro Alterar yo).", "en": "Can assume a specific human appearance (as Alter Self)." } },
+      { "id": "kit_low_light",      "name": { "es": "Visión en Luz Tenue",    "en": "Low-Light Vision"    }, "description": { "es": "Ve el doble que los humanos con luz escasa.", "en": "See twice as far as humans in dim light." } }
+    ]
+  }
+]

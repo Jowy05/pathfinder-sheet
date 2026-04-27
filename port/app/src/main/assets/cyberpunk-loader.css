@@ -1,0 +1,312 @@
+/* ============================================================
+   LOADER INICIAL — Dragón despertando · adaptable por tema
+   ============================================================ */
+
+#initial-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: var(--loader-bg, radial-gradient(ellipse at center, #0a1024 0%, #02030a 70%, #000 100%));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: opacity 4700ms ease, visibility 4700ms ease;
+  --loader-accent: #00f0ff;
+  --loader-accent-2: #ff2a93;
+  --loader-rune: #00f0ff;
+  --loader-text: #00f0ff;
+}
+#initial-loader.fade-out { opacity: 0; visibility: hidden; }
+
+/* THEME ADAPTATION ──────────────────────────────────────── */
+/* default (parchment) */
+#initial-loader[data-loader-theme="default"] {
+  --loader-bg: radial-gradient(ellipse at 50% 0%, rgba(90,58,34,0.85) 0%, #1a0e04 60%, #0a0500 100%);
+  --loader-accent: #c8a060;
+  --loader-accent-2: #e6c880;
+  --loader-rune: #c8a060;
+  --loader-text: #f5e9cc;
+  --loader-dragon-fill: #1a4d2e;
+  --loader-dragon-stroke: #c8a060;
+  --loader-glow: rgba(200,160,96,0.65);
+}
+#initial-loader[data-loader-theme="dark"] {
+  --loader-bg: radial-gradient(ellipse at center, #0e0e14 0%, #020205 100%);
+  --loader-accent: #c8a060;
+  --loader-accent-2: #e6c880;
+  --loader-rune: #c8a060;
+  --loader-text: #e8d8a8;
+  --loader-dragon-fill: #14141c;
+  --loader-dragon-stroke: #c8a060;
+  --loader-glow: rgba(200,160,96,0.55);
+}
+#initial-loader[data-loader-theme="light"] {
+  --loader-bg: radial-gradient(ellipse at center, #f0ebd8 0%, #d4c8a0 100%);
+  --loader-accent: #8a6820;
+  --loader-accent-2: #c8a060;
+  --loader-rune: #8a6820;
+  --loader-text: #3d2510;
+  --loader-dragon-fill: #c8a060;
+  --loader-dragon-stroke: #5a3a22;
+  --loader-glow: rgba(138,104,32,0.4);
+}
+#initial-loader[data-loader-theme="cyber-yellow"] {
+  --loader-bg: radial-gradient(ellipse at center, #1a1810 0%, #02020a 100%);
+  --loader-accent: #f8ef02;
+  --loader-accent-2: #ffd700;
+  --loader-rune: #f8ef02;
+  --loader-text: #f8ef02;
+  --loader-dragon-fill: #1a1810;
+  --loader-dragon-stroke: #f8ef02;
+  --loader-glow: rgba(248,239,2,0.65);
+}
+#initial-loader[data-loader-theme="cyber-red"] {
+  --loader-bg: radial-gradient(ellipse at center, #18080e 0%, #02020a 100%);
+  --loader-accent: #ff4870;
+  --loader-accent-2: #ff0048;
+  --loader-rune: #ff4870;
+  --loader-text: #ff4870;
+  --loader-dragon-fill: #240810;
+  --loader-dragon-stroke: #ff4870;
+  --loader-glow: rgba(255,72,112,0.65);
+}
+#initial-loader[data-loader-theme="navy"] {
+  --loader-bg: radial-gradient(ellipse at center, #0a1830 0%, #02050e 100%);
+  --loader-accent: #4a8bd0;
+  --loader-accent-2: #c8a060;
+  --loader-rune: #c8a060;
+  --loader-text: #c8d8f0;
+  --loader-dragon-fill: #14243e;
+  --loader-dragon-stroke: #c8a060;
+  --loader-glow: rgba(200,160,96,0.55);
+}
+#initial-loader[data-loader-theme="verdant"] {
+  --loader-bg: radial-gradient(ellipse at center, #1a3514 0%, #050c02 100%);
+  --loader-accent: #6bbf3e;
+  --loader-accent-2: #c8a060;
+  --loader-rune: #c8a060;
+  --loader-text: #d4e8b8;
+  --loader-dragon-fill: #1a3514;
+  --loader-dragon-stroke: #c8a060;
+  --loader-glow: rgba(107,191,62,0.55);
+}
+#initial-loader[data-loader-theme="olympus"] {
+  --loader-bg: radial-gradient(ellipse at center, #6a4f14 0%, #2a1808 100%);
+  --loader-accent: #ffd700;
+  --loader-accent-2: #fff4d0;
+  --loader-rune: #ffd700;
+  --loader-text: #fff4d0;
+  --loader-dragon-fill: #4a3508;
+  --loader-dragon-stroke: #ffd700;
+  --loader-glow: rgba(255,215,0,0.7);
+}
+#initial-loader[data-loader-theme="rosita"] {
+  --loader-bg: radial-gradient(ellipse at center, #5a1830 0%, #1a0410 100%);
+  --loader-accent: #f8b4cc;
+  --loader-accent-2: #ff6ba0;
+  --loader-rune: #f8b4cc;
+  --loader-text: #fce4ec;
+  --loader-dragon-fill: #2a0a1a;
+  --loader-dragon-stroke: #f8b4cc;
+  --loader-glow: rgba(248,180,204,0.6);
+}
+#initial-loader[data-loader-theme="maniqka"] {
+  --loader-bg: radial-gradient(ellipse at center, #2a0845 0%, #06020f 100%);
+  --loader-accent: #c084fc;
+  --loader-accent-2: #ff70d8;
+  --loader-rune: #c084fc;
+  --loader-text: #dbb4ff;
+  --loader-dragon-fill: #1a0a2e;
+  --loader-dragon-stroke: #c084fc;
+  --loader-glow: rgba(192,132,252,0.7);
+}
+#initial-loader[data-loader-theme="royal1"] {
+  --loader-bg: radial-gradient(ellipse at center, #8a0000 0%, #2a0000 100%);
+  --loader-accent: #c9a227;
+  --loader-accent-2: #fff5d0;
+  --loader-rune: #c9a227;
+  --loader-text: #fff5d0;
+  --loader-dragon-fill: #4a0808;
+  --loader-dragon-stroke: #c9a227;
+  --loader-glow: rgba(201,162,39,0.7);
+}
+#initial-loader[data-loader-theme="royal2"] {
+  --loader-bg: radial-gradient(ellipse at center, #1a0000 0%, #050000 100%);
+  --loader-accent: #c9a227;
+  --loader-accent-2: #ff2030;
+  --loader-rune: #c9a227;
+  --loader-text: #ffe8a0;
+  --loader-dragon-fill: #1a0000;
+  --loader-dragon-stroke: #c9a227;
+  --loader-glow: rgba(201,162,39,0.7);
+}
+
+/* Cyberpunk override (whichever theme is active) */
+body[data-cyber="on"] #initial-loader {
+  --loader-bg: radial-gradient(ellipse at center, #0a1024 0%, #02030a 70%, #000 100%);
+  --loader-accent: #00f0ff;
+  --loader-accent-2: #ff2a93;
+  --loader-rune: #00f0ff;
+  --loader-text: #00f0ff;
+  --loader-dragon-fill: #062130;
+  --loader-dragon-stroke: #00f0ff;
+  --loader-glow: rgba(0,240,255,0.7);
+}
+
+/* grid floor */
+#initial-loader .grid-floor {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse at 50% 60%, black 0%, transparent 70%);
+  animation: loaderGrid 4s linear infinite;
+}
+#initial-loader[data-loader-theme="light"] .grid-floor {
+  background-image:
+    linear-gradient(rgba(0,0,0,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.06) 1px, transparent 1px);
+}
+@keyframes loaderGrid {
+  from { background-position: 0 0; }
+  to   { background-position: 60px 60px; }
+}
+
+/* central stage — d20 + ring centered */
+.loader-stage {
+  position: relative;
+  width: 360px;
+  height: 360px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Runic ring around d20 */
+.loader-ring {
+  position: absolute;
+  width: 340px;
+  height: 340px;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 2;
+}
+.loader-ring svg.ring-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  animation: ringSpin 14s linear infinite;
+}
+.loader-ring svg.ring-svg.reverse { animation: ringSpin 22s linear infinite reverse; }
+@keyframes ringSpin {
+  from { transform: rotate(0); }
+  to   { transform: rotate(360deg); }
+}
+
+/* d20 in center, big and proud, gently rotating */
+.loader-d20 {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  filter: drop-shadow(0 0 20px var(--loader-glow));
+}
+.loader-d20 .d20-spin {
+  transform-origin: center;
+  animation: d20Tilt 8s ease-in-out infinite;
+}
+@keyframes d20Tilt {
+  0%, 100% { transform: rotate(-2deg); }
+  50%      { transform: rotate(2deg); }
+}
+
+/* Title + bar */
+.loader-title {
+  position: relative;
+  z-index: 5;
+  margin-top: 24px;
+  font-family: 'Cinzel', 'Orbitron', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 8px;
+  color: var(--loader-text);
+  text-shadow: 0 0 14px var(--loader-glow);
+}
+body[data-cyber="on"] .loader-title {
+  font-family: 'Orbitron', sans-serif;
+  text-shadow: 0 0 14px var(--loader-glow), 2px 0 0 var(--loader-accent-2), -2px 0 0 var(--loader-accent);
+  animation: titleGlitch 3s infinite;
+}
+@keyframes titleGlitch {
+  0%, 96%, 100% { transform: translateX(0); }
+  97% { transform: translateX(-2px); text-shadow: 3px 0 0 var(--loader-accent-2), -3px 0 0 var(--loader-accent); }
+  98% { transform: translateX(2px); }
+}
+.loader-subtitle {
+  position: relative;
+  z-index: 5;
+  margin-top: 8px;
+  font-family: 'JetBrains Mono', 'EB Garamond', ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--loader-text);
+  opacity: 0.75;
+}
+.loader-subtitle::before { content: '> '; color: var(--loader-accent); }
+.loader-subtitle::after  { content: '_'; color: var(--loader-accent); animation: caret 0.8s steps(2) infinite; }
+@keyframes caret { 50% { opacity: 0; } }
+
+.loader-bar-wrap {
+  position: relative;
+  z-index: 5;
+  margin-top: 22px;
+  width: 320px;
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--loader-accent);
+  position: relative;
+  overflow: hidden;
+}
+#initial-loader[data-loader-theme="light"] .loader-bar-wrap { background: rgba(0,0,0,0.06); }
+.loader-bar {
+  position: absolute;
+  inset: 0;
+  width: 0%;
+  background: linear-gradient(90deg, var(--loader-accent-2), var(--loader-accent));
+  box-shadow: 0 0 12px var(--loader-glow);
+  transition: width 200ms ease;
+}
+.loader-pct {
+  position: relative;
+  z-index: 5;
+  margin-top: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--loader-accent);
+  font-size: 11px;
+  letter-spacing: 3px;
+}
+
+/* embers floating up */
+.ember {
+  position: absolute;
+  bottom: -10px;
+  width: 3px; height: 3px;
+  background: var(--loader-accent-2);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--loader-glow);
+  animation: emberRise linear forwards;
+  opacity: 0;
+}
+@keyframes emberRise {
+  0%   { opacity: 0; transform: translate(0, 0); }
+  20%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--ex, 0), -100vh); }
+}

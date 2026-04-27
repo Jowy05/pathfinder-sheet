@@ -1,0 +1,103 @@
+[
+  {
+    "id": "aberrant",
+    "name": {"es": "Aberrante", "en": "Aberrant"},
+    "arcana": {"es": "Tus hechizos de transmutación con un solo objetivo tienen un rango doble.", "en": "Your polymorph/transmutation single-target spells have double range."},
+    "classSkills": ["knowledge_dungeoneering","knowledge_local","survival","swim"],
+    "spells": ["Brazo Largo","Toque del Mal","Tentáculo","Sueño","Teletransportación","Forma Alienígena I","Forma Alienígena II","Nube de Pestes","Dominar Monstruo"],
+    "powers": [
+      {"id":"aberrant.longLimbs","min_level":1,"uses":"3+cha","name":{"es":"Extremidades Largas","en":"Long Limbs"},"desc":{"es":"Alcance +5 ft en ataques de toque. +5 ft por 5 niveles.","en":"Reach +5 ft on touch attacks. +5 ft per 5 levels."}},
+      {"id":"aberrant.unusualAnatomy","min_level":9,"uses":null,"name":{"es":"Anatomía Inusual","en":"Unusual Anatomy"},"desc":{"es":"25% de probabilidad de ignorar golpes críticos y precisión. Nv 13+: 50%.","en":"25% chance to negate crits and precision damage. Lv 13+: 50%."}},
+      {"id":"aberrant.alienResist","min_level":15,"uses":null,"name":{"es":"Resistencia Alienígena","en":"Alien Resistance"},"desc":{"es":"Resistencia a hechizos 10 + nivel de hechicero.","en":"Spell resistance 10 + sorcerer level."}}
+    ]
+  },
+  {
+    "id": "arcane",
+    "name": {"es": "Arcano", "en": "Arcane"},
+    "arcana": {"es": "+1 a CD de conjuros de una escuela elegida al subir de nivel.", "en": "+1 to spell DCs of one chosen school at each level gain."},
+    "classSkills": ["knowledge_arcana","knowledge_planes","spellcraft","use_magic_device"],
+    "spells": ["Proyectil Mágico","Resistir Energía","Disipar Magia","Invisibilidad Mayor","Disipar Magia Mayor","Teletransporte","Ojo Arcano","Palabra de Poder Aturdidora","Embrollo Prismático"],
+    "powers": [
+      {"id":"arcane.arcaneApotheosis","min_level":1,"uses":"3+cha","name":{"es":"Vínculo Arcano","en":"Arcane Bond"},"desc":{"es":"Otorga +1 a CD de conjuros de tu escuela durante 1 ronda/nivel. 1/día.","en":"Grant +1 to spell DC of your school for 1 round/level. 1/day."}},
+      {"id":"arcane.metamagicAdept","min_level":3,"uses":null,"name":{"es":"Adepto de Metamagia","en":"Metamagic Adept"},"desc":{"es":"3+/día: aplica una dote de metamagia sin aumentar tiempo de lanzamiento.","en":"3+/day: apply one metamagic feat without increasing casting time."}}
+    ]
+  },
+  {
+    "id": "celestial",
+    "name": {"es": "Celestial", "en": "Celestial"},
+    "arcana": {"es": "Los conjuros de invocación ([bueno]) y de curación añaden +1 dmg/dado.", "en": "Summoning spells [good] and healing spells deal +1 dmg/die."},
+    "classSkills": ["diplomacy","fly","heal","knowledge_religion"],
+    "spells":["Protección del Mal","Resistir Energía","Disipar Magia","Toque del Bien","Llama Sagrada","Palabra Santa","Aura Sagrada","Golpe de la Gloria","Transformación Celestial"],
+    "powers": [
+      {"id":"celestial.holyBolt","min_level":1,"uses":"3+cha","name":{"es":"Rayo Sagrado","en":"Heavenly Fire"},"desc":{"es":"Rayo de fuego sagrado distancia 30 ft: 1d4+1/2 niveles a criaturas malvadas; cura la misma cantidad a criaturas buenas.","en":"Ranged ray 30 ft: 1d4 + 1 per 2 levels to evil creatures; heals same to good."}},
+      {"id":"celestial.resist","min_level":9,"uses":null,"name":{"es":"Resistencias Celestiales","en":"Celestial Resistances"},"desc":{"es":"Resistencia a ácido 10 y frío 10. Nv 13+: 20 ambas.","en":"Acid 10 and cold 10 resistance. Lv 13+: 20 both."}}
+    ]
+  },
+  {
+    "id": "draconic",
+    "name": {"es": "Dragónico", "en": "Draconic"},
+    "arcana": {"es": "+1 al daño por dado de conjuros del tipo de energía de tu dragón.", "en": "+1 dmg per die for spells of your dragon's energy type."},
+    "classSkills": ["fly","perception","use_magic_device","knowledge_arcana"],
+    "spells": ["Manos Ardientes","Resistir Energía","Celeridad del Dragón","Forma de Dragón I","Forma de Dragón II","Explosión de Fuego","Forma de Dragón III","Tormenta de Rayos","Dominar Monstruo"],
+    "powers": [
+      {"id":"draconic.claws","min_level":1,"uses":"3+cha","name":{"es":"Garras","en":"Claws"},"desc":{"es":"Ataques naturales con garras: 1d4 (nv1-4), 1d6 (nv5-11), 1d8 (nv12-19), 2d6 (nv20).","en":"Natural claw attacks: 1d4 (lv1-4), 1d6 (lv5-11), 1d8 (lv12-19), 2d6 (lv20)."}},
+      {"id":"draconic.dragonRes","min_level":9,"uses":null,"name":{"es":"Resistencia de Dragón","en":"Dragon Resistances"},"desc":{"es":"CA natural +1; resistencia al elemento del linaje 10 (nv11+: 20; nv17+: inmunidad).","en":"Natural armor +1; energy resistance 10 (lv11+: 20; lv17+: immunity)."}},
+      {"id":"draconic.breathWeapon","min_level":9,"uses":"3+cha","name":{"es":"Arma de Aliento","en":"Breath Weapon"},"desc":{"es":"Cono 30 ft o línea 60 ft: 1d6/nivel de hechicero (Fort mitad). 3+/día.","en":"30 ft cone or 60 ft line: 1d6/sorcerer level (Fort half). 3+/day."}}
+    ]
+  },
+  {
+    "id": "elemental",
+    "name": {"es": "Elemental", "en": "Elemental"},
+    "arcana": {"es": "Los conjuros del tipo de elemento de tu linaje +1 al daño por dado.", "en": "Spells of your elemental type deal +1 dmg per die."},
+    "classSkills": ["fly","knowledge_planes","spellcraft","survival"],
+    "spells": ["Manos Ardientes","Bola de Fuego","Muro de Fuego","Explosión","Invocar Elemental Pequeño","Invocar Elemental Mediano","Invocar Elemental Grande","Invocar Elemental Superior","Elemental Inmenso"],
+    "powers": [
+      {"id":"elemental.ray","min_level":1,"uses":"3+cha","name":{"es":"Rayo Elemental","en":"Elemental Ray"},"desc":{"es":"Rayo de energía distancia 30 ft: 1d6+1/2 niveles de daño elemental.","en":"Energy ray 30 ft: 1d6 + 1 per 2 levels elemental damage."}},
+      {"id":"elemental.resist","min_level":9,"uses":null,"name":{"es":"Resistencia Elemental","en":"Elemental Resistance"},"desc":{"es":"Resistencia 20 al tipo de energía del linaje. Nv 17+: Inmunidad.","en":"Energy resistance 20 to your lineage type. Lv 17+: Immunity."}}
+    ]
+  },
+  {
+    "id": "fey",
+    "name": {"es": "Feérico", "en": "Fey"},
+    "arcana": {"es": "+2 a CD de conjuros de encantamiento y adivinación.", "en": "+2 to spell DCs for enchantment and divination spells."},
+    "classSkills": ["acrobatics","bluff","fly","survival"],
+    "spells": ["Inducir Miedo","Sueño","Belleza Encantadora","Libertad de Movimiento","Sueños","Soñar","Engaño Supremo","Ironía","Deseo"],
+    "powers": [
+      {"id":"fey.laughingTouch","min_level":1,"uses":"3+cha","name":{"es":"Toque de Risa","en":"Laughing Touch"},"desc":{"es":"Toque: criatura ríe incontrolablemente 1 ronda (sin acción, Fort niega). Afecta solo a nv ≤ nivel hechicero.","en":"Touch: creature laughs uncontrollably 1 round (Fort negates). Works on HD ≤ sorcerer level."}},
+      {"id":"fey.fleeting_glance","min_level":9,"uses":"1","name":{"es":"Mirada Efímera","en":"Fleeting Glance"},"desc":{"es":"Invisibilidad durante 1 ronda/nivel de hechicero. 1/día.","en":"Invisibility for 1 round/sorcerer level. 1/day."}}
+    ]
+  },
+  {
+    "id": "infernal",
+    "name": {"es": "Infernal", "en": "Infernal"},
+    "arcana": {"es": "+2 a CD de conjuros de encantamiento con subtipo [maldad] y [ley].", "en": "+2 to spell DCs for enchantment spells with [evil] and [law] descriptors."},
+    "classSkills": ["bluff","diplomacy","knowledge_planes","spellcraft"],
+    "spells":["Protección del Bien","Tenebrismo","Sugestión","Dominación","Engaño Mayor","Maldición","Plaga","Sugestión en Masa","Deseo Limitado"],
+    "powers": [
+      {"id":"infernal.corruptingTouch","min_level":1,"uses":"3+cha","name":{"es":"Toque Corruptor","en":"Corrupting Touch"},"desc":{"es":"Toque: objetivo apabullado 1 ronda + 1/5 niveles (Fort niega). Solo funciona en seres con DG ≤ nivel hechicero.","en":"Touch: target shaken 1 round + 1 per 5 levels (Fort negates)."}},
+      {"id":"infernal.hellfire","min_level":9,"uses":"3+cha","name":{"es":"Fuego Infernal","en":"Hellfire"},"desc":{"es":"Rayo de fuego 30 ft: 1d6/2 niveles daño fuego (mitad fuego sagrado, bypassa RM). Fort mitad.","en":"30 ft ray: 1d6/2 levels fire dmg (half unholy fire, bypasses SR). Fort half."}}
+    ]
+  },
+  {
+    "id": "undead",
+    "name": {"es": "No Muerto", "en": "Undead"},
+    "arcana": {"es": "+1 al daño por dado en conjuros de no muertos y necromancia.", "en": "+1 dmg per die for undead and necromancy spells."},
+    "classSkills": ["bluff","disguise","intimidate","knowledge_religion"],
+    "spells": ["Causa Miedo","Toque Enfermante","Vampirismo (menor)","Animación de Muertos","Contagio Venomoso","Plaga","Matar","Crear No Muertos Mayor","Energía Negativa"],
+    "powers": [
+      {"id":"undead.touchOfGrave","min_level":1,"uses":"3+cha","name":{"es":"Toque de la Tumba","en":"Touch of the Grave"},"desc":{"es":"Toque: 1d6+1/2 niveles daño negativo (o cura no muertos). Fort mitad.","en":"Touch: 1d6 + 1 per 2 levels negative energy (or heals undead). Fort half."}},
+      {"id":"undead.deathsGift","min_level":9,"uses":null,"name":{"es":"Don de la Muerte","en":"Death's Gift"},"desc":{"es":"Resistencia a frío 10, inmunidad a agotamiento no mágico. Nv 13+: frío 20, sin daño de precisión.","en":"Cold resistance 10, immune to non-magical exhaustion. Lv 13+: cold 20, immune to precision dmg."}}
+    ]
+  },
+  {
+    "id": "destined",
+    "name": {"es": "Predestinado", "en": "Destined"},
+    "arcana": {"es": "Cuando lanzas un conjuro de adivinación o que otorga un bonificador de suerte, añades tu mod CAR a salvaciones hasta el fin de tu próximo turno.", "en": "When casting a divination or luck spell, add CHA mod to saves until end of next turn."},
+    "classSkills": ["athletics","knowledge_history","perception","survival"],
+    "spells": ["Escudo de la Fe","Premonición","Protección vs Energía","Libertad de Movimiento","Suerte de Bestia","Revisitar los Huesos","Presencia del Héroe","Escudo de la Ley","Deseo"],
+    "powers": [
+      {"id":"destined.touchFate","min_level":1,"uses":"3+cha","name":{"es":"Toque del Destino","en":"Touch of Destiny"},"desc":{"es":"Toque: aliado +1 por cada 5 niveles a todas las tiradas hasta el fin de su próximo turno.","en":"Touch: ally +1 per 5 levels on all rolls until end of next turn."}},
+      {"id":"destined.withinReach","min_level":9,"uses":"1","name":{"es":"A Mi Alcance","en":"It Was Meant to Be"},"desc":{"es":"1/día al fallar una tirada de ataque, salvación o habilidad: repite la tirada y usa el resultado más alto.","en":"1/day on a failed attack, save, or skill check: reroll and take the higher result."}}
+    ]
+  }
+]

@@ -1,0 +1,287 @@
+[
+  {
+    "id": "blue_rose",
+    "classType": "cavalier",
+    "name": {"es": "Orden de la Rosa Azul", "en": "Order of the Blue Rose"},
+    "edicts": {
+      "es": "Promover la paz y la diplomacia. Evitar la violencia cuando sea posible. Poner fin a los conflictos de forma pacífica.",
+      "en": "Promote peace and diplomacy. Avoid violence when possible. End conflicts through peaceful means."
+    },
+    "challenge": {
+      "es": "+bono moral a tiradas de Diplomacia contra el objetivo del desafío.",
+      "en": "+morale bonus on Diplomacy checks against the challenge target."
+    },
+    "classSkills": ["diplomacy","knowledge_history"],
+    "powers": [
+      {"id":"blue_rose.flatBlade","min_level":2,"uses":null,"name":{"es":"Plano del Filo","en":"Flat of the Blade"},"desc":{"es":"Puede atacar con el plano del arma para hacer daño no letal sin penalización. Añade ½ nivel a tiradas de Intimidación para someter (no matar).","en":"May strike with the flat of the blade to deal nonlethal damage without penalty. Add ½ level to Intimidate checks to subdue rather than kill."}},
+      {"id":"blue_rose.innerPeace","min_level":8,"uses":null,"name":{"es":"Paz Interior","en":"Inner Peace"},"desc":{"es":"1/día como acción estándar: criatura confusa o perturbada en 30 ft puede repetir su tirada de salvación con +4 de bono.","en":"1/day as standard action: confused or disturbed creature within 30 ft may repeat its saving throw with a +4 bonus."}},
+      {"id":"blue_rose.auraOfPeace","min_level":15,"uses":null,"name":{"es":"Aura de Paz","en":"Aura of Peace"},"desc":{"es":"Los aliados en 10 ft ganan +4 de bono moral a las tiradas de salvación contra efectos de alteración de la mente.","en":"Allies within 10 ft gain a +4 morale bonus on saving throws against mind-affecting effects."}}
+    ]
+  },
+  {
+    "id": "cockatrice",
+    "classType": "cavalier",
+    "name": {"es": "Orden del Cocatriz", "en": "Order of the Cockatrice"},
+    "edicts": {
+      "es": "Actuar en beneficio propio ante todo. Nunca compartir la recompensa del desafío. Buscar la gloria personal.",
+      "en": "Act in self-interest above all. Never share the spoils of a challenge. Seek personal glory."
+    },
+    "challenge": {
+      "es": "+¼ de nivel de caballero de bono de competencia a las tiradas de ataque contra el objetivo del desafío.",
+      "en": "+¼ cavalier level as a competence bonus on attack rolls against the challenge target."
+    },
+    "classSkills": ["bluff","intimidate"],
+    "powers": [
+      {"id":"cockatrice.stealGlory","min_level":2,"uses":null,"name":{"es":"Robar Gloria","en":"Steal Glory"},"desc":{"es":"Si un aliado derrota a un enemigo, puede hacer una tirada de Intimidación gratuita como reacción para atribuirse el mérito ante testigos. +1 a ataque y daño vs el primer enemigo atacado en el siguiente turno.","en":"If an ally defeats an enemy, may make a free Intimidate check as a reaction to claim credit before witnesses. +1 on attack and damage vs the first enemy attacked on the next turn."}},
+      {"id":"cockatrice.momentOfTriumph","min_level":8,"uses":"1","name":{"es":"Momento de Triunfo","en":"Moment of Triumph"},"desc":{"es":"1/día: repetir cualquier d20 y usar el resultado más alto.","en":"1/day: reroll any d20 and use the higher result."}},
+      {"id":"cockatrice.vengeance","min_level":15,"uses":null,"name":{"es":"Venganza Devastadora","en":"Devastating Vengeance"},"desc":{"es":"Cuando el objetivo del desafío causa daño al caballero, añade ½ nivel de caballero de bono de daño adicional en todos los ataques contra ese objetivo ese turno.","en":"When the challenge target deals damage to the cavalier, add ½ cavalier level as a bonus to all damage rolls against that target this turn."}}
+    ]
+  },
+  {
+    "id": "dragon",
+    "classType": "cavalier",
+    "name": {"es": "Orden del Dragón", "en": "Order of the Dragon"},
+    "edicts": {
+      "es": "Proteger a sus aliados y responder siempre a sus llamadas de ayuda.",
+      "en": "Protect allies and always answer their calls for aid."
+    },
+    "challenge": {
+      "es": "Los aliados ganan +¼ de nivel de caballero de bono de competencia a las tiradas de ataque contra el objetivo del desafío.",
+      "en": "Allies gain +¼ cavalier level as a competence bonus on attack rolls against the challenge target."
+    },
+    "classSkills": ["perception","survival"],
+    "powers": [
+      {"id":"dragon.aidAllies","min_level":2,"uses":null,"name":{"es":"Ayudar a Aliados","en":"Aid Allies"},"desc":{"es":"Cuando usa Ayudar a Otro con éxito, el bono concedido aumenta en +1 (y +1 cada 4 niveles adicionales).","en":"When successfully using Aid Another, the granted bonus increases by +1 (and +1 per 4 additional levels)."}},
+      {"id":"dragon.strategy","min_level":8,"uses":"1","name":{"es":"Estrategia","en":"Strategy"},"desc":{"es":"1/día como acción inmediata: otorgar a un aliado en 30 ft que pueda oírle un movimiento o ataque adicional inmediato.","en":"1/day as immediate action: grant an ally within 30 ft who can hear you an immediate move or attack action."}},
+      {"id":"dragon.actAsOne","min_level":15,"uses":"1","name":{"es":"Actuar Como Uno","en":"Act as One"},"desc":{"es":"1/día: todos los aliados en 30 ft pueden hacer inmediatamente un ataque de cuerpo a cuerpo o a distancia como reacción.","en":"1/day: all allies within 30 ft may immediately make one melee or ranged attack as a reaction."}}
+    ]
+  },
+  {
+    "id": "flame",
+    "classType": "cavalier",
+    "name": {"es": "Orden de la Llama", "en": "Order of the Flame"},
+    "edicts": {
+      "es": "Buscar el combate y la gloria en la batalla. Nunca rechazar un desafío justo. Ser el primero en la carga.",
+      "en": "Seek combat and glory in battle. Never refuse a fair challenge. Be first into the charge."
+    },
+    "challenge": {
+      "es": "Los ataques contra el objetivo del desafío causan +1d6 de daño de fuego extra por cada 4 niveles.",
+      "en": "Attacks against the challenge target deal +1d6 extra fire damage per 4 levels."
+    },
+    "classSkills": ["intimidate","ride"],
+    "powers": [
+      {"id":"flame.burningIntensity","min_level":2,"uses":null,"name":{"es":"Intensidad Ardiente","en":"Burning Intensity"},"desc":{"es":"Bono de resistencia +4 a tiradas de salvación contra miedo. Puede compartir este bono con aliados adyacentes como acción estándar.","en":"Resistance +4 bonus on saves against fear. May share this bonus with adjacent allies as a standard action."}},
+      {"id":"flame.mountedMastery","min_level":8,"uses":null,"name":{"es":"Maestría Montada","en":"Mounted Mastery"},"desc":{"es":"Ignora las penalizaciones de armadura al montar. Suma ½ nivel a tiradas de Monta.","en":"Ignores armor penalties when mounted. Add ½ level to Ride checks."}},
+      {"id":"flame.knightCharge","min_level":15,"uses":"1","name":{"es":"Carga del Caballero","en":"Knight's Charge"},"desc":{"es":"1/día: al cargar, puede hacer un ataque completo en lugar de un único ataque. Cada golpe extra suma el bono de daño de desafío.","en":"1/day: when charging, may make a full attack instead of a single attack. Each extra hit adds the challenge damage bonus."}}
+    ]
+  },
+  {
+    "id": "lion",
+    "classType": "cavalier",
+    "name": {"es": "Orden del León", "en": "Order of the Lion"},
+    "edicts": {
+      "es": "Servir y obedecer a su señor. Seguir sus órdenes. Protegerle ante todo.",
+      "en": "Serve and obey the liege lord. Follow their commands. Protect them above all."
+    },
+    "challenge": {
+      "es": "Gana bono de competencia a CA igual a ¼ del nivel de caballero contra los ataques del objetivo del desafío.",
+      "en": "Gain a competence bonus to AC equal to ¼ cavalier level against attacks from the challenge target."
+    },
+    "classSkills": ["knowledge_local","knowledge_nobility"],
+    "powers": [
+      {"id":"lion.lionsCall","min_level":2,"uses":null,"name":{"es":"El Llamado del León","en":"Lion's Call"},"desc":{"es":"Como acción estándar: los aliados en 60 ft ganan +1 de bono moral a tiradas de salvación vs miedo y +1 a ataque por 1 minuto/nivel.","en":"As standard action: allies within 60 ft gain +1 morale bonus on saves vs fear and +1 on attack rolls for 1 min/level."}},
+      {"id":"lion.forTheKing","min_level":8,"uses":"1","name":{"es":"Por el Rey","en":"For the King"},"desc":{"es":"1/día como acción inmediata: los aliados en 30 ft ganan +4 de bono moral a ataque y daño durante 1 asalto.","en":"1/day as immediate action: allies within 30 ft gain +4 morale bonus on attack and damage rolls for 1 round."}},
+      {"id":"lion.shieldOfLiege","min_level":15,"uses":null,"name":{"es":"Escudo del Señor","en":"Shield of the Liege"},"desc":{"es":"Puede redirigir cualquier ataque dirigido al señor a sí mismo si está adyacente. Gana bono de esquiva +2 a CA al hacerlo.","en":"May redirect any attack targeting the liege to himself if adjacent. Gains +2 dodge bonus to AC when doing so."}}
+    ]
+  },
+  {
+    "id": "shield",
+    "classType": "cavalier",
+    "name": {"es": "Orden del Escudo", "en": "Order of the Shield"},
+    "edicts": {
+      "es": "Proteger a los inocentes. Acudir en ayuda de los indefensos. Nunca abandonar a los débiles.",
+      "en": "Protect the innocent. Aid the defenseless. Never abandon the weak."
+    },
+    "challenge": {
+      "es": "Gana RD 1/— por cada 4 niveles contra los ataques del objetivo del desafío.",
+      "en": "Gain DR 1/— per 4 levels against attacks from the challenge target."
+    },
+    "classSkills": ["heal","knowledge_local"],
+    "powers": [
+      {"id":"shield.resolute","min_level":2,"uses":null,"name":{"es":"Resuelto","en":"Resolute"},"desc":{"es":"Cuando está adyacente a un aliado no combatiente, gana +2 de bono de competencia a CA y a tiradas de salvación.","en":"When adjacent to a noncombatant ally, gain +2 competence bonus to AC and saving throws."}},
+      {"id":"shield.stemTide","min_level":8,"uses":null,"name":{"es":"Detener la Marea","en":"Stem the Tide"},"desc":{"es":"Como acción inmediata: puede detener el movimiento de un enemigo que pase por su amenaza como si hubiera realizado con éxito un ataque de oportunidad (sin necesitarlo). Puede usar esto 1/asalto.","en":"As immediate action: stop one enemy's movement through his threatened area as if making a successful AoO (without needing one). 1/round."}},
+      {"id":"shield.defendWeak","min_level":15,"uses":null,"name":{"es":"Defender a los Débiles","en":"Defend the Weak"},"desc":{"es":"Puede elegir recibir el daño de un ataque dirigido a un aliado adyacente como reacción. Gana RD 5/— contra ese golpe redirigido.","en":"May choose to take the damage from an attack targeting an adjacent ally as a reaction. Gains DR 5/— against that redirected hit."}}
+    ]
+  },
+  {
+    "id": "star",
+    "classType": "cavalier",
+    "name": {"es": "Orden de la Estrella", "en": "Order of the Star"},
+    "edicts": {
+      "es": "Seguir los edictos de la deidad elegida. Promover la fe y proteger a los creyentes.",
+      "en": "Follow the edicts of the chosen deity. Promote the faith and protect believers."
+    },
+    "challenge": {
+      "es": "Gana bono de resistencia a tiradas de salvación igual a ¼ del nivel contra conjuros y poderes del objetivo del desafío.",
+      "en": "Gain a resistance bonus on saving throws equal to ¼ level against spells and abilities from the challenge target."
+    },
+    "classSkills": ["heal","knowledge_religion"],
+    "powers": [
+      {"id":"star.calling","min_level":2,"uses":null,"name":{"es":"Llamada","en":"Calling"},"desc":{"es":"Elige una habilidad de dominio de su deidad con usos = 3 + mod CAR. Si no tiene deidad, elige Canalizar Energía (positiva/negativa según alineamiento, dado 1d6+1/4 niv.).","en":"Choose one domain power from your deity with uses = 3 + CHA mod. If no deity, choose Channel Energy (positive/negative per alignment, 1d6+1 per 4 levels)."}},
+      {"id":"star.forTheFaith","min_level":8,"uses":"1","name":{"es":"Por la Fe","en":"For the Faith"},"desc":{"es":"1/día como acción estándar: los aliados en 30 ft que puedan oírle ganan +4 moral a tiradas de salvación contra efectos de miedo durante 1 min/nivel.","en":"1/day as standard action: allies within 30 ft who can hear gain +4 morale on saves vs fear for 1 min/level."}},
+      {"id":"star.faithfulCharge","min_level":15,"uses":null,"name":{"es":"Carga Fiel","en":"Faithful Charge"},"desc":{"es":"Al cargar, gana bono de sagrado/profano (según alineamiento) a ataque y daño igual a ½ nivel de caballero.","en":"When charging, gain a sacred/profane (based on alignment) bonus on attack and damage equal to ½ cavalier level."}}
+    ]
+  },
+  {
+    "id": "sword",
+    "classType": "cavalier",
+    "name": {"es": "Orden de la Espada", "en": "Order of the Sword"},
+    "edicts": {
+      "es": "Actuar con honor y caballerosidad. Nunca deshonrarse. Proteger al inocente y desafiar al malvado.",
+      "en": "Act with honor and chivalry. Never bring dishonor. Protect the innocent and challenge evil."
+    },
+    "challenge": {
+      "es": "+¼ de nivel de caballero de bono de competencia a las tiradas de ataque contra el objetivo del desafío.",
+      "en": "+¼ cavalier level as a competence bonus on attack rolls against the challenge target."
+    },
+    "classSkills": ["knowledge_nobility","knowledge_religion"],
+    "powers": [
+      {"id":"sword.byMyHonor","min_level":2,"uses":null,"name":{"es":"Por Mi Honor","en":"By My Honor"},"desc":{"es":"Elige un alineamiento adyacente al suyo: gana bono de competencia +2 asociado (LB: saves; LN: ataque; NB: daño; NN: CA; NM: velocidad +5 ft; LM: FUE; CM: tiradas de habilidad; CN: iniciativa).","en":"Choose one alignment adjacent to yours: gain an associated +2 competence bonus (LG: saves; LN: attack; NG: damage; NN: AC; NE: speed +5ft; LE: STR; CE: skill checks; CN: initiative)."}},
+      {"id":"sword.mountedMastery","min_level":8,"uses":null,"name":{"es":"Maestría Montada","en":"Mounted Mastery"},"desc":{"es":"Ignora las penalizaciones de armadura y escudo en Monta. Puede emplear la lanza sin penalización en la primera ronda de combate (sin carga).","en":"Ignores armor and shield penalties on Ride checks. May use a lance without penalty in the first round of combat (without charging)."}},
+      {"id":"sword.knightChallenge","min_level":15,"uses":null,"name":{"es":"Desafío del Caballero","en":"Knight's Challenge"},"desc":{"es":"El bono de ataque y daño del desafío se dobla. Además, el objetivo del desafío sufre penalización de −2 a CA contra los ataques del caballero.","en":"The challenge's attack and damage bonus is doubled. Additionally, the challenge target suffers a −2 penalty to AC against the cavalier's attacks."}}
+    ]
+  },
+  {
+    "id": "tome",
+    "classType": "cavalier",
+    "name": {"es": "Orden del Tomo", "en": "Order of the Tome"},
+    "edicts": {
+      "es": "Preservar el conocimiento y los libros. Compartir el saber. No destruir textos escritos.",
+      "en": "Preserve knowledge and books. Share learning. Never destroy written texts."
+    },
+    "challenge": {
+      "es": "Al aceptar el desafío, hace una tirada de Conocimiento (tipo relevante) para analizar al objetivo; si la supera, gana +1 a ataque y +1 a CA vs ese objetivo.",
+      "en": "Upon issuing the challenge, make a relevant Knowledge check to analyze the target; if successful, gain +1 on attack rolls and +1 to AC against that target."
+    },
+    "classSkills": ["knowledge_arcana","knowledge_dungeoneering"],
+    "powers": [
+      {"id":"tome.studied","min_level":2,"uses":null,"name":{"es":"Estudiado","en":"Studied"},"desc":{"es":"Suma ½ nivel de caballero a todas las tiradas de Conocimiento. Puede hacer tiradas de Conocimiento sin entrenamiento.","en":"Add ½ cavalier level to all Knowledge checks. May make untrained Knowledge checks."}},
+      {"id":"tome.knowledgeIsPower","min_level":8,"uses":null,"name":{"es":"El Conocimiento es Poder","en":"Knowledge is Power"},"desc":{"es":"1/día: usar una tirada de Conocimiento (DC 20) relacionada con el tipo de criatura para obtener +4 a ataque y daño vs esa criatura durante 1 minuto.","en":"1/day: use a Knowledge check (DC 20) related to the creature type to gain +4 on attack and damage vs that creature for 1 minute."}},
+      {"id":"tome.tomesInsight","min_level":15,"uses":null,"name":{"es":"Perspicacia del Tomo","en":"Tome's Insight"},"desc":{"es":"Añade su mod de Inteligencia como bono de competencia a todas las tiradas de salvación.","en":"Add Intelligence modifier as a competence bonus to all saving throws."}}
+    ]
+  },
+  {
+    "id": "torch",
+    "classType": "cavalier",
+    "name": {"es": "Orden de la Antorcha", "en": "Order of the Torch"},
+    "edicts": {
+      "es": "Cazar y destruir aberraciones, no-muertos y demonios. Nunca aliarse con estas criaturas.",
+      "en": "Hunt and destroy aberrations, undead, and fiends. Never ally with such creatures."
+    },
+    "challenge": {
+      "es": "+2 de bono a ataque y daño contra el objetivo del desafío si es aberración, no-muerto o extraplanar.",
+      "en": "+2 bonus on attack and damage against the challenge target if it is an aberration, undead, or outsider."
+    },
+    "classSkills": ["knowledge_dungeoneering","knowledge_planes"],
+    "powers": [
+      {"id":"torch.monsterLore","min_level":2,"uses":null,"name":{"es":"Saber Monstruoso","en":"Monster Lore"},"desc":{"es":"Suma ½ nivel a tiradas de Conocimiento para identificar monstruos. Al identificar con éxito, gana +1 a ataque vs esa criatura durante ese combate.","en":"Add ½ level to Knowledge checks to identify monsters. On a successful identification, gain +1 on attack rolls vs that creature for that combat."}},
+      {"id":"torch.torchsWrath","min_level":8,"uses":null,"name":{"es":"Ira de la Antorcha","en":"Torch's Wrath"},"desc":{"es":"Gana RD 2/— contra los ataques de aberraciones, no-muertos y criaturas extraplanares. RD 5/— contra el objetivo del desafío si entra en la categoría.","en":"Gain DR 2/— against attacks from aberrations, undead, and outsiders. DR 5/— against the challenge target if it qualifies."}},
+      {"id":"torch.byTorchsLight","min_level":15,"uses":null,"name":{"es":"A la Luz de la Antorcha","en":"By Torch's Light"},"desc":{"es":"Los ataques contra aberraciones, no-muertos y extraplanares ignoran RD y RM. Además, al derrotar al objetivo del desafío, gana un uso de desafío de vuelta inmediatamente.","en":"Attacks against aberrations, undead, and outsiders bypass DR and SR. Additionally, upon defeating the challenge target, regain one challenge use immediately."}}
+    ]
+  },
+  {
+    "id": "paw",
+    "classType": "cavalier",
+    "name": {"es": "Orden de la Pata", "en": "Order of the Paw"},
+    "edicts": {
+      "es": "Proteger a las razas pequeñas y las criaturas del bien. Respetar los bosques y la naturaleza.",
+      "en": "Protect small races and good creatures. Respect forests and nature."
+    },
+    "challenge": {
+      "es": "Gana bono de competencia a CA igual a ¼ del nivel de caballero contra los ataques del objetivo del desafío mientras haya un halfling u otro aliado pequeño a menos de 30 ft.",
+      "en": "Gain competence bonus to AC equal to ¼ cavalier level against attacks from the challenge target while a halfling or small ally is within 30 ft."
+    },
+    "classSkills": ["knowledge_nature","stealth"],
+    "powers": [
+      {"id":"paw.swornDefense","min_level":2,"uses":null,"name":{"es":"Defensa Jurada","en":"Sworn Defense"},"desc":{"es":"Cuando está adyacente a un aliado de tamaño Pequeño, gana +2 de bono de esquiva a CA. Si el aliado sufre daño, puede realizar un ataque de oportunidad gratuito contra quien atacó.","en":"When adjacent to a Small-sized ally, gain +2 dodge bonus to AC. If the ally takes damage, may make a free attack of opportunity against the attacker."}},
+      {"id":"paw.protectMeek","min_level":8,"uses":null,"name":{"es":"Proteger a los Indefensos","en":"Protect the Meek"},"desc":{"es":"Como reacción, puede interponerse entre un aliado Pequeño o halfling adyacente y un ataque, tomando el daño él mismo. Reduce ese daño en ½ nivel de caballero.","en":"As a reaction, may interpose between an adjacent halfling or Small ally and an attack, taking the damage himself. Reduces that damage by ½ cavalier level."}},
+      {"id":"paw.guardian","min_level":15,"uses":null,"name":{"es":"Guardián de los Pequeños","en":"Guardian of the Small"},"desc":{"es":"Los aliados de tamaño Pequeño en 30 ft ganan +4 moral a tiradas de salvación y +2 de bono deflector a CA mientras el caballero esté vivo y combatiendo.","en":"Small-sized allies within 30 ft gain +4 morale on saving throws and +2 deflection bonus to AC while the cavalier is alive and fighting."}}
+    ]
+  },
+  {
+    "id": "flame_samurai",
+    "classType": "samurai",
+    "name": {"es": "Orden de la Llama (Samurái)", "en": "Order of the Flame (Samurai)"},
+    "edicts": {
+      "es": "Buscar el combate y la gloria. Nunca huir de un desafío. Morir con honor antes que rendirse cobardemente.",
+      "en": "Seek combat and glory. Never flee from a challenge. Die with honor rather than surrender in cowardice."
+    },
+    "challenge": {
+      "es": "+bono moral al daño igual al nivel de samurái en todos los ataques contra el objetivo del desafío.",
+      "en": "+morale bonus on damage rolls equal to samurai level on all attacks against the challenge target."
+    },
+    "classSkills": ["intimidate","ride"],
+    "powers": [
+      {"id":"flame_s.bravadosBlade","min_level":2,"uses":null,"name":{"es":"Bravura del Filo","en":"Bravado's Blade"},"desc":{"es":"Cuando causa daño en el primer ataque de una ronda, puede intentar Intimidar al objetivo como acción gratuita. Si tiene éxito, el objetivo queda asustado durante 1 asalto.","en":"When dealing damage on the first attack of a round, may attempt to Demoralize the target as a free action. On success, the target is shaken for 1 round."}},
+      {"id":"flame_s.gloriousChallenge","min_level":8,"uses":null,"name":{"es":"Desafío Glorioso","en":"Glorious Challenge"},"desc":{"es":"Al emitir un Desafío, puede moverse inmediatamente hasta su velocidad de movimiento hacia el objetivo como acción gratuita. Esta carga no provoca ataques de oportunidad.","en":"When issuing a Challenge, may immediately move up to his speed toward the target as a free action. This movement does not provoke attacks of opportunity."}},
+      {"id":"flame_s.burningAmbition","min_level":15,"uses":null,"name":{"es":"Ambición Ardiente","en":"Burning Ambition"},"desc":{"es":"Cuando el objetivo del desafío cae a 0 PG o menos, recupera inmediatamente 1 uso de Desafío. Solo ocurre una vez por asalto.","en":"When the challenge target is reduced to 0 hp or fewer, immediately regain 1 use of Challenge. This can only occur once per round."}}
+    ]
+  },
+  {
+    "id": "warrior",
+    "classType": "samurai",
+    "name": {"es": "Orden del Guerrero", "en": "Order of the Warrior"},
+    "edicts": {
+      "es": "Seguir el código del bushido: lealtad, honor, rectitud, respeto, honestidad, valor y benevolencia. Proteger al señor con la propia vida.",
+      "en": "Follow the bushido code: loyalty, honor, righteousness, respect, honesty, valor, and benevolence. Protect the lord with your life."
+    },
+    "challenge": {
+      "es": "+bono moral a la tirada de daño igual a ½ nivel de samurái. El bono aumenta a nivel completo cuando ataca al enemigo del señor.",
+      "en": "+morale bonus on damage rolls equal to ½ samurai level. Bonus increases to full level when attacking the lord's enemy."
+    },
+    "classSkills": ["knowledge_local","knowledge_nobility"],
+    "powers": [
+      {"id":"warrior.battlesToll","min_level":2,"uses":null,"name":{"es":"El Precio de la Batalla","en":"Battle's Toll"},"desc":{"es":"Cuando derrota a un enemigo (reduciéndolo a 0 PG o matándolo), puede realizar inmediatamente un ataque adicional de cuerpo a cuerpo contra otro enemigo adyacente como acción gratuita.","en":"When defeating an enemy (reducing it to 0 hp or killing it), may immediately make one additional melee attack against another adjacent enemy as a free action."}},
+      {"id":"warrior.selfless","min_level":8,"uses":null,"name":{"es":"Desinteresado","en":"Selfless"},"desc":{"es":"Como acción estándar, puede transferir su bono moral al daño del Desafío a todos los aliados en 30 ft durante 1 asalto. Mientras lo hace, el samurái no obtiene el bono él mismo.","en":"As a standard action, may transfer his Challenge morale damage bonus to all allies within 30 ft for 1 round. While doing so, the samurai does not gain the bonus himself."}},
+      {"id":"warrior.strikeTrue","min_level":15,"uses":"1","name":{"es":"Golpe Certero","en":"Strike True"},"desc":{"es":"1/combate: cuando amenaza un crítico contra el objetivo del desafío, la confirmación es automáticamente exitosa (no necesita tirada). El multiplicador de daño aumenta en ×1.","en":"1/combat: when threatening a critical hit against the challenge target, the confirmation roll automatically succeeds (no roll needed). The damage multiplier increases by ×1."}}
+    ]
+  },
+  {
+    "id": "hero",
+    "classType": "samurai",
+    "name": {"es": "Orden del Héroe", "en": "Order of the Hero"},
+    "edicts": {
+      "es": "Buscar siempre la acción más heroica. Nunca dejar a un compañero en el campo de batalla. Enfrentarse al peligro de frente.",
+      "en": "Always seek the most heroic action. Never leave a companion on the battlefield. Face danger head-on."
+    },
+    "challenge": {
+      "es": "Gana bono de moral a ataque y daño igual a ¼ del nivel de samurái. El bono se dobla en el primer asalto de combate.",
+      "en": "Gain a morale bonus on attack and damage rolls equal to ¼ samurai level. The bonus is doubled on the first round of combat."
+    },
+    "classSkills": ["acrobatics","perception"],
+    "powers": [
+      {"id":"hero.heroicGrace","min_level":2,"uses":null,"name":{"es":"Gracia Heroica","en":"Heroic Grace"},"desc":{"es":"Suma ½ nivel a las tiradas de iniciativa. Al actuar en el primer asalto, puede hacer un ataque adicional al final de su turno sin las penalizaciones del ataque completo.","en":"Add ½ level to initiative checks. When acting in the first round, may make one additional attack at the end of its turn without the full-attack penalties."}},
+      {"id":"hero.inspiringDisplay","min_level":8,"uses":"1","name":{"es":"Exhibición Inspiradora","en":"Inspiring Display"},"desc":{"es":"1/día tras derrotar a un oponente: todos los aliados en 60 ft que puedan ver la hazaña ganan +2 de bono moral a ataque, daño y tiradas de salvación durante 1 minuto.","en":"1/day after defeating an opponent: all allies within 60 ft who can witness the feat gain a +2 morale bonus on attack, damage, and saving throws for 1 minute."}},
+      {"id":"hero.heroesChallenge","min_level":15,"uses":null,"name":{"es":"Desafío del Héroe","en":"Hero's Challenge"},"desc":{"es":"Cuando emite un Desafío, puede elegir un segundo objetivo adyacente al primero. Ambos cuentan como objetivos del Desafío, pero el bono al daño se divide entre los dos.","en":"When issuing a Challenge, may choose a second target adjacent to the first. Both count as Challenge targets, but the damage bonus is split between the two."}}
+    ]
+  },
+  {
+    "id": "land",
+    "classType": "samurai",
+    "name": {"es": "Orden de la Tierra", "en": "Order of the Land"},
+    "edicts": {
+      "es": "Proteger el territorio de su señor. Nunca abandonar un puesto de defensa. Conocer la tierra como a uno mismo.",
+      "en": "Protect the lord's territory. Never abandon a defensive post. Know the land as you know yourself."
+    },
+    "challenge": {
+      "es": "Gana bono de competencia a CA igual a ¼ del nivel de samurái mientras permanezca en un área de 10 ft de donde inició el Desafío.",
+      "en": "Gain a competence bonus to AC equal to ¼ samurai level while remaining within 10 ft of where the Challenge was issued."
+    },
+    "classSkills": ["knowledge_nature","survival"],
+    "powers": [
+      {"id":"land.homeGround","min_level":2,"uses":null,"name":{"es":"Tierra Natal","en":"Home Ground"},"desc":{"es":"En cualquier terreno que lleve explorando al menos 1 hora, ignora terreno difícil y gana +2 de bono de competencia a percepción. No puede ser flanqueado por menos de 3 enemigos a la vez.","en":"In any terrain explored for at least 1 hour, ignores difficult terrain and gains +2 competence on Perception. Cannot be flanked by fewer than 3 enemies simultaneously."}},
+      {"id":"land.fortressStance","min_level":8,"uses":"1","name":{"es":"Postura de Fortaleza","en":"Fortress Stance"},"desc":{"es":"1/día: durante 1 minuto/nivel, gana RD 3/— y +2 de bono deflector a CA mientras no se mueva más de 5 ft por ronda.","en":"1/day: for 1 minute/level, gain DR 3/— and +2 deflection bonus to AC while moving no more than 5 ft per round."}},
+      {"id":"land.unbreakableDefense","min_level":15,"uses":null,"name":{"es":"Defensa Inquebrantable","en":"Unbreakable Defense"},"desc":{"es":"Los aliados en 30 ft ganan RD 2/— mientras el samurái esté vivo y en posición defensiva. Al ser derribado, puede gastar 1 punto de Resolución para permanecer en pie con 1 PG.","en":"Allies within 30 ft gain DR 2/— while the samurai is alive and in a defensive position. When knocked unconscious, may spend 1 Resolve to remain standing with 1 hp."}}
+    ]
+  }
+]
