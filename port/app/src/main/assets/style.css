@@ -4084,6 +4084,7 @@ input[type=checkbox]{
   align-items:center;
   justify-content:flex-end;
   white-space:nowrap;
+  height:100%;
 }
 #initiative-tracker-panel .ini-dup,
 #initiative-tracker-panel .ini-del {
