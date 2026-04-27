@@ -4375,8 +4375,20 @@ html[data-cyber="on"] .cy-sound-fab {
    ============================================================ */
 @media screen and (max-width: 600px) {
 
-  /* Evitar cualquier overflow horizontal en paneles */
-  .panel, .sheet-header { overflow-x: hidden; }
+  /* Header: solo el encabezado no necesita scroll, los paneles sí */
+  .sheet-header { overflow-x: hidden; }
+
+  /* Header: foto encima del título en móvil */
+  .header-main { flex-direction: column; align-items: center; }
+  .char-photo-wrap { align-self: center; margin-bottom: 4px; }
+  .header-content { width: 100%; }
+
+  /* Skills: tablas con scroll horizontal propio */
+  .skill-panel-inner-left,
+  .skill-panel-inner-right { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Initiative buttons: crecen para llenar la fila sin overflow */
+  #initiative-tracker-panel .ini-btn-row .btn-add { flex: 1 1 auto; text-align: center; }
 
   /* SAVES: columnas fijas → relativas para que quepan en móvil */
   .save-row {
