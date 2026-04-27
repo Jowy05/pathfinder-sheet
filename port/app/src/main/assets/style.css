@@ -4452,5 +4452,9 @@ html[data-cyber="on"] .cy-sound-fab {
   #initiative-tracker-panel .ini-actions-cell   { gap: 2px; }
   #initiative-tracker-panel .ini-table th,
   #initiative-tracker-panel .ini-table td       { padding: 2px 2px; }
+
+  /* ── Ocultar columna ACC en móvil (ahorra ~42px) ── */
+  #initiative-tracker-panel .ini-acc-th,
+  #initiative-tracker-panel .ini-act-cell       { display: none; }
 }
 
