@@ -4327,6 +4327,17 @@ html[data-cyber="on"] .cy-sound-fab {
   align-items: center;
   gap: 8px;
 }
+.theme-menu-cyber-row .cyber-label-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.theme-menu-cyber-row .cyber-label-sub {
+  font-size: 0.68em;
+  opacity: 0.55;
+  font-style: italic;
+  line-height: 1.2;
+}
 .theme-menu-cyber-row .switch {
   width: 36px;
   height: 18px;

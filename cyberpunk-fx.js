@@ -366,7 +366,8 @@
     menu.__cyInjected = true;
 
     const lang = (typeof LANG !== 'undefined' ? LANG : 'es');
-    const labelText = (lang === 'en' ? 'CYBERPUNK MODE' : 'MODO CYBERPUNK');
+    const labelText = (lang === 'en' ? 'Hologram Mode' : 'Modo Holograma');
+    const subText   = (lang === 'en' ? '(requires good hardware)' : '(requiere buen equipo)');
 
     const row = document.createElement('div');
     row.className = 'theme-menu-cyber-row';
@@ -375,7 +376,7 @@
     row.setAttribute('data-cyber-active', CY.on ? 'true' : 'false');
     row.tabIndex = 0;
     row.innerHTML = `
-      <span class="label"><span aria-hidden="true">⚡</span><span>${labelText}</span></span>
+      <span class="label"><span aria-hidden="true">⚡</span><span class="cyber-label-text"><span class="cyber-label-main">${labelText}</span><span class="cyber-label-sub">${subText}</span></span></span>
       <span class="switch" aria-hidden="true"></span>
     `;
     const toggle = () => {
