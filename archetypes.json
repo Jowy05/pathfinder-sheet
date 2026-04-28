@@ -12462,5 +12462,53 @@
                                                   "description_en":  "Level 7: keeps Dex bonus on Acrobatics and Climb, and doesn\u0027t provoke AoOs when standing from prone with a free hand."
                                               }
                                           ]
-                  }
+                  },
+    "champion_of_the_faith":  {
+                                  "class":  "warpriest",
+                                  "name":  "Champion of the Faith",
+                                  "name_en":  "Champion of the Faith",
+                                  "name_es":  "Campeón de la Fe",
+                                  "source":  "Advanced Class Guide",
+                                  "description_es":  "Sacerdote de guerra dedicado a un único aspecto alineado de su deidad. Pierde las mejoras progresivas del arma sagrada y un don adicional, pero gana Detectar Alineamiento a voluntad, Golpe Smite contra enemigos de alineamiento opuesto, y a nivel 12 puede imbuir su arma con una propiedad especial de alineamiento.",
+                                  "description_en":  "Warpriest devoted to one alignment aspect of his deity. Loses progressive sacred weapon enhancements and one bonus feat, but gains Detect Alignment at will, Smite against opposed-alignment foes, and at 12th level can imbue his weapon with an alignment special ability.",
+                                  "features_removed":  [
+                                                           "Bonus Feat (3rd level)",
+                                                           "Sacred Weapon Enhancement (4th+ level)"
+                                                       ],
+                                  "features_altered":  [
+                                                           "Blessings"
+                                                       ],
+                                  "features_gained":  [
+                                                          {
+                                                              "name":  "Alineamiento Elegido (Ex)",
+                                                              "name_en":  "Chosen Alignment (Ex)",
+                                                              "description_es":  "Nivel 1. Elige uno de los alineamientos de su deidad: Caos, Mal, Bien o Ley. Debe seleccionar la bendición de ese alineamiento como una de sus dos bendiciones, aunque no esté en la lista de dominios de su deidad. Esto modifica bendiciones.",
+                                                              "description_en":  "1st level. Choose one alignment component shared with your deity: chaos, evil, good, or law. Must select the corresponding alignment blessing as one of his two blessings, even if not on the deity\u0027s domain list. This alters blessings."
+                                                          },
+                                                          {
+                                                              "name":  "Detectar Alineamiento (Sp)",
+                                                              "name_en":  "Detect Alignment (Sp)",
+                                                              "description_es":  "Nivel 3. Puede usar detectar [alineamiento opuesto] a voluntad como habilidad mágica. Sustituye el don adicional de nivel 3.",
+                                                              "description_en":  "3rd level. Can use detect [opposed alignment] at will as a spell-like ability. Replaces the 3rd-level bonus feat."
+                                                          },
+                                                          {
+                                                              "name":  "Arma Sagrada: Alineamiento (Ex)",
+                                                              "name_en":  "Sacred Weapon: Alignment (Ex)",
+                                                              "description_es":  "Nivel 4. El arma sagrada del campeón cuenta como su alineamiento elegido a efectos de superar la reducción de daño. Sustituye la mejora de +1 de nivel 4 y los incrementos posteriores del arma sagrada.",
+                                                              "description_en":  "4th level. The champion\u0027s sacred weapon counts as his chosen alignment for overcoming damage reduction. Replaces the +1 enhancement at 4th level and all subsequent sacred weapon enhancement increases."
+                                                          },
+                                                          {
+                                                              "name":  "Golpe Smite (Su)",
+                                                              "name_en":  "Smite (Su)",
+                                                              "description_es":  "Nivel 4. Acción rápida: elige un objetivo visible de alineamiento opuesto. Suma su mod. CAR a tiradas de ataque y su nivel de sacerdote de guerra al daño. 1/día, +1/día cada 4 niveles tras el 4.° (máx. 5/día al nivel 20). Si el objetivo no es del alineamiento opuesto, el golpe se desperdicia. El efecto dura hasta que el objetivo muere o el campeón descansa.",
+                                                              "description_en":  "4th level. Swift action: choose one visible target of your opposed alignment. Add Charisma bonus to attack rolls and warpriest level to all damage rolls vs that target. 1/day, +1/day per 4 levels beyond 4th (max 5/day at 20th). If the target is not of the opposed alignment, the smite is wasted. Effect lasts until target is dead or champion rests."
+                                                          },
+                                                          {
+                                                              "name":  "Propiedad de Alineamiento (Su)",
+                                                              "name_en":  "Alignment Weapon Property (Su)",
+                                                              "description_es":  "Nivel 12. Acción rápida 1/día: imbuye un arma sagrada con la propiedad especial de alineamiento correspondiente (anárquica, impía, sagrada o axiomática). Dura 1 minuto. Gana un uso adicional al nivel 16 y otro al nivel 20 (máx. 3/día).",
+                                                              "description_en":  "12th level. Swift action 1/day: imbue one sacred weapon with the corresponding alignment special ability (anarchic for chaos, unholy for evil, holy for good, axiomatic for law). Lasts 1 minute. +1/day at 16th and 20th levels (max 3/day)."
+                                                          }
+                                                      ]
+                              }
 }
