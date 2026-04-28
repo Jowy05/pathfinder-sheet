@@ -3042,7 +3042,10 @@
                                               "description_es":  "A nivel 6, elige un grupo de armas (arcos, ballestas, armas de monje, armas de asta, lanzas o arrojadizas), ganando bono al ataque y daño.",
                                               "description_en":  "At 6th level, chooses a weapon group (bows, crossbows, monk, polearms, spears, or thrown), gaining attack and damage bonuses."
                                           }
-                                      ]
+                                      ],
+                  "class_skills_add":  [
+                                           "handle_animal"
+                                       ]
               },
     "undead_scourge":  {
                            "class":  "paladin",
@@ -3139,7 +3142,17 @@
                                                     "description_es":  "A nivel 4, gana un compañero animal con nivel efectivo de druida igual a nivel de explorador -3. Puede mantener varios compañeros dividiendo su nivel efectivo entre ellos.",
                                                     "description_en":  "At 4th level, gains an animal companion with effective druid level equal to ranger level -3. Can maintain multiple companions by dividing his effective level among them."
                                                 }
-                                            ]
+                                            ],
+                        "class_skills_add":  [
+                                                 "acrobatics",
+                                                 "escape_artist"
+                                             ],
+                        "class_skills_remove":  [
+                                                    "knowledge_dungeoneering",
+                                                    "knowledge_geography",
+                                                    "profession",
+                                                    "spellcraft"
+                                                ]
                     },
     "chirurgeon":  {
                        "class":  "alchemist",
@@ -3275,7 +3288,10 @@
                                                         "description_es":  "Al abrir el frasco, el espécimen cobra vida tamaño normal y sirve como una criatura invocada por convocar aliado natural; progresa de I a IX entre niveles 2 y 18.",
                                                         "description_en":  "Opening the bottle animates the specimen full-size as a creature summoned by summon nature\u0027s ally; progresses from I to IX between levels 2 and 18."
                                                     }
-                                                ]
+                                                ],
+                            "class_skills_add":  [
+                                                     "handle_animal"
+                                                 ]
                         },
     "internal_alchemist":  {
                                "class":  "alchemist",
@@ -3500,7 +3516,13 @@
                                                "description_es":  "Su sirviente fiéndico debe ser un animal fiéndico o una criatura con los subtipos legal y maligno.",
                                                "description_en":  "His fiendish servant must be a fiendish animal or a creature with the lawful and evil subtypes."
                                            }
-                                       ]
+                                       ],
+                   "class_skills_add":  [
+                                            "diplomacy"
+                                        ],
+                   "class_skills_remove":  [
+                                               "ride"
+                                           ]
                },
     "blood_arcanist":  {
                            "class":  "arcanist",
@@ -3832,7 +3854,19 @@
                                                         "description_es":  "Añade Diplomacia, Conocimiento (local), Conocimiento (nobleza), Lingüística y Profesión como habilidades de clase.",
                                                         "description_en":  "Adds Diplomacy, Knowledge (local), Knowledge (nobility), Linguistics, and Profession as class skills."
                                                     }
-                                                ]
+                                                ],
+                            "class_skills_add":  [
+                                                     "diplomacy",
+                                                     "knowledge_local",
+                                                     "knowledge_nobility",
+                                                     "linguistics",
+                                                     "profession"
+                                                 ],
+                            "class_skills_remove":  [
+                                                        "handle_animal",
+                                                        "knowledge_nature",
+                                                        "survival"
+                                                    ]
                         },
     "arcane_duelist":  {
                            "class":  "bard",
@@ -4258,7 +4292,14 @@
                                                           "description_es":  "A nivel 11 hace un ataque de oportunidad extra por asalto cuando un aliado daña a un enemigo en cuerpo a cuerpo. A nivel 19 son dos por asalto.",
                                                           "description_en":  "At 11th level, gains one extra attack of opportunity per round when an ally damages a foe in melee. At 19th, two per round."
                                                       }
-                                                  ]
+                                                  ],
+                              "class_skills_add":  [
+                                                       "bluff",
+                                                       "stealth"
+                                                   ],
+                              "class_skills_remove":  [
+                                                          "intimidate"
+                                                      ]
                           },
     "shield_champion":  {
                             "class":  "brawler",
@@ -4360,7 +4401,10 @@
                                                    "description_es":  "A nivel 5 y cada 6 niveles después gana trucos de cazador (no a distancia), usables 1/2 nivel + Con por día.",
                                                    "description_en":  "At 5th level and every 6 levels thereafter, gains hunter tricks (non-ranged), usable 1/2 level + Con modifier per day."
                                                }
-                                           ]
+                                           ],
+                       "class_skills_add":  [
+                                                "heal"
+                                            ]
                    },
     "strangler":  {
                       "class":  "brawler",
@@ -4404,7 +4448,10 @@
                                                   "description_es":  "A nivel 16 puede matar al instante a un enemigo inmovilizado como acción estándar (acción de movimiento a nivel 20), permitiendo una salvación de Fortaleza.",
                                                   "description_en":  "At 16th level, may instantly kill a pinned foe as a standard action (move action at 20th), allowing a Fortitude save."
                                               }
-                                          ]
+                                          ],
+                      "class_skills_add":  [
+                                               "stealth"
+                                           ]
                   },
     "gendarme":  {
                      "class":  "cavalier",
@@ -4588,7 +4635,10 @@
                                                    "description_es":  "Puede convertir conjuros preparados en command, enthrall, tongues, suggestion, greater command, geas/quest, mass suggestion, sympathy y demand.",
                                                    "description_en":  "May convert prepared spells into command, enthrall, tongues, suggestion, greater command, geas/quest, mass suggestion, sympathy, and demand."
                                                }
-                                           ]
+                                           ],
+                       "class_skills_add":  [
+                                                "perform"
+                                            ]
                    },
     "merciful_healer":  {
                             "class":  "cleric",
@@ -4833,7 +4883,13 @@
                                                    "description_es":  "Obtiene Wild Shape a nivel 6 (2 niveles tarde) y no puede asumir formas vegetales; a niveles superiores puede transformarse en oozes.",
                                                    "description_en":  "Gains Wild Shape at 6th level (2 levels late) and cannot assume plant forms; at higher levels, may shift into oozes."
                                                }
-                                           ]
+                                           ],
+                       "class_skills_add":  [
+                                                "knowledge_dungeoneering"
+                                            ],
+                       "class_skills_remove":  [
+                                                   "knowledge_geography"
+                                               ]
                    },
     "menhir_savant":  {
                           "class":  "druid",
@@ -5025,7 +5081,22 @@
                                                     "description_es":  "Suma un tercio del nivel a las tiradas de confirmación de crítico; a nivel 11 ignora 5 puntos de RD/dureza tras confirmar un crítico; a nivel 19 confirma automáticamente un crítico por asalto.",
                                                     "description_en":  "Adds one-third class level to critical confirmation rolls; at 11th level ignores 5 points of DR/hardness after confirming a crit; at 19th level auto-confirms one critical hit per round."
                                                 }
-                                            ]
+                                            ],
+                        "class_skills_add":  [
+                                                 "craft",
+                                                 "knowledge_arcana",
+                                                 "knowledge_dungeoneering",
+                                                 "knowledge_engineering",
+                                                 "knowledge_geography",
+                                                 "knowledge_history",
+                                                 "knowledge_local",
+                                                 "knowledge_nature",
+                                                 "knowledge_nobility",
+                                                 "knowledge_planes",
+                                                 "knowledge_religion",
+                                                 "linguistics",
+                                                 "spellcraft"
+                                             ]
                     },
     "polearm_master":  {
                            "class":  "fighter",
@@ -5643,7 +5714,16 @@
                                                      "description_es":  "A nivel 17, ambos pueden usar Intimidar como acción rápida para desmoralizar oponentes.",
                                                      "description_en":  "At 17th level, both can use Intimidate as a swift action to demoralize opponents."
                                                  }
-                                             ]
+                                             ],
+                         "class_skills_add":  [
+                                                  "diplomacy",
+                                                  "knowledge_local",
+                                                  "sense_motive"
+                                              ],
+                         "class_skills_remove":  [
+                                                     "knowledge_nature",
+                                                     "survival"
+                                                 ]
                      },
     "forester":  {
                      "class":  "hunter",
@@ -5937,7 +6017,13 @@
                                                             "description_es":  "A nivel 7 puede usar Sigilo siendo observado, siempre que el observador esté dentro del rango de Inattention Blindness.",
                                                             "description_en":  "At 7th level can use Stealth while observed, as long as the observer is within Inattention Blindness range."
                                                         }
-                                                    ]
+                                                    ],
+                                "class_skills_remove":  [
+                                                            "bluff",
+                                                            "diplomacy",
+                                                            "intimidate",
+                                                            "perform"
+                                                        ]
                             },
     "mastermind_investigator":  {
                                     "class":  "investigator",
@@ -6018,7 +6104,12 @@
                                                           "description_es":  "A nivel 3 recibe un fondo común de puntos frénicos igual a la mitad del nivel y una amplificación frénica, imitando habilidades del psíquico. No puede elegir descubrimientos de alquimista pero puede tomar Expanded Phrenic Pool como descubrimiento.",
                                                           "description_en":  "At 3rd level gains a phrenic point pool equal to half class level and one phrenic amplification, mimicking psychic features. Cannot choose alchemist discoveries but may take Expanded Phrenic Pool as a discovery."
                                                       }
-                                                  ]
+                                                  ],
+                              "class_skills_remove":  [
+                                                          "acrobatics",
+                                                          "climb",
+                                                          "perform"
+                                                      ]
                           },
     "cult_hunter":  {
                         "class":  "investigator",
@@ -6229,7 +6320,19 @@
                                                           "description_es":  "Recibe bonos de elemental overflow basados en almas cosechadas en el día en lugar de quemado actual. No gana bonos de tamaño ni resistencia a críticos/ataque furtivo.",
                                                           "description_en":  "Gains elemental overflow bonuses based on souls harvested that day instead of current burn. Does not gain size bonuses or critical/sneak attack resistance."
                                                       }
-                                                  ]
+                                                  ],
+                              "class_skills_add":  [
+                                                       "knowledge_arcana",
+                                                       "knowledge_dungeoneering",
+                                                       "knowledge_engineering",
+                                                       "knowledge_geography",
+                                                       "knowledge_history",
+                                                       "knowledge_local",
+                                                       "knowledge_nature",
+                                                       "knowledge_nobility",
+                                                       "knowledge_planes",
+                                                       "knowledge_religion"
+                                                   ]
                           },
     "blood_kineticist":  {
                              "class":  "kineticist",
@@ -6863,7 +6966,10 @@
                                                          "description_es":  "A nivel 11 puede otorgarse ocultacion como habilidad similar a conjuro.",
                                                          "description_en":  "At 11th level can grant himself concealment as a spell-like ability."
                                                      }
-                                                 ]
+                                                 ],
+                             "class_skills_add":  [
+                                                      "acrobatics"
+                                                  ]
                          },
     "projectionist":  {
                           "class":  "mesmerist",
@@ -7272,7 +7378,13 @@
                                                       "description_es":  "Rastrea a velocidad normal sin penalizacion; +4 a salvaciones de Voluntad contra ilusiones.",
                                                       "description_en":  "Tracks at normal speed without penalty; +4 Will saves vs illusions."
                                                   }
-                                              ]
+                                              ],
+                          "class_skills_add":  [
+                                                   "survival"
+                                               ],
+                          "class_skills_remove":  [
+                                                      "diplomacy"
+                                                  ]
                       },
     "hunting_serpent":  {
                             "class":  "ninja",
@@ -7315,7 +7427,13 @@
                                                         "description_es":  "El dano de ataque furtivo se aplica al primer ataque de cada asalto contra blancos marcados.",
                                                         "description_en":  "Sneak attack damage applies to the first attack each round against marked targets."
                                                     }
-                                                ]
+                                                ],
+                            "class_skills_add":  [
+                                                     "survival"
+                                                 ],
+                            "class_skills_remove":  [
+                                                        "knowledge_nobility"
+                                                    ]
                         },
     "mask_of_the_living_god":  {
                                    "class":  "ninja",
@@ -7440,7 +7558,13 @@
                                                     "description_es":  "A nivel 6 ajusta la luz ambiente en 30 pies gastando ki, durando 1 minuto.",
                                                     "description_en":  "At 6th level adjusts ambient light within 30 feet by spending ki, lasting 1 minute."
                                                 }
-                                            ]
+                                            ],
+                        "class_skills_add":  [
+                                                 "heal"
+                                             ],
+                        "class_skills_remove":  [
+                                                    "appraise"
+                                                ]
                     },
     "geomancer":  {
                       "class":  "occultist",
@@ -7497,7 +7621,17 @@
                                                   "description_es":  "Habilidad similar a conjuro para crear muros del terreno circundante.",
                                                   "description_en":  "Spell-like ability to create walls from surrounding terrain."
                                               }
-                                          ]
+                                          ],
+                      "class_skills_add":  [
+                                               "knowledge_geography",
+                                               "knowledge_nature",
+                                               "survival"
+                                           ],
+                      "class_skills_remove":  [
+                                                  "disable_device",
+                                                  "knowledge_engineering",
+                                                  "knowledge_religion"
+                                              ]
                   },
     "reliquarian":  {
                         "class":  "occultist",
@@ -7609,7 +7743,15 @@
                                                   "description_es":  "A nivel 8 obtiene bonos sociales y poderes de elocuencia magica.",
                                                   "description_en":  "At 8th level gains social bonuses and magical eloquence powers."
                                               }
-                                          ]
+                                          ],
+                      "class_skills_add":  [
+                                               "bluff",
+                                               "knowledge_nobility"
+                                           ],
+                      "class_skills_remove":  [
+                                                  "knowledge_engineering",
+                                                  "knowledge_planes"
+                                              ]
                   },
     "panoply_savant":  {
                            "class":  "occultist",
@@ -7894,7 +8036,12 @@
                                                   "description_es":  "Revelación obligatoria a nivel 7: dominio de la cartografía estelar y orientación.",
                                                   "description_en":  "Mandatory revelation at 7th level: mastery of stellar cartography and guidance."
                                               }
-                                          ]
+                                          ],
+                      "class_skills_add":  [
+                                               "knowledge_nature",
+                                               "perception",
+                                               "survival"
+                                           ]
                   },
     "hospitaler":  {
                        "class":  "paladin",
@@ -8266,7 +8413,10 @@
                                                 "description_es":  "A nivel 10 puede acoplar trampas mágicas a proyectiles para colocarlas a distancia o atacar directamente con CD reducida.",
                                                 "description_en":  "At 10th level can attach magical traps to projectiles for ranged placement or direct attacks at reduced DC."
                                             }
-                                        ]
+                                        ],
+                    "class_skills_add":  [
+                                             "disable_device"
+                                         ]
                 },
     "falconer":  {
                      "class":  "ranger",
@@ -8828,7 +8978,12 @@
                                                              "description_es":  "A niveles 4, 6, 12, 14 y 20 elige una revelación de los misterios de ancestro o tiempo, usando Sabiduría como característica.",
                                                              "description_en":  "At 4th, 6th, 12th, 14th, and 20th levels selects a revelation from ancestor or time mysteries, using Wisdom as ability."
                                                          }
-                                                     ]
+                                                     ],
+                                 "class_skills_add":  [
+                                                          "knowledge_local",
+                                                          "perception",
+                                                          "use_magic_device"
+                                                      ]
                              },
     "witch_doctor":  {
                          "class":  "shaman",
@@ -9598,7 +9753,10 @@
                                                         "description_es":  "A nivel 15, reduce en 1 el coste de nivel de los dotes metamagia aplicados a sus conjuros de linaje.",
                                                         "description_en":  "At 15th level, reduces metamagic level adjustment by 1 when applied to bloodline bonus spells."
                                                     }
-                                                ]
+                                                ],
+                            "class_skills_add":  [
+                                                     "disable_device"
+                                                 ]
                         },
     "eldritch_scrapper":  {
                               "class":  "sorcerer",
@@ -10453,7 +10611,18 @@
                                                       "description_es":  "El familiar usa el Carisma de la niña para CDs de apariencia y cuenta como ella para activarlas; a nivel 20 puede hacer golpes de venganza.",
                                                       "description_en":  "The familiar uses the magical child\u0027s Charisma for appearance DCs and counts as her for triggering them; at 20th level it can make vengeance strikes."
                                                   }
-                                              ]
+                                              ],
+                          "class_skills_add":  [
+                                                   "knowledge_arcana",
+                                                   "knowledge_planes",
+                                                   "spellcraft"
+                                               ],
+                          "class_skills_remove":  [
+                                                      "disable_device",
+                                                      "knowledge_engineering",
+                                                      "perception",
+                                                      "survival"
+                                                  ]
                       },
     "warlock_vigilante":  {
                               "class":  "vigilante",
@@ -10503,7 +10672,17 @@
                                                           "description_es":  "Acceso a talentos especiales como Arcane Striker, Elemental Armor, Familiar, Social Simulacrum y Tattoo Chamber.",
                                                           "description_en":  "Access to special talents such as Arcane Striker, Elemental Armor, Familiar, Social Simulacrum and Tattoo Chamber."
                                                       }
-                                                  ]
+                                                  ],
+                              "class_skills_add":  [
+                                                       "knowledge_arcana",
+                                                       "spellcraft"
+                                                   ],
+                              "class_skills_remove":  [
+                                                          "disable_device",
+                                                          "knowledge_engineering",
+                                                          "perception",
+                                                          "survival"
+                                                      ]
                           },
     "zealot_vigilante":  {
                              "class":  "vigilante",
@@ -10551,7 +10730,17 @@
                                                          "description_es":  "Acceso a talentos como Channel Energy, Discern Lies, Empower Symbol, Stalwart, Stern Gaze y Zealot Smite.",
                                                          "description_en":  "Access to talents such as Channel Energy, Discern Lies, Empower Symbol, Stalwart, Stern Gaze and Zealot Smite."
                                                      }
-                                                 ]
+                                                 ],
+                             "class_skills_add":  [
+                                                      "knowledge_religion",
+                                                      "spellcraft"
+                                                  ],
+                             "class_skills_remove":  [
+                                                         "disable_device",
+                                                         "knowledge_engineering",
+                                                         "perform",
+                                                         "sleight_of_hand"
+                                                     ]
                          },
     "cabalist_vigilante":  {
                                "class":  "vigilante",
@@ -10603,7 +10792,17 @@
                                                            "description_es":  "A nivel 17, 20% de fallo continuo y 1/día invisibilidad mejorada durante 1d6 asaltos.",
                                                            "description_en":  "At 17th level, continuous 20% miss chance and once per day greater invisibility for 1d6 rounds."
                                                        }
-                                                   ]
+                                                   ],
+                               "class_skills_add":  [
+                                                        "knowledge_arcana",
+                                                        "spellcraft"
+                                                    ],
+                               "class_skills_remove":  [
+                                                           "disable_device",
+                                                           "knowledge_engineering",
+                                                           "perception",
+                                                           "survival"
+                                                       ]
                            },
     "avenging_beast":  {
                            "class":  "vigilante",
@@ -10646,7 +10845,17 @@
                                                        "description_es":  "Desde nivel 5 se transforma en el animal de su máscara como beast shape I; los usos diarios crecen hasta 8/día a nivel 19.",
                                                        "description_en":  "From 5th level transforms into the mask\u0027s animal as beast shape I; daily uses scale up to 8/day at 19th."
                                                    }
-                                               ]
+                                               ],
+                           "class_skills_add":  [
+                                                    "knowledge_nature",
+                                                    "spellcraft"
+                                                ],
+                           "class_skills_remove":  [
+                                                       "disable_device",
+                                                       "knowledge_engineering",
+                                                       "perform",
+                                                       "sleight_of_hand"
+                                                   ]
                        },
     "disenchanter":  {
                          "class":  "warpriest",
@@ -10783,7 +10992,24 @@
                                                     "description_es":  "A nivel 12, usa Sigilo aun observado mientras esté a 10 pies de un área de luz tenue (no en su propia sombra).",
                                                     "description_en":  "At 12th level, may use Stealth while observed when within 10 ft of an area of dim light (not in his own shadow)."
                                                 }
-                                            ]
+                                            ],
+                        "class_skills_add":  [
+                                                 "acrobatics",
+                                                 "bluff",
+                                                 "disguise",
+                                                 "escape_artist",
+                                                 "knowledge_local",
+                                                 "perception",
+                                                 "sleight_of_hand",
+                                                 "stealth"
+                                             ],
+                        "class_skills_remove":  [
+                                                    "handle_animal",
+                                                    "knowledge_engineering",
+                                                    "ride",
+                                                    "survival",
+                                                    "swim"
+                                                ]
                     },
     "divine_commander":  {
                              "class":  "warpriest",
@@ -11277,7 +11503,16 @@
                                                             "description_es":  "A nivel 5 añade su modificador de Destreza al daño con armas de fuego mientras está enfurecido.",
                                                             "description_en":  "At 5th level adds his Dexterity modifier to firearm damage rolls while raging."
                                                         }
-                                                    ]
+                                                    ],
+                                "class_skills_add":  [
+                                                         "diplomacy",
+                                                         "knowledge_local",
+                                                         "sense_motive"
+                                                     ],
+                                "class_skills_remove":  [
+                                                            "handle_animal",
+                                                            "knowledge_nature"
+                                                        ]
                             },
     "spirit_summoner_unchained":  {
                                       "class":  "unchained_summoner",
@@ -11431,7 +11666,19 @@
                                                          "description_es":  "Desde nivel 6 gasta puntos de ki para conceder a un aliado cercano sus propias habilidades de clase; ampliado a niveles 10 y 14.",
                                                          "description_en":  "From 6th level he spends ki points to grant his class abilities to a nearby ally; expanded at 10th and 14th."
                                                      }
-                                                 ]
+                                                 ],
+                             "class_skills_add":  [
+                                                      "diplomacy",
+                                                      "linguistics",
+                                                      "knowledge_arcana",
+                                                      "knowledge_dungeoneering",
+                                                      "knowledge_engineering",
+                                                      "knowledge_geography",
+                                                      "knowledge_local",
+                                                      "knowledge_nature",
+                                                      "knowledge_nobility",
+                                                      "knowledge_planes"
+                                                  ]
                          },
     "synthesist_unchained":  {
                                  "class":  "unchained_summoner",
