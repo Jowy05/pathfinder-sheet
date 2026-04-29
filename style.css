@@ -2288,6 +2288,14 @@ input[type=checkbox]{
   color:var(--ink);
 }
 .feature-picker-select[size] { min-height:90px; }
+.feature-picker-search-input {
+  width:100%; font-family:var(--ff-body); font-size:12px;
+  border:1px solid var(--gold); border-radius:3px;
+  background:rgba(255,255,255,0.85); padding:4px 8px;
+  color:var(--ink); box-sizing:border-box;
+}
+.feature-picker-search-input::placeholder { color:var(--leather-lt); font-style:italic; }
+.feature-picker-search-input:focus { outline:2px solid var(--leather); outline-offset:0; }
 .feature-picker-preview {
   min-height:36px; font-size:11px; color:var(--ink);
   background:rgba(200,160,60,0.07);

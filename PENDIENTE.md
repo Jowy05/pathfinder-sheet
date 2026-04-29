@@ -1,6 +1,23 @@
 # PENDIENTE — trabajo en vuelo cuando se cortó la sesión
 
-Última actualización: 2026-04-28
+Última actualización: 2026-04-29
+
+## ⏳ TODO importante: auto-activación de aptitudes al alcanzar lvlunlock
+
+Pendiente: cuando un personaje sube de nivel, las aptitudes con `lvlunlock <= nivel_actual` deben:
+- Auto-añadirse a la ficha (no solo "habilitarse" en el picker)
+- O al menos auto-marcarse como "disponibles" en alguna lista visible
+
+Estado actual: el picker muestra todas las features de la clase y desactiva (gris) las que tienen `lvlunlock > nivel_actual`. Lo que falta es el trigger automático en el cambio de nivel.
+
+Implementación sugerida:
+1. En el listener de cambio de `level{i}` o en `recalc()`, recorrer `DB.special_abilities` filtrando por clase y `lvlunlock <= level`.
+2. Para cada match no presente todavía en el sheet, llamar a `addFeature(name, desc, uses, 0)`.
+3. Tener un toggle global para no auto-añadir si el usuario lo prefiere manual (algunas clases tienen 50+ features y saturarían la ficha).
+
+Ojo con: features con `uses/día` calculadas — `parseUsesFromDesc` ya tiene la lógica, pero hay que pasarle `level` y `mods` correctos.
+
+
 
 ## Estado actual de la base de datos
 

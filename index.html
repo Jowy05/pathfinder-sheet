@@ -333,6 +333,7 @@
         <button class="feature-picker-close" onclick="closeRacePicker()">✕</button>
       </div>
       <div class="feature-picker-body">
+        <input type="search" id="race-picker-search" class="feature-picker-search-input" placeholder="Buscar…" data-i18n-placeholder="opt.searchPlaceholder" oninput="_filterPickerOptions('race-picker-select', this.value)">
         <select id="race-picker-select" class="feature-picker-select" size="8">
           <option value="" disabled selected data-i18n="opt.pickRace">Selecciona una raza…</option>
         </select>
@@ -759,6 +760,7 @@
           <select id="feat-category-filter" class="feature-picker-select" onchange="filterFeatList()">
             <option value="" data-i18n="opt.allCats">— Todas las categorías —</option>
           </select>
+          <input type="search" id="feat-picker-search" class="feature-picker-search-input" placeholder="Buscar…" data-i18n-placeholder="opt.searchPlaceholder" oninput="_filterPickerOptions('feat-ability-select', this.value)">
           <select id="feat-ability-select" class="feature-picker-select" size="6">
             <option value="" disabled selected data-i18n="opt.pickFeat">Selecciona una dote…</option>
           </select>
@@ -801,6 +803,7 @@
         <select id="feature-class-filter" class="feature-picker-select" onchange="filterFeatureList()">
           <option value="" data-i18n="opt.allClasses">— Todas las clases —</option>
         </select>
+        <input type="search" id="feature-picker-search" class="feature-picker-search-input" placeholder="Buscar…" data-i18n-placeholder="opt.searchPlaceholder" oninput="_filterPickerOptions('feature-ability-select', this.value)">
         <select id="feature-ability-select" class="feature-picker-select" size="6">
           <option value="" disabled selected data-i18n="opt.pickFeature">Selecciona una aptitud…</option>
         </select>
@@ -1145,6 +1148,7 @@
       <button class="feature-picker-close" onclick="closeWeaponPicker()">✕</button>
     </div>
     <div class="feature-picker-body">
+      <input type="search" id="weapon-picker-search" class="feature-picker-search-input" placeholder="Buscar…" data-i18n-placeholder="opt.searchPlaceholder" oninput="_filterPickerOptions('weapon-picker-select', this.value)">
       <select id="weapon-picker-select" class="feature-picker-select" size="7">
         <option value="" disabled selected data-i18n="opt.pickWeapon">Selecciona un arma…</option>
       </select>
@@ -1186,6 +1190,7 @@
           <option value="heavy" data-i18n="arm.heavy">Pesada</option>
           <option value="shield" data-i18n="arm.shield">Escudo</option>
         </select>
+        <input type="search" id="armor-picker-search" class="feature-picker-search-input" placeholder="Buscar…" data-i18n-placeholder="opt.searchPlaceholder" oninput="_filterPickerOptions('armor-picker-select', this.value)">
         <select id="armor-picker-select" class="feature-picker-select" size="6">
           <option value="" disabled selected data-i18n="opt.pickArmor">Selecciona…</option>
         </select>
@@ -1215,6 +1220,7 @@
           <option value="potions" data-i18n="opt.potions">Pociones</option>
           <option value="gear" data-i18n="opt.gear">Equipo</option>
         </select>
+        <input type="search" id="item-picker-search" class="feature-picker-search-input" placeholder="Buscar…" data-i18n-placeholder="opt.searchPlaceholder" oninput="_filterPickerOptions('item-picker-select', this.value)">
         <select id="item-picker-select" class="feature-picker-select" size="6">
           <option value="" disabled selected data-i18n="opt.pickItem">Selecciona…</option>
         </select>
@@ -1741,7 +1747,7 @@ const I18N = {
     'fb.save':'Guardar','fb.download':'Descargar request.md','fb.listHeader':'Entradas guardadas',
     'fb.empty':'Sin entradas aún.','fb.delete':'Eliminar',
     'console.noArch':'archetypes.json no disponible, sin arquetipos.','console.noData':'No se pudieron cargar los archivos de datos, usando datos embebidos.',
-    'opt.lvAbbr':'Nv.','fallback.className':'clase','m.copyCmd':'Copia este comando:',
+    'opt.lvAbbr':'Nv.','fallback.className':'clase','m.copyCmd':'Copia este comando:','opt.searchPlaceholder':'Buscar…',
     'dmg.critX':'×CRIT','dmg.dmg':'DMG',
     'attrName.str':'Fuerza','attrName.dex':'Destreza','attrName.con':'Constitución','attrName.int':'Inteligencia','attrName.wis':'Sabiduría','attrName.cha':'Carisma',
     // P-1 · Buff Tracker
@@ -2136,7 +2142,7 @@ const I18N = {
     'fb.save':'Save','fb.download':'Download request.md','fb.listHeader':'Saved entries',
     'fb.empty':'No entries yet.','fb.delete':'Delete',
     'console.noArch':'archetypes.json unavailable, no archetypes.','console.noData':'Could not load data files, using embedded data.',
-    'opt.lvAbbr':'Lv.','fallback.className':'class','m.copyCmd':'Copy this command:',
+    'opt.lvAbbr':'Lv.','fallback.className':'class','m.copyCmd':'Copy this command:','opt.searchPlaceholder':'Search…',
     'dmg.critX':'×CRIT','dmg.dmg':'DMG',
     'attrName.str':'Strength','attrName.dex':'Dexterity','attrName.con':'Constitution','attrName.int':'Intelligence','attrName.wis':'Wisdom','attrName.cha':'Charisma',
     // P-1 · Buff Tracker
@@ -2181,6 +2187,19 @@ function t(key, params) {
   if (params) Object.keys(params).forEach(k => { s = s.split('{'+k+'}').join(params[k]); });
   return s;
 }
+// Generic picker search: hides options whose textContent does not contain the search term.
+function _filterPickerOptions(selectId, term) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  const q = (term || '').toLowerCase().trim();
+  Array.from(sel.options).forEach(opt => {
+    if (opt.disabled && !opt.value) { opt.hidden = false; return; } // keep placeholder visible
+    if (!q) { opt.hidden = false; return; }
+    const text = (opt.textContent || '').toLowerCase();
+    opt.hidden = !text.includes(q);
+  });
+}
+
 function tData(obj, field) {
   if (!obj) return '';
   const val = obj[field];
