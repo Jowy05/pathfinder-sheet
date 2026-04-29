@@ -9006,6 +9006,9 @@ function exportData() {
   // Dismissed auto-feature keys (so they don't re-appear after import)
   data['__dismissed_features'] = JSON.stringify([..._autoFeaturesDismissed]);
 
+  // Eidolon: selected evolutions list (slug#timestamp format preserves multi-selection)
+  try { data['__eid_evolutions'] = JSON.stringify([..._eidolonSelectedEvos]); } catch(e) { data['__eid_evolutions'] = '[]'; }
+
   // HP dice individual roll values (cosmetic but useful for players tracking per-level rolls)
   const _hpDiceVals = {};
   _hpDiceState.forEach((_, i) => {
@@ -9278,6 +9281,18 @@ function importData(event) {
           if (Array.isArray(arr)) { _autoFeaturesDismissed.clear(); arr.forEach(k => _autoFeaturesDismissed.add(k)); }
         } catch(e) {}
       }
+
+      // Restore eidolon selected evolutions
+      if (data['__eid_evolutions']) {
+        try {
+          const arr = JSON.parse(data['__eid_evolutions']);
+          if (Array.isArray(arr)) {
+            _eidolonSelectedEvos.clear();
+            arr.forEach(uid => _eidolonSelectedEvos.add(uid));
+          }
+        } catch(e) {}
+      }
+      try { updateEidolonVisibility(); recalcEidolon(); renderEidolonSelectedEvos(); } catch(e) {}
 
       syncClassSkills();
       if (data['hp-current'] !== undefined) {
