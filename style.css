@@ -1731,6 +1731,10 @@ input[type=checkbox]{
 .warning-item.error   { background:var(--color-danger-bg);  border-color:rgba(160,0,24,0.5);   color:var(--color-danger); }
 .warning-item.info    { background:var(--color-info-bg);    border-color:var(--gold);          color:var(--color-info); }
 .warning-item strong  { font-weight:700; }
+.warning-item.clickable { cursor:pointer; transition: transform .08s, box-shadow .12s; }
+.warning-item.clickable:hover { transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.12); }
+.warning-item.clickable:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+.warning-item.clickable::after { content:" ›"; font-weight:bold; opacity:0.6; }
 
 /* ── WEAPON TRAITS ─────────────────────────────────────────── */
 .weapon-traits-row {

@@ -8832,6 +8832,35 @@ function deleteNote(key, id) {
 })();
 
 /* ── WARNINGS ENGINE ────────────────────────────────────── */
+// Click handler for warning items: expand parent zone, expand collapsible header, scroll into view.
+function _navigateToWarningTarget(target) {
+  if (!target) return;
+  // 1. Expand zone if collapsed (zone-divider-identidad / -combate / -capacidades / -companeros / -equipo / -master)
+  if (target.zone) {
+    const zone = document.getElementById(target.zone);
+    if (zone && zone.classList.contains('group-collapsed') && typeof toggleGroup === 'function') {
+      toggleGroup(target.zone);
+    }
+  }
+  // 2. Expand collapsible header inside that zone
+  if (target.header) {
+    const header = document.getElementById(target.header);
+    if (header && header.classList.contains('collapsed')) header.click();
+  }
+  // 3. Focus a specific input if requested
+  if (target.focus) {
+    const el = document.getElementById(target.focus);
+    if (el) { try { el.focus({ preventScroll: true }); } catch(e) { el.focus(); } }
+  }
+  // 4. Scroll the panel/element into view (smooth)
+  const el = target.scrollTo
+    ? document.getElementById(target.scrollTo) || document.querySelector(target.scrollTo)
+    : document.querySelector(target.panel);
+  if (el) {
+    setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+  }
+}
+
 function updateWarnings() {
   const container = document.getElementById('warnings-container');
   if(!container) return;
@@ -8841,14 +8870,24 @@ function updateWarnings() {
   const NLOC = LANG === 'en' ? 'en-US' : 'es-ES';
   const fmt = n => (+n).toLocaleString(NLOC);
 
+  // Reusable target descriptors
+  const T_IDENTITY = { zone:'zone-divider-identidad', panel:'#identity-panel' };
+  const T_XP       = { zone:'zone-divider-identidad', panel:'#identity-panel', focus:'char-xp' };
+  const T_FEATS    = { zone:'zone-divider-capacidades', header:'feats-header', panel:'.feats-panel' };
+  const T_SKILLS   = { zone:'zone-divider-capacidades', panel:'#skills-panel' };
+  const T_ATTRS    = { zone:'zone-divider-identidad', panel:'.attributes-panel' };
+  const T_WEAPONS  = { zone:'zone-divider-equipo', panel:'#weapons-panel' };
+  const T_INV      = { zone:'zone-divider-equipo', header:'inventory-header', panel:'#inventory-panel' };
+  const T_HP       = { zone:'zone-divider-combate', panel:'#combat-panel' };
+
   // 1. No class selected
   if(totalLevel === 0) {
-    warns.push({ type:'error', text: t('w.noClass') });
+    warns.push({ type:'error', text: t('w.noClass'), target: T_IDENTITY });
   }
 
   // 2. Level cap
   if(totalLevel > 20) {
-    warns.push({ type:'error', text: t('w.lvlOver20', { lv: totalLevel }) });
+    warns.push({ type:'error', text: t('w.lvlOver20', { lv: totalLevel }), target: T_IDENTITY });
   }
 
   // 3. XP / subida de nivel
@@ -8857,35 +8896,35 @@ function updateWarnings() {
   if (totalLevel > 0 && totalLevel < 20) {
     const xpNext = XP_TABLES[xpTrack][totalLevel];
     if (currentXP >= xpNext) {
-      warns.push({ type:'warn', text: t('w.levelUp', { xp: fmt(currentXP), next: totalLevel + 1, thr: fmt(xpNext) }) });
+      warns.push({ type:'warn', text: t('w.levelUp', { xp: fmt(currentXP), next: totalLevel + 1, thr: fmt(xpNext) }), target: T_XP });
     } else {
       const faltan = xpNext - currentXP;
-      warns.push({ type:'info', text: t('w.xpProgress', { xp: fmt(currentXP), thr: fmt(xpNext), diff: fmt(faltan), next: totalLevel + 1 }) });
+      warns.push({ type:'info', text: t('w.xpProgress', { xp: fmt(currentXP), thr: fmt(xpNext), diff: fmt(faltan), next: totalLevel + 1 }), target: T_XP });
     }
   } else if (totalLevel >= 20) {
-    warns.push({ type:'ok', text: t('w.xpMax', { xp: fmt(currentXP) }) });
+    warns.push({ type:'ok', text: t('w.xpMax', { xp: fmt(currentXP) }), target: T_XP });
   }
 
   // 4. Feats
   const featsAvail = calcAvailableFeats(totalLevel);
   const featsUsed  = document.querySelectorAll('#feats-container .feat-card').length;
   if(featsUsed < featsAvail) {
-    warns.push({ type:'warn', text: t('w.featsMissing', { n: featsAvail - featsUsed, avail: featsAvail, used: featsUsed }) });
+    warns.push({ type:'warn', text: t('w.featsMissing', { n: featsAvail - featsUsed, avail: featsAvail, used: featsUsed }), target: T_FEATS });
   } else if(featsUsed > featsAvail) {
-    warns.push({ type:'error', text: t('w.featsOver', { used: featsUsed, avail: featsAvail }) });
+    warns.push({ type:'error', text: t('w.featsOver', { used: featsUsed, avail: featsAvail }), target: T_FEATS });
   } else if(featsAvail > 0) {
-    warns.push({ type:'ok', text: t('w.featsOk', { used: featsUsed, avail: featsAvail }) });
+    warns.push({ type:'ok', text: t('w.featsOk', { used: featsUsed, avail: featsAvail }), target: T_FEATS });
   }
 
   // 4. Skill points
   const spAvail = parseInt(document.getElementById('sp-available')?.textContent) || 0;
   const spSpent = parseInt(document.getElementById('sp-spent')?.textContent)     || 0;
   if(spSpent < spAvail) {
-    warns.push({ type:'warn', text: t('w.skillsUnused', { n: spAvail - spSpent, avail: spAvail, used: spSpent }) });
+    warns.push({ type:'warn', text: t('w.skillsUnused', { n: spAvail - spSpent, avail: spAvail, used: spSpent }), target: T_SKILLS });
   } else if(spSpent > spAvail) {
-    warns.push({ type:'error', text: t('w.skillsOver', { used: spSpent, avail: spAvail }) });
+    warns.push({ type:'error', text: t('w.skillsOver', { used: spSpent, avail: spAvail }), target: T_SKILLS });
   } else if(spAvail > 0) {
-    warns.push({ type:'ok', text: t('w.skillsOk', { used: spSpent, avail: spAvail }) });
+    warns.push({ type:'ok', text: t('w.skillsOk', { used: spSpent, avail: spAvail }), target: T_SKILLS });
   }
 
   // 7. Atributo mejora de nivel (cada 4 niveles)
@@ -8893,7 +8932,7 @@ function updateWarnings() {
   if(attrUps > 0) {
     const totalEnhancements = ATTRS.reduce((s,a) => s + (parseInt(gv(`${a}-inherent`)) || 0), 0);
     if(totalEnhancements < attrUps) {
-      warns.push({ type:'warn', text: t('w.attrIncr', { lv: totalLevel, n: attrUps }) });
+      warns.push({ type:'warn', text: t('w.attrIncr', { lv: totalLevel, n: attrUps }), target: T_ATTRS });
     }
   }
 
@@ -8901,10 +8940,10 @@ function updateWarnings() {
   const hasWeapon = document.querySelectorAll('.weapon-card').length > 0;
   const hasArmor  = document.querySelectorAll('.armor-card').length  > 0;
   if(totalLevel >= 2 && !hasWeapon) {
-    warns.push({ type:'info', text: t('w.noWpn') });
+    warns.push({ type:'info', text: t('w.noWpn'), target: T_WEAPONS });
   }
   if(totalLevel >= 2 && !hasArmor) {
-    warns.push({ type:'info', text: t('w.noArm') });
+    warns.push({ type:'info', text: t('w.noArm'), target: T_INV });
   }
 
   // 9. First HD of each class must equal max faces (PF1e rule)
@@ -8917,7 +8956,7 @@ function updateWarnings() {
       if(val > 0 && val < die.faces) {
         const classRow = getActiveClassRows().find(r => r.idx === die.classIdx);
         const clsName = classRow ? (tData(DB.classes[classRow.classKey], 'name') || classRow.classKey) : `${t('fallback.className')} ${die.classIdx}`;
-        warns.push({ type:'warn', text: t('w.hdLevel1', { cls: clsName, max: die.faces, faces: die.faces, val }) });
+        warns.push({ type:'warn', text: t('w.hdLevel1', { cls: clsName, max: die.faces, faces: die.faces, val }), target: T_HP });
       }
     });
   }
@@ -8928,8 +8967,16 @@ function updateWarnings() {
   }
 
   container.innerHTML = warns
-    .map(w => `<div class="warning-item ${w.type}">${w.text}</div>`)
+    .map((w, i) => `<div class="warning-item ${w.type}${w.target?' clickable':''}" data-warning-idx="${i}"${w.target?' role="button" tabindex="0" title="'+(LANG==='en'?'Click to jump':'Click para ir')+'"':''}>${w.text}</div>`)
     .join('');
+  container.querySelectorAll('.warning-item.clickable').forEach((el, i) => {
+    const idx = parseInt(el.dataset.warningIdx);
+    const w = warns[idx];
+    if (!w || !w.target) return;
+    const handler = () => _navigateToWarningTarget(w.target);
+    el.addEventListener('click', handler);
+    el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handler(); } });
+  });
 }
 
 /* ── SESSION LOG (L-1) ──────────────────────────────────────── */
