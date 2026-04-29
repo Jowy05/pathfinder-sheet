@@ -2867,8 +2867,7 @@ function addClassRow(classKey = '', level = 1, hp = 0, isFirst = false) {
       if (newLvl > oldLvl) {
         const key = div.querySelector('.class-select')?.value;
         if (key && DB.classes[key]) {
-          const className = DB.classes[key].name || key;
-          autoAddClassAbilities(className, oldLvl, newLvl);
+          autoAddClassAbilities(key, oldLvl, newLvl);
         }
       }
       levelInput.dataset.prev = newLvl;
@@ -7425,7 +7424,16 @@ function parseUsesFromDesc(desc, level, mods) {
   return 0;
 }
 
-function autoAddClassAbilities(className, fromLevel, toLevel) {
+function autoAddClassAbilities(classKey, fromLevel, toLevel) {
+  // Accept either a class slug (preferred) or the legacy Spanish-name string.
+  const classData = (DB.classes && DB.classes[classKey])
+    || Object.values(DB.classes || {}).find(c => c && (c.name === classKey || c.name_en === classKey));
+  if (!classData) return;
+  const className = classData.name;
+  const classNameEn = classData.name_en;
+  // Resolve the canonical slug from the data we have (so caller can pass either).
+  const classSlug = (DB.classes && DB.classes[classKey]) ? classKey
+    : Object.entries(DB.classes || {}).find(([k,v]) => v === classData)?.[0];
   const mods = getCharMods();
   const existing = new Set([...document.querySelectorAll('.feature-name-input')].map(el => el.value.trim()));
 
@@ -7435,15 +7443,17 @@ function autoAddClassAbilities(className, fromLevel, toLevel) {
   document.querySelectorAll('.class-row-dynamic').forEach(row => {
     const ri = row.dataset.rowIdx;
     const cKey = document.getElementById('class'+ri)?.value;
-    if (!cKey || (DB.classes[cKey]?.name || cKey) !== className) return;
+    if (!cKey || cKey !== classSlug) return;
     const aKey = document.getElementById('archetype'+ri)?.value;
     if (aKey) activeArchetypes.add(aKey);
   });
 
-  // 1. From special_abilities — class-wide entries always; archetype entries only if active.
+  // 1. From special_abilities — match by class_en (most reliable) OR class (Spanish fallback).
+  //    classes.json names sometimes lack accents or use a different translation than SA entries.
   const saAbils = (DB.special_abilities || []).filter(a => {
     if (!(a.lvlunlock > fromLevel && a.lvlunlock <= toLevel)) return false;
-    if (a.class !== className) return false;
+    const classMatch = (classNameEn && a.class_en === classNameEn) || (className && a.class === className);
+    if (!classMatch) return false;
     if (a.archetype) return activeArchetypes.has(a.archetype);
     return true;
   });
@@ -7453,7 +7463,7 @@ function autoAddClassAbilities(className, fromLevel, toLevel) {
   document.querySelectorAll('.class-row-dynamic').forEach(row => {
     const ri = row.dataset.rowIdx;
     const cKey = document.getElementById('class'+ri)?.value;
-    if (!cKey || (DB.classes[cKey]?.name || cKey) !== className) return;
+    if (!cKey || cKey !== classSlug) return;
     const aKey = document.getElementById('archetype'+ri)?.value;
     if (!aKey) return;
     const arch = DB.archetypes?.[aKey];
