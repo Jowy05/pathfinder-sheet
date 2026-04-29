@@ -1195,6 +1195,7 @@
         </div>
         <h3 style="margin-top:8px;" data-i18n="p.eidNotes">Notas</h3>
         <textarea id="eid-notes" rows="4" style="width:100%;font-size:11px;" placeholder="Habilidades, evolutions seleccionadas, descripción..."></textarea>
+        <div id="eid-archetype-note" style="display:none;font-size:11px;background:rgba(200,160,60,0.10);padding:5px 8px;border-left:3px solid var(--leather);margin-top:6px;border-radius:2px;"></div>
       </div>
     </div>
 
@@ -7642,6 +7643,30 @@ function getSummonerLevel() {
   return lvl;
 }
 
+// Returns the active summoner archetype slug, if any.
+function getSummonerArchetype() {
+  let archetype = null;
+  document.querySelectorAll('.class-row-dynamic').forEach(row => {
+    const i = row.dataset.rowIdx;
+    const key = document.getElementById('class' + i)?.value;
+    if (key === 'summoner' || key === 'unchained_summoner') {
+      const aKey = document.getElementById('archetype' + i)?.value;
+      if (aKey) archetype = aKey;
+    }
+  });
+  return archetype;
+}
+
+function getSummonerClassKey() {
+  let cls = null;
+  document.querySelectorAll('.class-row-dynamic').forEach(row => {
+    const i = row.dataset.rowIdx;
+    const key = document.getElementById('class' + i)?.value;
+    if (key === 'summoner' || key === 'unchained_summoner') cls = key;
+  });
+  return cls;
+}
+
 function updateEidolonVisibility() {
   const panel = document.getElementById('eidolon-panel');
   if (!panel) return;
@@ -7671,7 +7696,33 @@ function recalcEidolon() {
   setRO('eid-feats', feats);
   setRO('eid-nat-ac', natArmor);
   setRO('eid-max-atk', maxAtk);
-  setRO('eid-ep', ep);
+
+  // Archetype modifiers (Fase 6+7): Master Summoner / Broodmaster halve EP, Synthesist info-only.
+  const archetype = getSummonerArchetype();
+  let finalEp = ep;
+  let archNote = '';
+  if (archetype === 'master_summoner' || archetype === 'master_summoner_unchained') {
+    finalEp = Math.floor(ep / 2);
+    archNote = LANG === 'en'
+      ? `Master Summoner: eidolon is one size smaller, EP halved (${ep} → ${finalEp}).`
+      : `Master Summoner: eidolón una talla menor, EP a la mitad (${ep} → ${finalEp}).`;
+  } else if (archetype === 'broodmaster' || archetype === 'broodmaster_unchained') {
+    finalEp = Math.floor(ep / 2);
+    archNote = LANG === 'en'
+      ? `Broodmaster: 2 eidolons share HD; each gets ½ EP (${ep} → ${finalEp}).`
+      : `Broodmaster: 2 eidolons comparten DG; cada uno tiene ½ EP (${ep} → ${finalEp}).`;
+  } else if (archetype === 'synthesist') {
+    archNote = LANG === 'en'
+      ? `Synthesist: eidolon fuses with summoner (eidolon physical stats, summoner mental stats).`
+      : `Synthesist: eidolón se fusiona con el invocador (stats físicos del eidolón, mentales del invocador).`;
+  }
+  setRO('eid-ep', finalEp);
+  const noteEl = document.getElementById('eid-archetype-note');
+  if (noteEl) {
+    if (archNote) { noteEl.textContent = archNote; noteEl.style.display = 'block'; }
+    else noteEl.style.display = 'none';
+  }
+
   // Refresh EP total badge + free evolutions list
   renderEidolonSelectedEvos();
   renderEidolonFreeEvos();
