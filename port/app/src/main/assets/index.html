@@ -4808,7 +4808,7 @@ function setupListeners() {
   document.getElementById('add-comp-attack-btn').addEventListener('click', () => addCompAttack());
   document.getElementById('add-comp-trick-btn').addEventListener('click', () => addCompTrick());
 
-  ['companion-header','familiar-header','summoned-header','spells-header','feats-header','features-header','bio-header','chartraits-header','inventory-header','racial-traits-header'].forEach(id => {
+  ['companion-header','eidolon-header','familiar-header','summoned-header','spells-header','feats-header','features-header','bio-header','chartraits-header','inventory-header','racial-traits-header'].forEach(id => {
     const header = document.getElementById(id);
     if(!header) return;
     header.setAttribute('role','button');
