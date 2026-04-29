@@ -3447,6 +3447,47 @@ input[type=checkbox]{
 :root[data-theme="royal2"] .zone-divider-icon { color:#c9a227; }
 :root[data-theme="royal2"] .zone-divider-sub { color:rgba(201,162,39,0.75); }
 
+/* ── TEMA · CYBER-CYAN ────────────────────────────── */
+:root[data-theme="cyber-cyan"] {
+  --parchment:    #040e0e;
+  --parchment-dk: #020808;
+  --ink:          #f0ffff;
+  --leather:      #007070;
+  --leather-lt:   #00c8c8;
+  --leather-dk:   #003838;
+  --gold:         #00ffff;
+  --gold-lt:      #80ffff;
+  --gold-dk:      #009a9a;
+  --on-dark:      #f0ffff;
+  --crimson:      #ff2050;
+  --crimson-lt:   #ff5075;
+  --shadow:       rgba(0,255,255,0.2);
+  --input-bg:       rgba(0,255,255,0.07);
+  --select-arrow:   url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='6'%3E%3Cpath d='M0 0l4.5 6L9 0z' fill='%2300ffff'/%3E%3C/svg%3E");
+  --body-bg-color:  #010808;
+  --body-bg-image:  linear-gradient(rgba(0,255,255,0.04) 1px, transparent 1px) 0 0 / 24px 24px,
+                    linear-gradient(90deg, rgba(0,255,255,0.04) 1px, transparent 1px) 0 0 / 24px 24px,
+                    radial-gradient(ellipse at 50% 0%, rgba(0,200,200,0.18) 0%, transparent 70%);
+  --sheet-bg-color: #040c0c;
+  --sheet-bg-image: linear-gradient(160deg, #071414 0%, #040c0c 100%);
+  --sheet-shadow:   0 0 0 1px var(--gold), 0 0 40px rgba(0,255,255,0.32), inset 0 0 90px rgba(0,255,255,0.05);
+  --header-bg:      linear-gradient(180deg, #061212 0%, #010808 100%);
+  --zone-bg:        linear-gradient(90deg, #061212 0%, #010808 60%, #061212 100%);
+  --zone-bg-play:   linear-gradient(90deg, #040c0c 0%, #000000 50%, #040c0c 100%);
+  --footer-bg:      linear-gradient(180deg, #010808, #061212);
+}
+:root[data-theme="cyber-cyan"] .sheet-header h1 {
+  color:#00ffff;
+  text-shadow:0 0 18px rgba(0,255,255,0.7), 0 1px 4px rgba(0,0,0,0.9);
+}
+:root[data-theme="cyber-cyan"] .header-fields label { color:#80ffff; }
+:root[data-theme="cyber-cyan"] .btn-lang { color:#00ffff; border-color:#00aaaa; }
+:root[data-theme="cyber-cyan"] .btn-lang:hover,
+:root[data-theme="cyber-cyan"] .btn-lang:focus-visible { background:#00ffff; color:#010808; }
+:root[data-theme="cyber-cyan"] .zone-divider-title,
+:root[data-theme="cyber-cyan"] .zone-divider-icon { color:#00ffff; }
+:root[data-theme="cyber-cyan"] .zone-divider-sub { color:rgba(0,255,255,0.6); }
+
 /* ═══════════════ P-1 · BUFF TRACKER ═══════════════
    Dorado/cuero Pathfinder aesthetic, matches .buff-card + .tracker-*. */
 #buff-tracker-panel .btr-meta {
