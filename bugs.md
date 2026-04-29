@@ -1,6 +1,11 @@
 ## BUGS A ARREGLAR
 
-(ninguno conocido pendiente — ver Tareas.md sección BUGS para próximos)
+### BUG-C · features_removed del arquetipo ignoradas al auto-añadir aptitudes
+- **Descripción**: cuando un arquetipo elimina aptitudes de la clase base (campo `features_removed` en archetypes.json), esas aptitudes siguen apareciendo en la ficha porque `autoAddClassAbilities()` no consulta ese campo. Ejemplo: Caballero Monstruoso elimina "Convocar Monstruo" pero sigue apareciendo.
+- **Causa**: `saAbils` en `autoAddClassAbilities` (index.html ~línea 8148) filtra por clase y nivel pero no por `features_removed`. Los nombres en `features_removed` son en inglés (ej. "Summon Monster") y los de `special_abilities.json` en español (ej. "Convocar Monstruo"), por lo que no hay match directo.
+- **Fix sugerido**: añadir campo `features_removed_ids` (array de IDs de SA) a los arquetipos que eliminan aptitudes, y filtrar en `saAbils` saltando los IDs listados. Alternativa más rápida: añadir `features_removed_es` con los nombres en español al arquetipo y comparar con `tData(a,'name')`.
+- **Arquetipos afectados conocidos**: monster_knight (elimina Convocar Monstruo, Vínculo Sensorial, Fusión de Formas, Convocación Gemela, etc.) y probablemente otros arquetipos "full replacement".
+- **Impacto**: las aptitudes eliminadas se muestran de más, el usuario las borra manualmente.
 
 ## BUGS ARREGLADOS
 

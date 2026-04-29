@@ -179,6 +179,13 @@
   </div>
   <div class="hp-temp-row">
     <div class="hp-temp-main">
+      <label data-i18n="label.hpBonus">Dotes / Buff HP</label>
+      <input type="number" id="hp-feat-bonus" value="0" min="0" data-i18n-ph="ph.zero" placeholder="0">
+    </div>
+    <span class="hp-temp-note" data-i18n="hint.hpBonus">Bonus manual · solo informativo</span>
+  </div>
+  <div class="hp-temp-row">
+    <div class="hp-temp-main">
       <label data-i18n="label.tempHP">PG Temporales</label>
       <input type="number" id="hp-temp" value="0" min="0" data-i18n-ph="ph.zero" placeholder="0">
     </div>
@@ -340,6 +347,7 @@
         <div id="race-picker-preview" class="feature-picker-preview"></div>
         <div class="feature-picker-uses-row">
           <button class="btn-add" onclick="confirmLoadRacialTraits()" data-i18n="btn.loadRace">Cargar Rasgos</button>
+          <button onclick="clearRaceData()" data-i18n="btn.clearRace" style="margin-left:6px;padding:4px 10px;background:none;border:1px solid var(--leather-lt);color:var(--leather-dk);border-radius:4px;cursor:pointer;font-size:12px;">Limpiar Raza</button>
           <small style="color:var(--leather-lt);font-size:10px;" data-i18n="note.replaceRace">Reemplazará los rasgos raciales actuales</small>
         </div>
       </div>
@@ -1520,7 +1528,8 @@ const I18N = {
     'label.fractional':'BAB/Tiros Fraccionales (Unchained)',
     'label.totalLevel':'Nivel Total','label.hitDice':'Dados de Golpe','label.speed':'Velocidad (ft)',
     'p.hp':'Puntos de Golpe','btn.rollAllHD':'Tirar Todos los Dados de Golpe',
-    'label.hp':'PG:','label.tempHP':'PG Temporales','ph.zero':'0',
+    'label.hp':'PG:','label.hpBonus':'Dotes / Buff HP','label.tempHP':'PG Temporales','ph.zero':'0',
+    'hint.hpBonus':'Bonus manual · solo informativo',
     'hint.tempHP':'Se pierden primero · no afectan al máximo',
     'label.hpBase':'PG base (calc.)','label.hpMisc':'PG Misc/Nivel','label.hpNonlethal':'PG No Letales',
     'label.dr':'Reducción de Daño','ph.dr':'5/magia',
@@ -1645,9 +1654,9 @@ const I18N = {
     'btn.addDrawback':'[+] Añadir Defecto','aria.delDrawback':'Eliminar defecto',
     'ph.drawbackName':'Nombre del defecto…','ph.drawbackEffect':'Efecto negativo: ej. −2 a TS de Voluntad contra miedo.',
     'p.racialTraits':'Rasgos Raciales','btn.addRacialTrait':'[+] Añadir Rasgo Racial',
-    'label.selectRace':'Seleccionar raza','opt.pickRace':'Selecciona una raza…','btn.loadRace':'Cargar Rasgos',
+    'label.selectRace':'Seleccionar raza','opt.pickRace':'Selecciona una raza…','btn.loadRace':'Cargar Rasgos','btn.clearRace':'Limpiar Raza',
     'note.replaceRace':'Reemplazará los rasgos raciales actuales','racial.intro':'Rasgos raciales del personaje. Usa el botón 🏷 en Raza para cargar desde lista.',
-    'tt.loadRace':'Cargar rasgos raciales desde lista',
+    'tt.loadRace':'Cargar rasgos raciales desde lista','label.anyBonusStat':'Elige stat para +2:',
     'ph.traitName':'Nombre del rasgo…',
     'ph.traitSource':'Fuente (ej: Manual del Jugador p.58, Campaña…)',
     'ph.traitEffect':'Efecto mecánico: ej. +2 a Iniciativa. La Iniciativa es una habilidad de clase para ti.',
@@ -1934,7 +1943,8 @@ const I18N = {
     'label.fractional':'Fractional BAB/Saves (Unchained)',
     'label.totalLevel':'Total Level','label.hitDice':'Hit Dice','label.speed':'Speed (ft)',
     'p.hp':'Hit Points','btn.rollAllHD':'Roll All Hit Dice',
-    'label.hp':'HP:','label.tempHP':'Temporary HP','ph.zero':'0',
+    'label.hp':'HP:','label.hpBonus':'Feats / Buff HP','label.tempHP':'Temporary HP','ph.zero':'0',
+    'hint.hpBonus':'Manual bonus · display only',
     'hint.tempHP':'Lost first · do not affect max',
     'label.hpBase':'Base HP (calc.)','label.hpMisc':'HP Misc/Level','label.hpNonlethal':'Nonlethal HP',
     'label.dr':'Damage Reduction','ph.dr':'5/magic',
@@ -2052,9 +2062,9 @@ const I18N = {
     'btn.addDrawback':'[+] Add Drawback','aria.delDrawback':'Remove drawback',
     'ph.drawbackName':'Drawback name…','ph.drawbackEffect':'Negative effect: e.g., −2 to Will saves against fear.',
     'p.racialTraits':'Racial Traits','btn.addRacialTrait':'[+] Add Racial Trait',
-    'label.selectRace':'Select race','opt.pickRace':'Select a race…','btn.loadRace':'Load Traits',
+    'label.selectRace':'Select race','opt.pickRace':'Select a race…','btn.loadRace':'Load Traits','btn.clearRace':'Clear Race',
     'note.replaceRace':'Will replace current racial traits','racial.intro':'Character racial traits. Use the 🏷 button in the Race field to load from list.',
-    'tt.loadRace':'Load racial traits from list',
+    'tt.loadRace':'Load racial traits from list','label.anyBonusStat':'Choose +2 stat:',
     'ph.traitName':'Trait name…',
     'ph.traitSource':'Source (e.g.: Core Rulebook p.58, Campaign…)',
     'ph.traitEffect':'Mechanical effect: e.g., +2 to Initiative. Initiative is a class skill for you.',
@@ -3018,9 +3028,14 @@ function addClassRow(classKey = '', level = 1, hp = 0, isFirst = false) {
     recalc();
   });
 
-  // Archetype change triggers skill sync + recalc
+  // Archetype change triggers skill sync + feature auto-add + recalc
   div.querySelector('.archetype-select').addEventListener('change', () => {
     syncClassSkills();
+    const key = div.querySelector('.class-select')?.value;
+    const lvl = parseInt(div.querySelector('input[type="number"][id^="level"]')?.value) || 0;
+    if (key && lvl > 0 && DB.classes?.[key]) {
+      autoAddClassAbilities(key, 0, lvl);
+    }
     recalc();
   });
 
@@ -5128,7 +5143,8 @@ function calcClassProgression() {
   }
   const hpBase    = totalHD > 0 ? Math.max(totalHD, rawHpBase) : rawHpBase;
   const featHP    = getFeatBonuses(totalLevel).hp;
-  const hpMax     = hpBase + hpMisc + featHP;
+  const hpFeatBonus = parseInt(gv('hp-feat-bonus')) || 0;
+  const hpMax     = hpBase + hpMisc + featHP + hpFeatBonus;
   sv('hp-base-calc', hpBase);
   sv('hp-max', hpMax);
   
@@ -7503,12 +7519,26 @@ function previewRace(raceId) {
   const speedLbl = loc==='en'?'Speed':'Velocidad';
   const sizeLbl  = loc==='en'?'Size':'Tamaño';
   const modLbl   = loc==='en'?'Ability mods':'Bonos de atributo';
+  const anySelHtml = race.anyBonus ? `
+    <div style="margin:6px 0 2px;font-size:11px;display:flex;align-items:center;gap:6px;">
+      <label style="color:var(--leather-dk);font-weight:bold;">${t('label.anyBonusStat')}</label>
+      <select id="race-any-bonus-select" style="font-size:11px;padding:2px 4px;border:1px solid var(--leather-lt);border-radius:3px;background:var(--parchment);color:var(--ink);">
+        <option value="">${loc==='en'?'— Pick stat —':'— Elige stat —'}</option>
+        <option value="str">${loc==='en'?'STR (Strength)':'FUE (Fuerza)'}</option>
+        <option value="dex">${loc==='en'?'DEX (Dexterity)':'DES (Destreza)'}</option>
+        <option value="con">${loc==='en'?'CON (Constitution)':'CON (Constitución)'}</option>
+        <option value="int">${loc==='en'?'INT (Intelligence)':'INT (Inteligencia)'}</option>
+        <option value="wis">${loc==='en'?'WIS (Wisdom)':'SAB (Sabiduría)'}</option>
+        <option value="cha">${loc==='en'?'CHA (Charisma)':'CAR (Carisma)'}</option>
+      </select>
+    </div>` : '';
   prev.innerHTML =
     `<div style="font-size:11px;margin-bottom:4px;color:var(--leather-dk);">
       <b>${speedLbl}:</b> ${race.speed||30} ft &nbsp;·&nbsp;
       <b>${sizeLbl}:</b> ${race.size||'Medium'} &nbsp;·&nbsp;
       <b>${modLbl}:</b> ${_fmtAbilityMods(race,loc)}
     </div>` +
+    anySelHtml +
     race.traits.map(tr =>
       `<div style="margin:2px 0;font-size:11px;"><b>${tr.name[loc]||tr.name.es}</b>: ${tr.description[loc]||tr.description.es}</div>`
     ).join('');
@@ -7521,6 +7551,16 @@ function confirmLoadRacialTraits() {
   const race = races.find(r => r.id === raceId);
   if(!race) return;
   const loc = LANG === 'en' ? 'en' : 'es';
+
+  // Validate anyBonus stat selection
+  if(race.anyBonus) {
+    const bonusSel = document.getElementById('race-any-bonus-select');
+    if(!bonusSel || !bonusSel.value) {
+      alert(loc==='en' ? `Choose which stat receives the +${race.anyBonus} racial bonus.` : `Elige el stat que recibe el bono racial +${race.anyBonus}.`);
+      return;
+    }
+  }
+
   const container = document.getElementById('racial-traits-container');
   if(!container) return;
   container.innerHTML = '';
@@ -7551,6 +7591,44 @@ function confirmLoadRacialTraits() {
     el.value = mods[a] || 0;
   });
 
+  // Apply anyBonus to chosen stat
+  if(race.anyBonus) {
+    const bonusSel = document.getElementById('race-any-bonus-select');
+    const stat = bonusSel ? bonusSel.value : '';
+    if(stat) {
+      const el = document.getElementById(`${stat}-racial`);
+      if(el) el.value = (parseInt(el.value) || 0) + race.anyBonus;
+    }
+  }
+
+  // Lock all racial fields (readonly + visual indicator)
+  ATTR_KEYS.forEach(a => {
+    const el = document.getElementById(`${a}-racial`);
+    if(!el) return;
+    el.setAttribute('readonly', 'readonly');
+    el.classList.add('racial-locked');
+    el.title = loc==='en' ? 'Locked by race selection. Use "Clear Race" to unlock.' : 'Bloqueado por la raza. Usa "Limpiar Raza" para desbloquear.';
+  });
+
+  recalc();
+  closeRacePicker();
+}
+
+function clearRaceData() {
+  const loc = LANG === 'en' ? 'en' : 'es';
+  const container = document.getElementById('racial-traits-container');
+  if(container) container.innerHTML = '';
+  const raceInput = document.getElementById('char-race');
+  if(raceInput) raceInput.value = '';
+  const ATTR_KEYS = ['str','dex','con','int','wis','cha'];
+  ATTR_KEYS.forEach(a => {
+    const el = document.getElementById(`${a}-racial`);
+    if(!el) return;
+    el.value = 0;
+    el.removeAttribute('readonly');
+    el.classList.remove('racial-locked');
+    el.title = '';
+  });
   recalc();
   closeRacePicker();
 }
@@ -8081,6 +8159,9 @@ function autoAddClassAbilities(classKey, fromLevel, toLevel) {
   });
 
   // 2. From selected archetype features_gained
+  // Only use this source if special_abilities.json has NO entries for that archetype
+  // (avoids duplicates when SA already covers the archetype in the player's language).
+  const archetypesWithSA = new Set(saAbils.filter(a => a.archetype).map(a => a.archetype));
   const archAbils = [];
   document.querySelectorAll('.class-row-dynamic').forEach(row => {
     const ri = row.dataset.rowIdx;
@@ -8088,6 +8169,7 @@ function autoAddClassAbilities(classKey, fromLevel, toLevel) {
     if (!cKey || cKey !== classSlug) return;
     const aKey = document.getElementById('archetype'+ri)?.value;
     if (!aKey) return;
+    if (archetypesWithSA.has(aKey)) return; // SA entries take precedence — skip to avoid duplicates
     const arch = DB.archetypes?.[aKey];
     (arch?.features_gained || []).forEach(f => {
       const flvl = f.level || 1;
