@@ -2805,6 +2805,7 @@ input[type=checkbox]{
 .theme-swatch[data-theme-swatch="maniqka"]     { background:linear-gradient(135deg, #9b59b6 0%, #0a0414 100%); }
 .theme-swatch[data-theme-swatch="royal1"]      { background:linear-gradient(135deg, #c9a227 0%, #9b0000 50%, #ffffff 100%); }
 .theme-swatch[data-theme-swatch="royal2"]      { background:linear-gradient(135deg, #c9a227 0%, #9b0000 50%, #0a0000 100%); }
+.theme-swatch[data-theme-swatch="cyber-cyan"]  { background:linear-gradient(135deg, #00ffff 0%, #007070 50%, #010808 100%); }
 
 @media print { .theme-fab, .theme-menu { display:none !important; } }
 
@@ -3447,8 +3448,10 @@ input[type=checkbox]{
 :root[data-theme="royal2"] .zone-divider-icon { color:#c9a227; }
 :root[data-theme="royal2"] .zone-divider-sub { color:rgba(201,162,39,0.75); }
 
-/* ── TEMA · CYBER-CYAN ────────────────────────────── */
+/* ── TEMA · CYBER-CYAN (Syndra) ──────────────────── */
 :root[data-theme="cyber-cyan"] {
+  --ff-head: 'Trebuchet MS', 'Segoe UI', Arial, sans-serif;
+  --ff-body: 'Segoe UI', Arial, system-ui, sans-serif;
   --parchment:    #040e0e;
   --parchment-dk: #020808;
   --ink:          #f0ffff;
@@ -3476,17 +3479,28 @@ input[type=checkbox]{
   --zone-bg-play:   linear-gradient(90deg, #040c0c 0%, #000000 50%, #040c0c 100%);
   --footer-bg:      linear-gradient(180deg, #010808, #061212);
 }
+/* Tipografía alto contraste — sans-serif limpia, peso alto, mayor espaciado */
+:root[data-theme="cyber-cyan"] body { font-weight:500; letter-spacing:0.02em; }
+:root[data-theme="cyber-cyan"] input,
+:root[data-theme="cyber-cyan"] select,
+:root[data-theme="cyber-cyan"] textarea { font-family:var(--ff-body); font-weight:600; letter-spacing:0.01em; }
+:root[data-theme="cyber-cyan"] label { font-weight:600; letter-spacing:0.04em; }
+:root[data-theme="cyber-cyan"] h1,
+:root[data-theme="cyber-cyan"] h2,
+:root[data-theme="cyber-cyan"] h3 { font-weight:700; letter-spacing:0.06em; }
+:root[data-theme="cyber-cyan"] .collapsible-header { font-weight:700; letter-spacing:0.06em; font-size:15px; }
 :root[data-theme="cyber-cyan"] .sheet-header h1 {
   color:#00ffff;
   text-shadow:0 0 18px rgba(0,255,255,0.7), 0 1px 4px rgba(0,0,0,0.9);
+  font-weight:800; letter-spacing:0.12em;
 }
-:root[data-theme="cyber-cyan"] .header-fields label { color:#80ffff; }
-:root[data-theme="cyber-cyan"] .btn-lang { color:#00ffff; border-color:#00aaaa; }
+:root[data-theme="cyber-cyan"] .header-fields label { color:#80ffff; font-weight:700; }
+:root[data-theme="cyber-cyan"] .btn-lang { color:#00ffff; border-color:#00aaaa; font-weight:700; }
 :root[data-theme="cyber-cyan"] .btn-lang:hover,
 :root[data-theme="cyber-cyan"] .btn-lang:focus-visible { background:#00ffff; color:#010808; }
 :root[data-theme="cyber-cyan"] .zone-divider-title,
-:root[data-theme="cyber-cyan"] .zone-divider-icon { color:#00ffff; }
-:root[data-theme="cyber-cyan"] .zone-divider-sub { color:rgba(0,255,255,0.6); }
+:root[data-theme="cyber-cyan"] .zone-divider-icon { color:#00ffff; font-weight:800; letter-spacing:0.14em; }
+:root[data-theme="cyber-cyan"] .zone-divider-sub { color:rgba(0,255,255,0.6); font-weight:600; }
 
 /* ═══════════════ P-1 · BUFF TRACKER ═══════════════
    Dorado/cuero Pathfinder aesthetic, matches .buff-card + .tracker-*. */
