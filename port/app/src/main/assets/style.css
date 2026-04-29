@@ -224,14 +224,15 @@ body {
 #zone-divider-companeros  { order: 16; }
 .familiar-panel           { order: 17; }
 .companion-panel          { order: 18; }
-#summoned-panel           { order: 19; }
+.eidolon-panel            { order: 19; }
+#summoned-panel           { order: 20; }
 /* EQUIPO */
-#zone-divider-equipo      { order: 20; }
-#weapons-panel            { order: 21; }
-#inventory-panel          { order: 22; }
+#zone-divider-equipo      { order: 21; }
+#weapons-panel            { order: 22; }
+#inventory-panel          { order: 23; }
 /* MODO MÁSTER */
-#zone-divider-master      { order: 23; }
-#initiative-tracker-panel { order: 24; }
+#zone-divider-master      { order: 24; }
+#initiative-tracker-panel { order: 25; }
 /* TAIL */
 #warnings-panel           { order: 25; }
 .footer-bar               { order: 26; }
