@@ -1,0 +1,514 @@
+{
+  "ape": {
+    "name_es": "Simio",
+    "name_en": "Ape",
+    "size_initial": "medium",
+    "speed": { "land": 30, "climb": 30 },
+    "nat_ac_base": 1,
+    "attrs_base": { "str": 13, "dex": 17, "con": 10, "int": 2, "wis": 12, "cha": 7 },
+    "attacks_base": ["bite 1d4", "2 claws 1d4"],
+    "special": ["low-light vision", "scent"],
+    "advancement_at_edl": 4,
+    "advancement": {
+      "size": "large",
+      "attacks": ["bite 1d6", "2 claws 1d6"],
+      "attr_changes": { "str": 8, "dex": -2, "con": 4 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "badger": {
+    "name_es": "Tejón",
+    "name_en": "Badger",
+    "size_initial": "small",
+    "speed": { "land": 30, "burrow": 10, "climb": 10 },
+    "nat_ac_base": 2,
+    "attrs_base": { "str": 10, "dex": 17, "con": 15, "int": 2, "wis": 12, "cha": 10 },
+    "attacks_base": ["bite 1d4", "2 claws 1d3"],
+    "special": ["low-light vision", "scent", "rage 6 rounds/day"],
+    "advancement_at_edl": 4,
+    "advancement": {
+      "size": "medium",
+      "attacks": ["bite 1d6", "2 claws 1d4"],
+      "attr_changes": { "str": 4, "dex": -2, "con": 2 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "bear": {
+    "name_es": "Oso negro",
+    "name_en": "Bear (Black Bear)",
+    "size_initial": "small",
+    "speed": { "land": 40 },
+    "nat_ac_base": 2,
+    "attrs_base": { "str": 15, "dex": 15, "con": 13, "int": 2, "wis": 12, "cha": 6 },
+    "attacks_base": ["bite 1d4", "2 claws 1d3"],
+    "special": ["low-light vision", "scent"],
+    "advancement_at_edl": 4,
+    "advancement": {
+      "size": "medium",
+      "attacks": ["bite 1d6", "2 claws 1d4"],
+      "attr_changes": { "str": 4, "dex": -2, "con": 2 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "bird": {
+    "name_es": "Ave de presa",
+    "name_en": "Bird (Eagle/Hawk/Owl)",
+    "size_initial": "small",
+    "speed": { "land": 10, "fly": 80, "fly_maneuverability": "average" },
+    "nat_ac_base": 1,
+    "attrs_base": { "str": 10, "dex": 15, "con": 12, "int": 2, "wis": 14, "cha": 6 },
+    "attacks_base": ["bite 1d4", "2 talons 1d4"],
+    "special": ["low-light vision"],
+    "advancement_at_edl": 4,
+    "advancement": {
+      "size": null,
+      "attacks": null,
+      "attr_changes": { "str": 2, "con": 2 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "boar": {
+    "name_es": "Jabalí",
+    "name_en": "Boar",
+    "size_initial": "small",
+    "speed": { "land": 40 },
+    "nat_ac_base": 6,
+    "attrs_base": { "str": 13, "dex": 12, "con": 15, "int": 2, "wis": 13, "cha": 4 },
+    "attacks_base": ["gore 1d6"],
+    "special": ["low-light vision", "scent"],
+    "advancement_at_edl": 4,
+    "advancement": {
+      "size": "medium",
+      "attacks": ["gore 1d8"],
+      "special_gained": ["ferocity"],
+      "attr_changes": { "str": 4, "dex": -2, "con": 2 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "camel": {
+    "name_es": "Camello",
+    "name_en": "Camel",
+    "size_initial": "large",
+    "speed": { "land": 50 },
+    "nat_ac_base": 1,
+    "attrs_base": { "str": 18, "dex": 16, "con": 14, "int": 2, "wis": 11, "cha": 4 },
+    "attacks_base": ["bite 1d4", "spit ranged touch (sickened 1d4 rds, 10 ft.)"],
+    "special": ["low-light vision", "scent"],
+    "advancement_at_edl": 4,
+    "advancement": {
+      "size": null,
+      "attacks": null,
+      "attr_changes": { "str": 2, "con": 2 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "cat_big": {
+    "name_es": "Felino grande",
+    "name_en": "Cat, Big (Leopard/Jaguar)",
+    "size_initial": "medium",
+    "speed": { "land": 40 },
+    "nat_ac_base": 1,
+    "attrs_base": { "str": 13, "dex": 17, "con": 10, "int": 2, "wis": 12, "cha": 6 },
+    "attacks_base": ["bite 1d4", "2 claws 1d4"],
+    "special": ["low-light vision", "scent"],
+    "advancement_at_edl": 7,
+    "advancement": {
+      "size": "large",
+      "nat_ac_change": 4,
+      "attacks": ["bite 1d6", "2 claws 1d4"],
+      "special_gained": ["grab", "pounce"],
+      "attr_changes": { "str": 8, "dex": -2, "con": 4 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "cat_small": {
+    "name_es": "Gato montés / Lince",
+    "name_en": "Cat, Small (Lynx/Wildcat)",
+    "size_initial": "small",
+    "speed": { "land": 60 },
+    "nat_ac_base": 1,
+    "attrs_base": { "str": 12, "dex": 15, "con": 12, "int": 2, "wis": 12, "cha": 5 },
+    "attacks_base": ["bite 1d4", "2 claws 1d3"],
+    "special": ["low-light vision", "scent"],
+    "advancement_at_edl": 4,
+    "advancement": {
+      "size": null,
+      "attacks": null,
+      "attr_changes": { "str": 2, "dex": 2, "con": 2 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/#TOC-Cat-Small-"
+  },
+  "crocodile": {
+    "name_es": "Cocodrilo",
+    "name_en": "Crocodile",
+    "size_initial": "small",
+    "speed": { "land": 20, "swim": 30 },
+    "nat_ac_base": 4,
+    "attrs_base": { "str": 15, "dex": 14, "con": 13, "int": 1, "wis": 12, "cha": 8 },
+    "attacks_base": ["bite 1d8"],
+    "special": ["hold breath", "scent"],
+    "advancement_at_edl": 4,
+    "advancement": {
+      "size": "medium",
+      "nat_ac_change": 2,
+      "attacks": ["bite 1d10"],
+      "special_gained": ["death roll", "grab"],
+      "attr_changes": { "str": 4, "dex": -2, "con": 2 }
+    },
+    "advancement_2_at_edl": 7,
+    "advancement_2": {
+      "size": "large",
+      "nat_ac_change": 2,
+      "attacks": ["bite 2d6"],
+      "special_gained": ["death roll"],
+      "attr_changes": { "str": 8, "dex": -2, "con": 4 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/#TOC-Crocodile"
+  },
+  "dog": {
+    "name_es": "Perro",
+    "name_en": "Dog",
+    "size_initial": "small",
+    "speed": { "land": 40 },
+    "nat_ac_base": 1,
+    "attrs_base": { "str": 15, "dex": 15, "con": 15, "int": 2, "wis": 12, "cha": 6 },
+    "attacks_base": ["bite 1d4"],
+    "special": ["low-light vision", "scent"],
+    "advancement_at_edl": 4,
+    "advancement": {
+      "size": "medium",
+      "attacks": ["bite 1d6"],
+      "attr_changes": { "str": 4, "dex": -2, "con": 2 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "dolphin": {
+    "name_es": "Delfín",
+    "name_en": "Dolphin",
+    "size_initial": "medium",
+    "speed": { "swim": 60 },
+    "nat_ac_base": 2,
+    "attrs_base": { "str": 13, "dex": 17, "con": 13, "int": 2, "wis": 12, "cha": 6 },
+    "attacks_base": ["bite 1d6"],
+    "special": ["blindsense 120 ft.", "hold breath", "low-light vision"],
+    "advancement_at_edl": 7,
+    "advancement": {
+      "size": "large",
+      "nat_ac_change": 2,
+      "attacks": ["bite 1d8"],
+      "attr_changes": { "str": 8, "dex": -2, "con": 4 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "elk": {
+    "name_es": "Alce",
+    "name_en": "Elk",
+    "size_initial": "medium",
+    "speed": { "land": 50 },
+    "nat_ac_base": 2,
+    "attrs_base": { "str": 15, "dex": 14, "con": 14, "int": 2, "wis": 12, "cha": 5 },
+    "attacks_base": ["gore 1d6", "2 hooves 1d4"],
+    "special": ["low-light vision", "scent"],
+    "advancement_at_edl": 7,
+    "advancement": {
+      "size": "large",
+      "attacks": ["gore 1d8", "2 hooves 1d6"],
+      "attr_changes": { "str": 8, "dex": -2, "con": 4 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "horse": {
+    "name_es": "Caballo",
+    "name_en": "Horse",
+    "size_initial": "large",
+    "speed": { "land": 60 },
+    "nat_ac_base": 1,
+    "attrs_base": { "str": 16, "dex": 13, "con": 15, "int": 2, "wis": 12, "cha": 6 },
+    "attacks_base": ["2 hooves 1d4", "bite 1d4"],
+    "special": ["low-light vision", "scent"],
+    "notes": "Standard mount for Medium paladins/cavaliers.",
+    "advancement_at_edl": 4,
+    "advancement": {
+      "size": null,
+      "attacks": null,
+      "attr_changes": { "str": 2, "con": 2 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "hyena": {
+    "name_es": "Hiena",
+    "name_en": "Hyena",
+    "size_initial": "small",
+    "speed": { "land": 40 },
+    "nat_ac_base": 1,
+    "attrs_base": { "str": 13, "dex": 16, "con": 10, "int": 2, "wis": 13, "cha": 6 },
+    "attacks_base": ["bite 1d4"],
+    "special": ["low-light vision", "scent"],
+    "advancement_at_edl": 4,
+    "advancement": {
+      "size": "medium",
+      "attacks": ["bite 1d6"],
+      "special_gained": ["trip"],
+      "attr_changes": { "str": 4, "dex": -2, "con": 2 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "manta_ray": {
+    "name_es": "Mantarraya",
+    "name_en": "Manta Ray",
+    "size_initial": "medium",
+    "speed": { "swim": 40 },
+    "nat_ac_base": 1,
+    "attrs_base": { "str": 14, "dex": 17, "con": 12, "int": 1, "wis": 12, "cha": 2 },
+    "attacks_base": ["tail slap 1d6"],
+    "special": ["low-light vision"],
+    "advancement_at_edl": 4,
+    "advancement": {
+      "size": "large",
+      "nat_ac_change": 2,
+      "attacks": ["tail slap 1d8"],
+      "attr_changes": { "str": 2, "dex": -2, "con": 4 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "octopus": {
+    "name_es": "Pulpo",
+    "name_en": "Octopus",
+    "size_initial": "small",
+    "speed": { "swim": 30 },
+    "nat_ac_base": 0,
+    "attrs_base": { "str": 12, "dex": 17, "con": 12, "int": 2, "wis": 12, "cha": 6 },
+    "attacks_base": ["8 tentacles 1d3"],
+    "special": ["low-light vision", "camouflage", "jet 120 ft."],
+    "advancement_at_edl": 4,
+    "advancement": {
+      "size": "medium",
+      "nat_ac_change": 1,
+      "attacks": ["8 tentacles 1d4"],
+      "attr_changes": { "str": 2, "dex": -2, "con": 4 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "pony": {
+    "name_es": "Poni",
+    "name_en": "Pony",
+    "size_initial": "medium",
+    "speed": { "land": 40 },
+    "nat_ac_base": 2,
+    "attrs_base": { "str": 13, "dex": 13, "con": 14, "int": 2, "wis": 12, "cha": 6 },
+    "attacks_base": ["bite 1d3", "2 hooves 1d4"],
+    "special": ["low-light vision", "scent"],
+    "notes": "Standard mount for Small characters (gnome/halfling paladins).",
+    "advancement_at_edl": 4,
+    "advancement": {
+      "size": null,
+      "attacks": null,
+      "attr_changes": { "str": 2, "dex": 2, "con": 2 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "roc": {
+    "name_es": "Roc",
+    "name_en": "Roc",
+    "size_initial": "medium",
+    "speed": { "land": 10, "fly": 60, "fly_maneuverability": "average" },
+    "nat_ac_base": 3,
+    "attrs_base": { "str": 15, "dex": 17, "con": 13, "int": 2, "wis": 14, "cha": 6 },
+    "attacks_base": ["bite 1d6", "2 talons 1d4"],
+    "special": ["low-light vision"],
+    "advancement_at_edl": 7,
+    "advancement": {
+      "size": "large",
+      "attacks": ["bite 1d8", "2 talons 1d6"],
+      "special_gained": ["grab"],
+      "attr_changes": { "str": 8, "dex": -2, "con": 4 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "shark": {
+    "name_es": "Tiburón",
+    "name_en": "Shark",
+    "size_initial": "small",
+    "speed": { "swim": 60 },
+    "nat_ac_base": 1,
+    "attrs_base": { "str": 12, "dex": 17, "con": 13, "int": 1, "wis": 12, "cha": 2 },
+    "attacks_base": ["bite 1d4"],
+    "special": ["blindsense 120 ft.", "low-light vision", "scent"],
+    "advancement_at_edl": 4,
+    "advancement": {
+      "size": "medium",
+      "nat_ac_change": 2,
+      "attacks": ["bite 1d6"],
+      "attr_changes": { "str": 4, "dex": -2, "con": 2 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "snake_constrictor": {
+    "name_es": "Serpiente constrictora",
+    "name_en": "Snake, Constrictor",
+    "size_initial": "medium",
+    "speed": { "land": 20, "climb": 20, "swim": 20 },
+    "nat_ac_base": 2,
+    "attrs_base": { "str": 15, "dex": 17, "con": 13, "int": 1, "wis": 12, "cha": 4 },
+    "attacks_base": ["bite 1d6"],
+    "special": ["hold breath", "low-light vision", "scent"],
+    "advancement_at_edl": 7,
+    "advancement": {
+      "size": "large",
+      "nat_ac_change": 2,
+      "attacks": ["bite 1d8"],
+      "special_gained": ["grab", "constrict"],
+      "attr_changes": { "str": 8, "dex": -2, "con": 4 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "snake_viper": {
+    "name_es": "Víbora",
+    "name_en": "Snake, Viper",
+    "size_initial": "small",
+    "speed": { "land": 30, "climb": 30, "swim": 30 },
+    "nat_ac_base": 2,
+    "attrs_base": { "str": 11, "dex": 17, "con": 11, "int": 1, "wis": 12, "cha": 4 },
+    "attacks_base": ["bite 1d4 + poison"],
+    "special": ["low-light vision", "scent"],
+    "notes": "Int 1 — max 3 tricks only.",
+    "advancement_at_edl": 4,
+    "advancement": {
+      "size": null,
+      "attacks": null,
+      "attr_changes": { "str": 2, "con": 2 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "wolf": {
+    "name_es": "Lobo",
+    "name_en": "Wolf",
+    "size_initial": "medium",
+    "speed": { "land": 50 },
+    "nat_ac_base": 1,
+    "attrs_base": { "str": 13, "dex": 15, "con": 15, "int": 2, "wis": 12, "cha": 6 },
+    "attacks_base": ["bite 1d6"],
+    "special": ["low-light vision", "scent"],
+    "advancement_at_edl": 4,
+    "advancement": {
+      "size": null,
+      "attacks": null,
+      "attr_changes": { "str": 2, "con": 2 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "bear_grizzly": {
+    "name_es": "Oso grizzly",
+    "name_en": "Bear, Grizzly",
+    "size_initial": "medium",
+    "available_at_edl": 4,
+    "speed": { "land": 40 },
+    "nat_ac_base": 1,
+    "attrs_base": { "str": 17, "dex": 13, "con": 13, "int": 2, "wis": 13, "cha": 6 },
+    "attacks_base": ["bite 1d6", "2 claws 1d4"],
+    "special": ["low-light vision", "scent"],
+    "advancement_at_edl": 7,
+    "advancement": {
+      "size": "large",
+      "nat_ac_change": 4,
+      "attacks": ["bite 1d8", "2 claws 1d6"],
+      "special_gained": ["grab"]
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "allosaurus": {
+    "name_es": "Alosaurio",
+    "name_en": "Allosaurus",
+    "size_initial": "medium",
+    "available_at_edl": 7,
+    "speed": { "land": 40 },
+    "nat_ac_base": 4,
+    "attrs_base": { "str": 14, "dex": 16, "con": 10, "int": 2, "wis": 15, "cha": 10 },
+    "attacks_base": ["bite 1d6", "2 claws 1d4"],
+    "special": ["low-light vision", "scent"],
+    "advancement_at_edl": 7,
+    "advancement": {
+      "size": "large",
+      "attacks": ["bite 1d8", "2 claws 1d6"],
+      "special_gained": ["grab", "pounce"]
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "ankylosaurus": {
+    "name_es": "Anquilosaurio",
+    "name_en": "Ankylosaurus",
+    "size_initial": "medium",
+    "available_at_edl": 7,
+    "speed": { "land": 30 },
+    "nat_ac_base": 9,
+    "attrs_base": { "str": 10, "dex": 14, "con": 9, "int": 2, "wis": 12, "cha": 8 },
+    "attacks_base": ["tail 1d6"],
+    "special": ["low-light vision", "scent"],
+    "advancement_at_edl": 7,
+    "advancement": {
+      "size": "large",
+      "attacks": ["tail 2d6"],
+      "special_gained": ["stun"]
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "brachiosaurus": {
+    "name_es": "Braquiosaurio",
+    "name_en": "Brachiosaurus",
+    "size_initial": "medium",
+    "available_at_edl": 7,
+    "speed": { "land": 30 },
+    "nat_ac_base": 3,
+    "attrs_base": { "str": 13, "dex": 14, "con": 11, "int": 2, "wis": 13, "cha": 10 },
+    "attacks_base": ["tail 2d4"],
+    "special": ["low-light vision", "scent"],
+    "advancement_at_edl": 7,
+    "advancement": {
+      "size": "large",
+      "attacks": ["tail 2d6"],
+      "special_gained": ["trample 1d8"],
+      "attr_changes": { "str": 8, "dex": -2, "con": 4 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "deinonychus": {
+    "name_es": "Deinonico (raptor)",
+    "name_en": "Deinonychus",
+    "size_initial": "small",
+    "available_at_edl": 7,
+    "speed": { "land": 60 },
+    "nat_ac_base": 1,
+    "attrs_base": { "str": 13, "dex": 17, "con": 12, "int": 2, "wis": 12, "cha": 6 },
+    "attacks_base": ["bite 1d6", "2 talons 1d6", "2 feet 1d4"],
+    "special": ["low-light vision", "scent"],
+    "advancement_at_edl": 4,
+    "advancement": {
+      "size": "medium",
+      "nat_ac_change": 2,
+      "attacks": ["bite 1d8", "2 talons 1d8", "2 feet 1d6"],
+      "special_gained": ["pounce"],
+      "attr_changes": { "str": 4, "dex": -2, "con": 2 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  },
+  "elephant": {
+    "name_es": "Elefante / Mastodonte",
+    "name_en": "Elephant/Mastodon",
+    "size_initial": "large",
+    "available_at_edl": 7,
+    "speed": { "land": 40 },
+    "nat_ac_base": 4,
+    "attrs_base": { "str": 18, "dex": 10, "con": 17, "int": 2, "wis": 11, "cha": 5 },
+    "attacks_base": ["gore 1d6", "slam 1d6"],
+    "special": ["low-light vision", "scent"],
+    "advancement_at_edl": 7,
+    "advancement": {
+      "size": null,
+      "nat_ac_change": 2,
+      "attacks": ["gore 1d8", "slam 1d8"],
+      "special_gained": ["trample"],
+      "attr_changes": { "str": 4, "con": 4 }
+    },
+    "source_url": "http://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/"
+  }
+}
