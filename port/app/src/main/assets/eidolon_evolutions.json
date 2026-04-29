@@ -1,0 +1,1157 @@
+{
+  "basic_magic": {
+    "name_es": "Magia Básica",
+    "name_en": "Basic Magic",
+    "cost": 1,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón puede lanzar un cantrip 1/día (3/día al nivel 4 del invocador). Nivel de lanzador = DG. CD = 10 + modificador de CAR. Requiere CAR 10+.",
+    "description_en": "The eidolon can cast a cantrip 1/day (3/day at summoner 4th). CL = HD. DC = 10 + CHA mod. Requires CHA 10+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "bite": {
+    "name_es": "Mordisco",
+    "name_en": "Bite",
+    "cost": 1,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón gana un ataque natural de mordisco primario que inflige 1d6 (Medium), 1d8 (Large), 2d6 (Huge). Si el eidolón ya tiene un mordisco, aplica ×1,5 FUE en ese ataque.",
+    "description_en": "The eidolon gains a primary bite attack dealing 1d6 (Medium), 1d8 (Large), 2d6 (Huge). If the eidolon already has a bite, it instead applies ×1.5 Str on that attack.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "bleed": {
+    "name_es": "Sangrado",
+    "name_en": "Bleed",
+    "cost": 1,
+    "stacking": "limited",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "Un ataque natural del eidolón (a elección) causa 1d6 de daño de sangrado al impactar. Puede comprarse una vez por ataque.",
+    "description_en": "One chosen natural attack causes 1d6 bleed damage on a hit. Can be purchased once per attack.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "claws": {
+    "name_es": "Garras",
+    "name_en": "Claws",
+    "cost": 1,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": ["limbs"]
+    },
+    "description_es": "El eidolón gana dos ataques de garra primarios que infligen 1d4 (Medium), 1d6 (Large), 1d8 (Huge). Requiere Limbs (arms).",
+    "description_en": "The eidolon gains two primary claw attacks dealing 1d4 (Medium), 1d6 (Large), 1d8 (Huge). Requires Limbs (arms).",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "climb": {
+    "name_es": "Trepar",
+    "name_en": "Climb",
+    "cost": 1,
+    "stacking": "unlimited",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón gana una velocidad de escalada igual a su velocidad base. Cada compra adicional suma 20 ft. a la velocidad de escalada.",
+    "description_en": "The eidolon gains a climb speed equal to its base speed. Each additional purchase adds 20 ft. to the climb speed.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "gills": {
+    "name_es": "Branquias",
+    "name_en": "Gills",
+    "cost": 1,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón puede respirar bajo el agua indefinidamente.",
+    "description_en": "The eidolon can breathe underwater indefinitely.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "hooves": {
+    "name_es": "Cascos",
+    "name_en": "Hooves",
+    "cost": 1,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": ["limbs"]
+    },
+    "description_es": "El eidolón gana dos ataques secundarios de casco que infligen 1d4 (Medium), 1d6 (Large), 1d8 (Huge). Reemplaza las garras base si aplica. Requiere Limbs (legs).",
+    "description_en": "The eidolon gains two secondary hoof attacks dealing 1d4 (Medium), 1d6 (Large), 1d8 (Huge). Replaces base claws if applicable. Requires Limbs (legs).",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "improved_damage": {
+    "name_es": "Daño Mejorado",
+    "name_en": "Improved Damage",
+    "cost": 1,
+    "stacking": "limited",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "Aumenta el dado de daño de un ataque natural en 1 paso. Puede comprarse una vez por ataque.",
+    "description_en": "Increase one natural attack's damage die by one step. Can be purchased once per attack.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "improved_natural_armor": {
+    "name_es": "Armadura Natural Mejorada",
+    "name_en": "Improved Natural Armor",
+    "cost": 1,
+    "stacking": "limited",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "+2 al bono de armadura natural por compra. Puede comprarse una vez por cada 5 niveles del invocador.",
+    "description_en": "+2 natural armor bonus per purchase. Can be purchased once per 5 summoner levels.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "low_light_vision": {
+    "name_es": "Visión en Penumbra",
+    "name_en": "Low-Light Vision",
+    "cost": 1,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón puede ver el doble de lejos que un humano en condiciones de poca luz.",
+    "description_en": "The eidolon can see twice as far as a human in dim light conditions.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "magic_attacks": {
+    "name_es": "Ataques Mágicos",
+    "name_en": "Magic Attacks",
+    "cost": 1,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "Los ataques naturales del eidolón superan reducción de daño de tipo magia. Al nivel 10 del invocador también cuentan como el alineamiento del eidolón para superar RD.",
+    "description_en": "The eidolon's natural attacks count as magic for DR purposes. At summoner level 10+, they also count as the eidolon's alignment for DR.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "mount": {
+    "name_es": "Montura",
+    "name_en": "Mount",
+    "cost": 1,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón está entrenado para el combate como montura. Requiere forma cuadrúpeda o serpentina y que el eidolón sea al menos una talla mayor que el jinete.",
+    "description_en": "The eidolon is combat-trained as a mount. Requires quadruped or serpentine base form and the eidolon must be at least one size larger than the rider.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "pincers": {
+    "name_es": "Pinzas",
+    "name_en": "Pincers",
+    "cost": 1,
+    "stacking": "unlimited",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": ["limbs"]
+    },
+    "description_es": "El eidolón gana dos ataques secundarios de pinza que infligen 1d6 (Medium), 1d8 (Large), 2d6 (Huge). Otorga +2 a las comprobaciones de agarre cuando usa Grab. Requiere Limbs (arms). Puede comprarse múltiples veces.",
+    "description_en": "The eidolon gains two secondary pincer attacks dealing 1d6 (Medium), 1d8 (Large), 2d6 (Huge). Grants +2 grapple CMB when using Grab. Requires Limbs (arms). Can be purchased multiple times.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "pounce": {
+    "name_es": "Lanzarse",
+    "name_en": "Pounce",
+    "cost": 1,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": "quadruped",
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón puede realizar un ataque completo al final de una carga. Solo para forma cuadrúpeda.",
+    "description_en": "The eidolon can make a full attack at the end of a charge. Quadruped only.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "pull": {
+    "name_es": "Jalar",
+    "name_en": "Pull",
+    "cost": 1,
+    "stacking": "limited",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "Tras impactar con un ataque elegido (que tenga al menos 10 ft. de alcance), el eidolón puede realizar una comprobación de CMC gratuita para atraer al objetivo 5 ft. Puede comprarse una vez por ataque.",
+    "description_en": "After hitting with a selected attack (requiring at least 10 ft. reach), the eidolon can make a free CMB check to pull the target 5 ft. closer. Can be purchased once per attack.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "push": {
+    "name_es": "Empujar",
+    "name_en": "Push",
+    "cost": 1,
+    "stacking": "limited",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "Tras impactar con un ataque elegido, el eidolón puede realizar una comprobación de CMC gratuita para alejar al objetivo 5 ft. Puede comprarse una vez por ataque.",
+    "description_en": "After hitting with a selected attack, the eidolon can make a free CMB check to push the target 5 ft. away. Can be purchased once per attack.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "reach": {
+    "name_es": "Alcance",
+    "name_en": "Reach",
+    "cost": 1,
+    "stacking": "limited",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "Un ataque natural del eidolón gana +5 ft. de alcance. Puede comprarse una vez por ataque.",
+    "description_en": "One natural attack gains +5 ft. reach. Can be purchased once per attack.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "resistance": {
+    "name_es": "Resistencia Elemental",
+    "name_en": "Resistance",
+    "cost": 1,
+    "stacking": "limited",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón gana resistencia 5 a un tipo de energía elegido (ácido, frío, electricidad, fuego o sónico). Aumenta a 10 al nivel 5 del invocador y a 15 al nivel 10. Puede comprarse una vez por tipo de energía.",
+    "description_en": "The eidolon gains resistance 5 to one chosen energy type (acid, cold, electricity, fire, or sonic). Increases to 10 at summoner level 5 and 15 at summoner level 10. Can be purchased once per energy type.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "scent": {
+    "name_es": "Olfato",
+    "name_en": "Scent",
+    "cost": 1,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón puede detectar criaturas por el olfato en un radio de 30 ft. (60 ft. a favor del viento, 15 ft. en contra del viento).",
+    "description_en": "The eidolon can detect creatures by smell within 30 ft. (60 ft. upwind, 15 ft. downwind).",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "shared_evolution": {
+    "name_es": "Evolución Compartida",
+    "name_en": "Shared Evolution",
+    "cost": 1,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón puede transferir al invocador una evolución de 1 o 2 puntos. El invocador puede devolvérsela voluntariamente.",
+    "description_en": "The eidolon can transfer a 1- or 2-point evolution to the summoner. The summoner can return it voluntarily.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "skilled": {
+    "name_es": "Habilidoso",
+    "name_en": "Skilled",
+    "cost": 1,
+    "stacking": "limited",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "+8 bono racial en una habilidad elegida. Puede comprarse una vez por habilidad.",
+    "description_en": "+8 racial bonus to one chosen skill. Can be purchased once per skill.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "slam": {
+    "name_es": "Golpe",
+    "name_en": "Slam",
+    "cost": 1,
+    "stacking": "unlimited",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": ["limbs"]
+    },
+    "description_es": "El eidolón gana un ataque de golpe primario que inflige 1d8 (Medium), 2d6 (Large), 2d8 (Huge). Reemplaza las garras base si aplica. Requiere Limbs (arms). Puede comprarse múltiples veces.",
+    "description_en": "The eidolon gains a primary slam attack dealing 1d8 (Medium), 2d6 (Large), 2d8 (Huge). Replaces base claws if applicable. Requires Limbs (arms). Can be purchased multiple times.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "slippery": {
+    "name_es": "Escurridizo",
+    "name_en": "Slippery",
+    "cost": 1,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "+4 al DMC vs. agarre; +4 bono en pruebas de Escape Artist.",
+    "description_en": "+4 CMD vs. grapple; +4 bonus on Escape Artist checks.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "sting": {
+    "name_es": "Aguijón",
+    "name_en": "Sting",
+    "cost": 1,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": ["tail"]
+    },
+    "description_es": "El eidolón gana un ataque de aguijón primario que inflige 1d4 (Medium), 1d6 (Large), 1d8 (Huge). Requiere la evolución Cola (Tail).",
+    "description_en": "The eidolon gains a primary sting attack dealing 1d4 (Medium), 1d6 (Large), 1d8 (Huge). Requires the Tail evolution.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "swim": {
+    "name_es": "Nadar",
+    "name_en": "Swim",
+    "cost": 1,
+    "stacking": "unlimited",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón gana una velocidad de natación igual a su velocidad base. Cada compra adicional suma 20 ft. No otorga respirar bajo el agua.",
+    "description_en": "The eidolon gains a swim speed equal to its base speed. Each additional purchase adds 20 ft. Does not grant water breathing.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "tail": {
+    "name_es": "Cola",
+    "name_en": "Tail",
+    "cost": 1,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón gana un apéndice de cola y +2 bono racial en Acrobatics (equilibrio). Habilita las evoluciones Aguijón (Sting) y Golpe de Cola (Tail Slap).",
+    "description_en": "The eidolon gains a tail appendage and +2 racial bonus on Acrobatics (balance). Enables the Sting and Tail Slap evolutions.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "tail_slap": {
+    "name_es": "Golpe de Cola",
+    "name_en": "Tail Slap",
+    "cost": 1,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": ["tail"]
+    },
+    "description_es": "El eidolón gana un ataque secundario con la cola que inflige 1d6 (Medium), 1d8 (Large), 2d6 (Huge). Requiere la evolución Cola (Tail).",
+    "description_en": "The eidolon gains a secondary tail slap attack dealing 1d6 (Medium), 1d8 (Large), 2d6 (Huge). Requires the Tail evolution.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "tentacle": {
+    "name_es": "Tentáculo",
+    "name_en": "Tentacle",
+    "cost": 1,
+    "stacking": "unlimited",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón gana un ataque secundario de tentáculo que inflige 1d4 (Medium), 1d6 (Large), 1d8 (Huge). Puede comprarse múltiples veces.",
+    "description_en": "The eidolon gains a secondary tentacle attack dealing 1d4 (Medium), 1d6 (Large), 1d8 (Huge). Can be purchased multiple times.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "unnatural_aura": {
+    "name_es": "Aura Sobrenatural",
+    "name_en": "Unnatural Aura",
+    "cost": 1,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "Los animales normales evitan al eidolón dentro de 25 ft. a menos que una prueba de Handle Animal CD 25 tenga éxito.",
+    "description_en": "Normal animals avoid the eidolon within 25 ft. unless a Handle Animal DC 25 check succeeds.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "wing_buffet": {
+    "name_es": "Aletazo",
+    "name_en": "Wing Buffet",
+    "cost": 1,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": ["flight"]
+    },
+    "description_es": "El eidolón gana dos ataques secundarios de ala que infligen 1d4 (Medium), 1d6 (Large), 1d8 (Huge). Requiere la evolución Vuelo (Flight) con alas.",
+    "description_en": "The eidolon gains two secondary wing buffet attacks dealing 1d4 (Medium), 1d6 (Large), 1d8 (Huge). Requires the Flight evolution with wings.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "ability_increase": {
+    "name_es": "Aumento de Característica",
+    "name_en": "Ability Increase",
+    "cost": 2,
+    "stacking": "limited",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "+2 a una característica elegida. Puede comprarse una vez por característica, más una vez adicional por cada 6 niveles del invocador.",
+    "description_en": "+2 to one ability score. Can be purchased once per ability score plus one additional time per 6 summoner levels.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "alignment_smite": {
+    "name_es": "Golpe de Alineamiento",
+    "name_en": "Alignment Smite",
+    "cost": 2,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "1/día como acción rápida: el siguiente ataque inflige +1d6 vs. criaturas de alineamiento opuesto y se trata como alineado para superar RD. Al nivel 10 del invocador: 2/día por 1 punto extra.",
+    "description_en": "1/day as a swift action: next attack deals +1d6 vs. creatures of opposing alignment and is treated as aligned for DR. At summoner 10th: 2/day for 1 extra point.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "channel_resistance": {
+    "name_es": "Resistencia a Canalización",
+    "name_en": "Channel Resistance",
+    "cost": 2,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": ["undead_appearance"]
+    },
+    "description_es": "+2 bono a las tiradas vs. efectos de canalización de energía. Al nivel 7 del invocador +4 por 2 puntos extra. Requiere Undead Appearance.",
+    "description_en": "+2 bonus to saves vs. channel energy effects. At summoner 7th: +4 for 2 extra points. Requires Undead Appearance.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "constrict": {
+    "name_es": "Constricción",
+    "name_en": "Constrict",
+    "cost": 2,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": "serpentine",
+      "min_summoner_level": null,
+      "requires_evolutions": ["grab"]
+    },
+    "description_es": "Mientras el eidolón agarra a un objetivo con Grab, inflige daño extra igual al del ataque de agarre. Solo para forma serpentina.",
+    "description_en": "While grappling a target via Grab, the eidolon deals extra damage equal to the grab attack's damage. Serpentine only.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "energy_attacks": {
+    "name_es": "Ataques de Energía",
+    "name_en": "Energy Attacks",
+    "cost": 2,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 5,
+      "requires_evolutions": []
+    },
+    "description_es": "Todos los ataques naturales del eidolón infligen +1d6 de daño de energía (ácido, frío, electricidad o fuego, a elección). Requiere invocador de nivel 5+.",
+    "description_en": "All natural attacks deal +1d6 energy damage (choose acid, cold, electricity, or fire). Requires summoner 5th+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "extra_feat": {
+    "name_es": "Dón Extra",
+    "name_en": "Extra Feat",
+    "cost": 2,
+    "stacking": "unlimited",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón gana un dón adicional para el que cumpla los prerrequisitos. Puede comprarse múltiples veces.",
+    "description_en": "The eidolon gains one bonus feat for which it qualifies. Can be purchased multiple times.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "flight": {
+    "name_es": "Vuelo",
+    "name_en": "Flight",
+    "cost": 2,
+    "stacking": "unlimited",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 5,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón gana una velocidad de vuelo igual a su velocidad base. Maniobra Buena (Medium o menor), Media (Large), Pobre (Huge). Por +2 pts adicionales: vuelo mágico sin alas, maniobra Perfecta. Compras adicionales suman +20 ft. Requiere invocador de nivel 5+.",
+    "description_en": "The eidolon gains a fly speed equal to its base speed. Good maneuverability (Medium/smaller), Average (Large), Poor (Huge). For +2 extra pts: magical flight, no wings, Perfect maneuverability. Additional purchases add +20 ft. Requires summoner 5th+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "gore": {
+    "name_es": "Corneada",
+    "name_en": "Gore",
+    "cost": 2,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón gana un ataque de corneada primario que inflige 1d6 (Medium), 1d8 (Large), 2d6 (Huge).",
+    "description_en": "The eidolon gains a primary gore attack dealing 1d6 (Medium), 1d8 (Large), 2d6 (Huge).",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "grab": {
+    "name_es": "Agarrar",
+    "name_en": "Grab",
+    "cost": 2,
+    "stacking": "limited",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "Tras impactar con el ataque elegido, el eidolón puede realizar una comprobación de CMC de agarre gratuita vs. objetivos de la misma talla o menores. +4 al CMC de agarre. Puede comprarse una vez por tipo de ataque.",
+    "description_en": "After a successful hit with the selected attack, the eidolon can make a free grapple CMB check vs. targets of the same size or smaller. +4 grapple CMB. Can be purchased once per attack type.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "head": {
+    "name_es": "Cabeza Extra",
+    "name_en": "Head",
+    "cost": 2,
+    "stacking": "unlimited",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón gana una cabeza adicional (no otorga ataques extra pero habilita evoluciones de cabeza como mordisco, corneada y arma de aliento). Puede comprarse múltiples veces.",
+    "description_en": "The eidolon gains an extra head (no extra attacks, but enables head evolutions: bite, gore, breath weapon). Can be purchased multiple times.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "immunity": {
+    "name_es": "Inmunidad",
+    "name_en": "Immunity",
+    "cost": 2,
+    "stacking": "limited",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 7,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón gana inmunidad a un tipo de energía elegido (ácido, frío, electricidad, fuego o sónico). Requiere invocador de nivel 7+. Puede comprarse una vez por tipo.",
+    "description_en": "The eidolon gains immunity to one chosen energy type (acid, cold, electricity, fire, or sonic). Requires summoner 7th+. Can be purchased once per energy type.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "keen_scent": {
+    "name_es": "Olfato Agudo",
+    "name_en": "Keen Scent",
+    "cost": 2,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": ["gills", "scent"]
+    },
+    "description_es": "El eidolón puede detectar criaturas por olfato a 180 ft. bajo el agua y puede detectar sangre a hasta 1 milla. Requiere Gills y Scent.",
+    "description_en": "The eidolon can notice creatures by smell within 180 ft. underwater and can detect blood up to 1 mile away. Requires Gills and Scent.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "limbs": {
+    "name_es": "Extremidades",
+    "name_en": "Limbs",
+    "cost": 2,
+    "stacking": "unlimited",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón gana un par de extremidades (brazos o patas). Patas: +10 ft. de velocidad. Brazos: permiten evoluciones de brazo y usar armas. Puede comprarse múltiples veces.",
+    "description_en": "The eidolon gains a pair of limbs (arms or legs). Legs: +10 ft. speed. Arms: enable arm evolutions, can wield weapons. Can be purchased multiple times.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "minor_magic": {
+    "name_es": "Magia Menor",
+    "name_en": "Minor Magic",
+    "cost": 2,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 4,
+      "requires_evolutions": ["basic_magic"]
+    },
+    "description_es": "El eidolón puede lanzar un hechizo de nivel 1 elegido 1/día (3/día al nivel 7 por +2 puntos). NL = DG − 2. CD = 10 + ½DG + mod CAR. Requiere CAR 11+, Magia Básica e invocador de nivel 4+.",
+    "description_en": "The eidolon can cast one chosen 1st-level spell 1/day (3/day at summoner 7th for +2 pts). CL = HD − 2. DC = 10 + ½HD + CHA. Requires CHA 11+, Basic Magic, summoner 4th+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "poison": {
+    "name_es": "Veneno",
+    "name_en": "Poison",
+    "cost": 2,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 7,
+      "requires_evolutions": ["bite"]
+    },
+    "description_es": "El ataque de mordisco o aguijón inflige veneno al impactar: tirada de Fort o 1d4 de daño de FUE (frecuencia 1/ronda × 4 rondas, cura 1 tirada). CD = 10 + ½DG + mod CON. Por +2 pts: daño de CON en lugar de FUE. Requiere Bite o Sting e invocador de nivel 7+.",
+    "description_en": "The bite or sting attack delivers poison on a hit: Fort save or 1d4 Str damage (frequency 1/round × 4 rounds, cure 1 save). DC = 10 + ½HD + CON mod. For +2 pts: CON damage instead. Requires Bite or Sting, summoner 7th+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "rake": {
+    "name_es": "Rasgar",
+    "name_en": "Rake",
+    "cost": 2,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": "quadruped",
+      "min_summoner_level": 4,
+      "requires_evolutions": ["claws"]
+    },
+    "description_es": "El eidolón gana dos ataques de rasgado primario 1d4 (Medium), 1d6 (Large), 1d8 (Huge) que puede usar al agarrar. Solo cuadrúpedo. Requiere Claws e invocador de nivel 4+.",
+    "description_en": "The eidolon gains two primary rake attacks 1d4 (Medium), 1d6 (Large), 1d8 (Huge) usable while grappling. Quadruped only. Requires Claws, summoner 4th+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "rend": {
+    "name_es": "Desgarrar",
+    "name_en": "Rend",
+    "cost": 2,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 6,
+      "requires_evolutions": ["claws"]
+    },
+    "description_es": "Si el eidolón impacta con dos ataques de garra al mismo objetivo en el mismo turno, inflige daño extra de garra + ×1,5 FUE. Requiere Claws e invocador de nivel 6+.",
+    "description_en": "If two successful claw hits land on the same target in the same turn, the eidolon deals extra claw damage + 1.5× Str. Requires Claws, summoner 6th+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "rock_throwing": {
+    "name_es": "Lanzar Piedras",
+    "name_en": "Rock Throwing",
+    "cost": 2,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": ["large"]
+    },
+    "description_es": "El eidolón puede lanzar piedras como proyectil, infligiendo 2d6 de daño a distancia media. Requiere tamaño Large.",
+    "description_en": "The eidolon can throw rocks as a ranged attack dealing 2d6 damage at medium range. Requires Large size.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "shadow_blend": {
+    "name_es": "Mezcla con Sombras",
+    "name_en": "Shadow Blend",
+    "cost": 2,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "En condiciones de luz no brillante, el eidolón tiene un 20% de probabilidad de fallo (50% con Shadow Form activa). Se activa o desactiva como acción gratuita.",
+    "description_en": "In non-bright light conditions, the eidolon gains a 20% miss chance (50% with Shadow Form active). Toggle as a free action.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "shadow_form": {
+    "name_es": "Forma de Sombra",
+    "name_en": "Shadow Form",
+    "cost": 2,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón tiene un 20% de probabilidad de fallo constante; sus ataques de melé afectan a criaturas incorpóreas (toque espectral); inflige la mitad de daño a criaturas corpóreas.",
+    "description_en": "The eidolon has a constant 20% miss chance; its melee attacks affect incorporeal creatures (ghost touch); it deals half damage to corporeal creatures.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "sickening": {
+    "name_es": "Nauseabundo",
+    "name_en": "Sickening",
+    "cost": 2,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "Las criaturas vivas a 20 ft. del eidolón quedan enfermas (sickened) durante 1 ronda si fallan una tirada de Fort (CD = 10 + ½DG + mod CON).",
+    "description_en": "Living creatures within 20 ft. are sickened for 1 round unless they succeed at a Fort save (DC = 10 + ½HD + CON mod).",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "trample": {
+    "name_es": "Pisotear",
+    "name_en": "Trample",
+    "cost": 2,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "Acción de ronda completa: pisotear criaturas menores infligiendo 1d6 (Medium), 1d8 (Large), 2d6 (Huge) + ×1,5 FUE. Reflex para recibir la mitad. Solo bípedo o cuadrúpedo.",
+    "description_en": "Full-round action: overrun smaller creatures dealing 1d6 (Medium), 1d8 (Large), 2d6 (Huge) + 1.5× Str. Reflex for half. Biped or quadruped only.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "tremorsense": {
+    "name_es": "Tremorsense",
+    "name_en": "Tremorsense",
+    "cost": 2,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 7,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón puede detectar criaturas en contacto con el suelo en un radio de 30 ft. Requiere invocador de nivel 7+.",
+    "description_en": "The eidolon can detect creatures in contact with the ground within 30 ft. Requires summoner 7th+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "trip": {
+    "name_es": "Derribar",
+    "name_en": "Trip",
+    "cost": 2,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": ["bite"]
+    },
+    "description_es": "Tras un mordisco exitoso, el eidolón puede realizar una comprobación de CMC gratuita para derribar al objetivo si es de la misma talla o menor. Requiere Bite.",
+    "description_en": "After a successful bite, the eidolon can make a free trip CMB check vs. same-size or smaller targets. Requires Bite.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "undead_appearance": {
+    "name_es": "Apariencia No-muerta",
+    "name_en": "Undead Appearance",
+    "cost": 2,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón tiene apariencia de no-muerto; la energía negativa lo cura y la positiva lo daña. +2 en tiradas de salvación vs. enfermedad, parálisis, veneno, sueño y aturdir. Al nivel 7: +4. Al nivel 12: inmunidad a estos efectos.",
+    "description_en": "The eidolon appears undead; negative energy heals it, positive harms it. +2 saves vs. disease, paralysis, poison, sleep, and stunning. At summoner 7th: +4. At 12th: immunity.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "weapon_training": {
+    "name_es": "Entrenamiento con Armas",
+    "name_en": "Weapon Training",
+    "cost": 2,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón gana competencia con armas simples. Por +2 pts adicionales: también armas marciales.",
+    "description_en": "The eidolon gains proficiency with simple weapons. For +2 additional pts: also martial weapons.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "blindsense": {
+    "name_es": "Sentido Ciego",
+    "name_en": "Blindsense",
+    "cost": 3,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 9,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón puede percibir criaturas a 30 ft. sin verlas; el ocultamiento total sigue aplicando. Requiere invocador de nivel 9+.",
+    "description_en": "The eidolon can pinpoint creatures within 30 ft. without seeing them; total concealment still applies. Requires summoner 9th+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "burrow": {
+    "name_es": "Excavar",
+    "name_en": "Burrow",
+    "cost": 3,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 9,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón gana una velocidad de excavación igual a la mitad de su velocidad base a través de tierra; no deja túnel tras de sí. Requiere invocador de nivel 9+.",
+    "description_en": "The eidolon gains a burrow speed equal to ½ its base speed through earth; leaves no hole. Requires summoner 9th+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "celestial_appearance": {
+    "name_es": "Apariencia Celestial",
+    "name_en": "Celestial Appearance",
+    "cost": 3,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón tiene apariencia celestial; +2 en tiradas vs. enfermedad, petrificación, veneno y electricidad; RM 5+DG vs. efectos del mal. Requiere invocador de alineamiento bueno.",
+    "description_en": "The eidolon appears celestial; +2 saves vs. disease, petrification, poison, and electricity; SR 5+HD vs. evil effects. Requires good-aligned summoner.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "damage_reduction": {
+    "name_es": "Reducción de Daño",
+    "name_en": "Damage Reduction",
+    "cost": 3,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 9,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón gana RD 5/tipo de alineamiento opuesto. Al nivel 12 del invocador: RD 10 por 2 puntos extra. Requiere invocador de nivel 9+.",
+    "description_en": "The eidolon gains DR 5/opposite-alignment weapon. At summoner 12th: DR 10 for 2 extra points. Requires summoner 9th+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "fiendish_appearance": {
+    "name_es": "Apariencia Infernal",
+    "name_en": "Fiendish Appearance",
+    "cost": 3,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón tiene apariencia infernal; +2 en tiradas vs. ácido, enfermedad, fuego y veneno; RM 5+DG vs. efectos del bien. Requiere invocador de alineamiento malvado.",
+    "description_en": "The eidolon appears fiendish; +2 saves vs. acid, disease, fire, and poison; SR 5+HD vs. good effects. Requires evil-aligned summoner.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "frightful_presence": {
+    "name_es": "Presencia Aterradora",
+    "name_en": "Frightful Presence",
+    "cost": 3,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 11,
+      "requires_evolutions": []
+    },
+    "description_es": "Radio de 30 ft.: Will o queda sacudido (shaken) durante 3d6 rondas. CD = 10 + ½DG + mod CAR. Si el eidolón tiene 4+ DG más que el objetivo, queda asustado (frightened). Requiere invocador de nivel 11+.",
+    "description_en": "30 ft. radius: Will save or shaken for 3d6 rounds. DC = 10 + ½HD + CHA mod. If eidolon has 4+ more HD than target, target is frightened instead. Requires summoner 11th+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "major_magic": {
+    "name_es": "Magia Mayor",
+    "name_en": "Major Magic",
+    "cost": 3,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 7,
+      "requires_evolutions": ["minor_magic"]
+    },
+    "description_es": "El eidolón puede lanzar un hechizo de nivel 2 elegido 1/día (3/día al nivel 10 por +2 puntos). NL = DG − 2. CD = 10 + ½DG + mod CAR. Requiere CAR 12+, Magia Menor e invocador de nivel 7+.",
+    "description_en": "The eidolon can cast one chosen 2nd-level spell 1/day (3/day at summoner 10th for +2 pts). CL = HD − 2. DC = 10 + ½HD + CHA. Requires CHA 12+, Minor Magic, summoner 7th+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "sacrifice": {
+    "name_es": "Sacrificio",
+    "name_en": "Sacrifice",
+    "cost": 3,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "Acción estándar: el eidolón sacrifica hasta 2 PG por DG y cura al objetivo tocado por la mitad de los PG sacrificados.",
+    "description_en": "Standard action: the eidolon sacrifices up to 2 HP per HD and heals a touched target for half the sacrificed HP.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "see_in_darkness": {
+    "name_es": "Ver en la Oscuridad",
+    "name_en": "See in Darkness",
+    "cost": 3,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 9,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón puede ver perfectamente en oscuridad mágica, incluida la oscuridad profunda (deeper darkness). Requiere invocador de nivel 9+.",
+    "description_en": "The eidolon can see perfectly in magical darkness, including deeper darkness. Requires summoner 9th+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "swallow_whole": {
+    "name_es": "Tragar Entero",
+    "name_en": "Swallow Whole",
+    "cost": 3,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 9,
+      "requires_evolutions": ["grab"]
+    },
+    "description_es": "Si un objetivo está agarrado por el mordisco al inicio del turno del eidolón, puede realizar una comprobación de CMC para tragárselo. El tragado recibe daño de mordisco + 1d6 de daño contundente por ronda. Puede cortarse para escapar. Requiere Grab (mordisco) e invocador de nivel 9+.",
+    "description_en": "If a grappled target remains in the bite at the start of the eidolon's turn, it can make a CMB check to swallow. Swallowed target takes bite + 1d6 bludgeoning damage per round and can cut free. Requires Grab (bite), summoner 9th+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "web": {
+    "name_es": "Red/Telaraña",
+    "name_en": "Web",
+    "cost": 3,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 7,
+      "requires_evolutions": ["climb"]
+    },
+    "description_es": "El eidolón puede lanzar tela de araña como ataque de contacto a distancia (50 ft.), 8/día, enredando al objetivo hasta una talla mayor. CD de escape = 10 + ½DG + mod CON. Telarañas: dureza 0, PG = DG totales. El eidolón detecta criaturas tocando su red. Requiere Climb e invocador de nivel 7+.",
+    "description_en": "The eidolon can shoot webs as a ranged touch attack (50 ft.), 8/day, entangling targets up to one size larger. Escape DC = 10 + ½HD + CON mod. Webs: Hardness 0, HP = total HD. The eidolon senses creatures touching its web. Requires Climb, summoner 7th+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "blindsight": {
+    "name_es": "Vista Ciega",
+    "name_en": "Blindsight",
+    "cost": 4,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 11,
+      "requires_evolutions": ["blindsense"]
+    },
+    "description_es": "El eidolón tiene vista ciega de 30 ft.; ignora oscuridad, invisibilidad y ocultamiento (requiere línea de efecto). Requiere Blindsense e invocador de nivel 11+.",
+    "description_en": "The eidolon gains 30 ft. blindsight; ignores darkness, invisibility, and concealment (requires line of effect). Requires Blindsense, summoner 11th+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "breath_weapon": {
+    "name_es": "Arma de Aliento",
+    "name_en": "Breath Weapon",
+    "cost": 4,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 9,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón puede usar un arma de aliento: cono de 30 ft. o línea de 60 ft.; 1d6 de daño de energía por DG (ácido, frío, electricidad o fuego). Reflex CD = 10 + ½DG + mod CON para la mitad. 1/día; +1 uso por punto de evolución extra (máximo 3/día). Requiere invocador de nivel 9+.",
+    "description_en": "The eidolon gains a breath weapon: 30-ft. cone or 60-ft. line; 1d6 energy damage per HD (acid, cold, electricity, or fire). Reflex DC = 10 + ½HD + CON mod for half. 1/day; +1 use per extra evolution point (max 3/day). Requires summoner 9th+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "dimension_door": {
+    "name_es": "Puerta Dimensional",
+    "name_en": "Dimension Door",
+    "cost": 4,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 9,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón puede usar puerta dimensional (Sp) como acción estándar 1/día. Por cada punto de evolución extra gastado, gana 1 uso adicional por día (máximo 3/día). Requiere invocador de nivel 9+.",
+    "description_en": "The eidolon can use dimension door (Sp) as a standard action 1/day. For each additional evolution point spent, it gains 1 additional daily use (max 3/day). Requires summoner 9th+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "fast_healing": {
+    "name_es": "Curación Acelerada",
+    "name_en": "Fast Healing",
+    "cost": 4,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 11,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón gana Curación Acelerada 1 (regenera 1 PG por ronda automáticamente). Escala automáticamente con DG: +1 por cada 4 DG por encima del 4.° (CA 2 a 8 DG, CA 3 a 12 DG, CA 4 a 16 DG, CA 5 a 20 DG). Sin coste extra para escalar. Requiere invocador de nivel 11+ (posiblemente 13+ según una fuente).",
+    "description_en": "The eidolon gains Fast Healing 1 (heals 1 HP per round automatically). Scales automatically with HD: +1 per 4 HD above 4th (FH 2 at 8 HD, FH 3 at 12 HD, FH 4 at 16 HD, FH 5 at 20 HD). No extra cost to scale. Requires summoner 11th+ (possibly 13th+ per one source).",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "incorporeal_form": {
+    "name_es": "Forma Incorpórea",
+    "name_en": "Incorporeal Form",
+    "cost": 4,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 11,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón puede volverse incorpóreo (Sp) como acción estándar durante un número de rondas por día igual a sus DG. Puede regresar a la normalidad como acción gratuita. Mientras es incorpóreo: puede atravesar paredes y objetos sólidos; no puede hacer ataques físicos; recibe la mitad de daño de armas no mágicas, daño completo de armas/hechizos mágicos. Requiere invocador de nivel 11+.",
+    "description_en": "The eidolon can become incorporeal (Sp) as a standard action for a number of rounds per day equal to its HD. It can return to normal as a free action. While incorporeal: can pass through walls and solid objects; cannot make physical attacks; takes half damage from nonmagical weapons, full damage from magic weapons/spells. Requires summoner 11th+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "large": {
+    "name_es": "Grande",
+    "name_en": "Large",
+    "cost": 4,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 8,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón crece a talla Grande. Gana +4 FUE, −2 DES, −1 CA y −1 a las tiradas de ataque. Espacio 10 ft., alcance 10 ft. Requiere invocador de nivel 8+. (Nota: el documento de investigación original indicaba +8 FUE/+4 CON — corregido a +4 FUE según verificación.)",
+    "description_en": "The eidolon grows to Large size. It gains +4 Str, −2 Dex, −1 AC, and −1 attack rolls. Space 10 ft., reach 10 ft. Requires summoner 8th+. (Note: original research doc had +8 Str/+4 Con — corrected to +4 Str per verification.)",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "lifesense": {
+    "name_es": "Sentido de Vida",
+    "name_en": "Lifesense",
+    "cost": 4,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 9,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón detecta automáticamente la presencia y ubicación de criaturas vivas en un radio de 60 ft., independientemente de la visibilidad o el ocultamiento (Su). Requiere invocador de nivel 9+.",
+    "description_en": "The eidolon automatically detects the presence and location of living creatures within 60 ft., regardless of visibility or concealment (Su). Requires summoner 9th+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "no_breath": {
+    "name_es": "Sin Respiración",
+    "name_en": "No Breath",
+    "cost": 4,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": null,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón no necesita respirar; es inmune a venenos inhalados, ahogamiento y asfixia.",
+    "description_en": "The eidolon no longer needs to breathe; it is immune to inhaled poisons, drowning, and suffocation.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "spell_resistance": {
+    "name_es": "Resistencia a Conjuros",
+    "name_en": "Spell Resistance",
+    "cost": 4,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 13,
+      "requires_evolutions": []
+    },
+    "description_es": "El eidolón gana Resistencia a Conjuros (Ex) igual a 11 + sus DG. (Nota: el documento de investigación original indicaba RM = nivel de invocador + 11 y nivel 9+; corregido a 11+DG y nivel 13+.)",
+    "description_en": "The eidolon gains Spell Resistance (Ex) equal to 11 + its HD. (Note: original research doc had SR = summoner level + 11 and level 9+; corrected to 11 + HD and level 13+ per verification.)",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  },
+  "ultimate_magic": {
+    "name_es": "Magia Suprema",
+    "name_en": "Ultimate Magic",
+    "cost": 4,
+    "stacking": "single",
+    "max_stacks": null,
+    "prereqs": {
+      "base_form": null,
+      "min_summoner_level": 13,
+      "requires_evolutions": ["major_magic"]
+    },
+    "description_es": "El eidolón puede lanzar un hechizo de nivel 3 elegido 1/día (3/día al nivel 16 por +2 puntos). NL = DG − 2. CD = 10 + ½DG + mod CAR. Requiere CAR 13+, Magia Mayor e invocador de nivel 13+.",
+    "description_en": "The eidolon can cast one chosen 3rd-level spell 1/day (3/day at summoner 16th for +2 pts). CL = HD − 2. DC = 10 + ½HD + CHA. Requires CHA 13+, Major Magic, summoner 13th+.",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/summoner/eidolons/eidolons/"
+  }
+}
