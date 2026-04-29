@@ -1,0 +1,32 @@
+# Dependencias y build de Electron
+node_modules/
+dist-electron/
+*.tsbuildinfo
+
+# Outputs
+*.zip
+*.exe
+*.msi
+
+# IDE / sistema
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Android Studio / Gradle (en /port/)
+.gradle/
+local.properties
+*.iml
+build/
+
+# Personajes guardados (datos del usuario, no del proyecto)
+joel_samurai2.json
+jowy.json
+
+# Archivos versionados con sufijo de hash (artefactos de exportación antiguos)
+*-[a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9].html
+*-[a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9].css
+*-[a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9].js
+*-[a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9].png
+*-[a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9].md

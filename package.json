@@ -1,0 +1,86 @@
+{
+  "name": "pathfinder-sheet",
+  "version": "1.0.0",
+  "description": "Ficha de personaje Pathfinder 1e bilingüe (ES/EN), empaquetada como app de escritorio con Electron.",
+  "main": "electron-main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-packager . \"Pathfinder CS by Jowy\" --platform=win32 --arch=x64 --icon=icono.ico --out=dist-electron --overwrite --asar --app-copyright=\"© 2026 Jowy05\" --win32metadata.CompanyName=\"Jowy05\" --win32metadata.FileDescription=\"Pathfinder CS by Jowy\" --win32metadata.ProductName=\"Pathfinder CS by Jowy\" --ignore=\"^/(node_modules|port|_research|_wave3_pending|app|test|build|dist-electron|patches|\\\\.gradle|\\\\.idea)\" --ignore=\"\\\\.(md|gradle|gradle\\\\.kts)$\""
+  },
+  "author": "Jowy05",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^32.0.0",
+    "electron-packager": "^17.1.2"
+  },
+  "build": {
+    "appId": "com.jowy.pathfindersheet",
+    "productName": "Pathfinder CS by Jowy",
+    "copyright": "Copyright © 2026 Jowy05",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "electron-main.js",
+      "index.html",
+      "style.css",
+      "fallback-data.js",
+      "icono.png",
+      "cyberpunk-fx.js",
+      "cyberpunk-loader.css",
+      "cyberpunk-loader.js",
+      "cyberpunk-mode.css",
+      "cyberpunk-overlay.css",
+      "*.json",
+      "!package-lock.json",
+      "!**/node_modules/**",
+      "!port/**",
+      "!_research/**",
+      "!_wave3_pending/**",
+      "!app/**",
+      "!test/**",
+      "!build/**",
+      "!dist-electron/**",
+      "!.gradle/**",
+      "!.idea/**",
+      "!patches/**",
+      "!*.md",
+      "!.gitignore",
+      "!*.gradle",
+      "!*.gradle.kts",
+      "!gradle.properties",
+      "!gradlew*",
+      "!local.properties",
+      "!Demo*.html",
+      "!demo-*.js",
+      "!demo-*.css",
+      "!*-[a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9].html",
+      "!*-[a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9].css",
+      "!*-[a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9].js",
+      "!*-[a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9].png",
+      "!*-[a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9].md",
+      "!joel_samurai2.json",
+      "!jowy.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "icono.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Pathfinder Sheet",
+      "perMachine": false
+    },
+    "asar": true
+  }
+}
