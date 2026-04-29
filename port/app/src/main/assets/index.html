@@ -1126,6 +1126,61 @@
   </div>
 </div>
 
+<!-- EIDOLON (Summoner companion) — only shown when char has summoner class -->
+<div class="panel full-row eidolon-panel" id="eidolon-panel" style="display:none;">
+  <h2 class="collapsible-header collapsed" id="eidolon-header" data-i18n="p.eidolon">Eidolón</h2>
+  <div class="collapsible-body hidden" id="eidolon-body">
+    <div class="companion-grid">
+      <div>
+        <div class="label-row" style="margin-bottom:6px;"><span data-i18n="label.eidName">Nombre del Eidolón</span><input type="text" id="eid-name" placeholder="Ej. Vorthag" data-i18n-ph="ph.eidName"></div>
+        <div class="label-row" style="margin-bottom:6px;">
+          <span data-i18n="label.eidBaseForm">Forma Base</span>
+          <select id="eid-base-form" class="recalc-eid">
+            <option value="" data-i18n="opt.pickBaseForm">— Selecciona —</option>
+            <option value="biped" data-i18n="eid.biped">Bípedo</option>
+            <option value="quadruped" data-i18n="eid.quadruped">Cuadrúpedo</option>
+            <option value="serpentine" data-i18n="eid.serpentine">Serpentino</option>
+            <option value="aquatic" data-i18n="eid.aquatic">Acuático</option>
+            <option value="avian" data-i18n="eid.avian">Aviano</option>
+            <option value="tauric" data-i18n="eid.tauric">Tauriforme</option>
+          </select>
+        </div>
+        <div class="label-row" style="margin-bottom:6px;"><span data-i18n="label.eidSubtype">Subtipo / Linaje</span><input type="text" id="eid-subtype" placeholder="Outsider (Native)…"></div>
+        <div class="label-row" style="margin-bottom:6px;"><span data-i18n="label.eidAlign">Alineamiento</span><input type="text" id="eid-align" placeholder="LG, NE…"></div>
+        <div class="label-row" style="margin-bottom:6px;"><span data-i18n="label.eidSize">Tamaño</span><select id="eid-size" class="recalc-eid"></select></div>
+        <h3 style="margin-top:8px;" data-i18n="p.eidAttrs">Atributos</h3>
+        <div class="two-col">
+          <div class="label-row"><span data-i18n="attr.str">FUE</span><input type="number" id="eid-str" class="recalc-eid" value="10"></div>
+          <div class="label-row"><span data-i18n="attr.dex">DES</span><input type="number" id="eid-dex" class="recalc-eid" value="10"></div>
+          <div class="label-row"><span data-i18n="attr.con">CON</span><input type="number" id="eid-con" class="recalc-eid" value="10"></div>
+          <div class="label-row"><span data-i18n="attr.int">INT</span><input type="number" id="eid-int" class="recalc-eid" value="7"></div>
+          <div class="label-row"><span data-i18n="attr.wis">SAB</span><input type="number" id="eid-wis" class="recalc-eid" value="10"></div>
+          <div class="label-row"><span data-i18n="attr.cha">CAR</span><input type="number" id="eid-cha" class="recalc-eid" value="11"></div>
+        </div>
+      </div>
+      <div>
+        <h3 data-i18n="p.eidStats">Estadísticas Calculadas</h3>
+        <div class="comp-stat-grid">
+          <div class="comp-stat-item"><label data-i18n="label.hd">DG</label><input id="eid-hd" readonly class="derived"></div>
+          <div class="comp-stat-item"><label data-i18n="label.hpMax">PG Máx</label><input id="eid-hp" type="number" placeholder="manual"></div>
+          <div class="comp-stat-item"><label data-i18n="label.bab">BAB</label><input id="eid-bab" readonly class="derived"></div>
+          <div class="comp-stat-item"><label data-i18n="label.ac">CA</label><input id="eid-ac" type="number" placeholder="manual"></div>
+          <div class="comp-stat-item"><label data-i18n="save.fort">Fortaleza</label><input id="eid-fort" readonly class="derived"></div>
+          <div class="comp-stat-item"><label data-i18n="save.ref">Reflejos</label><input id="eid-ref" readonly class="derived"></div>
+          <div class="comp-stat-item"><label data-i18n="save.will">Voluntad</label><input id="eid-will" readonly class="derived"></div>
+          <div class="comp-stat-item"><label data-i18n="label.skillPoints">Puntos Hab.</label><input id="eid-skills" readonly class="derived"></div>
+          <div class="comp-stat-item"><label data-i18n="label.feats">Dotes</label><input id="eid-feats" readonly class="derived"></div>
+          <div class="comp-stat-item"><label data-i18n="label.eidNatAC">CA Nat.</label><input id="eid-nat-ac" readonly class="derived"></div>
+          <div class="comp-stat-item"><label data-i18n="label.eidMaxAtk">Atq. Máx</label><input id="eid-max-atk" readonly class="derived"></div>
+          <div class="comp-stat-item"><label data-i18n="label.eidEP">EP</label><input id="eid-ep" readonly class="derived"></div>
+        </div>
+        <h3 style="margin-top:8px;" data-i18n="p.eidNotes">Notas</h3>
+        <textarea id="eid-notes" rows="4" style="width:100%;font-size:11px;" placeholder="Habilidades, evolutions seleccionadas, descripción..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="panel full-row" id="summoned-panel">
   <h2 class="collapsible-header collapsed" id="summoned-header" data-i18n="p.summoned">Criaturas Controladas / Invocadas</h2>
   <div class="collapsible-body hidden" id="summoned-body">
@@ -1754,6 +1809,7 @@ const I18N = {
     'fb.empty':'Sin entradas aún.','fb.delete':'Eliminar',
     'console.noArch':'archetypes.json no disponible, sin arquetipos.','console.noData':'No se pudieron cargar los archivos de datos, usando datos embebidos.',
     'opt.lvAbbr':'Nv.','fallback.className':'clase','m.copyCmd':'Copia este comando:','opt.searchPlaceholder':'Buscar…','label.compTemplate':'Plantilla','opt.pickTemplate':'— Selecciona animal —',
+    'p.eidolon':'Eidolón','label.eidName':'Nombre del Eidolón','label.eidBaseForm':'Forma Base','opt.pickBaseForm':'— Selecciona —','eid.biped':'Bípedo','eid.quadruped':'Cuadrúpedo','eid.serpentine':'Serpentino','eid.aquatic':'Acuático','eid.avian':'Aviano','eid.tauric':'Tauriforme','label.eidSubtype':'Subtipo / Linaje','label.eidAlign':'Alineamiento','label.eidSize':'Tamaño','p.eidAttrs':'Atributos','p.eidStats':'Estadísticas Calculadas','p.eidNotes':'Notas','label.skillPoints':'Puntos Hab.','label.eidNatAC':'CA Nat.','label.eidMaxAtk':'Atq. Máx','label.eidEP':'EP','ph.eidName':'Ej. Vorthag',
     'dmg.critX':'×CRIT','dmg.dmg':'DMG',
     'attrName.str':'Fuerza','attrName.dex':'Destreza','attrName.con':'Constitución','attrName.int':'Inteligencia','attrName.wis':'Sabiduría','attrName.cha':'Carisma',
     // P-1 · Buff Tracker
@@ -2149,6 +2205,7 @@ const I18N = {
     'fb.empty':'No entries yet.','fb.delete':'Delete',
     'console.noArch':'archetypes.json unavailable, no archetypes.','console.noData':'Could not load data files, using embedded data.',
     'opt.lvAbbr':'Lv.','fallback.className':'class','m.copyCmd':'Copy this command:','opt.searchPlaceholder':'Search…','label.compTemplate':'Template','opt.pickTemplate':'— Select animal —',
+    'p.eidolon':'Eidolon','label.eidName':'Eidolon Name','label.eidBaseForm':'Base Form','opt.pickBaseForm':'— Select —','eid.biped':'Biped','eid.quadruped':'Quadruped','eid.serpentine':'Serpentine','eid.aquatic':'Aquatic','eid.avian':'Avian','eid.tauric':'Tauric','label.eidSubtype':'Subtype / Lineage','label.eidAlign':'Alignment','label.eidSize':'Size','p.eidAttrs':'Attributes','p.eidStats':'Computed Stats','p.eidNotes':'Notes','label.skillPoints':'Skill Pts','label.eidNatAC':'Nat. AC','label.eidMaxAtk':'Max Atk','label.eidEP':'EP','ph.eidName':'e.g. Vorthag',
     'dmg.critX':'×CRIT','dmg.dmg':'DMG',
     'attrName.str':'Strength','attrName.dex':'Dexterity','attrName.con':'Constitution','attrName.int':'Intelligence','attrName.wis':'Wisdom','attrName.cha':'Charisma',
     // P-1 · Buff Tracker
@@ -2741,6 +2798,8 @@ async function init() {
   }
   populateSelectors();       // builds class rows and lang grid
   populateAnimalCompanionTemplateSelect();
+  updateEidolonVisibility();
+  recalcEidolon();
   // Start with one fighter row
   addClassRow('fighter', 1, 0, true);
   buildAttrTable();
@@ -2775,7 +2834,7 @@ async function init() {
 
 /* ── SELECTORS ──────────────────────────────────────────── */
 function populateSelectors() {
-  ['char-size','comp-size'].forEach(id => {
+  ['char-size','comp-size','eid-size'].forEach(id => {
     const el = document.getElementById(id);
     if(!el) return;
     const prior = el.value;
@@ -7376,6 +7435,95 @@ function filterFeatureList() {
   populateAbilitySelect(filtered);
   document.getElementById('feature-picker-preview').innerHTML = '';
 }
+
+// === Eidolon (Summoner companion) ===
+// PF1e Eidolon Base table — index 0..19 corresponds to summoner level 1..20.
+// Source: d20pfsrd.com/classes/base-classes/summoner/eidolon/
+const EIDOLON_BASE_TABLE = [
+  // [HD, BAB, GoodSave, PoorSave, Skills, Feats, NatArmor, StrDexBonus, EvolPool, MaxAtk]
+  [1, 1, 2, 0, 4, 1, 0, 0, 3, 3],
+  [2, 2, 3, 0, 8, 1, 2, 0, 4, 3],
+  [3, 3, 3, 1, 12, 2, 2, 1, 5, 3],
+  [4, 3, 4, 1, 16, 2, 4, 1, 6, 4],
+  [5, 5, 4, 1, 20, 3, 4, 2, 7, 4],
+  [6, 6, 5, 2, 24, 3, 6, 2, 8, 4],
+  [7, 7, 5, 2, 28, 4, 6, 3, 9, 4],
+  [8, 8, 6, 2, 32, 4, 8, 3, 10, 5],
+  [9, 9, 6, 3, 36, 5, 8, 4, 11, 5],
+  [10, 10, 7, 3, 40, 5, 10, 4, 13, 5],
+  [11, 11, 7, 3, 44, 6, 10, 5, 14, 5],
+  [12, 12, 8, 4, 48, 6, 12, 5, 15, 6],
+  [13, 13, 8, 4, 52, 7, 12, 6, 16, 6],
+  [14, 14, 9, 4, 56, 7, 14, 6, 17, 6],
+  [15, 15, 9, 5, 60, 8, 14, 7, 19, 6],
+  [16, 16, 10, 5, 64, 8, 16, 7, 21, 7],
+  [17, 17, 10, 5, 68, 9, 16, 8, 23, 7],
+  [18, 18, 11, 6, 72, 9, 18, 8, 25, 7],
+  [19, 19, 11, 6, 76, 10, 18, 9, 26, 7],
+  [20, 20, 12, 6, 80, 10, 20, 9, 26, 7]
+];
+
+// Save progression per base form: [Fort, Ref, Will] where each is 'good' or 'bad'.
+const EIDOLON_BASE_FORMS = {
+  biped:      { saves: ['bad','bad','good'] },
+  quadruped:  { saves: ['good','good','bad'] },
+  serpentine: { saves: ['bad','good','good'] },
+  aquatic:    { saves: ['good','good','bad'] },
+  avian:      { saves: ['bad','good','good'] },
+  tauric:     { saves: ['good','bad','good'] }
+};
+
+function getSummonerLevel() {
+  let lvl = 0;
+  document.querySelectorAll('.class-row-dynamic').forEach(row => {
+    const i = row.dataset.rowIdx;
+    const key = document.getElementById('class' + i)?.value;
+    if (key === 'summoner' || key === 'unchained_summoner') {
+      lvl = Math.max(lvl, parseInt(document.getElementById('level' + i)?.value) || 0);
+    }
+  });
+  return lvl;
+}
+
+function updateEidolonVisibility() {
+  const panel = document.getElementById('eidolon-panel');
+  if (!panel) return;
+  panel.style.display = getSummonerLevel() > 0 ? 'block' : 'none';
+}
+
+function recalcEidolon() {
+  const panel = document.getElementById('eidolon-panel');
+  if (!panel || panel.style.display === 'none') return;
+  const lvl = getSummonerLevel();
+  if (lvl < 1 || lvl > 20) return;
+  const row = EIDOLON_BASE_TABLE[lvl - 1];
+  const [hd, bab, good, poor, skills, feats, natArmor, attrBonus, ep, maxAtk] = row;
+
+  const baseForm = document.getElementById('eid-base-form')?.value || 'biped';
+  const formData = EIDOLON_BASE_FORMS[baseForm] || EIDOLON_BASE_FORMS.biped;
+  const [fortType, refType, willType] = formData.saves;
+  const saveVal = type => type === 'good' ? good : poor;
+
+  const setRO = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+  setRO('eid-hd', hd);
+  setRO('eid-bab', bab);
+  setRO('eid-fort', saveVal(fortType));
+  setRO('eid-ref',  saveVal(refType));
+  setRO('eid-will', saveVal(willType));
+  setRO('eid-skills', skills + (Math.floor((parseInt(document.getElementById('eid-int')?.value)||10) - 10) / 2 | 0) * hd);
+  setRO('eid-feats', feats);
+  setRO('eid-nat-ac', natArmor);
+  setRO('eid-max-atk', maxAtk);
+  setRO('eid-ep', ep);
+}
+
+// Recalc eidolon when its inputs change OR when summoner level changes
+document.addEventListener('change', e => {
+  if (e.target && (e.target.classList?.contains('recalc-eid') || e.target.id?.startsWith('level') || e.target.classList?.contains('class-select'))) {
+    updateEidolonVisibility();
+    recalcEidolon();
+  }
+});
 
 // === Animal Companion templates ===
 function populateAnimalCompanionTemplateSelect() {
