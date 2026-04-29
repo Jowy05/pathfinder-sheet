@@ -7429,10 +7429,24 @@ function autoAddClassAbilities(className, fromLevel, toLevel) {
   const mods = getCharMods();
   const existing = new Set([...document.querySelectorAll('.feature-name-input')].map(el => el.value.trim()));
 
-  // 1. From special_abilities
-  const saAbils = (DB.special_abilities || []).filter(a =>
-    a.class === className && a.lvlunlock > fromLevel && a.lvlunlock <= toLevel
-  );
+  // Active archetype slugs for THIS class (so archetype-specific SA entries
+  // only auto-add when the player picked that archetype).
+  const activeArchetypes = new Set();
+  document.querySelectorAll('.class-row-dynamic').forEach(row => {
+    const ri = row.dataset.rowIdx;
+    const cKey = document.getElementById('class'+ri)?.value;
+    if (!cKey || (DB.classes[cKey]?.name || cKey) !== className) return;
+    const aKey = document.getElementById('archetype'+ri)?.value;
+    if (aKey) activeArchetypes.add(aKey);
+  });
+
+  // 1. From special_abilities — class-wide entries always; archetype entries only if active.
+  const saAbils = (DB.special_abilities || []).filter(a => {
+    if (!(a.lvlunlock > fromLevel && a.lvlunlock <= toLevel)) return false;
+    if (a.class !== className) return false;
+    if (a.archetype) return activeArchetypes.has(a.archetype);
+    return true;
+  });
 
   // 2. From selected archetype features_gained
   const archAbils = [];
