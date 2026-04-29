@@ -1205,6 +1205,8 @@
       </div>
       <h4 style="margin-top:8px;font-size:12px;" data-i18n="p.eidSelectedEvos">Evolutions Seleccionadas</h4>
       <div id="eid-evos-container" style="display:flex;flex-direction:column;gap:4px;"></div>
+      <h4 style="margin-top:8px;font-size:12px;color:var(--leather);" data-i18n="p.eidFreeEvos">Evolutions Gratis (por forma base)</h4>
+      <div id="eid-free-evos-container" style="display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--leather-lt);"></div>
     </div>
   </div>
 </div>
@@ -1837,7 +1839,7 @@ const I18N = {
     'fb.empty':'Sin entradas aún.','fb.delete':'Eliminar',
     'console.noArch':'archetypes.json no disponible, sin arquetipos.','console.noData':'No se pudieron cargar los archivos de datos, usando datos embebidos.',
     'opt.lvAbbr':'Nv.','fallback.className':'clase','m.copyCmd':'Copia este comando:','opt.searchPlaceholder':'Buscar…','label.compTemplate':'Plantilla','opt.pickTemplate':'— Selecciona animal —',
-    'p.eidolon':'Eidolón','label.eidName':'Nombre del Eidolón','label.eidBaseForm':'Forma Base','opt.pickBaseForm':'— Selecciona —','eid.biped':'Bípedo','eid.quadruped':'Cuadrúpedo','eid.serpentine':'Serpentino','eid.aquatic':'Acuático','eid.avian':'Aviano','eid.tauric':'Tauriforme','label.eidSubtype':'Subtipo / Linaje','label.eidAlign':'Alineamiento','label.eidSize':'Tamaño','p.eidAttrs':'Atributos','p.eidStats':'Estadísticas Calculadas','p.eidNotes':'Notas','label.skillPoints':'Puntos Hab.','label.eidNatAC':'CA Nat.','label.eidMaxAtk':'Atq. Máx','label.eidEP':'EP','ph.eidName':'Ej. Vorthag','p.eidEvolutions':'Evolutions','eid.epUsed':'PE usados','opt.allCosts':'— Coste —','opt.pickEvolution':'Selecciona una evolution…','btn.addEvolution':'Añadir Evolution','p.eidSelectedEvos':'Evolutions Seleccionadas',
+    'p.eidolon':'Eidolón','label.eidName':'Nombre del Eidolón','label.eidBaseForm':'Forma Base','opt.pickBaseForm':'— Selecciona —','eid.biped':'Bípedo','eid.quadruped':'Cuadrúpedo','eid.serpentine':'Serpentino','eid.aquatic':'Acuático','eid.avian':'Aviano','eid.tauric':'Tauriforme','label.eidSubtype':'Subtipo / Linaje','label.eidAlign':'Alineamiento','label.eidSize':'Tamaño','p.eidAttrs':'Atributos','p.eidStats':'Estadísticas Calculadas','p.eidNotes':'Notas','label.skillPoints':'Puntos Hab.','label.eidNatAC':'CA Nat.','label.eidMaxAtk':'Atq. Máx','label.eidEP':'EP','ph.eidName':'Ej. Vorthag','p.eidEvolutions':'Evolutions','eid.epUsed':'PE usados','opt.allCosts':'— Coste —','opt.pickEvolution':'Selecciona una evolution…','btn.addEvolution':'Añadir Evolution','p.eidSelectedEvos':'Evolutions Seleccionadas','p.eidFreeEvos':'Evolutions Gratis (por forma base)',
     'dmg.critX':'×CRIT','dmg.dmg':'DMG',
     'attrName.str':'Fuerza','attrName.dex':'Destreza','attrName.con':'Constitución','attrName.int':'Inteligencia','attrName.wis':'Sabiduría','attrName.cha':'Carisma',
     // P-1 · Buff Tracker
@@ -2233,7 +2235,7 @@ const I18N = {
     'fb.empty':'No entries yet.','fb.delete':'Delete',
     'console.noArch':'archetypes.json unavailable, no archetypes.','console.noData':'Could not load data files, using embedded data.',
     'opt.lvAbbr':'Lv.','fallback.className':'class','m.copyCmd':'Copy this command:','opt.searchPlaceholder':'Search…','label.compTemplate':'Template','opt.pickTemplate':'— Select animal —',
-    'p.eidolon':'Eidolon','label.eidName':'Eidolon Name','label.eidBaseForm':'Base Form','opt.pickBaseForm':'— Select —','eid.biped':'Biped','eid.quadruped':'Quadruped','eid.serpentine':'Serpentine','eid.aquatic':'Aquatic','eid.avian':'Avian','eid.tauric':'Tauric','label.eidSubtype':'Subtype / Lineage','label.eidAlign':'Alignment','label.eidSize':'Size','p.eidAttrs':'Attributes','p.eidStats':'Computed Stats','p.eidNotes':'Notes','label.skillPoints':'Skill Pts','label.eidNatAC':'Nat. AC','label.eidMaxAtk':'Max Atk','label.eidEP':'EP','ph.eidName':'e.g. Vorthag','p.eidEvolutions':'Evolutions','eid.epUsed':'EP used','opt.allCosts':'— Cost —','opt.pickEvolution':'Pick an evolution…','btn.addEvolution':'Add Evolution','p.eidSelectedEvos':'Selected Evolutions',
+    'p.eidolon':'Eidolon','label.eidName':'Eidolon Name','label.eidBaseForm':'Base Form','opt.pickBaseForm':'— Select —','eid.biped':'Biped','eid.quadruped':'Quadruped','eid.serpentine':'Serpentine','eid.aquatic':'Aquatic','eid.avian':'Avian','eid.tauric':'Tauric','label.eidSubtype':'Subtype / Lineage','label.eidAlign':'Alignment','label.eidSize':'Size','p.eidAttrs':'Attributes','p.eidStats':'Computed Stats','p.eidNotes':'Notes','label.skillPoints':'Skill Pts','label.eidNatAC':'Nat. AC','label.eidMaxAtk':'Max Atk','label.eidEP':'EP','ph.eidName':'e.g. Vorthag','p.eidEvolutions':'Evolutions','eid.epUsed':'EP used','opt.allCosts':'— Cost —','opt.pickEvolution':'Pick an evolution…','btn.addEvolution':'Add Evolution','p.eidSelectedEvos':'Selected Evolutions','p.eidFreeEvos':'Free Evolutions (per base form)',
     'dmg.critX':'×CRIT','dmg.dmg':'DMG',
     'attrName.str':'Strength','attrName.dex':'Dexterity','attrName.con':'Constitution','attrName.int':'Intelligence','attrName.wis':'Wisdom','attrName.cha':'Charisma',
     // P-1 · Buff Tracker
@@ -2838,6 +2840,7 @@ async function init() {
   recalcEidolon();
   populateEidolonEvolutionSelect();
   renderEidolonSelectedEvos();
+  renderEidolonFreeEvos();
   // Start with one fighter row
   addClassRow('fighter', 1, 0, true);
   buildAttrTable();
@@ -7501,14 +7504,15 @@ const EIDOLON_BASE_TABLE = [
   [20, 20, 12, 6, 80, 10, 20, 9, 26, 7]
 ];
 
-// Save progression per base form: [Fort, Ref, Will] where each is 'good' or 'bad'.
+// Save progression + free evolutions per base form (canonical PF1e).
+// `free` lists evolution slugs (with optional ×N for stacks) granted at no EP cost.
 const EIDOLON_BASE_FORMS = {
-  biped:      { saves: ['bad','bad','good'] },
-  quadruped:  { saves: ['good','good','bad'] },
-  serpentine: { saves: ['bad','good','good'] },
-  aquatic:    { saves: ['good','good','bad'] },
-  avian:      { saves: ['bad','good','good'] },
-  tauric:     { saves: ['good','bad','good'] }
+  biped:      { saves: ['bad','bad','good'],  free: ['bite','claws','claws','limbs','limbs'] },           // 2 claws + 2 sets of limbs (arms+legs)
+  quadruped:  { saves: ['good','good','bad'], free: ['bite','limbs','limbs','limbs','limbs'] },           // 4 limbs
+  serpentine: { saves: ['bad','good','good'], free: ['bite','climb','reach','tail','tail_slap'] },
+  aquatic:    { saves: ['good','good','bad'], free: ['bite','gills','swim','tail','tail_slap'] },
+  avian:      { saves: ['bad','good','good'], free: ['bite','flight','limbs','limbs'] },                   // bite + 2 wings + 2 talon limbs
+  tauric:     { saves: ['good','bad','good'], free: ['bite','claws','claws','limbs','limbs','limbs'] }    // upper limbs (arms+claws) + 4 lower limbs
 };
 
 function getSummonerLevel() {
@@ -7553,6 +7557,32 @@ function recalcEidolon() {
   setRO('eid-nat-ac', natArmor);
   setRO('eid-max-atk', maxAtk);
   setRO('eid-ep', ep);
+  // Refresh EP total badge + free evolutions list
+  renderEidolonSelectedEvos();
+  renderEidolonFreeEvos();
+}
+
+function renderEidolonFreeEvos() {
+  const cont = document.getElementById('eid-free-evos-container');
+  if (!cont) return;
+  const baseForm = document.getElementById('eid-base-form')?.value;
+  cont.innerHTML = '';
+  if (!baseForm || !EIDOLON_BASE_FORMS[baseForm]) {
+    cont.innerHTML = `<em>${t('opt.pickBaseForm')}</em>`;
+    return;
+  }
+  const free = EIDOLON_BASE_FORMS[baseForm].free || [];
+  // Aggregate counts per slug
+  const counts = {};
+  free.forEach(s => { counts[s] = (counts[s]||0) + 1; });
+  Object.entries(counts).forEach(([slug, n]) => {
+    const ev = DB.eidolon_evolutions?.[slug];
+    const label = ev ? tData(ev,'name') : slug;
+    const row = document.createElement('div');
+    row.style.cssText = 'padding:2px 6px;border-left:2px solid var(--gold);background:rgba(200,160,60,0.04);';
+    row.innerHTML = `<b>${_escHtml(label)}</b>${n>1?` ×${n}`:''}${ev?` <span style="opacity:0.7;">— ${_escHtml(tData(ev,'description').substring(0,90))}…</span>`:''}`;
+    cont.appendChild(row);
+  });
 }
 
 // Recalc eidolon when its inputs change OR when summoner level changes
