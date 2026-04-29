@@ -1046,6 +1046,7 @@
         <div class="label-row" style="margin-bottom:6px;"><span data-i18n="label.masterLvl">Nivel de Clase del Maestro</span><input type="number" id="comp-master-level" class="recalc" value="1" min="1" max="20"></div>
         <div class="label-row" style="margin-bottom:6px;"><span data-i18n="label.compIsMount">Es montura (Paladín/Cavalier)</span><input type="checkbox" id="comp-is-mount" class="recalc"></div>
         <div id="mount-info" style="display:none;font-size:11px;background:var(--parchment-lt);padding:4px 6px;border-left:3px solid var(--gold);margin-bottom:6px;"></div>
+        <div id="comp-advancement-info" style="display:none;font-size:11px;background:rgba(200,160,60,0.10);padding:5px 8px;border-left:3px solid var(--leather);margin-bottom:6px;border-radius:2px;"></div>
         <h3 style="margin-top:8px;" data-i18n="p.compAttrs">Atributos</h3>
         <div class="two-col">
           <div class="label-row"><span data-i18n="attr.str">FUE</span><input type="number" id="comp-str" class="recalc" value="10"></div>
@@ -5935,6 +5936,30 @@ function calcAnimalCompanion() {
       mountInfo.style.display = 'block';
     } else {
       mountInfo.style.display = 'none';
+    }
+  }
+
+  // Template advancement banner: if a template is selected and master level
+  // crossed advancement_at_edl, show what changes that level brings (non-destructive).
+  const advBanner = document.getElementById('comp-advancement-info');
+  if (advBanner) {
+    const tplSlug = document.getElementById('comp-template-select')?.value;
+    const tpl = tplSlug ? DB.animal_companions?.[tplSlug] : null;
+    if (tpl && tpl.advancement_at_edl && masterLevel >= tpl.advancement_at_edl && tpl.advancement) {
+      const adv = tpl.advancement;
+      const sizeStr = adv.size ? `<b>${LANG==='en'?'Size':'Tamaño'}:</b> ${adv.size}` : '';
+      const atkStr  = adv.attacks?.length ? `<b>${LANG==='en'?'Attacks':'Ataques'}:</b> ${adv.attacks.join(', ')}` : '';
+      const attrStr = adv.attr_changes ? `<b>${LANG==='en'?'Attrs':'Atrib.'}:</b> ` + Object.entries(adv.attr_changes)
+        .map(([k,v]) => `${k.toUpperCase()} ${v>=0?'+':''}${v}`).join(', ') : '';
+      const natAcStr = adv.nat_ac_change ? `<b>${LANG==='en'?'Nat AC':'CA Nat'}:</b> ${adv.nat_ac_change>=0?'+':''}${adv.nat_ac_change}` : '';
+      const specials = adv.special?.length ? `<b>${LANG==='en'?'Special':'Especial'}:</b> ${adv.special.join(', ')}` : '';
+      const parts = [sizeStr, atkStr, attrStr, natAcStr, specials].filter(Boolean);
+      const titleES = `🐾 Avance natural alcanzado (EDL ${tpl.advancement_at_edl}+)`;
+      const titleEN = `🐾 Natural advancement reached (EDL ${tpl.advancement_at_edl}+)`;
+      advBanner.innerHTML = `<div style="font-weight:bold;margin-bottom:3px;color:var(--leather);">${LANG==='en'?titleEN:titleES}</div>${parts.join(' · ')}`;
+      advBanner.style.display = 'block';
+    } else {
+      advBanner.style.display = 'none';
     }
   }
 
