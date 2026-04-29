@@ -7629,11 +7629,28 @@ function renderEidolonSelectedEvos() {
     const ev = DB.eidolon_evolutions?.[slug];
     if (!ev) return;
     used += ev.cost || 0;
-    const row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:6px;padding:3px 5px;background:rgba(200,160,60,0.07);border:1px dashed var(--gold);border-radius:3px;font-size:11px;';
-    row.innerHTML = `<span style="flex:0 0 28px;text-align:center;font-weight:bold;">${ev.cost}PE</span><span style="flex:1;"><b>${_escHtml(tData(ev,'name'))}</b></span><button type="button" style="border:none;background:transparent;cursor:pointer;color:#900;font-size:14px;" title="Quitar">×</button>`;
-    row.querySelector('button').addEventListener('click', () => removeEidolonEvolution(uid));
-    cont.appendChild(row);
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = 'background:rgba(200,160,60,0.07);border:1px dashed var(--gold);border-radius:3px;font-size:11px;';
+    wrapper.innerHTML = `
+      <div class="eid-evo-row" style="display:flex;align-items:center;gap:6px;padding:3px 5px;cursor:pointer;user-select:none;">
+        <span style="flex:0 0 16px;font-weight:bold;color:var(--leather);">▸</span>
+        <span style="flex:0 0 28px;text-align:center;font-weight:bold;">${ev.cost}PE</span>
+        <span style="flex:1;"><b>${_escHtml(tData(ev,'name'))}</b></span>
+        <button type="button" class="eid-evo-remove" style="border:none;background:transparent;cursor:pointer;color:#900;font-size:14px;" title="Quitar">×</button>
+      </div>
+      <div class="eid-evo-desc" style="display:none;padding:4px 8px 6px 24px;border-top:1px dashed rgba(200,160,60,0.4);line-height:1.4;">${_escHtml(tData(ev,'description'))}</div>
+    `;
+    const row = wrapper.querySelector('.eid-evo-row');
+    const desc = wrapper.querySelector('.eid-evo-desc');
+    const arrow = row.querySelector('span');
+    row.addEventListener('click', e => {
+      if (e.target.closest('.eid-evo-remove')) return; // ignore clicks on the X
+      const isOpen = desc.style.display !== 'none';
+      desc.style.display = isOpen ? 'none' : 'block';
+      arrow.textContent = isOpen ? '▸' : '▾';
+    });
+    wrapper.querySelector('.eid-evo-remove').addEventListener('click', () => removeEidolonEvolution(uid));
+    cont.appendChild(wrapper);
   });
   const usedEl = document.getElementById('eid-ep-used');
   const totalEl = document.getElementById('eid-ep-total');
