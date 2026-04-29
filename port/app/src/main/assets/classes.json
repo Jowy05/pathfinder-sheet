@@ -8753,5 +8753,26 @@
                                              "sense_motive",
                                              "spellcraft"
                                          ]
+                    },
+    "dark_knight":  {
+                        "class_skills":  [
+                                             "heal",
+                                             "intimidate",
+                                             "knowledge_planes",
+                                             "knowledge_religion",
+                                             "perception",
+                                             "use_magic_device"
+                                         ],
+                        "skill_points":  2,
+                        "category":  "prestige",
+                        "name":  "Caballero Oscuro",
+                        "saves":  {
+                                      "ref":  "bad",
+                                      "will":  "good",
+                                      "fort":  "good"
+                                  },
+                        "name_en":  "Dark Knight",
+                        "hit_die":  10,
+                        "bab_progression":  "full"
                     }
 }

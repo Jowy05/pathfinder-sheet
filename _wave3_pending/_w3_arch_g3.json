@@ -1,0 +1,43 @@
+{
+  "lore_warden": {
+    "class_skills_add": [
+      "craft",
+      "knowledge_arcana",
+      "knowledge_dungeoneering",
+      "knowledge_engineering",
+      "knowledge_geography",
+      "knowledge_history",
+      "knowledge_local",
+      "knowledge_nature",
+      "knowledge_nobility",
+      "knowledge_planes",
+      "knowledge_religion",
+      "linguistics",
+      "spellcraft"
+    ]
+  },
+  "urban_hunter": {
+    "class_skills_add": ["diplomacy", "knowledge_local", "sense_motive"],
+    "class_skills_remove": ["knowledge_nature", "survival"]
+  },
+  "cipher_investigator": {
+    "class_skills_remove": ["bluff", "diplomacy", "intimidate", "perform"]
+  },
+  "psychic_detective": {
+    "class_skills_remove": ["acrobatics", "climb", "perform"]
+  },
+  "dark_elementalist": {
+    "class_skills_add": [
+      "knowledge_arcana",
+      "knowledge_dungeoneering",
+      "knowledge_engineering",
+      "knowledge_geography",
+      "knowledge_history",
+      "knowledge_local",
+      "knowledge_nature",
+      "knowledge_nobility",
+      "knowledge_planes",
+      "knowledge_religion"
+    ]
+  }
+}

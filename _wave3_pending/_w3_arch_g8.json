@@ -1,0 +1,9 @@
+{
+  "savage_technologist": {
+    "class_skills_add": ["diplomacy", "knowledge_local", "sense_motive"],
+    "class_skills_remove": ["handle_animal", "knowledge_nature"]
+  },
+  "sensei_unchained": {
+    "class_skills_add": ["diplomacy", "linguistics", "knowledge_arcana", "knowledge_dungeoneering", "knowledge_engineering", "knowledge_geography", "knowledge_local", "knowledge_nature", "knowledge_nobility", "knowledge_planes"]
+  }
+}

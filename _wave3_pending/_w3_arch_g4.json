@@ -1,0 +1,28 @@
+{
+  "sohei": {
+    "class_skills_add": ["handle_animal"]
+  },
+  "vexing_daredevil": {
+    "class_skills_add": ["acrobatics"]
+  },
+  "frozen_shadow": {
+    "class_skills_add": ["survival"],
+    "class_skills_remove": ["diplomacy"]
+  },
+  "hunting_serpent": {
+    "class_skills_add": ["survival"],
+    "class_skills_remove": ["knowledge_nobility"]
+  },
+  "petal_ninja": {
+    "class_skills_add": ["heal"],
+    "class_skills_remove": ["appraise"]
+  },
+  "geomancer": {
+    "class_skills_add": ["knowledge_geography", "knowledge_nature", "survival"],
+    "class_skills_remove": ["disable_device", "knowledge_engineering", "knowledge_religion"]
+  },
+  "silksworn": {
+    "class_skills_add": ["bluff", "knowledge_nobility"],
+    "class_skills_remove": ["knowledge_engineering", "knowledge_planes"]
+  }
+}

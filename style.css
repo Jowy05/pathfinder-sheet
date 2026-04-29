@@ -200,29 +200,41 @@ body {
   #conditions-panel { grid-column:1/-1; }
 }
 
-/* ── PANEL ORDER — ZONAS DE JUEGO Y GESTIÓN ─────────────── */
-/* Zona de Juego */
-.sheet-header            { order:  0; }
-.zone-play               { order:  1; }
-#identity-panel          { order:  2; }
-.attributes-panel        { order:  3; }
-#combat-panel            { order:  4; }
-#saves-panel             { order:  5; }
-#conditions-panel        { order:  6; }
-.class-features-panel    { order:  7; }
-#weapons-panel           { order:  8; }
-.spells-panel            { order:  9; }
-#summoned-panel          { order:  9; }
-/* Zona de Gestión */
-#zone-divider-management { order: 10; }
-#skills-panel            { order: 11; }
-.feats-panel             { order: 12; }
-#inventory-panel         { order: 13; }
-.traits-panel            { order: 14; }
-.companion-panel         { order: 15; }
-.bio-panel               { order: 16; }
-#warnings-panel          { order: 17; }
-.footer-bar              { order: 18; }
+/* ── PANEL ORDER — GRUPOS TEMÁTICOS ─────────────────────── */
+.sheet-header             { order:  0; }
+/* IDENTIDAD */
+#zone-divider-identidad   { order:  1; }
+#identity-panel           { order:  2; }
+.attributes-panel         { order:  3; }
+#racial-traits-panel      { order:  4; }
+.traits-panel             { order:  5; }
+.bio-panel                { order:  6; }
+/* COMBATE */
+#zone-divider-combate     { order:  7; }
+#combat-panel             { order:  8; }
+#saves-panel              { order:  9; }
+#conditions-panel         { order: 10; }
+/* CAPACIDADES */
+#zone-divider-capacidades { order: 11; }
+#skills-panel             { order: 12; }
+.feats-panel              { order: 13; }
+.class-features-panel     { order: 14; }
+.spells-panel             { order: 15; }
+/* COMPAÑEROS */
+#zone-divider-companeros  { order: 16; }
+.familiar-panel           { order: 17; }
+.companion-panel          { order: 18; }
+#summoned-panel           { order: 19; }
+/* EQUIPO */
+#zone-divider-equipo      { order: 20; }
+#weapons-panel            { order: 21; }
+#inventory-panel          { order: 22; }
+/* MODO MÁSTER */
+#zone-divider-master      { order: 23; }
+#initiative-tracker-panel { order: 24; }
+/* TAIL */
+#warnings-panel           { order: 25; }
+.footer-bar               { order: 26; }
 
 /* ── ZONE DIVIDERS ───────────────────────────────────────── */
 .zone-divider {
@@ -233,10 +245,21 @@ body {
   border-top:2px solid var(--gold);
   border-bottom:2px solid var(--gold);
   margin:0;
+  cursor:pointer; user-select:none;
 }
+.zone-divider::after {
+  content:'▾';
+  margin-left:auto;
+  font-size:18px;
+  color:var(--gold);
+  opacity:.8;
+  transition:transform .2s;
+  line-height:1;
+}
+.zone-divider.group-collapsed::after { transform:rotate(-90deg); }
 .zone-divider.zone-play {
   background: var(--zone-bg-play);
-  border-top:none;  /* el header ya tiene borde dorado abajo */
+  border-top:none;
 }
 .zone-divider-icon { font-size:16px; opacity:.85; }
 .zone-divider-title {
@@ -247,6 +270,7 @@ body {
   font-family:var(--ff-body); font-size:11px; color:var(--leather-lt);
   letter-spacing:.04em;
 }
+.group-hidden { display:none !important; }
 @media screen and (max-width:500px) {
   .zone-divider {
     flex-wrap:wrap;
