@@ -1,4 +1,4 @@
-﻿{
+{
     "barbarian":  {
                       "category":  "base",
                       "name":  "Bárbaro",
@@ -7822,7 +7822,7 @@
                 },
     "mystic_theurge":  {
                            "category":  "prestige",
-                           "name":  "Teurgo Mistico",
+                           "name":  "Teúrgo Místico",
                            "name_en":  "Mystic Theurge",
                            "hit_die":  6,
                            "bab_progression":  "low",
@@ -7841,7 +7841,7 @@
                        },
     "shadowdancer":  {
                          "category":  "prestige",
-                         "name":  "Bailarin de las Sombras",
+                         "name":  "Bailarín de las Sombras",
                          "name_en":  "Shadowdancer",
                          "hit_die":  8,
                          "bab_progression":  "medium",
@@ -7904,7 +7904,7 @@
                               },
     "stalwart_defender":  {
                               "category":  "prestige",
-                              "name":  "Defensor Inquebrantable",
+                              "name":  "Defensor Resoluto",
                               "name_en":  "Stalwart Defender",
                               "hit_die":  12,
                               "bab_progression":  "full",
@@ -7948,7 +7948,7 @@
                         },
     "rage_prophet":  {
                          "category":  "prestige",
-                         "name":  "Profeta Furibundo",
+                         "name":  "Profeta de la Furia",
                          "name_en":  "Rage Prophet",
                          "hit_die":  10,
                          "bab_progression":  "full",
@@ -7971,7 +7971,7 @@
                      },
     "master_chymist":  {
                            "category":  "prestige",
-                           "name":  "Quimico Maestro",
+                           "name":  "Maestro Químico",
                            "name_en":  "Master Chymist",
                            "hit_die":  10,
                            "bab_progression":  "full",
@@ -8023,7 +8023,7 @@
                       },
     "master_spy":  {
                        "category":  "prestige",
-                       "name":  "Espia Maestro",
+                       "name":  "Maestro Espía",
                        "name_en":  "Master Spy",
                        "hit_die":  8,
                        "bab_progression":  "medium",
@@ -8059,7 +8059,7 @@
                    },
     "nature_warden":  {
                           "category":  "prestige",
-                          "name":  "Guardian de la Naturaleza",
+                          "name":  "Guardián de la Naturaleza",
                           "name_en":  "Nature Warden",
                           "hit_die":  8,
                           "bab_progression":  "full",
@@ -8104,7 +8104,7 @@
                    },
     "hellknight_signifer":  {
                                 "category":  "prestige",
-                                "name":  "Signifer Hellknight",
+                                "name":  "Hellknight Signifer",
                                 "name_en":  "Hellknight Signifer",
                                 "hit_die":  8,
                                 "bab_progression":  "medium",
@@ -8188,7 +8188,7 @@
                             },
     "aldori_swordlord":  {
                              "category":  "prestige",
-                             "name":  "Senor de la Espada Aldori",
+                             "name":  "Señor Espadachín Aldori",
                              "name_en":  "Aldori Swordlord",
                              "hit_die":  10,
                              "bab_progression":  "full",
@@ -8314,7 +8314,7 @@
                 },
     "noble_scion":  {
                         "category":  "prestige",
-                        "name":  "Vastago Noble",
+                        "name":  "Vástago Noble",
                         "name_en":  "Noble Scion",
                         "hit_die":  8,
                         "bab_progression":  "medium",
@@ -8452,7 +8452,7 @@
                         },
     "demoniac":  {
                      "category":  "prestige",
-                     "name":  "Demoniaco",
+                     "name":  "Demoníaco",
                      "name_en":  "Demoniac",
                      "hit_die":  8,
                      "bab_progression":  "medium",
@@ -8474,7 +8474,7 @@
                  },
     "divine_scion":  {
                          "category":  "prestige",
-                         "name":  "Vastago Divino",
+                         "name":  "Vástago Divino",
                          "name_en":  "Divine Scion",
                          "hit_die":  8,
                          "bab_progression":  "medium",
@@ -8497,7 +8497,7 @@
                      },
     "lion_blade":  {
                        "category":  "prestige",
-                       "name":  "Hoja de Leon",
+                       "name":  "Espada del León",
                        "name_en":  "Lion Blade",
                        "hit_die":  8,
                        "bab_progression":  "medium",
@@ -8527,7 +8527,7 @@
                    },
     "hinterlander":  {
                          "category":  "prestige",
-                         "name":  "Guardafrontera",
+                         "name":  "Fronterizo",
                          "name_en":  "Hinterlander",
                          "hit_die":  10,
                          "bab_progression":  "medium",
@@ -8576,7 +8576,7 @@
                      },
     "stargazer":  {
                       "category":  "prestige",
-                      "name":  "Astrologo",
+                      "name":  "Astrólogo",
                       "name_en":  "Stargazer",
                       "hit_die":  6,
                       "bab_progression":  "medium",
@@ -8609,7 +8609,7 @@
                   },
     "riftwarden":  {
                        "category":  "prestige",
-                       "name":  "Guardian de Brechas",
+                       "name":  "Guardián del Resquicio",
                        "name_en":  "Riftwarden",
                        "hit_die":  8,
                        "bab_progression":  "medium",
@@ -8657,7 +8657,7 @@
                              },
     "harrower":  {
                      "category":  "prestige",
-                     "name":  "Adivino del Harrow",
+                     "name":  "Harrower",
                      "name_en":  "Harrower",
                      "hit_die":  6,
                      "bab_progression":  "low",
@@ -8683,7 +8683,7 @@
                  },
     "low_templar":  {
                         "category":  "prestige",
-                        "name":  "Templario Vil",
+                        "name":  "Templario Inferior",
                         "name_en":  "Low Templar",
                         "hit_die":  10,
                         "bab_progression":  "full",
@@ -8733,7 +8733,7 @@
                     },
     "souldrinker":  {
                         "category":  "prestige",
-                        "name":  "Bebedor de Almas",
+                        "name":  "Bebealmas",
                         "name_en":  "Souldrinker",
                         "hit_die":  6,
                         "bab_progression":  "low",
