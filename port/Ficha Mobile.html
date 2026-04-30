@@ -2353,6 +2353,15 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
   </div>
 </dialog>
 
+<dialog class="bottom-sheet" id="sheet-archetype-picker" aria-label="Picker de arquetipo">
+  <div class="drag-handle"></div>
+  <div class="sheet-header"><div class="sheet-title">Elegir arquetipo</div><button class="sheet-close" data-close>✕</button></div>
+  <div class="sheet-content">
+    <input class="field-input" id="archetype-search" placeholder="Buscar arquetipo…" style="margin-bottom:10px">
+    <div id="archetype-list" class="picker-list"></div>
+  </div>
+</dialog>
+
 <dialog class="bottom-sheet" id="sheet-search" aria-label="Búsqueda global">
   <div class="drag-handle"></div>
   <div class="sheet-header"><div class="sheet-title">Buscar</div><button class="sheet-close" data-close>✕</button></div>
@@ -4078,7 +4087,93 @@ const RACES_DATA = [
   ['Tiflin','+2 DES, +2 INT, −2 CAR. Resistencia fuego 5'],
   ['Catfolk','+2 DES, +2 CAR, −2 SAB. Caída felina, sigilo +2'],
 ];
-const CLASSES_PICKER = [
+/* ─── DB GLOBAL (cargado en loadDB()) ─── */
+let DB = {};
+
+async function loadDB() {
+  const files = ['classes','archetypes','special_abilities','feats','races','skills','equipment','items','domains','bloodlines','orders','arcane_schools','oracle_mysteries','witch_patrons','sizes'];
+  const res = {};
+  await Promise.all(files.map(async f => {
+    try { const r = await fetch(f+'.json'); if(r.ok) res[f] = await r.json(); } catch(e) {}
+  }));
+  DB = {
+    classes:          res.classes          || {},
+    archetypes:       res.archetypes        || {},
+    special_abilities:res.special_abilities || [],
+    feats:            res.feats             || [],
+    races:            res.races             || [],
+    skills:           res.skills            || [],
+    equipment:        res.equipment         || [],
+    items:            res.items             || [],
+    domains:          res.domains           || [],
+    bloodlines:       res.bloodlines        || [],
+    orders:           res.orders            || [],
+    arcane_schools:   res.arcane_schools    || [],
+    oracle_mysteries: res.oracle_mysteries  || [],
+    witch_patrons:    res.witch_patrons     || [],
+    sizes:            res.sizes             || [],
+  };
+}
+
+function getClassPickerData() {
+  const entries = Object.entries(DB.classes || {}).filter(([k]) => k !== '_schema');
+  if (!entries.length) return CLASSES_PICKER_FALLBACK;
+  return entries
+    .sort((a,b) => (a[1].name||a[0]).localeCompare(b[1].name||b[0]))
+    .map(([k,c]) => [c.name||k, `d${c.hit_die||8} PG · BAB ${c.bab_progression||'?'} · ${c.skill_points||2} pts habilidad/niv`, k]);
+}
+
+function getArchetypePickerData(classKey) {
+  const entries = Object.entries(DB.archetypes || {}).filter(([k]) => k !== '_schema');
+  const filtered = classKey
+    ? entries.filter(([,a]) => a.class === classKey || a.class_key === classKey)
+    : entries;
+  const lang = document.documentElement.dataset.lang || 'es';
+  return [['—','Sin arquetipo (clase base)', '']].concat(
+    filtered
+      .sort((a,b) => (a[1].name||a[0]).localeCompare(b[1].name||b[0]))
+      .map(([k,a]) => [lang==='en'?(a.name_en||a.name||k):(a.name||k), a.description_es||a.description_en||'', k])
+  );
+}
+
+function autoAddMobileClassFeatures(classKey, classNameEs, classNameEn, level, archetypeKey) {
+  if (!DB.special_abilities || !DB.special_abilities.length) return;
+  const existing = new Set(CLASS_FEATURES_DATA.map(f => (f.name||'').toLowerCase()));
+
+  // Names removed by archetype
+  const removed = new Set();
+  if (archetypeKey && archetypeKey !== '—' && archetypeKey !== '') {
+    const arch = DB.archetypes?.[archetypeKey];
+    (arch?.features_removed    || []).forEach(n => removed.add(n.toLowerCase()));
+    (arch?.features_removed_es || []).forEach(n => removed.add(n.toLowerCase()));
+  }
+
+  const toAdd = DB.special_abilities.filter(a => {
+    if (!(a.lvlunlock >= 1 && a.lvlunlock <= level)) return false;
+    const classMatch = (classNameEn && a.class_en === classNameEn) || (classNameEs && a.class === classNameEs);
+    if (!classMatch) return false;
+    if (a.archetype) return a.archetype === archetypeKey;
+    if (removed.size) {
+      if (removed.has((a.name_en||'').toLowerCase()) || removed.has((a.name||'').toLowerCase())) return false;
+    }
+    return true;
+  });
+
+  let added = 0;
+  toAdd.forEach(a => {
+    const lang = document.documentElement.dataset.lang || 'es';
+    const name = lang === 'en' ? (a.name_en||a.name) : (a.name||a.name_en);
+    const desc = lang === 'en' ? (a.description_en||a.description_es||'') : (a.description_es||a.description_en||'');
+    if (existing.has((name||'').toLowerCase())) return;
+    const newId = (CLASS_FEATURES_DATA[CLASS_FEATURES_DATA.length-1]?.id||0) + 1 + added;
+    CLASS_FEATURES_DATA.push({ id: newId, name, desc, tracker: false, auto: true, lvlunlock: a.lvlunlock });
+    existing.add((name||'').toLowerCase());
+    added++;
+  });
+  if (added > 0 && typeof renderClassFeatures === 'function') renderClassFeatures();
+}
+
+const CLASSES_PICKER_FALLBACK = [
   ['Guerrero','d10 PG, BAB completo, sin lanzar conjuros, dote extra/2 niveles'],
   ['Bárbaro','d12 PG, rabia, movimiento rápido'],
   ['Bardo','d8 PG, conjuros 0-6, inspiración, polifacético'],
@@ -4127,16 +4222,18 @@ function renderClasses(){
     <div class="class-card" data-id="${cl.id}">
       ${CLASSES_DATA.length>1?`<button class="crud-del" data-class-del="${cl.id}" aria-label="Eliminar clase">×</button>`:''}
       <div class="field-row">
-        <div class="field"><label class="field-label">Clase</label><input class="field-input class-name" value="${cl.name}"></div>
-        <div class="field"><label class="field-label">Arquetipo</label><input class="field-input" value="${cl.archetype}"></div>
+        <div class="field"><label class="field-label">Clase</label><input class="field-input class-name" value="${cl.name}" data-class-id="${cl.id}" readonly style="cursor:pointer"></div>
+        <div class="field"><label class="field-label">Arquetipo</label><input class="field-input arch-name" value="${cl.archetype||'—'}" data-class-id="${cl.id}" readonly style="cursor:pointer"></div>
       </div>
       <div class="field-row">
-        <div class="field"><label class="field-label">Nivel</label><input class="field-input" type="number" inputmode="numeric" pattern="[0-9]*" value="${cl.level}"></div>
-        <div class="field"><label class="field-label">PG total</label><input class="field-input" type="number" inputmode="numeric" pattern="[0-9]*" value="${cl.hp}"></div>
+        <div class="field"><label class="field-label">Nivel</label><input class="field-input class-level" type="number" inputmode="numeric" pattern="[0-9]*" value="${cl.level}" data-class-id="${cl.id}"></div>
+        <div class="field"><label class="field-label">PG total</label><input class="field-input" type="number" inputmode="numeric" pattern="[0-9]*" value="${cl.hp}" data-class-id="${cl.id}"></div>
         <div class="field"><label class="field-label">DG</label><input class="field-input" value="${cl.hd}"></div>
       </div>
       <button class="btn-secondary" data-roll="${cl.level}d${cl.hd.split('d')[1]}" style="width:100%;margin-top:6px">🎲 Tirar todos los DG (${cl.level}${cl.hd.replace(/^\d+/,'')})</button>
     </div>`).join('');
+
+  // Delete buttons
   c.querySelectorAll('[data-class-del]').forEach(b=>{
     b.addEventListener('click',()=>{
       const id = +b.dataset.classDel;
@@ -4144,6 +4241,80 @@ function renderClasses(){
       if(i>=0){ CLASSES_DATA.splice(i,1); renderClasses(); }
     });
   });
+
+  // Class name picker (tap to open class picker)
+  c.querySelectorAll('.class-name').forEach(inp=>{
+    inp.addEventListener('click',()=>{
+      const classId = +inp.dataset.classId;
+      const list = document.getElementById('class-list');
+      fillPickerTriple(list, getClassPickerData(), ([n,,k])=>{
+        const cl = CLASSES_DATA.find(x=>x.id===classId);
+        if(!cl) return;
+        cl.name = n; cl.classKey = k||'';
+        // Auto-fill HD from DB
+        const dbCls = k && DB.classes?.[k];
+        if(dbCls) cl.hd = `1d${dbCls.hit_die||8}`;
+        // Reset archetype when class changes
+        cl.archetype = '—'; cl.archetypeKey = '';
+        renderClasses();
+        closeSheet(document.getElementById('sheet-class-picker'));
+        toast('Clase: '+n);
+        // Auto-add class features
+        _triggerClassFeaturesFor(cl);
+      });
+      openSheet('sheet-class-picker');
+    });
+  });
+
+  // Archetype picker (tap to open archetype picker)
+  c.querySelectorAll('.arch-name').forEach(inp=>{
+    inp.addEventListener('click',()=>{
+      const classId = +inp.dataset.classId;
+      const cl = CLASSES_DATA.find(x=>x.id===classId);
+      if(!cl) return;
+      const list = document.getElementById('archetype-list');
+      const search = document.getElementById('archetype-search');
+      const archData = getArchetypePickerData(cl.classKey||'');
+      fillPickerTriple(list, archData, ([n,,k])=>{
+        cl.archetype = n; cl.archetypeKey = k||'';
+        renderClasses();
+        closeSheet(document.getElementById('sheet-archetype-picker'));
+        toast('Arquetipo: '+n);
+        _triggerClassFeaturesFor(cl);
+      });
+      if(search){ search.value=''; search.oninput=()=>{ const q=search.value.toLowerCase(); fillPickerTriple(list, archData.filter(([n,d])=>(n+d).toLowerCase().includes(q)), ([n,,k])=>{ cl.archetype=n; cl.archetypeKey=k||''; renderClasses(); closeSheet(document.getElementById('sheet-archetype-picker')); toast('Arquetipo: '+n); _triggerClassFeaturesFor(cl); }); }; }
+      openSheet('sheet-archetype-picker');
+    });
+  });
+
+  // Level change → auto-add features
+  c.querySelectorAll('.class-level').forEach(inp=>{
+    inp.addEventListener('change',()=>{
+      const classId = +inp.dataset.classId;
+      const cl = CLASSES_DATA.find(x=>x.id===classId);
+      if(!cl) return;
+      const newLvl = Math.max(1,Math.min(20,+inp.value||1));
+      cl.level = newLvl; inp.value = newLvl;
+      _triggerClassFeaturesFor(cl);
+    });
+  });
+}
+
+// fillPicker variant that supports 3-element tuples [name, desc, key]
+function fillPickerTriple(listEl, data, onPick){
+  listEl.innerHTML = data.map(([n,d],i)=>
+    `<button class="picker-row" data-pick="${i}"><div><div class="pr-name">${n}</div><div class="pr-desc">${d||''}</div></div></button>`).join('');
+  listEl.querySelectorAll('[data-pick]').forEach(b=>{
+    b.addEventListener('click',()=>onPick(data[+b.dataset.pick]));
+  });
+}
+
+function _triggerClassFeaturesFor(cl){
+  if(!DB.special_abilities || !DB.special_abilities.length) return;
+  const dbCls = cl.classKey && DB.classes?.[cl.classKey];
+  const nameEs = dbCls?.name || cl.name || '';
+  const nameEn = dbCls?.name_en || '';
+  autoAddMobileClassFeatures(cl.classKey||'', nameEs, nameEn, cl.level||1, cl.archetypeKey||'');
 }
 
 function renderWeapons(){
@@ -4447,13 +4618,21 @@ function bindNewSheets(){
   const classAdd = document.getElementById('class-add');
   if(classAdd) classAdd.addEventListener('click',()=>{
     const list = document.getElementById('class-list');
-    fillPicker(list, CLASSES_PICKER, ([n,d])=>{
+    const search = document.getElementById('class-search');
+    const allData = getClassPickerData();
+    const addCls = ([n,,k])=>{
+      const dbCls = k && DB.classes?.[k];
+      const hd = dbCls ? `1d${dbCls.hit_die||8}` : '1d8';
       const newId = (CLASSES_DATA[CLASSES_DATA.length-1]?.id||0)+1;
-      CLASSES_DATA.push({id:newId,name:n,archetype:'—',level:1,hp:8,hd:'1d8'});
+      const cl = {id:newId,name:n,classKey:k||'',archetype:'—',archetypeKey:'',level:1,hp:8,hd};
+      CLASSES_DATA.push(cl);
       renderClasses();
       closeSheet(document.getElementById('sheet-class-picker'));
       toast('Clase añadida: '+n);
-    });
+      _triggerClassFeaturesFor(cl);
+    };
+    fillPickerTriple(list, allData, addCls);
+    if(search){ search.value=''; search.oninput=()=>{ const q=search.value.toLowerCase(); fillPickerTriple(list, allData.filter(([n,d])=>(n+d).toLowerCase().includes(q)), addCls); }; }
     openSheet('sheet-class-picker');
   });
   // deity picker (input field click)
@@ -6184,7 +6363,10 @@ function D5_init(){
 }
 /* ─── /DOMINIO 5 · EQUIPO Y PESO ─── */
 
-init();
+(async () => {
+  await loadDB();
+  init();
+})();
 
 /* ─────────────────────────────────────────────────────────────── */
 /* ─── DOMINIO 2 · COMBATE ─── */
