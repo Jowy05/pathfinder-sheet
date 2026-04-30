@@ -2876,7 +2876,7 @@ const THEMES = [
   {id:'royal1',     n:'Royal Blanco',    sub:'Marfil · oro · sangre',        cls:'swatch-royal1',     real:1},
   {id:'royal2',     n:'Royal Negro',     sub:'Negro · oro · carmesí',        cls:'swatch-royal2',     real:1},
   {id:'cyber-cyan', n:'Cyber Cyan',      sub:'Syndra · turquesa neón',       cls:'swatch-cyber-cyan', real:1},
-  {id:'dape',       n:'Dape 🌊',         sub:'Cian brillante · tinta negra',  cls:'swatch-dape',       real:1},
+  {id:'dape',       n:'Dape 🌊',         sub:'Akuna matata',                  cls:'swatch-dape',       real:1},
 ];
 
 /* ─── i18n ─── */
@@ -4630,6 +4630,33 @@ function rebindRolls(){
 }
 
 /* ─── BINDINGS for new sheets ─── */
+function bindSaveRolls(){
+  const SAVE_LABELS = {fort:'Fortaleza',ref:'Reflejos',will:'Voluntad'};
+  document.querySelectorAll('.save-row[data-save]').forEach(row=>{
+    if(row.dataset.saveRollBound) return;
+    row.dataset.saveRollBound = '1';
+    row.style.cursor = 'pointer';
+    row.addEventListener('click', ()=>{
+      const k = row.dataset.save;
+      const mod = parseInt(row.dataset.saveTotal||'0', 10);
+      const label = SAVE_LABELS[k] || k;
+      const roll = Math.floor(Math.random()*20)+1;
+      const total = roll + mod;
+      const sign = mod>=0?`+${mod}`:String(mod);
+      const nat = roll===20?' 🎯 ¡NAT 20!':roll===1?' 💀 Pifia':'';
+      document.dispatchEvent(new CustomEvent('roll-result',{detail:{
+        label:`TS ${label}`,
+        dice:`1d20${sign}`,
+        roll, mod, total, nat20: roll===20, nat1: roll===1
+      }}));
+      // Log to roll history if function exists
+      if(typeof logRoll==='function') logRoll(`TS ${label}`, `1d20${sign}`, total, roll===20, roll===1);
+      else if(typeof addRollToHistory==='function') addRollToHistory(`TS ${label}`, roll, mod, total);
+      toast(`TS ${label}: ${roll}${sign} = ${total}${nat}`);
+    });
+  });
+}
+
 function bindNewSheets(){
   // race picker
   const raceBtn = document.getElementById('btn-raza-picker');
@@ -5487,8 +5514,10 @@ function init(){
   try{ bindAgeCat(); }catch(e){console.error(e)}
   try{ if(typeof D5_init==='function') D5_init(); }catch(e){console.error(e)}
   try{ rebindRolls(); }catch(e){console.error(e)}
+  try{ bindSaveRolls(); }catch(e){console.error(e)}
   try{ refreshHP(); }catch(e){console.error(e)}
   try{ CombatEngine.apply(); }catch(e){console.error(e)}
+  try{ bindSaveRolls(); }catch(e){console.error(e)}
   let initLang = 'es';
   try{ const l = localStorage.getItem('ficha-lang'); if(l==='es'||l==='en') initLang=l; }catch(e){}
   if(initLang!=='es') applyLang(initLang);
@@ -6546,6 +6575,16 @@ const CombatEngine = (function(){
       const setAuto = (name, on)=>{
         window.__autoConds = window.__autoConds || new Set();
         if(on) window.__autoConds.add(name); else window.__autoConds.delete(name);
+        // Sync DOM chip
+        const chip = document.querySelector(`.cond-chip[data-cond="${name}"]`);
+        if(chip){
+          const was = chip.classList.contains('active');
+          if(on !== was){
+            chip.classList.toggle('active', on);
+            updateCondBadge();
+            updateSummaryConds();
+          }
+        }
       };
       const dying = cur < -(mods.con|0);
       const unconscious = cur <= 0;
@@ -6614,6 +6653,8 @@ const CombatEngine = (function(){
       const bk  = row.querySelector('.breakdown');
       if(tot) tot.textContent = sign(data.total);
       if(bk)  bk.textContent  = `Base ${data.base} · Atributo ${sign(data.attr)} · Objeto 0 · Misc 0`;
+      // Store current total for tap-to-roll
+      row.dataset.saveTotal = data.total;
     });
     emit('save-fort', sv.fort.total);
     emit('save-ref',  sv.ref.total);
@@ -6786,6 +6827,18 @@ function snapshotState(){
   s.notes = (document.getElementById('note-body')||{}).value || s.notes || '';
   s.theme = document.documentElement.dataset.theme || null;
   s.lang  = document.documentElement.dataset.lang || null;
+  // Internal state variables
+  try{
+    s.schoolPick    = (typeof SCHOOL_PICK    !== 'undefined') ? SCHOOL_PICK    : '';
+    s.bloodlinePick = (typeof BLOODLINE_PICK !== 'undefined') ? BLOODLINE_PICK : '';
+    s.mysteryPick   = (typeof MYSTERY_PICK   !== 'undefined') ? MYSTERY_PICK   : '';
+    s.patronPick    = (typeof PATRON_PICK    !== 'undefined') ? PATRON_PICK    : '';
+    s.orderPick     = (typeof ORDER_PICK     !== 'undefined') ? ORDER_PICK     : '';
+    s.samuraiResolve = (typeof SAMURAI_RESOLVE !== 'undefined') ? {...SAMURAI_RESOLVE} : {max:0,used:0};
+    s.slotUsed      = (typeof SLOT_STATE !== 'undefined') ? SLOT_STATE.map(sl=>sl.used) : [];
+    s.classFeatures = (typeof CLASS_FEATURES_DATA !== 'undefined') ? CLASS_FEATURES_DATA.map(f=>({...f})) : [];
+    s.spellsCast    = (typeof SPELLS_DATA !== 'undefined') ? SPELLS_DATA.map(sp=>({id:sp.id,cast:!!sp.cast,prepared:!!sp.prepared})) : [];
+  }catch(e){}
   return s;
 }
 
@@ -6837,6 +6890,30 @@ function applyState(state){
   if(state.notes!=null){ const nb=document.getElementById('note-body'); if(nb) nb.value=state.notes; }
   if(state.photo) applyPhoto(state.photo);
   if(state.settings){ window.STATE.settings = Object.assign(window.STATE.settings||{}, state.settings); }
+  // Restore internal state variables
+  try{
+    if(state.schoolPick    != null && typeof SCHOOL_PICK    !== 'undefined') SCHOOL_PICK    = state.schoolPick;
+    if(state.bloodlinePick != null && typeof BLOODLINE_PICK !== 'undefined') BLOODLINE_PICK = state.bloodlinePick;
+    if(state.mysteryPick   != null && typeof MYSTERY_PICK   !== 'undefined') MYSTERY_PICK   = state.mysteryPick;
+    if(state.patronPick    != null && typeof PATRON_PICK    !== 'undefined') PATRON_PICK    = state.patronPick;
+    if(state.orderPick     != null && typeof ORDER_PICK     !== 'undefined') ORDER_PICK     = state.orderPick;
+    if(state.samuraiResolve && typeof SAMURAI_RESOLVE !== 'undefined'){
+      SAMURAI_RESOLVE.max  = state.samuraiResolve.max  || 0;
+      SAMURAI_RESOLVE.used = state.samuraiResolve.used || 0;
+    }
+    if(Array.isArray(state.slotUsed) && typeof SLOT_STATE !== 'undefined'){
+      state.slotUsed.forEach((u,i)=>{ if(SLOT_STATE[i]) SLOT_STATE[i].used = u||0; });
+    }
+    if(Array.isArray(state.classFeatures) && typeof CLASS_FEATURES_DATA !== 'undefined'){
+      CLASS_FEATURES_DATA.length = 0;
+      state.classFeatures.forEach(f=>CLASS_FEATURES_DATA.push(f));
+      if(typeof renderClassFeatures === 'function') renderClassFeatures();
+    }
+    if(Array.isArray(state.spellsCast) && typeof SPELLS_DATA !== 'undefined'){
+      const castMap = new Map(state.spellsCast.map(s=>[s.id, s]));
+      SPELLS_DATA.forEach(sp=>{ const c=castMap.get(sp.id); if(c){ sp.cast=c.cast; sp.prepared=c.prepared; } });
+    }
+  }catch(e){ console.warn('applyState internal vars', e); }
   window.STATE = Object.assign(window.STATE, state);
   document.dispatchEvent(new CustomEvent('state-loaded',{detail:state}));
 }
