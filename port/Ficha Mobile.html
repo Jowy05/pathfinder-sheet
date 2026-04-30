@@ -403,6 +403,34 @@
   --loader-accent:#00f0ff; --loader-accent-2:#ff2a93; --loader-rune:#00f0ff;
   --loader-text:#00f0ff; --loader-glow:rgba(0,240,255,0.7);
 }
+/* ── DAPE ── */
+:root[data-theme="dape"]{
+  --parchment:#0ffffb; --parchment-dk:#dedede;
+  --ink:#000000;
+  --leather:#4dfff3; --leather-lt:#000000; --leather-dk:#8fffee;
+  --gold:#000000; --gold-lt:#1235fd; --gold-dk:#000000;
+  --crimson:#000000; --crimson-lt:#000000;
+  --on-dark:#000000;
+  --parchment-rgb:15,255,251; --ink-rgb:0,0,0;
+  --leather-rgb:77,255,243; --leather-lt-rgb:0,0,0; --leather-dk-rgb:143,255,238;
+  --crimson-rgb:0,0,0; --gold-rgb:0,0,0; --on-dark-rgb:0,0,0;
+  --ff-head:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  --ff-body:Tahoma,Verdana,sans-serif;
+  --bg-app:linear-gradient(180deg,#8fffee 0%,#4dfff3 60%,#0ffffb 100%);
+  --surface:#0ffffb; --surface-2:#4dfff3;
+  --ink-muted:rgba(0,0,0,0.55);
+  --line:rgba(0,0,0,0.18); --line-strong:rgba(0,0,0,0.4);
+  --accent:#1235fd; --accent-soft:rgba(18,53,253,0.12); --accent-strong:#1235fd;
+  --positive:#006600; --positive-rgb:0,102,0;
+  --negative:#000000; --negative-rgb:0,0,0;
+  --shadow-card:0 0 0 1px rgba(0,0,0,0.25),0 4px 14px rgba(15,255,251,0.3);
+  --nav-bg:rgba(15,255,251,0.94); --nav-active:#1235fd;
+  --topbar-name:#000000; --topbar-sub:rgba(0,0,0,0.65);
+  --loader-bg:radial-gradient(ellipse at center,#0ffffb 0%,#4dfff3 50%,#8fffee 100%);
+  --loader-accent:#000000; --loader-accent-2:#1235fd; --loader-rune:#000000;
+  --loader-text:#000000; --loader-glow:rgba(0,0,0,0.35);
+}
+
 /* ── Bridge para temas Chromancer pegados (que solo definen los canónicos) ──
    Los selectores siguientes son catch-all: cualquier :root con data-theme custom
    (cm-*) hereda los derivados a partir de los canónicos que el tema pegado define.
@@ -2848,6 +2876,7 @@ const THEMES = [
   {id:'royal1',     n:'Royal Blanco',    sub:'Marfil · oro · sangre',        cls:'swatch-royal1',     real:1},
   {id:'royal2',     n:'Royal Negro',     sub:'Negro · oro · carmesí',        cls:'swatch-royal2',     real:1},
   {id:'cyber-cyan', n:'Cyber Cyan',      sub:'Syndra · turquesa neón',       cls:'swatch-cyber-cyan', real:1},
+  {id:'dape',       n:'Dape 🌊',         sub:'Cian brillante · tinta negra',  cls:'swatch-dape',       real:1},
 ];
 
 /* ─── i18n ─── */

@@ -151,6 +151,16 @@
   --loader-dragon-stroke: #c9a227;
   --loader-glow: rgba(201,162,39,0.7);
 }
+#initial-loader[data-loader-theme="dape"] {
+  --loader-bg: radial-gradient(ellipse at center, #0ffffb 0%, #4dfff3 50%, #8fffee 100%);
+  --loader-accent: #000000;
+  --loader-accent-2: #1235fd;
+  --loader-rune: #000000;
+  --loader-text: #000000;
+  --loader-dragon-fill: #4dfff3;
+  --loader-dragon-stroke: #000000;
+  --loader-glow: rgba(0,0,0,0.35);
+}
 
 /* Cyberpunk override (whichever theme is active) */
 body[data-cyber="on"] #initial-loader {

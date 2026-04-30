@@ -3463,8 +3463,8 @@ input[type=checkbox]{
   --gold-lt:      #80ffff;
   --gold-dk:      #009a9a;
   --on-dark:      #f0ffff;
-  --crimson:      #ff2050;
-  --crimson-lt:   #ff5075;
+  --crimson:      #FB40DF;
+  --crimson-lt:   #D435BC;
   --shadow:       rgba(0,255,255,0.2);
   --input-bg:       rgba(0,255,255,0.07);
   --select-arrow:   url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='6'%3E%3Cpath d='M0 0l4.5 6L9 0z' fill='%2300ffff'/%3E%3C/svg%3E");
@@ -3500,6 +3500,68 @@ input[type=checkbox]{
 :root[data-theme="cyber-cyan"] .zone-divider-title,
 :root[data-theme="cyber-cyan"] .zone-divider-icon { color:#00ffff; font-weight:800; letter-spacing:0.14em; }
 :root[data-theme="cyber-cyan"] .zone-divider-sub { color:rgba(0,255,255,0.6); font-weight:600; }
+
+:root[data-theme="onyx"] {
+  --parchment     : #1e1e22;
+  --parchment-dk  : #e8d5a8;
+  --ink           : #e8e8ec;
+  --leather       : #3a3a42;
+  --leather-lt    : #86868c;
+  --leather-dk    : #0a0a0e;
+  --gold          : #c9b46b;
+  --gold-lt       : #e0d090;
+  --gold-dk       : #8a7a3a;
+  --crimson       : #9b3030;
+  --crimson-lt    : #c44040;
+  --on-dark       : #e8e8ec;
+
+  /* ─ Surface tokens derivados ─ */
+  --input-bg:       rgba(30,30,34,0.55);
+  --body-bg-color:  #0a0a0e;
+  --body-bg-image:  radial-gradient(ellipse at 50% 0%, rgba(58,58,66,0.55) 0%, transparent 70%);
+  --sheet-bg-color: var(--parchment);
+  --sheet-bg-image: linear-gradient(160deg, #1e1e22 0%, #e8d5a8 70%, #1e1e22 100%);
+  --sheet-shadow:   0 0 0 1px var(--gold), 0 0 40px rgba(0,0,0,0.5);
+  --header-bg:      linear-gradient(180deg, #3a3a42 0%, #0a0a0e 100%);
+  --zone-bg:        linear-gradient(90deg, #0a0a0e 0%, #3a3a42 50%, #0a0a0e 100%);
+  --zone-bg-play:   linear-gradient(90deg, #0a0a0e 0%, #3a3a42 50%, #0a0a0e 100%);
+  --footer-bg:      linear-gradient(180deg, #0a0a0e, #3a3a42);
+
+  /* ─ Tipografía ─ */
+  --ff-head: "Palatino Linotype", Georgia, serif;
+  --ff-body: Georgia, "Times New Roman", serif;
+}
+
+:root[data-theme="dape"] {
+  --parchment     : #0ffffb;
+  --parchment-dk  : #dedede;
+  --ink           : #000000;
+  --leather       : #4dfff3;
+  --leather-lt    : #000000;
+  --leather-dk    : #8fffee;
+  --gold          : #000000;
+  --gold-lt       : #1235fd;
+  --gold-dk       : #000000;
+  --crimson       : #000000;
+  --crimson-lt    : #000000;
+  --on-dark       : #000000;
+
+  /* ─ Surface tokens derivados ─ */
+  --input-bg:       rgba(15,255,251,0.55);
+  --body-bg-color:  #8fffee;
+  --body-bg-image:  radial-gradient(ellipse at 50% 0%, rgba(77,255,243,0.55) 0%, transparent 70%);
+  --sheet-bg-color: var(--parchment);
+  --sheet-bg-image: linear-gradient(160deg, #0ffffb 0%, #dedede 70%, #0ffffb 100%);
+  --sheet-shadow:   0 0 0 1px var(--gold), 0 0 40px rgba(0,0,0,0.5);
+  --header-bg:      linear-gradient(180deg, #4dfff3 0%, #8fffee 100%);
+  --zone-bg:        linear-gradient(90deg, #8fffee 0%, #4dfff3 50%, #8fffee 100%);
+  --zone-bg-play:   linear-gradient(90deg, #8fffee 0%, #4dfff3 50%, #8fffee 100%);
+  --footer-bg:      linear-gradient(180deg, #8fffee, #4dfff3);
+
+  /* ─ Tipografía ─ */
+  --ff-head: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --ff-body: Tahoma, Verdana, sans-serif;
+}
 
 /* ═══════════════ P-1 · BUFF TRACKER ═══════════════
    Dorado/cuero Pathfinder aesthetic, matches .buff-card + .tracker-*. */
