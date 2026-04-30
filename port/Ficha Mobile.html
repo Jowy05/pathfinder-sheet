@@ -3504,13 +3504,15 @@ const CLASSES_DATA = [
   {id:1,name:'Guerrero',archetype:'—',level:3,hp:28,hd:'1d10'},
 ];
 const WEAPONS_DATA = [
-  {id:1,name:'Espada larga +1',type:'CaC · Marcial',atk:'+8',dmg:'1d8+4',crit:'19-20/×2',notes:'Acero martillado, +1 mejora'},
-  {id:2,name:'Daga',type:'CaC/Dist · Sencilla',atk:'+7',dmg:'1d4+3',crit:'19-20/×2',notes:'Lanzable (10 ft)'},
-  {id:3,name:'Arco corto',type:'Dist · Marcial',atk:'+5',dmg:'1d6',crit:'×3',notes:'Alcance 60 ft'},
+  /* DOMINIO 5: campos PF1e completos. atk/dmg/crit son cache visual, recalculados. */
+  {id:1,name:'Espada larga +1',type:'CaC · Marcial',style:'melee1h',damage_die:'1d8',crit_threat:19,crit_mult:2,enh:1,weight:4,hands:1,atk:'+0',dmg:'1d8',crit:'19-20/×2',notes:'Acero martillado, +1 mejora'},
+  {id:2,name:'Daga',type:'CaC/Dist · Sencilla',style:'finesse',damage_die:'1d4',crit_threat:19,crit_mult:2,enh:0,weight:1,hands:1,atk:'+0',dmg:'1d4',crit:'19-20/×2',notes:'Lanzable (10 ft)'},
+  {id:3,name:'Arco corto',type:'Dist · Marcial',style:'ranged',damage_die:'1d6',crit_threat:20,crit_mult:3,enh:0,weight:2,hands:2,atk:'+0',dmg:'1d6',crit:'×3',notes:'Alcance 60 ft'},
 ];
 const ARMOR_DATA = [
-  {id:1,name:'Cota de mallas',type:'Media',ac:'+5',maxDex:'+2',penalty:'−4',spell:'30%',equipped:true},
-  {id:2,name:'Escudo de acero',type:'Pesado',ac:'+2',maxDex:'—',penalty:'−2',spell:'15%',equipped:true},
+  /* DOMINIO 5: campos PF1e completos. */
+  {id:1,name:'Cota de mallas',type:'Media',armor_type:'medium',ac_bonus:5,max_dex:2,acp:-4,arcane_failure:30,weight:40,equipped:true,ac:'+5',maxDex:'+2',penalty:'−4',spell:'30%'},
+  {id:2,name:'Escudo de acero',type:'Pesado',armor_type:'shield',ac_bonus:2,max_dex:99,acp:-2,arcane_failure:15,weight:15,equipped:true,ac:'+2',maxDex:'—',penalty:'−2',spell:'15%'},
 ];
 const CLASS_FEATURES_DATA = [
   {id:1,name:'Bonus de dote de combate',desc:'Una dote extra de combate a niveles 1, 2, 4, 6…',tracker:false},
@@ -4177,7 +4179,7 @@ function renderArmor(){
   c.innerHTML = ARMOR_DATA.map(a=>`
     <div class="eq-card" data-id="${a.id}">
       <button class="crud-del" data-armor-del="${a.id}" aria-label="Eliminar armadura">×</button>
-      <div class="eq-name">${a.name}</div>
+      <div class="eq-name">${a.name}${a.equipped?' <span style="font:600 10px/1 system-ui;color:var(--accent);background:var(--accent-soft);padding:2px 6px;border-radius:99px;vertical-align:middle">EQUIPADA</span>':''}</div>
       <div class="eq-meta">${a.type}</div>
       <div class="eq-stats">
         <div class="eq-stat"><b>${a.ac}</b>Bono CA</div>
@@ -4185,13 +4187,18 @@ function renderArmor(){
         <div class="eq-stat"><b>${a.penalty}</b>Penalt.</div>
       </div>
       <label style="display:flex;align-items:center;gap:8px;margin-top:8px;font:13px system-ui">
-        <input type="checkbox" ${a.equipped?'checked':''}> Equipada · Fallo conjuro ${a.spell}
+        <input type="checkbox" class="armor-equip-chk" data-armor-eq="${a.id}" ${a.equipped?'checked':''}> Equipada · Fallo conjuro ${a.spell} · Peso ${a.weight||0} lb
       </label>
     </div>`).join('');
   c.querySelectorAll('[data-armor-del]').forEach(b=>{
     b.addEventListener('click',()=>{
       const i = ARMOR_DATA.findIndex(x=>x.id===+b.dataset.armorDel);
-      if(i>=0){ ARMOR_DATA.splice(i,1); renderArmor(); }
+      if(i>=0){ ARMOR_DATA.splice(i,1); renderArmor(); if(typeof D5_recompute==='function') D5_recompute(); }
+    });
+  });
+  c.querySelectorAll('[data-armor-eq]').forEach(chk=>{
+    chk.addEventListener('change',()=>{
+      if(typeof D5_setArmorEquipped==='function') D5_setArmorEquipped(+chk.dataset.armorEq, chk.checked);
     });
   });
 }
@@ -5270,6 +5277,7 @@ function init(){
   try{ bindFormSheets(); }catch(e){console.error(e)}
   try{ bindCustomAdds(); }catch(e){console.error(e)}
   try{ bindAgeCat(); }catch(e){console.error(e)}
+  try{ if(typeof D5_init==='function') D5_init(); }catch(e){console.error(e)}
   try{ rebindRolls(); }catch(e){console.error(e)}
   try{ refreshHP(); }catch(e){console.error(e)}
   try{ CombatEngine.apply(); }catch(e){console.error(e)}
@@ -5882,6 +5890,299 @@ document.querySelectorAll('[data-avatar-action]').forEach(b=>{
   document.head.appendChild(st);
 })();
 /* ─── /DOMINIO 3 · HABILIDADES ─── */
+
+/* ─── DOMINIO 5 · EQUIPO Y PESO ─── */
+const D5_SIZE = {
+  'Diminuto':  {mult:0.25, atk:+2},
+  'Pequeño':   {mult:0.75, atk:+1},
+  'Mediano':   {mult:1.00, atk: 0},
+  'Grande':    {mult:2.00, atk:-1},
+  'Enorme':    {mult:4.00, atk:-2},
+};
+
+const D5_INVENTORY = [
+  {id:1, cat:'gear',    name:'Raciones de viaje',     qty:5, weight:1,   value:0.5,  desc:'Sustento para 1 día'},
+  {id:2, cat:'gear',    name:'Antorcha',              qty:3, weight:1,   value:0.01, desc:'Ilumina 6 m, dura 1 h'},
+  {id:3, cat:'gear',    name:'Cuerda de cáñamo (15 m)', qty:1, weight:10, value:1, desc:''},
+  {id:4, cat:'gear',    name:'Saco de dormir',        qty:1, weight:5,   value:0.1,  desc:''},
+  {id:5, cat:'gear',    name:'Odre',                  qty:1, weight:1,   value:1,    desc:''},
+  {id:6, cat:'potions', name:'Poción de curación leve', qty:2, weight:0.1, value:50, desc:'Cura 1d8+1 PG'},
+];
+const D5_COINS = {pp:0, po:50, pe:0, pc:18};
+const D5_CAT_LABELS = {potions:'Pociones / Pergaminos', gear:'Items varios'};
+const D5_CAT_OPEN = {potions:true, gear:true};
+
+function D5_getFUE(){
+  const a = ATTRS.find(x=>x[0]==='FUE'); return a ? a[2] : 10;
+}
+function D5_getSize(){
+  const all = document.querySelectorAll('.sub-page[data-sub="fisico"] select, .sub-page[data-sub="identidad"] select');
+  for(const s of all){ for(const o of s.options){ if(D5_SIZE[o.text]) return s.value || o.text; } }
+  return 'Mediano';
+}
+function D5_getBAB(){
+  let bab = 0;
+  if(typeof CLASSES_DATA!=='undefined') CLASSES_DATA.forEach(c=>{ bab += parseInt(c.level,10)||0; });
+  return bab;
+}
+function D5_getMod(attr){
+  const a = ATTRS.find(x=>x[0]===attr); return a ? a[3] : 0;
+}
+
+function D5_baseMaxByStr(fue){
+  if(fue<=0) return 0;
+  const TBL = {1:10,2:20,3:30,4:40,5:50,6:60,7:70,8:80,9:90,10:100,
+               11:115,12:130,13:150,14:175,15:200,16:230,17:260,18:300,19:350,
+               20:400,21:460,22:520,23:600,24:700,25:800,26:920,27:1040,28:1200,29:1400};
+  if(TBL[fue]!==undefined) return TBL[fue];
+  if(fue>29){ const over = fue-20; return Math.round(400 * Math.pow(2, over/5)); }
+  return 100;
+}
+function computeMaxLoad(fue, size, quadruped){
+  let max = D5_baseMaxByStr(fue);
+  const sz = D5_SIZE[size] || D5_SIZE['Mediano'];
+  max *= sz.mult;
+  if(quadruped) max *= 1.5;
+  if(document.getElementById('enc-muleback')&&document.getElementById('enc-muleback').checked) max *= 3;
+  return Math.round(max);
+}
+
+function D5_computeTotalWeight(){
+  let w = 0;
+  WEAPONS_DATA.forEach(x=>{ w += parseFloat(x.weight)||0; });
+  ARMOR_DATA.forEach(x=>{ w += parseFloat(x.weight)||0; });
+  D5_INVENTORY.forEach(it=>{ w += (parseFloat(it.weight)||0) * (parseInt(it.qty,10)||0); });
+  const coinCount = (D5_COINS.pp||0)+(D5_COINS.po||0)+(D5_COINS.pe||0)+(D5_COINS.pc||0);
+  w += coinCount/50;
+  return w;
+}
+function D5_computeLoadState(total, max){
+  if(total <= max/3) return 'ligera';
+  if(total <= 2*max/3) return 'media';
+  if(total <= max) return 'pesada';
+  return 'sobrecarga';
+}
+
+function D5_setArmorEquipped(id, on){
+  const target = ARMOR_DATA.find(a=>a.id===id); if(!target) return;
+  if(on){
+    const grupo = target.armor_type==='shield' ? 'shield' : 'body';
+    ARMOR_DATA.forEach(a=>{
+      if(a.id===id) return;
+      const g = a.armor_type==='shield' ? 'shield' : 'body';
+      if(g===grupo && a.equipped){
+        a.equipped = false;
+        document.dispatchEvent(new CustomEvent('armor-removed',{detail:{armor_type:a.armor_type, name:a.name}}));
+      }
+    });
+    target.equipped = true;
+    document.dispatchEvent(new CustomEvent('armor-equipped',{detail:{
+      ac_bonus:target.ac_bonus||0, max_dex:target.max_dex||99,
+      armor_check:target.acp||0, spell_failure:target.arcane_failure||0,
+      armor_type:target.armor_type, name:target.name
+    }}));
+  } else {
+    target.equipped = false;
+    document.dispatchEvent(new CustomEvent('armor-removed',{detail:{armor_type:target.armor_type, name:target.name}}));
+  }
+  renderArmor();
+  D5_recompute();
+}
+
+function D5_computeWeaponAttack(w){
+  const bab = D5_getBAB();
+  const size = D5_getSize();
+  const sizeAtk = (D5_SIZE[size]||{atk:0}).atk;
+  let attr = 'FUE';
+  if(w.style==='ranged') attr = 'DES';
+  else if(w.style==='finesse') attr = 'DES';
+  const mod = D5_getMod(attr);
+  const enh = parseInt(w.enh,10)||0;
+  return bab + mod + enh + sizeAtk;
+}
+function D5_computeWeaponDamage(w){
+  const enh = parseInt(w.enh,10)||0;
+  let strBonus = 0;
+  if(w.style!=='ranged'){
+    const fueMod = D5_getMod('FUE');
+    const mult = (w.hands===2) ? 1.5 : (w.hands===0.5 ? 0.5 : 1);
+    strBonus = Math.floor(fueMod * mult);
+  }
+  const bonus = strBonus + enh;
+  const sign = bonus>=0 ? '+' : '';
+  return `${w.damage_die}${bonus!==0 ? sign+bonus : ''}`;
+}
+function D5_refreshWeaponRolls(){
+  WEAPONS_DATA.forEach(w=>{
+    const atk = D5_computeWeaponAttack(w);
+    const sign = atk>=0 ? '+' : '';
+    w.atk = `${sign}${atk}`;
+    w.dmg = D5_computeWeaponDamage(w);
+    w.crit = `${w.crit_threat===20?'20':w.crit_threat+'-20'}/×${w.crit_mult||2}`;
+  });
+  if(typeof renderWeapons==='function') renderWeapons();
+  if(typeof rebindRolls==='function') rebindRolls();
+}
+
+function D5_renderInventory(){
+  const c = document.getElementById('inv-cats');
+  if(!c) return;
+  const cats = ['potions','gear'];
+  c.innerHTML = cats.map(cat=>{
+    const items = D5_INVENTORY.filter(it=>it.cat===cat);
+    const open = D5_CAT_OPEN[cat];
+    return `
+      <div class="card" data-d5-cat="${cat}">
+        <h3 class="card-title" style="cursor:pointer" data-d5-toggle="${cat}">
+          <span class="ornament">${open?'▾':'▸'}</span>
+          <span>${D5_CAT_LABELS[cat]} <span style="font:600 11px system-ui;color:var(--ink-muted)">(${items.length})</span></span>
+        </h3>
+        ${open ? (items.length ? items.map(it=>`
+          <div class="eq-card" data-d5-item="${it.id}">
+            <button class="crud-del" data-d5-del="${it.id}" aria-label="Quitar">×</button>
+            <div class="eq-name">${it.name}</div>
+            <div class="eq-meta">${it.weight} lb · ${it.value} po${it.desc?' · '+it.desc:''}</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+              <button class="btn-secondary" data-d5-qty="${it.id}" data-d5-d="-1" style="min-width:32px">−</button>
+              <input class="field-input" data-d5-qtyin="${it.id}" type="number" inputmode="numeric" value="${it.qty}" style="text-align:center;max-width:64px">
+              <button class="btn-secondary" data-d5-qty="${it.id}" data-d5-d="1" style="min-width:32px">+</button>
+              <span style="color:var(--ink-muted);font:12px system-ui">×${it.qty} = ${(it.weight*it.qty).toFixed(1)} lb</span>
+            </div>
+          </div>`).join('') : `<div class="eq-meta" style="color:var(--ink-muted);text-align:center;padding:8px">Sin objetos</div>`) : ''}
+      </div>`;
+  }).join('');
+  c.querySelectorAll('[data-d5-toggle]').forEach(h=>h.addEventListener('click',()=>{
+    const k = h.dataset.d5Toggle; D5_CAT_OPEN[k] = !D5_CAT_OPEN[k]; D5_renderInventory();
+  }));
+  c.querySelectorAll('[data-d5-del]').forEach(b=>b.addEventListener('click',()=>{
+    const id = +b.dataset.d5Del;
+    const i = D5_INVENTORY.findIndex(x=>x.id===id);
+    if(i>=0){ D5_INVENTORY.splice(i,1); D5_renderInventory(); D5_recompute(); }
+  }));
+  c.querySelectorAll('[data-d5-qty]').forEach(b=>b.addEventListener('click',()=>{
+    const it = D5_INVENTORY.find(x=>x.id===+b.dataset.d5Qty);
+    if(it){ it.qty = Math.max(0,(it.qty||0)+(+b.dataset.d5D)); D5_renderInventory(); D5_recompute(); }
+  }));
+  c.querySelectorAll('[data-d5-qtyin]').forEach(inp=>inp.addEventListener('change',()=>{
+    const it = D5_INVENTORY.find(x=>x.id===+inp.dataset.d5Qtyin);
+    if(it){ it.qty = Math.max(0,parseInt(inp.value,10)||0); D5_renderInventory(); D5_recompute(); }
+  }));
+}
+
+function D5_renderCoins(){
+  document.querySelectorAll('.coin-in').forEach(inp=>{
+    inp.value = D5_COINS[inp.dataset.coin]||0;
+    if(inp.__d5b) return; inp.__d5b=1;
+    inp.addEventListener('input',()=>{
+      D5_COINS[inp.dataset.coin] = Math.max(0,parseInt(inp.value,10)||0);
+      D5_recompute();
+    });
+  });
+  const total = (D5_COINS.pp*10) + (D5_COINS.po*1) + (D5_COINS.pe*0.5) + (D5_COINS.pc*0.01);
+  const peso  = ((D5_COINS.pp+D5_COINS.po+D5_COINS.pe+D5_COINS.pc)/50);
+  const t = document.getElementById('coin-total-po'); if(t) t.textContent = total.toFixed(2);
+  const w = document.getElementById('coin-weight');   if(w) w.textContent = peso.toFixed(1);
+}
+
+function D5_renderWeight(){
+  const fue = D5_getFUE();
+  const size = D5_getSize();
+  const quadEl = document.getElementById('enc-quadruped');
+  const quad = quadEl ? quadEl.checked : false;
+  const max = computeMaxLoad(fue, size, quad);
+  const auto = D5_computeTotalWeight();
+  const overrideEl = document.getElementById('weight-override');
+  const ovVal = overrideEl ? parseFloat(overrideEl.value) : NaN;
+  const total = !isNaN(ovVal) && overrideEl && overrideEl.value!=='' ? ovVal : auto;
+  const state = D5_computeLoadState(total, max);
+  const lblMap = {ligera:'Carga ligera', media:'Carga media', pesada:'Carga pesada', sobrecarga:'Sobrecarga'};
+  const colMap = {ligera:'#4a7a3a', media:'var(--accent)', pesada:'#c89030', sobrecarga:'var(--negative)'};
+
+  const cur = document.getElementById('weight-current'); if(cur) cur.textContent = total.toFixed(1);
+  const stl = document.getElementById('weight-state-lbl');
+  if(stl){ stl.textContent = lblMap[state]; stl.style.color = colMap[state]; }
+  const bar = document.getElementById('weight-bar');
+  if(bar){
+    const pct = Math.min(100, max>0 ? (total/max)*100 : 0);
+    bar.style.width = pct+'%';
+    bar.style.background = `linear-gradient(90deg,#4a7a3a,${colMap[state]})`;
+  }
+  document.dispatchEvent(new CustomEvent('weight-changed',{detail:{total, max, state}}));
+  return {total, max, state};
+}
+
+function D5_recompute(){
+  D5_renderCoins();
+  D5_renderWeight();
+  D5_refreshWeaponRolls();
+}
+
+function D5_bindAddSheet(){
+  const btn = document.getElementById('inv-add-btn');
+  if(btn) btn.addEventListener('click',()=>{
+    ['inv-name','inv-qty','inv-weight','inv-value','inv-desc'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value = (id==='inv-qty'?'1':(id==='inv-weight'||id==='inv-value'?'0':''));
+    });
+    if(typeof openSheet==='function') openSheet('sheet-inv-add');
+  });
+  const save = document.getElementById('inv-save');
+  if(save) save.addEventListener('click',()=>{
+    const cat = document.getElementById('inv-cat').value;
+    const name = document.getElementById('inv-name').value.trim();
+    const qty = Math.max(0,parseInt(document.getElementById('inv-qty').value,10)||1);
+    const weight = Math.max(0,parseFloat(document.getElementById('inv-weight').value)||0);
+    const value = Math.max(0,parseFloat(document.getElementById('inv-value').value)||0);
+    const desc = document.getElementById('inv-desc').value.trim();
+    if(!name){ if(typeof toast==='function') toast('Falta nombre'); return; }
+    const id = (D5_INVENTORY[D5_INVENTORY.length-1]?.id||0)+1;
+    D5_INVENTORY.push({id,cat,name,qty,weight,value,desc});
+    if(typeof closeSheet==='function') closeSheet(document.getElementById('sheet-inv-add'));
+    if(typeof toast==='function') toast('Objeto añadido');
+    D5_renderInventory();
+    D5_recompute();
+  });
+}
+
+function D5_bindExternalEvents(){
+  document.addEventListener('attr-changed',e=>{
+    if(!e.detail || e.detail.abbr==='FUE') D5_renderWeight();
+    if(!e.detail || e.detail.abbr==='FUE' || e.detail.abbr==='DES') D5_refreshWeaponRolls();
+  });
+  document.addEventListener('class-changed',()=>D5_refreshWeaponRolls());
+  document.addEventListener('size-changed',()=>{ D5_renderWeight(); D5_refreshWeaponRolls(); });
+
+  document.querySelectorAll('.sub-page[data-sub="fisico"] select, .sub-page[data-sub="identidad"] select').forEach(sel=>{
+    for(const o of sel.options){
+      if(D5_SIZE[o.text]){
+        sel.addEventListener('change',()=>{
+          document.dispatchEvent(new CustomEvent('size-changed',{detail:{size:sel.value||sel.options[sel.selectedIndex].text}}));
+        });
+        break;
+      }
+    }
+  });
+
+  ['weight-override','enc-quadruped','enc-muleback'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('input',()=>D5_renderWeight());
+    if(el && el.type==='checkbox') el.addEventListener('change',()=>D5_renderWeight());
+  });
+}
+
+function D5_init(){
+  D5_renderInventory();
+  D5_bindAddSheet();
+  D5_bindExternalEvents();
+  ARMOR_DATA.filter(a=>a.equipped).forEach(a=>{
+    document.dispatchEvent(new CustomEvent('armor-equipped',{detail:{
+      ac_bonus:a.ac_bonus||0, max_dex:a.max_dex||99,
+      armor_check:a.acp||0, spell_failure:a.arcane_failure||0,
+      armor_type:a.armor_type, name:a.name
+    }}));
+  });
+  D5_recompute();
+}
+/* ─── /DOMINIO 5 · EQUIPO Y PESO ─── */
 
 init();
 
