@@ -4793,6 +4793,552 @@ document.querySelectorAll('[data-avatar-action]').forEach(b=>{
   });
 });
 
+/* ─────────────────────────────────────────────────────────────── */
+/* ─── DOMINIO 3 · HABILIDADES ─── */
+/* Reemplaza SKILLS y renderSkills, añade class-skill map, skill points,
+   filtros, custom skills, tirada dinámica, take10/20, ACP de armadura. */
+(function(){
+  'use strict';
+
+  const SKILLS_PF1E = [
+    {id:'acrobatics',          n:'Acrobacias',          a:'DES', acp:true,  trained:false},
+    {id:'appraise',            n:'Apreciar Tasación',   a:'INT', acp:false, trained:false},
+    {id:'sleight_of_hand',     n:'Arte de Birlador',    a:'DES', acp:true,  trained:true},
+    {id:'craft',               n:'Artesanía',           a:'INT', acp:false, trained:false, sub:true},
+    {id:'knowledge_arcana',    n:'Conoc. Arcano',       a:'INT', acp:false, trained:true},
+    {id:'knowledge_dungeoneering',n:'Conoc. Mazmorras', a:'INT', acp:false, trained:true},
+    {id:'knowledge_engineering',n:'Conoc. Ingeniería',  a:'INT', acp:false, trained:true},
+    {id:'knowledge_geography', n:'Conoc. Geografía',    a:'INT', acp:false, trained:true},
+    {id:'knowledge_history',   n:'Conoc. Historia',     a:'INT', acp:false, trained:true},
+    {id:'knowledge_local',     n:'Conoc. Local',        a:'INT', acp:false, trained:true},
+    {id:'knowledge_nature',    n:'Conoc. Naturaleza',   a:'INT', acp:false, trained:true},
+    {id:'knowledge_nobility',  n:'Conoc. Nobleza',      a:'INT', acp:false, trained:true},
+    {id:'knowledge_planes',    n:'Conoc. Planos',       a:'INT', acp:false, trained:true},
+    {id:'knowledge_religion',  n:'Conoc. Religión',     a:'INT', acp:false, trained:true},
+    {id:'diplomacy',           n:'Diplomacia',          a:'CAR', acp:false, trained:false},
+    {id:'disguise',            n:'Disfrazarse',         a:'CAR', acp:false, trained:false},
+    {id:'bluff',               n:'Engañar',             a:'CAR', acp:false, trained:false},
+    {id:'escape_artist',       n:'Escapismo',           a:'DES', acp:true,  trained:false},
+    {id:'linguistics',         n:'Idiomas',             a:'INT', acp:false, trained:true,  noRanks:true},
+    {id:'intimidate',          n:'Intimidar',           a:'CAR', acp:false, trained:false},
+    {id:'handle_animal',       n:'Manejo de Animales',  a:'CAR', acp:false, trained:true},
+    {id:'heal',                n:'Medicina',            a:'SAB', acp:false, trained:false},
+    {id:'ride',                n:'Montar',              a:'DES', acp:true,  trained:false},
+    {id:'swim',                n:'Nadar',               a:'FUE', acp:true,  trained:false},
+    {id:'perception',          n:'Percepción',          a:'SAB', acp:false, trained:false},
+    {id:'profession',          n:'Profesión',           a:'SAB', acp:false, trained:true,  sub:true},
+    {id:'sense_motive',        n:'Averiguar Intenciones',a:'SAB',acp:false, trained:false},
+    {id:'stealth',             n:'Sigilo',              a:'DES', acp:true,  trained:false},
+    {id:'spellcraft',          n:'Conoc. de Conjuros',  a:'INT', acp:false, trained:true},
+    {id:'survival',            n:'Supervivencia',       a:'SAB', acp:false, trained:false},
+    {id:'climb',               n:'Trepar',              a:'FUE', acp:true,  trained:false},
+    {id:'disable_device',      n:'Truco con Manos',     a:'DES', acp:false, trained:true},
+    {id:'fly',                 n:'Volar',               a:'DES', acp:true,  trained:false},
+    {id:'use_magic_device',    n:'Usar Objeto Mágico',  a:'CAR', acp:false, trained:true},
+    {id:'perform',             n:'Actuar',              a:'CAR', acp:false, trained:false, sub:true},
+  ];
+
+  const CLASS_SKILL_MAP = {
+    'Guerrero':['climb','craft','handle_animal','intimidate','knowledge_dungeoneering','ride','survival','swim'],
+    'Bárbaro': ['acrobatics','climb','craft','handle_animal','intimidate','knowledge_nature','perception','ride','survival','swim'],
+    'Bardo':   ['acrobatics','appraise','bluff','climb','craft','diplomacy','disguise','escape_artist','intimidate','knowledge_arcana','knowledge_dungeoneering','knowledge_engineering','knowledge_geography','knowledge_history','knowledge_local','knowledge_nature','knowledge_nobility','knowledge_planes','knowledge_religion','linguistics','perception','perform','profession','sense_motive','sleight_of_hand','spellcraft','stealth','use_magic_device'],
+    'Brujo':   ['craft','fly','handle_animal','heal','intimidate','knowledge_arcana','knowledge_history','knowledge_nature','knowledge_planes','profession','spellcraft','use_magic_device'],
+    'Caballero':['bluff','climb','craft','diplomacy','handle_animal','intimidate','knowledge_nobility','profession','ride','sense_motive','swim'],
+    'Cavalier':['bluff','climb','craft','diplomacy','handle_animal','intimidate','knowledge_nobility','profession','ride','sense_motive','swim'],
+    'Clérigo': ['appraise','craft','diplomacy','heal','knowledge_arcana','knowledge_history','knowledge_nobility','knowledge_planes','knowledge_religion','linguistics','profession','sense_motive','spellcraft'],
+    'Druida':  ['climb','craft','fly','handle_animal','heal','knowledge_geography','knowledge_nature','perception','profession','ride','spellcraft','survival','swim'],
+    'Explorador':['climb','craft','handle_animal','heal','intimidate','knowledge_dungeoneering','knowledge_geography','knowledge_nature','perception','profession','ride','spellcraft','stealth','survival','swim'],
+    'Hechicero':['appraise','bluff','craft','fly','intimidate','knowledge_arcana','profession','spellcraft','use_magic_device'],
+    'Inquisidor':['climb','craft','diplomacy','disguise','heal','intimidate','knowledge_arcana','knowledge_dungeoneering','knowledge_history','knowledge_nature','knowledge_nobility','knowledge_planes','knowledge_religion','perception','profession','ride','sense_motive','spellcraft','stealth','survival','swim'],
+    'Mago':    ['appraise','craft','fly','knowledge_arcana','knowledge_dungeoneering','knowledge_engineering','knowledge_geography','knowledge_history','knowledge_local','knowledge_nature','knowledge_nobility','knowledge_planes','knowledge_religion','linguistics','profession','spellcraft'],
+    'Monje':   ['acrobatics','climb','craft','escape_artist','intimidate','knowledge_history','knowledge_religion','perception','perform','profession','ride','sense_motive','stealth','swim'],
+    'Oráculo': ['craft','diplomacy','heal','knowledge_history','knowledge_planes','knowledge_religion','profession','sense_motive','spellcraft'],
+    'Paladín': ['craft','diplomacy','handle_animal','heal','knowledge_nobility','knowledge_religion','profession','ride','sense_motive','spellcraft'],
+    'Pícaro':  ['acrobatics','appraise','bluff','climb','craft','diplomacy','disable_device','disguise','escape_artist','intimidate','knowledge_dungeoneering','knowledge_local','linguistics','perception','perform','profession','sense_motive','sleight_of_hand','stealth','swim','use_magic_device'],
+    'Pistolero':['acrobatics','climb','craft','handle_animal','heal','intimidate','knowledge_local','perception','profession','ride','sleight_of_hand','survival','swim'],
+    'Samurái': ['climb','craft','diplomacy','handle_animal','intimidate','knowledge_history','knowledge_nobility','profession','ride','sense_motive','swim'],
+    'Witch':   ['craft','fly','handle_animal','heal','intimidate','knowledge_arcana','knowledge_history','knowledge_nature','knowledge_planes','profession','spellcraft','use_magic_device'],
+  };
+
+  const SKILL_POINTS_PER_CLASS = {
+    'Guerrero':2,'Bárbaro':4,'Bardo':6,'Brujo':2,'Caballero':4,'Cavalier':4,'Clérigo':2,
+    'Druida':4,'Explorador':6,'Hechicero':2,'Inquisidor':6,'Mago':2,'Monje':4,'Oráculo':4,
+    'Paladín':2,'Pícaro':8,'Pistolero':4,'Samurái':4,'Witch':2,
+  };
+
+  const PREV_RANKS = (function(){
+    try{
+      const map = {};
+      (window.SKILLS||[]).forEach(s=>{ map[String(s.n||'').toLowerCase()] = parseInt(s.r,10)||0; });
+      const alias = {
+        'trepar':'climb','intimidar':'intimidate','saltar':'acrobatics','nadar':'swim',
+        'conoc. mazmorras':'knowledge_dungeoneering','montar':'ride',
+        'profesión soldado':'profession','manejo de animales':'handle_animal',
+        'percepción':'perception','sigilo':'stealth','acrobacias':'acrobatics',
+        'diplomacia':'diplomacy',
+      };
+      const out = {};
+      for(const k in map){ if(alias[k]) out[alias[k]] = map[k]; }
+      return out;
+    }catch(e){ return {}; }
+  })();
+
+  let CUSTOM_SKILLS = [];
+  try{
+    const raw = localStorage.getItem('ficha-custom-skills');
+    if(raw) CUSTOM_SKILLS = JSON.parse(raw) || [];
+  }catch(e){ CUSTOM_SKILLS = []; }
+  function saveCustomSkills(){
+    try{ localStorage.setItem('ficha-custom-skills', JSON.stringify(CUSTOM_SKILLS)); }catch(e){}
+  }
+
+  const SKILL_STATE = {};
+  function ensureState(id){ if(!SKILL_STATE[id]) SKILL_STATE[id] = {r:0, misc:0}; return SKILL_STATE[id]; }
+  SKILLS_PF1E.forEach(s=>{ ensureState(s.id).r = PREV_RANKS[s.id] || 0; });
+  if(!Object.keys(PREV_RANKS).length){
+    ensureState('climb').r=1; ensureState('intimidate').r=3; ensureState('swim').r=1;
+    ensureState('knowledge_dungeoneering').r=1; ensureState('profession').r=1;
+    ensureState('handle_animal').r=1; ensureState('perception').r=3;
+  }
+
+  function allSkills(){
+    const cust = CUSTOM_SKILLS.map(c=>({
+      id:'custom_'+c.slug, n:c.name, a:c.attr, acp:!!c.acp,
+      trained:false, custom:true, classOverride:!!c.cls
+    }));
+    return SKILLS_PF1E.concat(cust);
+  }
+
+  function getAttrMod(abbr){
+    try{
+      if(typeof window.getAttrMod === 'function' && window.getAttrMod !== getAttrMod){
+        return window.getAttrMod(abbr);
+      }
+      const row = (window.ATTRS||[]).find(r=>r[0]===abbr);
+      if(row) return parseInt(row[3],10) || 0;
+    }catch(e){}
+    return 0;
+  }
+  function getActiveClasses(){
+    try{ return (window.CLASSES_DATA||[]).map(c=>c.name).filter(Boolean); }
+    catch(e){ return []; }
+  }
+  function getTotalLevel(){
+    try{ return (window.CLASSES_DATA||[]).reduce((a,c)=>a+(parseInt(c.level,10)||0),0); }
+    catch(e){ return 1; }
+  }
+  function isClassSkill(skill){
+    if(skill.classOverride) return true;
+    const classes = getActiveClasses();
+    for(const cn of classes){
+      const list = CLASS_SKILL_MAP[cn] || CLASS_SKILL_MAP[cn && cn.replace(/\s.*/,'')];
+      if(list && list.includes(skill.id)) return true;
+    }
+    return false;
+  }
+  function getArmorACP(skill){
+    if(!skill.acp) return 0;
+    try{
+      const eq = (window.ARMOR_DATA||[]).filter(a=>a.equipped);
+      let acp = 0;
+      eq.forEach(a=>{
+        const raw = String(a.penalty||'0').replace('−','-').replace(/[^\-0-9]/g,'');
+        acp += parseInt(raw,10)||0;
+      });
+      return acp;
+    }catch(e){ return 0; }
+  }
+
+  function calcSkillTotal(skill){
+    const st = ensureState(skill.id);
+    const r = parseInt(st.r,10)||0;
+    const misc = parseInt(st.misc,10)||0;
+    const attr = getAttrMod(skill.a);
+    const cls = isClassSkill(skill);
+    const trainedBonus = (r>0 && cls) ? 3 : 0;
+    const acp = getArmorACP(skill);
+    return r + attr + trainedBonus + misc + acp;
+  }
+
+  function getSkillPointsTotal(){
+    const intMod = getAttrMod('INT');
+    const isHuman = (function(){
+      try{
+        const v = (document.getElementById('in-raza')||{}).value || '';
+        return /humano|human/i.test(v);
+      }catch(e){ return false; }
+    })();
+    let total = 0;
+    (window.CLASSES_DATA||[]).forEach(c=>{
+      const base = SKILL_POINTS_PER_CLASS[c.name] || SKILL_POINTS_PER_CLASS[(c.name||'').replace(/\s.*/,'')] || 2;
+      const lvl = parseInt(c.level,10)||0;
+      const perLvl = Math.max(1, base + intMod) + (isHuman ? 1 : 0);
+      total += perLvl * lvl;
+    });
+    return total;
+  }
+
+  let SKILL_FILTER = 'todas';
+  let SKILL_QUERY = '';
+
+  function matchQuery(s, q){
+    if(!q) return true;
+    const qq = q.trim().toLowerCase();
+    if(!qq) return true;
+    const ATTR_ALIAS = {fue:'FUE',str:'FUE',des:'DES',dex:'DES',con:'CON',int:'INT',sab:'SAB',wis:'SAB',car:'CAR',cha:'CAR'};
+    if(ATTR_ALIAS[qq]) return s.a === ATTR_ALIAS[qq];
+    if(qq.length===1) return s.n.toLowerCase().startsWith(qq);
+    return s.n.toLowerCase().includes(qq);
+  }
+
+  function renderSkillFiltersChips(){
+    let bar = document.getElementById('skill-filters');
+    if(!bar){
+      const sw = document.querySelector('.sub-page[data-sub="habilidades"] .search-wrap');
+      if(!sw) return;
+      bar = document.createElement('div');
+      bar.id = 'skill-filters';
+      bar.className = 'skill-filters';
+      bar.innerHTML = `
+        <button class="sk-chip active" data-sk-filter="todas">Todas</button>
+        <button class="sk-chip" data-sk-filter="clase">De clase</button>
+        <button class="sk-chip" data-sk-filter="rangos">Con rangos</button>
+      `;
+      sw.parentNode.insertBefore(bar, sw.nextSibling);
+      bar.addEventListener('click',e=>{
+        const b = e.target.closest('[data-sk-filter]');
+        if(!b) return;
+        SKILL_FILTER = b.dataset.skFilter;
+        bar.querySelectorAll('.sk-chip').forEach(x=>x.classList.toggle('active', x===b));
+        renderD3Skills();
+      });
+    }
+  }
+
+  function fmtMod(m){ return (m>=0?'+':'')+m; }
+
+  function renderD3Skills(){
+    const list = document.getElementById('skill-list');
+    if(!list) return;
+    renderSkillFiltersChips();
+    const items = allSkills().filter(s=>{
+      if(!matchQuery(s, SKILL_QUERY)) return false;
+      if(SKILL_FILTER==='clase' && !isClassSkill(s)) return false;
+      if(SKILL_FILTER==='rangos' && !(ensureState(s.id).r>0)) return false;
+      return true;
+    });
+    if(!items.length){
+      const lang = document.documentElement.dataset.lang||'es';
+      list.innerHTML = `<div class="empty-state">${lang==='en'?'No results':'Sin resultados'}</div>`;
+      return renderSkillCounter();
+    }
+    const totalLevel = getTotalLevel();
+    list.innerHTML = items.map(s=>{
+      const st = ensureState(s.id);
+      const cls = isClassSkill(s);
+      const total = calcSkillTotal(s);
+      const warn = st.r > totalLevel;
+      const noRanks = !!s.noRanks;
+      return `
+        <div class="skill-row${cls?' is-class':''}${warn?' has-warn':''}" data-skid="${s.id}" tabindex="0" role="button" aria-label="Tirar ${s.n}">
+          <div>
+            <span class="skill-name">${s.n}${s.custom?' <span class="chip-custom">+</span>':''}</span>
+            <span class="skill-attr">${s.a}</span>
+          </div>
+          ${cls?'<span class="chip-class">Clase</span>':'<span></span>'}
+          ${noRanks
+            ? '<span class="skill-norank" title="No usa rangos">—</span>'
+            : `<input class="skill-rank" type="number" inputmode="numeric" pattern="-?[0-9]*" min="0" max="${totalLevel}" value="${st.r}" aria-label="Rangos ${s.n}">`}
+          <span class="skill-total">${fmtMod(total)}</span>
+        </div>`;
+    }).join('');
+
+    list.querySelectorAll('.skill-row').forEach(row=>{
+      const id = row.dataset.skid;
+      const s = allSkills().find(x=>x.id===id); if(!s) return;
+      const tapHandler = (ev)=>{
+        if(ev.target.closest('.skill-rank')) return;
+        const mod = calcSkillTotal(s);
+        if(typeof window.performRoll==='function'){
+          window.performRoll({expr:'1d20'+(mod>=0?'+':'')+mod, label:s.n});
+        }
+      };
+      row.addEventListener('click', tapHandler);
+      row.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' ') { e.preventDefault(); tapHandler(e); }});
+      let pressTimer = null;
+      const startPress = ()=>{ pressTimer = setTimeout(()=>{ pressTimer=null; openSkillDetail(s); }, 500); };
+      const cancelPress = ()=>{ if(pressTimer){ clearTimeout(pressTimer); pressTimer=null; } };
+      row.addEventListener('touchstart', startPress, {passive:true});
+      row.addEventListener('mousedown', startPress);
+      ['touchend','touchcancel','mouseup','mouseleave'].forEach(ev=>row.addEventListener(ev, cancelPress));
+      const inp = row.querySelector('.skill-rank');
+      if(inp){
+        inp.addEventListener('click', e=>e.stopPropagation());
+        inp.addEventListener('input', e=>{
+          const v = parseInt(e.target.value,10)||0;
+          ensureState(s.id).r = Math.max(0, v);
+          row.querySelector('.skill-total').textContent = fmtMod(calcSkillTotal(s));
+          row.classList.toggle('has-warn', ensureState(s.id).r > getTotalLevel());
+          renderSkillCounter();
+          fireSkillsChanged();
+        });
+      }
+    });
+    renderSkillCounter();
+  }
+
+  function renderSkillCounter(){
+    let spent = 0;
+    allSkills().forEach(s=>{ if(!s.noRanks) spent += parseInt(ensureState(s.id).r,10)||0; });
+    const max = getSkillPointsTotal();
+    const disp = Math.max(0, max - spent);
+    const dEl = document.getElementById('sc-disp');
+    const sEl = document.getElementById('sc-spent');
+    if(dEl) dEl.textContent = disp;
+    if(sEl) sEl.textContent = spent;
+  }
+
+  function ensureDetailSheet(){
+    let dlg = document.getElementById('sheet-skill-detail');
+    if(dlg) return dlg;
+    dlg = document.createElement('dialog');
+    dlg.className = 'bottom-sheet';
+    dlg.id = 'sheet-skill-detail';
+    dlg.setAttribute('aria-label','Detalle de habilidad');
+    dlg.innerHTML = `
+      <div class="drag-handle"></div>
+      <div class="sheet-header"><div class="sheet-title" id="d3-detail-title">Habilidad</div><button class="sheet-close" data-close>✕</button></div>
+      <div class="sheet-content">
+        <div class="skill-detail-mods" id="d3-detail-mods"></div>
+        <div class="field-row" style="margin-top:10px;gap:8px">
+          <button class="btn-secondary" id="d3-take10">T10</button>
+          <button class="btn-secondary" id="d3-take20">T20</button>
+          <button class="btn-primary" id="d3-roll" style="flex:1">🎲 Tirar 1d20</button>
+        </div>
+        <button class="btn-secondary" data-close style="width:100%;margin-top:10px">Cerrar</button>
+      </div>`;
+    document.body.appendChild(dlg);
+    dlg.addEventListener('click',e=>{
+      if(e.target.matches('[data-close]')) try{ dlg.close(); }catch(_){ dlg.removeAttribute('open'); }
+    });
+    return dlg;
+  }
+  function openSkillDetail(s){
+    const dlg = ensureDetailSheet();
+    const st = ensureState(s.id);
+    const cls = isClassSkill(s);
+    const r = parseInt(st.r,10)||0;
+    const attr = getAttrMod(s.a);
+    const tb = (r>0&&cls)?3:0;
+    const acp = getArmorACP(s);
+    const misc = parseInt(st.misc,10)||0;
+    const total = calcSkillTotal(s);
+    document.getElementById('d3-detail-title').textContent = s.n + ' (' + s.a + ')';
+    document.getElementById('d3-detail-mods').innerHTML = `
+      <div class="mod-row"><label>Rangos</label><b>${r}</b></div>
+      <div class="mod-row"><label>${s.a} mod</label><b>${fmtMod(attr)}</b></div>
+      <div class="mod-row"><label>De clase (entrenado)</label><b>${tb?'+3':'—'}</b></div>
+      <div class="mod-row"><label>Misc / racial</label><b>${fmtMod(misc)}</b></div>
+      ${s.acp?`<div class="mod-row"><label>Penal. armadura</label><b>${fmtMod(acp)}</b></div>`:''}
+      <div class="mod-row" style="border-top:1px solid var(--line);margin-top:6px;padding-top:6px"><label><b>Total</b></label><b style="color:var(--accent);font-size:18px">${fmtMod(total)}</b></div>
+    `;
+    document.getElementById('d3-roll').onclick = ()=>{
+      try{ dlg.close(); }catch(_){ dlg.removeAttribute('open'); }
+      if(typeof window.performRoll==='function')
+        window.performRoll({expr:'1d20'+(total>=0?'+':'')+total, label:s.n});
+    };
+    document.getElementById('d3-take10').onclick = ()=>{
+      const v = total + 10;
+      if(typeof window.toast==='function') window.toast('Tomar 10: '+v+' · '+s.n);
+      if(typeof window.pushHistory==='function') window.pushHistory({total:v, die:'T10', label:s.n+' · Tomar 10'});
+    };
+    document.getElementById('d3-take20').onclick = ()=>{
+      const v = total + 20;
+      if(typeof window.toast==='function') window.toast('Tomar 20: '+v+' · '+s.n);
+      if(typeof window.pushHistory==='function') window.pushHistory({total:v, die:'T20', label:s.n+' · Tomar 20'});
+    };
+    if(typeof dlg.showModal==='function'){ try{ dlg.showModal(); }catch(_){ dlg.setAttribute('open',''); } }
+    else dlg.setAttribute('open','');
+  }
+
+  function ensureCustomSheet(){
+    let dlg = document.getElementById('sheet-skill-custom');
+    if(dlg) return dlg;
+    dlg = document.createElement('dialog');
+    dlg.className = 'bottom-sheet';
+    dlg.id = 'sheet-skill-custom';
+    dlg.setAttribute('aria-label','Habilidad personalizada');
+    dlg.innerHTML = `
+      <div class="drag-handle"></div>
+      <div class="sheet-header"><div class="sheet-title">Habilidad personalizada</div><button class="sheet-close" data-close>✕</button></div>
+      <div class="sheet-content">
+        <div class="field"><label class="field-label">Nombre</label>
+          <input class="field-input" id="d3-cs-name" placeholder="Ej: Saber: Mitos perdidos"></div>
+        <div class="field"><label class="field-label">Atributo</label>
+          <div class="d3-cs-attrs">
+            ${['FUE','DES','CON','INT','SAB','CAR'].map(a=>`<button class="sk-chip" data-cs-attr="${a}">${a}</button>`).join('')}
+          </div>
+        </div>
+        <label class="d3-cs-check"><input type="checkbox" id="d3-cs-cls"> Es de clase</label>
+        <label class="d3-cs-check"><input type="checkbox" id="d3-cs-acp"> Aplica penal. armadura</label>
+        <div class="field-row" style="gap:8px;margin-top:10px">
+          <button class="btn-secondary" data-close style="flex:1">Cancelar</button>
+          <button class="btn-primary" id="d3-cs-save" style="flex:1">Crear</button>
+        </div>
+      </div>`;
+    document.body.appendChild(dlg);
+    let chosen = 'INT';
+    const setAttr = (a)=>{
+      chosen = a;
+      dlg.querySelectorAll('[data-cs-attr]').forEach(b=>b.classList.toggle('active', b.dataset.csAttr===a));
+    };
+    setAttr('INT');
+    dlg.addEventListener('click',e=>{
+      const b = e.target.closest('[data-cs-attr]');
+      if(b){ setAttr(b.dataset.csAttr); return; }
+      if(e.target.matches('[data-close]')) try{ dlg.close(); }catch(_){ dlg.removeAttribute('open'); }
+    });
+    dlg.querySelector('#d3-cs-save').addEventListener('click',()=>{
+      const name = (dlg.querySelector('#d3-cs-name').value||'').trim();
+      if(!name){ if(window.toast) window.toast('Falta nombre'); return; }
+      const cls = dlg.querySelector('#d3-cs-cls').checked;
+      const acp = dlg.querySelector('#d3-cs-acp').checked;
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'') || ('cs'+Date.now());
+      CUSTOM_SKILLS.push({slug, name, attr:chosen, cls, acp});
+      saveCustomSkills();
+      ensureState('custom_'+slug);
+      try{ dlg.close(); }catch(_){ dlg.removeAttribute('open'); }
+      dlg.querySelector('#d3-cs-name').value='';
+      dlg.querySelector('#d3-cs-cls').checked=false;
+      dlg.querySelector('#d3-cs-acp').checked=false;
+      setAttr('INT');
+      renderD3Skills();
+      if(window.toast) window.toast('Habilidad añadida');
+      fireSkillsChanged();
+    });
+    return dlg;
+  }
+  function openCustomSkill(){
+    const dlg = ensureCustomSheet();
+    if(typeof dlg.showModal==='function'){ try{ dlg.showModal(); }catch(_){ dlg.setAttribute('open',''); } }
+    else dlg.setAttribute('open','');
+  }
+
+  function fireSkillsChanged(){
+    try{ document.dispatchEvent(new CustomEvent('skills-changed', {detail:{}})); }catch(e){}
+  }
+  // Escuchamos en document Y window para máxima compatibilidad con dominios 1-6
+  document.addEventListener('attr-changed', renderD3Skills);
+  window.addEventListener('attr-changed', renderD3Skills);
+  document.addEventListener('class-changed', renderD3Skills);
+  window.addEventListener('class-changed', renderD3Skills);
+  document.addEventListener('armor-equipped', renderD3Skills);
+  window.addEventListener('armor-equipped', renderD3Skills);
+
+  function installDefensiveBridges(){
+    const grid = document.getElementById('attr-grid');
+    if(grid && !grid.dataset.d3Bound){
+      grid.dataset.d3Bound='1';
+      grid.addEventListener('input', ()=>{ setTimeout(renderD3Skills, 0); });
+    }
+    const classes = document.getElementById('classes-list');
+    if(classes && !classes.dataset.d3Bound){
+      classes.dataset.d3Bound='1';
+      classes.addEventListener('input', ()=>setTimeout(renderD3Skills, 0));
+    }
+    const armor = document.getElementById('armor-list');
+    if(armor && !armor.dataset.d3Bound){
+      armor.dataset.d3Bound='1';
+      armor.addEventListener('change', ()=>setTimeout(renderD3Skills, 0));
+    }
+    const raza = document.getElementById('in-raza');
+    if(raza && !raza.dataset.d3Bound){
+      raza.dataset.d3Bound='1';
+      raza.addEventListener('input', ()=>setTimeout(renderD3Skills, 0));
+    }
+  }
+
+  window.renderSkills = function(filter){
+    if(typeof filter === 'string') SKILL_QUERY = filter;
+    renderD3Skills();
+  };
+
+  function rebindCustomAddButton(){
+    const skAdd = document.getElementById('skill-add');
+    const skIn  = document.getElementById('skill-custom');
+    if(!skAdd) return;
+    const clone = skAdd.cloneNode(true);
+    skAdd.parentNode.replaceChild(clone, skAdd);
+    clone.addEventListener('click', ()=>{
+      ensureCustomSheet();
+      const dlg = document.getElementById('sheet-skill-custom');
+      if(skIn && skIn.value.trim()){
+        dlg.querySelector('#d3-cs-name').value = skIn.value.trim();
+        skIn.value='';
+      }
+      openCustomSkill();
+    });
+  }
+
+  function rebindSearchInput(){
+    const si = document.getElementById('skill-search');
+    if(!si) return;
+    const clone = si.cloneNode(true);
+    si.parentNode.replaceChild(clone, si);
+    clone.addEventListener('input', e=>{
+      SKILL_QUERY = e.target.value || '';
+      renderD3Skills();
+    });
+  }
+
+  function bootD3Skills(){
+    rebindSearchInput();
+    rebindCustomAddButton();
+    installDefensiveBridges();
+    renderD3Skills();
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', ()=>setTimeout(bootD3Skills,0));
+  } else {
+    setTimeout(bootD3Skills,0);
+  }
+
+  window.D3_SKILLS = {
+    state:SKILL_STATE, all:allSkills, recalc:renderD3Skills,
+    calc:calcSkillTotal, points:getSkillPointsTotal,
+    classMap:CLASS_SKILL_MAP, fire:fireSkillsChanged,
+  };
+})();
+
+(function(){
+  const css = `
+  .skill-filters{display:flex;gap:6px;margin:6px 0 10px;flex-wrap:wrap}
+  .sk-chip{
+    font:600 12px/1 system-ui;letter-spacing:.04em;
+    background:var(--surface-2);color:var(--ink-muted);
+    border:1px solid var(--line);border-radius:99px;
+    padding:6px 12px;cursor:pointer;min-height:32px;
+  }
+  .sk-chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .skill-row{cursor:pointer;transition:background .12s}
+  .skill-row:active{background:var(--surface-2)}
+  .skill-row.is-class{box-shadow:inset 3px 0 0 var(--positive)}
+  .skill-row.has-warn{border-left:3px solid var(--negative)}
+  .skill-row.has-warn .skill-rank{border-color:var(--negative);color:var(--negative)}
+  .skill-norank{font:700 12px/1 system-ui;color:var(--ink-muted);min-width:50px;text-align:center}
+  .chip-custom{display:inline-block;font:700 9px/1 system-ui;background:rgba(200,144,48,.18);color:var(--accent);padding:2px 5px;border-radius:99px;margin-left:4px}
+  .skill-detail-mods{display:grid;gap:6px;margin-top:8px}
+  .skill-detail-mods .mod-row{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:var(--surface-2);border-radius:6px}
+  .d3-cs-attrs{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+  .d3-cs-check{display:flex;gap:8px;align-items:center;margin-top:8px;font:14px/1.2 system-ui;color:var(--ink)}
+  `;
+  const st = document.createElement('style');
+  st.id = 'd3-skills-css';
+  st.textContent = css;
+  document.head.appendChild(st);
+})();
+/* ─── /DOMINIO 3 · HABILIDADES ─── */
+
 init();
 
 /* ─────────────────────────────────────────────────────────────── */
