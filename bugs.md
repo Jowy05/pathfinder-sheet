@@ -1,13 +1,12 @@
 ## BUGS A ARREGLAR
 
-### BUG-C · features_removed del arquetipo ignoradas al auto-añadir aptitudes
-- **Descripción**: cuando un arquetipo elimina aptitudes de la clase base (campo `features_removed` en archetypes.json), esas aptitudes siguen apareciendo en la ficha porque `autoAddClassAbilities()` no consulta ese campo. Ejemplo: Caballero Monstruoso elimina "Convocar Monstruo" pero sigue apareciendo.
-- **Causa**: `saAbils` en `autoAddClassAbilities` (index.html ~línea 8148) filtra por clase y nivel pero no por `features_removed`. Los nombres en `features_removed` son en inglés (ej. "Summon Monster") y los de `special_abilities.json` en español (ej. "Convocar Monstruo"), por lo que no hay match directo.
-- **Fix sugerido**: añadir campo `features_removed_ids` (array de IDs de SA) a los arquetipos que eliminan aptitudes, y filtrar en `saAbils` saltando los IDs listados. Alternativa más rápida: añadir `features_removed_es` con los nombres en español al arquetipo y comparar con `tData(a,'name')`.
-- **Arquetipos afectados conocidos**: monster_knight (elimina Convocar Monstruo, Vínculo Sensorial, Fusión de Formas, Convocación Gemela, etc.) y probablemente otros arquetipos "full replacement".
-- **Impacto**: las aptitudes eliminadas se muestran de más, el usuario las borra manualmente.
+_(ninguno pendiente)_
 
 ## BUGS ARREGLADOS
+
+### 2026-04-30 · BUG-C · features_removed del arquetipo ignoradas al auto-añadir aptitudes
+- **Fix**: `autoAddClassAbilities()` y `collectMissingForSync()` construyen ahora un Set `removedByArchetype` con los nombres EN (de `features_removed`) y ES (de `features_removed_es`) de todos los arquetipos activos. Las SA de clase base se descartan si su `name_en` o `name` coincide en ese Set (comparación lowercase).
+- Los arquetipos que solo tienen `features_removed` en inglés funcionan correctamente porque la comparación cubre `a.name_en`. Si en el futuro se añade `features_removed_es` a algún arquetipo, también se respeta.
 
 ### 2026-04-27 · Ronda Android + reglas
 - **A-1 · Foto en Android pedía cargar personaje**
