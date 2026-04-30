@@ -4472,6 +4472,91 @@ html[data-cyber="on"] .cy-sound-fab {
   background: #00f0ff;
 }
 
+/* ── SYNC SHEET MODAL ─────────────────────────────────── */
+.sync-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0.55);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.sync-modal {
+  width: 100%; max-width: 640px; max-height: 90vh;
+  display: flex; flex-direction: column;
+  background: var(--parchment);
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  overflow: hidden;
+}
+.sync-modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--leather); color: var(--on-dark);
+  padding: 8px 12px; font-family: var(--ff-head); font-size: 13px;
+  letter-spacing: .05em;
+}
+.sync-modal-body {
+  padding: 12px; overflow-y: auto; flex: 1 1 auto;
+  color: var(--ink); font-size: 12px;
+}
+.sync-intro {
+  margin: 0 0 10px; font-size: 11px;
+  color: var(--leather-dk); line-height: 1.4;
+}
+.sync-section { margin-bottom: 12px; }
+.sync-section-header {
+  font-family: var(--ff-head);
+  font-size: 12px; letter-spacing: .04em;
+  color: var(--leather-dk);
+  border-bottom: 1px solid var(--gold);
+  padding: 4px 0; margin-bottom: 6px;
+}
+.sync-count {
+  font-family: var(--ff-body);
+  color: var(--leather-lt); font-weight: normal; font-size: 11px;
+}
+.sync-row {
+  display: flex; gap: 8px; align-items: flex-start;
+  padding: 6px 4px;
+  border-bottom: 1px dashed var(--leather-lt);
+  cursor: pointer;
+}
+.sync-row:hover { background: rgba(200,160,60,0.06); }
+.sync-row input[type="checkbox"] {
+  margin-top: 3px; flex: 0 0 auto;
+  width: 16px; height: 16px; cursor: pointer;
+}
+.sync-row-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.sync-row-text strong { font-size: 12px; color: var(--ink); }
+.sync-row-meta {
+  font-size: 10px; color: var(--leather-lt);
+  font-style: italic; font-weight: normal; margin-left: 4px;
+}
+.sync-row-desc {
+  font-size: 11px; color: var(--leather-dk); line-height: 1.35;
+}
+.sync-empty {
+  padding: 24px 12px; text-align: center;
+  font-style: italic; color: var(--leather-dk);
+}
+.sync-modal-footer {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px;
+  background: rgba(0,0,0,0.04);
+  border-top: 1px solid var(--gold);
+}
+.sync-toggle-all {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--leather-dk); cursor: pointer;
+}
+.sync-toggle-all input { width: 14px; height: 14px; cursor: pointer; }
+#sync-apply-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media screen and (max-width: 600px) {
+  .sync-overlay { padding: 8px; }
+  .sync-modal { max-height: 95vh; }
+  .sync-modal-body { padding: 10px; }
+}
+
 /* ============================================================
    RESPONSIVE MOBILE — fixes de overflow en viewports ≤ 600px
    Fix clave: overflow-x:hidden en todos los contenedores para

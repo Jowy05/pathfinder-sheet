@@ -107,6 +107,7 @@
 
       <div class="header-actions">
         <button class="btn-refresh" id="btn-refresh" onclick="recalc(); buildHPDiceIfChanged();" data-i18n-title="tt.refresh" title="Fuerza recálculo completo de todos los campos derivados" data-i18n="btn.refresh">Refrescar Ficha</button>
+        <button class="btn-refresh" id="btn-sync-sheet" type="button" onclick="openSyncSheet()" data-i18n-title="tt.syncSheet" title="Detecta y añade rasgos raciales y aptitudes de clase automáticas que no estén ya en la ficha (no toca lo que ya tienes)" data-i18n="btn.syncSheet">Sincronizar Ficha</button>
         <div class="header-search" id="header-search">
           <input type="search" id="global-search" autocomplete="off" spellcheck="false"
                  placeholder="🔎 Buscar (FUE / Strength / Iniciativa…)"
@@ -1511,7 +1512,17 @@ const I18N = {
     'ph.charName':'Nombre del personaje','ph.player':'Nombre del jugador','ph.race':'Raza','ph.deity':'Deidad','ph.alignment':'NG, LB…','ph.height':'1.75',
     'xp.slow':'Lenta','xp.medium':'Media','xp.fast':'Rápida','xp.max':'Nivel Máx',
     'btn.refresh':'Refrescar Ficha','btn.print':'Imprimir',
+    'btn.syncSheet':'Sincronizar Ficha',
     'tt.refresh':'Fuerza recálculo completo de todos los campos derivados','tt.print':'Imprimir la ficha',
+    'tt.syncSheet':'Detecta y añade rasgos raciales y aptitudes de clase automáticas que falten (no toca lo que ya tienes)',
+    'sync.title':'Sincronizar ficha',
+    'sync.intro':'Detecta lo que falta de raza y clases (a tu nivel actual) y te lo añade. No toca nada de lo que ya tengas puesto. Desmarca lo que no quieras añadir.',
+    'sync.toggleAll':'Marcar/desmarcar todo',
+    'sync.cancel':'Cancelar',
+    'sync.apply':'Aplicar selección',
+    'sync.section.race':'Rasgos Raciales',
+    'sync.section.class':'Clase',
+    'sync.nothingMissing':'No falta nada — la ficha ya está sincronizada con tu raza y niveles de clase.',
     'tt.lang':'Cambiar idioma / Change language',
     // Zone dividers
     'zone.play':'Durante el Juego','zone.play.sub':'Combate · Vida · Armas · Conjuros · Usos/Día',
@@ -1928,7 +1939,17 @@ const I18N = {
     'ph.charName':'Character name','ph.player':'Player name','ph.race':'Race','ph.deity':'Deity','ph.alignment':'NG, LG…','ph.height':'1.75',
     'xp.slow':'Slow','xp.medium':'Medium','xp.fast':'Fast','xp.max':'Max Lvl',
     'btn.refresh':'Refresh Sheet','btn.print':'Print',
+    'btn.syncSheet':'Sync Sheet',
     'tt.refresh':'Force full recalc of all derived fields','tt.print':'Print the sheet',
+    'tt.syncSheet':'Detect and add missing racial traits and auto class features (will not touch anything you already have)',
+    'sync.title':'Sync sheet',
+    'sync.intro':'Detects what is missing for your race and class levels and adds it. Will not touch anything already on the sheet. Uncheck items you do not want to add.',
+    'sync.toggleAll':'Toggle all',
+    'sync.cancel':'Cancel',
+    'sync.apply':'Apply selection',
+    'sync.section.race':'Racial Traits',
+    'sync.section.class':'Class',
+    'sync.nothingMissing':'Nothing missing — your sheet is already in sync with your race and class levels.',
     'tt.lang':'Cambiar idioma / Change language',
     'zone.play':'During Play','zone.play.sub':'Combat · HP · Weapons · Spells · Uses/Day',
     'zone.mgmt':'Character Management','zone.mgmt.sub':'Skills · Feats · Gear · Background',
@@ -8187,6 +8208,234 @@ function autoAddClassAbilities(classKey, fromLevel, toLevel) {
   });
 }
 
+/* ── SYNC SHEET ─────────────────────────────────────────── */
+/* Detects racial traits and class auto-features that should be on the
+   sheet (based on race + class levels) but aren't. Non-destructive:
+   only ADDS what's missing; never removes or overwrites user content. */
+
+function _syncEsc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/"/g,'&quot;')
+    .replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function collectMissingForSync() {
+  const out = { raceTraits: [], classGroups: [] };
+  const loc = LANG === 'en' ? 'en' : 'es';
+
+  // 1. Racial traits — match race input text against DB.races by name in either locale
+  const raceField = (document.getElementById('char-race')?.value || '').trim();
+  if (raceField && Array.isArray(DB.races) && DB.races.length) {
+    const lower = raceField.toLowerCase();
+    const race = DB.races.find(r =>
+      (r.name?.es && r.name.es.toLowerCase() === lower) ||
+      (r.name?.en && r.name.en.toLowerCase() === lower)
+    );
+    if (race && Array.isArray(race.traits)) {
+      const present = new Set(
+        [...document.querySelectorAll('.trait-name-inp')]
+          .map(el => (el.value || '').trim().toLowerCase())
+          .filter(Boolean)
+      );
+      race.traits.forEach((tr, i) => {
+        const nameEs = tr.name?.es || '';
+        const nameEn = tr.name?.en || nameEs;
+        const display = tr.name?.[loc] || nameEs;
+        const desc    = tr.description?.[loc] || tr.description?.es || '';
+        // Consider "present" if either ES or EN name already appears in the sheet
+        if (!display) return;
+        if ((nameEs && present.has(nameEs.toLowerCase())) ||
+            (nameEn && present.has(nameEn.toLowerCase())) ||
+            present.has(display.toLowerCase())) return;
+        out.raceTraits.push({
+          key: `race:${race.id}:${i}`,
+          name: display,
+          desc
+        });
+      });
+    }
+  }
+
+  // 2. Class auto-features — replicate filter logic from autoAddClassAbilities
+  const presentFeats = new Set(
+    [...document.querySelectorAll('.feature-name-input')]
+      .map(el => (el.value || '').trim().toLowerCase())
+      .filter(Boolean)
+  );
+  const rows = (typeof getActiveClassRows === 'function') ? getActiveClassRows() : [];
+  rows.forEach(row => {
+    const classData = (DB.classes && DB.classes[row.classKey]) || null;
+    if (!classData) return;
+    const className   = classData.name;
+    const classNameEn = classData.name_en;
+    const classLabel  = (loc === 'en' ? classNameEn : className) || className || row.classKey;
+    const archetypeKey = row.archetypeKey || null;
+
+    // From special_abilities.json
+    const saAbils = (DB.special_abilities || []).filter(a => {
+      if (!(a.lvlunlock > 0 && a.lvlunlock <= row.level)) return false;
+      const classMatch = (classNameEn && a.class_en === classNameEn) ||
+                         (className   && a.class    === className);
+      if (!classMatch) return false;
+      if (a.archetype) return archetypeKey === a.archetype;
+      return true;
+    });
+
+    // From archetype features_gained (only when SA doesn't already cover)
+    const archetypesWithSA = new Set(saAbils.filter(a => a.archetype).map(a => a.archetype));
+    const archAbils = [];
+    if (archetypeKey && !archetypesWithSA.has(archetypeKey)) {
+      const arch = DB.archetypes?.[archetypeKey];
+      (arch?.features_gained || []).forEach(f => {
+        const flvl = f.level || 1;
+        if (flvl > 0 && flvl <= row.level) archAbils.push(f);
+      });
+    }
+
+    const items = [];
+    [...saAbils, ...archAbils].forEach(a => {
+      const name = tData(a, 'name');
+      if (!name) return;
+      if (presentFeats.has(name.toLowerCase())) return;
+      const desc = tData(a, 'description') || tData(a, 'description_es') || '';
+      items.push({
+        key: `cls:${row.idx}:${a.id || name}`,
+        name,
+        desc,
+        level: a.lvlunlock || a.level || 1,
+        _row: row,
+      });
+      // Mark as present so duplicates across SA + archetype merge don't repeat
+      presentFeats.add(name.toLowerCase());
+    });
+
+    if (items.length) {
+      // Sort by level for readability
+      items.sort((a, b) => (a.level || 0) - (b.level || 0));
+      out.classGroups.push({
+        classKey: row.classKey,
+        classLabel,
+        level: row.level,
+        items,
+      });
+    }
+  });
+
+  return out;
+}
+
+let _syncBuffer = null; // last collected missing items, keyed by item.key
+
+function openSyncSheet() {
+  const overlay = document.getElementById('sync-sheet-overlay');
+  const content = document.getElementById('sync-modal-content');
+  if (!overlay || !content) return;
+  const data = collectMissingForSync();
+  _syncBuffer = new Map();
+
+  const loc = LANG === 'en' ? 'en' : 'es';
+  const lblTraits  = t('sync.section.race') || (loc==='en'?'Racial Traits':'Rasgos Raciales');
+  const lblClass   = t('sync.section.class') || (loc==='en'?'Class':'Clase');
+  const lblNothing = t('sync.nothingMissing') || (loc==='en'
+      ? 'Nothing missing — your sheet is already in sync with the rules for your race and class levels.'
+      : 'No falta nada — la ficha ya está sincronizada con tu raza y niveles de clase.');
+  const lblLevel   = loc==='en' ? 'Lv' : 'Niv';
+
+  const sections = [];
+  if (data.raceTraits.length) {
+    const rows = data.raceTraits.map(it => {
+      _syncBuffer.set(it.key, { kind: 'race', item: it });
+      return `<label class="sync-row">
+        <input type="checkbox" class="sync-cb" data-key="${_syncEsc(it.key)}" checked>
+        <div class="sync-row-text">
+          <strong>${_syncEsc(it.name)}</strong>
+          <span class="sync-row-desc">${_syncEsc(it.desc).slice(0, 220)}${it.desc.length>220?'…':''}</span>
+        </div>
+      </label>`;
+    }).join('');
+    sections.push(`<div class="sync-section">
+      <div class="sync-section-header">${_syncEsc(lblTraits)} <span class="sync-count">(${data.raceTraits.length})</span></div>
+      ${rows}
+    </div>`);
+  }
+
+  data.classGroups.forEach(g => {
+    const rows = g.items.map(it => {
+      _syncBuffer.set(it.key, { kind: 'class', item: it });
+      return `<label class="sync-row">
+        <input type="checkbox" class="sync-cb" data-key="${_syncEsc(it.key)}" checked>
+        <div class="sync-row-text">
+          <strong>${_syncEsc(it.name)}</strong> <span class="sync-row-meta">${_syncEsc(lblLevel)} ${it.level}</span>
+          <span class="sync-row-desc">${_syncEsc(it.desc).slice(0, 220)}${it.desc.length>220?'…':''}</span>
+        </div>
+      </label>`;
+    }).join('');
+    sections.push(`<div class="sync-section">
+      <div class="sync-section-header">${_syncEsc(lblClass)}: ${_syncEsc(g.classLabel)} <span class="sync-count">(${g.items.length})</span></div>
+      ${rows}
+    </div>`);
+  });
+
+  if (!sections.length) {
+    content.innerHTML = `<div class="sync-empty">${_syncEsc(lblNothing)}</div>`;
+    document.getElementById('sync-apply-btn').disabled = true;
+  } else {
+    content.innerHTML = sections.join('');
+    document.getElementById('sync-apply-btn').disabled = false;
+  }
+  const tg = document.getElementById('sync-toggle-all');
+  if (tg) tg.checked = sections.length > 0;
+  overlay.style.display = 'flex';
+}
+
+function closeSyncSheet() {
+  const overlay = document.getElementById('sync-sheet-overlay');
+  if (overlay) overlay.style.display = 'none';
+  _syncBuffer = null;
+}
+
+function _syncToggleAll(checked) {
+  document.querySelectorAll('#sync-modal-content .sync-cb').forEach(cb => { cb.checked = !!checked; });
+}
+
+function applySyncSelection() {
+  if (!_syncBuffer || !_syncBuffer.size) { closeSyncSheet(); return; }
+  const checked = [...document.querySelectorAll('#sync-modal-content .sync-cb:checked')];
+  if (!checked.length) { closeSyncSheet(); return; }
+
+  const mods = (typeof getCharMods === 'function') ? getCharMods() : {};
+  let addedRace = 0, addedFeats = 0;
+
+  checked.forEach(cb => {
+    const entry = _syncBuffer.get(cb.dataset.key);
+    if (!entry) return;
+    if (entry.kind === 'race') {
+      if (typeof addRacialTraitCard === 'function') {
+        addRacialTraitCard(entry.item.name, entry.item.desc);
+        addedRace++;
+      }
+    } else if (entry.kind === 'class') {
+      const it = entry.item;
+      const lvl = (it._row && it._row.level) || it.level || 0;
+      const uses = (typeof parseUsesFromDesc === 'function')
+        ? parseUsesFromDesc(it.desc, lvl, mods) : 0;
+      if (typeof addFeature === 'function') {
+        addFeature(it.name, it.desc, uses, 0);
+        addedFeats++;
+      }
+    }
+  });
+
+  if (typeof recalc === 'function') recalc();
+  closeSyncSheet();
+
+  const loc = LANG === 'en' ? 'en' : 'es';
+  const msg = (loc === 'en')
+    ? `Sync done — added ${addedRace} racial trait(s) and ${addedFeats} class feature(s).`
+    : `Sincronización aplicada — añadidos ${addedRace} rasgo(s) racial(es) y ${addedFeats} aptitud(es) de clase.`;
+  alert(msg);
+}
+
 function populateAbilitySelect(abilities) {
   const sel = document.getElementById('feature-ability-select');
   sel.innerHTML = '';
@@ -10898,5 +11147,26 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
+
+<!-- ── SYNC SHEET MODAL ─────────────────────────────────── -->
+<div id="sync-sheet-overlay" class="sync-overlay" style="display:none;" onclick="if(event.target===this)closeSyncSheet()">
+  <div class="sync-modal" role="dialog" aria-labelledby="sync-modal-title" aria-modal="true">
+    <div class="sync-modal-header">
+      <span id="sync-modal-title" data-i18n="sync.title">Sincronizar ficha</span>
+      <button class="feature-picker-close" type="button" onclick="closeSyncSheet()" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="sync-modal-body">
+      <p class="sync-intro" data-i18n="sync.intro">Detecta lo que falta de raza y clases (a tu nivel actual) y te lo añade. No toca nada de lo que ya tengas puesto. Desmarca lo que no quieras añadir.</p>
+      <div id="sync-modal-content"></div>
+    </div>
+    <div class="sync-modal-footer">
+      <label class="sync-toggle-all"><input type="checkbox" id="sync-toggle-all" checked onchange="_syncToggleAll(this.checked)"> <span data-i18n="sync.toggleAll">Marcar/desmarcar todo</span></label>
+      <span style="flex:1"></span>
+      <button type="button" class="btn-add" onclick="closeSyncSheet()" data-i18n="sync.cancel" style="background:none;border:1px solid var(--leather-lt);color:var(--leather-dk);">Cancelar</button>
+      <button type="button" class="btn-add" id="sync-apply-btn" onclick="applySyncSelection()" data-i18n="sync.apply">Aplicar selección</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
