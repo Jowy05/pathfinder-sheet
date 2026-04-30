@@ -1812,14 +1812,14 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
         </div>
       </div>
       <div class="stat-grid">
-        <div class="stat-tile accent"><div class="stat-tile-label">CA Total</div><div class="stat-tile-value">18</div></div>
-        <div class="stat-tile"><div class="stat-tile-label">Iniciativa</div><div class="stat-tile-value">+2</div></div>
-        <div class="stat-tile"><div class="stat-tile-label">CMD</div><div class="stat-tile-value">18</div></div>
+        <div class="stat-tile accent"><div class="stat-tile-label">CA Total</div><div class="stat-tile-value" id="m-ca-total-r">18</div></div>
+        <div class="stat-tile"><div class="stat-tile-label">Iniciativa</div><div class="stat-tile-value" id="m-init-r">+2</div></div>
+        <div class="stat-tile"><div class="stat-tile-label">CMD</div><div class="stat-tile-value" id="m-cmd-r">18</div></div>
       </div>
       <div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
-        <div class="stat-tile"><div class="stat-tile-label">Fort</div><div class="stat-tile-value" style="font-size:22px">+5</div></div>
-        <div class="stat-tile"><div class="stat-tile-label">Refl</div><div class="stat-tile-value" style="font-size:22px">+3</div></div>
-        <div class="stat-tile"><div class="stat-tile-label">Vol</div><div class="stat-tile-value" style="font-size:22px">+2</div></div>
+        <div class="stat-tile"><div class="stat-tile-label">Fort</div><div class="stat-tile-value" id="m-save-fort-r" style="font-size:22px">+5</div></div>
+        <div class="stat-tile"><div class="stat-tile-label">Refl</div><div class="stat-tile-value" id="m-save-ref-r" style="font-size:22px">+3</div></div>
+        <div class="stat-tile"><div class="stat-tile-label">Vol</div><div class="stat-tile-value" id="m-save-will-r" style="font-size:22px">+2</div></div>
       </div>
       <div class="card">
         <h3 class="card-title"><span class="ornament">✦</span><span>Condiciones activas</span><span class="ornament">✦</span></h3>
@@ -1830,20 +1830,20 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
 
     <div class="sub-page" data-sub="defensa" hidden>
       <div class="stat-grid">
-        <div class="stat-tile accent"><div class="stat-tile-label" data-i18n="lblCATotal">CA Total</div><div class="stat-tile-value">18</div></div>
-        <div class="stat-tile"><div class="stat-tile-label" data-i18n="lblCAToque">CA Toque</div><div class="stat-tile-value">12</div></div>
-        <div class="stat-tile"><div class="stat-tile-label" data-i18n="lblCADesp">Desprev.</div><div class="stat-tile-value">16</div></div>
+        <div class="stat-tile accent"><div class="stat-tile-label" data-i18n="lblCATotal">CA Total</div><div class="stat-tile-value" id="m-ca-total">18</div></div>
+        <div class="stat-tile"><div class="stat-tile-label" data-i18n="lblCAToque">CA Toque</div><div class="stat-tile-value" id="m-ca-touch">12</div></div>
+        <div class="stat-tile"><div class="stat-tile-label" data-i18n="lblCADesp">Desprev.</div><div class="stat-tile-value" id="m-ca-flat">16</div></div>
       </div>
       <div class="card">
         <h3 class="card-title"><span class="ornament">✦</span><span data-i18n="cardCAComp">Componentes de CA</span><span class="ornament">✦</span></h3>
-        <div class="ca-rows">
-          <div class="ca-row"><label data-i18n="lblArmadura">Armadura</label><input type="number" value="5"></div>
-          <div class="ca-row"><label data-i18n="lblEscudo">Escudo</label><input type="number" value="1"></div>
-          <div class="ca-row"><label data-i18n="lblDestreza">Destreza</label><input type="number" value="2"></div>
-          <div class="ca-row"><label data-i18n="lblTamanoCA">Tamaño</label><input type="number" value="0"></div>
-          <div class="ca-row"><label>Armadura Natural</label><input type="number" value="0"></div>
-          <div class="ca-row"><label>Bono Desvío</label><input type="number" value="0"></div>
-          <div class="ca-row"><label>Bono Esquiva</label><input type="number" value="0"></div>
+        <div class="ca-rows" id="m-ca-rows">
+          <div class="ca-row"><label data-i18n="lblArmadura">Armadura</label><input type="number" value="5" data-ca="armor"></div>
+          <div class="ca-row"><label data-i18n="lblEscudo">Escudo</label><input type="number" value="1" data-ca="shield"></div>
+          <div class="ca-row"><label data-i18n="lblDestreza">Destreza</label><input type="number" value="2" data-ca="dex"></div>
+          <div class="ca-row"><label data-i18n="lblTamanoCA">Tamaño</label><input type="number" value="0" data-ca="size"></div>
+          <div class="ca-row"><label>Armadura Natural</label><input type="number" value="0" data-ca="nat"></div>
+          <div class="ca-row"><label>Bono Desvío</label><input type="number" value="0" data-ca="deflect"></div>
+          <div class="ca-row"><label>Bono Esquiva</label><input type="number" value="0" data-ca="dodge"></div>
         </div>
       </div>
 
@@ -1871,11 +1871,11 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
       <div class="card">
         <h3 class="card-title"><span class="ornament">✦</span><span>Detalles de PG</span><span class="ornament">✦</span></h3>
         <div class="field-row">
-          <div class="field"><label class="field-label">Buff HP</label><input class="field-input" inputmode="numeric" pattern="-?[0-9]*" type="number" value="0"></div>
+          <div class="field"><label class="field-label">Buff HP</label><input class="field-input" inputmode="numeric" pattern="-?[0-9]*" type="number" value="0" id="pg-buff"></div>
           <div class="field"><label class="field-label">PG temporales</label><input class="field-input" inputmode="numeric" pattern="-?[0-9]*" type="number" value="0" id="pg-temp"></div>
         </div>
         <div class="field-row">
-          <div class="field"><label class="field-label">PG misc/nivel</label><input class="field-input" inputmode="numeric" pattern="-?[0-9]*" type="number" value="0"></div>
+          <div class="field"><label class="field-label">PG misc/nivel</label><input class="field-input" inputmode="numeric" pattern="-?[0-9]*" type="number" value="0" id="pg-misc-lvl"></div>
           <div class="field"><label class="field-label">PG no letales</label><input class="field-input" inputmode="numeric" pattern="-?[0-9]*" type="number" value="0" id="pg-nonlethal"></div>
         </div>
         <div class="field"><label class="field-label">Reducción de daño</label><input class="field-input" value="—"></div>
@@ -1925,22 +1925,22 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
       <div class="init-row">
         <div>
           <div class="l" data-i18n="lblIniciativa">Iniciativa</div>
-          <div class="v">+2</div>
+          <div class="v" id="m-init-val">+2</div>
         </div>
-        <button class="btn-roll" data-roll="1d20+2" data-i18n="btnTirar">Tirar</button>
+        <button class="btn-roll" id="m-init-roll" data-roll="1d20+2" data-i18n="btnTirar">Tirar</button>
       </div>
 
       <div class="card">
         <h3 class="card-title"><span class="ornament">✦</span><span data-i18n="cardManiobras">Maniobras</span><span class="ornament">✦</span></h3>
         <div class="stat-grid" style="margin:0">
-          <div class="stat-tile"><div class="stat-tile-label">BAB</div><div class="stat-tile-value">+3</div></div>
-          <div class="stat-tile accent"><div class="stat-tile-label">CMB</div><div class="stat-tile-value">+6</div></div>
-          <div class="stat-tile"><div class="stat-tile-label">CMD</div><div class="stat-tile-value">18</div></div>
+          <div class="stat-tile"><div class="stat-tile-label">BAB</div><div class="stat-tile-value" id="m-bab">+3</div></div>
+          <div class="stat-tile accent"><div class="stat-tile-label">CMB</div><div class="stat-tile-value" id="m-cmb">+6</div></div>
+          <div class="stat-tile"><div class="stat-tile-label">CMD</div><div class="stat-tile-value" id="m-cmd">18</div></div>
         </div>
         <div class="field-row" style="margin-top:12px">
-          <div class="field"><label class="field-label">Base CaC</label><input class="field-input" value="+6" readonly></div>
-          <div class="field"><label class="field-label">Base Dist.</label><input class="field-input" value="+5" readonly></div>
-          <div class="field"><label class="field-label">Iniciativa misc</label><input class="field-input" type="number" value="0"></div>
+          <div class="field"><label class="field-label">Base CaC</label><input class="field-input" id="m-atk-melee" value="+6" readonly></div>
+          <div class="field"><label class="field-label">Base Dist.</label><input class="field-input" id="m-atk-ranged" value="+5" readonly></div>
+          <div class="field"><label class="field-label">Iniciativa misc</label><input class="field-input" id="m-init-misc" type="number" value="0"></div>
         </div>
       </div>
 
@@ -1979,7 +1979,7 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
     </div>
 
     <div class="sub-page" data-sub="salvaciones" hidden>
-      <div class="save-row">
+      <div class="save-row" data-save="fort">
         <div>
           <div class="name" data-i18n="saveFort">Fortaleza</div>
           <div class="desc" data-i18n="saveFortDesc">Veneno, enfermedad, agotamiento</div>
@@ -1987,7 +1987,7 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
         <div class="total">+5</div>
         <div class="breakdown">Base 3 · Atributo +2 · Objeto 0 · Misc 0</div>
       </div>
-      <div class="save-row">
+      <div class="save-row" data-save="ref">
         <div>
           <div class="name" data-i18n="saveRef">Reflejos</div>
           <div class="desc" data-i18n="saveRefDesc">Esquivar, áreas, trampas</div>
@@ -1995,7 +1995,7 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
         <div class="total">+3</div>
         <div class="breakdown">Base 1 · Atributo +2 · Objeto 0 · Misc 0</div>
       </div>
-      <div class="save-row">
+      <div class="save-row" data-save="will">
         <div>
           <div class="name" data-i18n="saveWill">Voluntad</div>
           <div class="desc" data-i18n="saveWillDesc">Mente, encantamiento, miedo</div>
@@ -4728,6 +4728,7 @@ function init(){
   try{ bindAgeCat(); }catch(e){console.error(e)}
   try{ rebindRolls(); }catch(e){console.error(e)}
   try{ refreshHP(); }catch(e){console.error(e)}
+  try{ CombatEngine.apply(); }catch(e){console.error(e)}
   let initLang = 'es';
   try{ const l = localStorage.getItem('ficha-lang'); if(l==='es'||l==='en') initLang=l; }catch(e){}
   if(initLang!=='es') applyLang(initLang);
@@ -4793,6 +4794,287 @@ document.querySelectorAll('[data-avatar-action]').forEach(b=>{
 });
 
 init();
+
+/* ─────────────────────────────────────────────────────────────── */
+/* ─── DOMINIO 2 · COMBATE ─── */
+const CombatEngine = (function(){
+  // Tablas
+  const SIZE_AC = { fine:8, diminutive:4, tiny:2, small:1, medium:0, large:-1, huge:-2, gargantuan:-4, colossal:-8 };
+  const SIZE_CMB= { fine:-8, diminutive:-4, tiny:-2, small:-1, medium:0, large:1, huge:2, gargantuan:4, colossal:8 };
+  // BAB progressions y patrones de salvación por nombre canónico (ES/EN)
+  const FULL = new Set(['Guerrero','Bárbaro','Paladín','Ranger','Explorador','Cavalier','Samurai','Inquisidor']);
+  const THREEQ = new Set(['Bardo','Clérigo','Druida','Monje','Pícaro','Brujo','Pistolero']);
+  const HALF = new Set(['Mago','Hechicero','Witch','Sorcerer']);
+  // Patrón de salvaciones [Fort, Ref, Will] como 'g' | 'b'
+  const SAVE_PATTERN = {
+    'Bárbaro':['g','b','b'], 'Guerrero':['g','b','b'], 'Paladín':['g','g','b'],
+    'Explorador':['g','g','b'], 'Ranger':['g','g','b'], 'Cavalier':['g','g','b'],
+    'Samurai':['g','b','b'], 'Monje':['g','g','g'], 'Brujo':['b','g','g'],
+    'Bardo':['b','g','g'], 'Pícaro':['b','g','b'], 'Clérigo':['g','b','g'],
+    'Druida':['g','b','g'], 'Inquisidor':['g','g','b'], 'Hechicero':['b','b','g'],
+    'Mago':['b','b','g'], 'Witch':['b','b','g'], 'Pistolero':['b','g','b']
+  };
+  function dieMaxFromHd(hd){
+    const m = String(hd||'').match(/d(\d+)/i);
+    return m ? parseInt(m[1],10) : 8;
+  }
+  function avgDie(d){ return d/2 + 0.5; }
+  function babFor(name, lvl){
+    if(FULL.has(name))   return lvl;
+    if(THREEQ.has(name)) return Math.floor(lvl*3/4);
+    if(HALF.has(name))   return Math.floor(lvl/2);
+    return Math.floor(lvl*3/4);
+  }
+  function baseSave(pat, lvl){
+    return pat==='g' ? 2 + Math.floor(lvl/2) : Math.floor(lvl/3);
+  }
+  function sign(n){ return n>=0 ? '+'+n : ''+n; }
+
+  const _modCache = {};
+  function getMods(){
+    const map = {FUE:'str',DES:'dex',CON:'con',INT:'int',SAB:'wis',CAR:'cha'};
+    const out = {str:0,dex:0,con:0,int:0,wis:0,cha:0};
+    try{
+      (typeof ATTRS!=='undefined'?ATTRS:[]).forEach(([k,_n,_t,m])=>{
+        const key = map[k]; if(key) out[key] = m|0;
+      });
+    }catch(e){}
+    Object.keys(_modCache).forEach(k=>{ if(k in out) out[k] = _modCache[k]|0; });
+    return out;
+  }
+
+  function calcHPMax(mods){
+    let total = 0, totalLvl = 0;
+    try{
+      (CLASSES_DATA||[]).forEach(cl=>{
+        const lvl = parseInt(cl.level,10) || 0;
+        totalLvl += lvl;
+        const userHP = parseInt(cl.hp,10);
+        if(!isNaN(userHP) && userHP > 0 && cl._auto !== true){
+          total += userHP;
+          return;
+        }
+        const die = dieMaxFromHd(cl.hd);
+        const con = mods.con|0;
+        const fromDice = die + Math.max(0, lvl-1) * avgDie(die);
+        const fromCon  = con * lvl;
+        total += Math.max(lvl, Math.round(fromDice + fromCon));
+      });
+    }catch(e){}
+    const buff = parseInt((document.getElementById('pg-buff')||{}).value,10)||0;
+    const miscPerLvl = parseInt((document.getElementById('pg-misc-lvl')||{}).value,10)||0;
+    return total + buff + miscPerLvl * totalLvl;
+  }
+
+  function calcBAB(){
+    let bab = 0;
+    try{
+      (CLASSES_DATA||[]).forEach(cl=>{
+        const lvl = parseInt(cl.level,10) || 0;
+        bab += babFor(cl.name, lvl);
+      });
+    }catch(e){}
+    return bab;
+  }
+
+  function calcSaves(mods){
+    let f=0,r=0,w=0;
+    try{
+      (CLASSES_DATA||[]).forEach(cl=>{
+        const lvl = parseInt(cl.level,10)||0;
+        const pat = SAVE_PATTERN[cl.name] || ['b','b','b'];
+        f += baseSave(pat[0], lvl);
+        r += baseSave(pat[1], lvl);
+        w += baseSave(pat[2], lvl);
+      });
+    }catch(e){}
+    return {
+      fort:{base:f, attr:mods.con|0, total:f+(mods.con|0)},
+      ref :{base:r, attr:mods.dex|0, total:r+(mods.dex|0)},
+      will:{base:w, attr:mods.wis|0, total:w+(mods.wis|0)}
+    };
+  }
+
+  function readCARow(name){
+    const el = document.querySelector(`#m-ca-rows input[data-ca="${name}"]`);
+    return el ? (parseInt(el.value,10)||0) : 0;
+  }
+  function calcAC(mods){
+    const armor   = readCARow('armor');
+    const shield  = readCARow('shield');
+    const dex     = readCARow('dex');
+    const size    = readCARow('size');
+    const nat     = readCARow('nat');
+    const deflect = readCARow('deflect');
+    const dodge   = readCARow('dodge');
+    let effDex = dex;
+    const maxDexAttr = document.body.dataset.armorMaxDex;
+    if(maxDexAttr !== undefined && maxDexAttr !== ''){
+      const md = parseInt(maxDexAttr,10);
+      if(!isNaN(md)) effDex = Math.min(effDex, md);
+    }
+    const total = 10 + armor + shield + effDex + size + nat + deflect + dodge;
+    const touch = 10 + effDex + size + deflect + dodge;
+    const flat  = 10 + armor + shield + size + nat + deflect;
+    return {total, touch, flat};
+  }
+
+  function calcCMBCMD(mods, bab){
+    const sizeKey = (document.getElementById('m-size')||{}).value || 'medium';
+    const sCMB = SIZE_CMB[sizeKey] || 0;
+    const cmb = bab + (mods.str|0) + sCMB;
+    const cmd = 10 + bab + (mods.str|0) + (mods.dex|0) + sCMB;
+    return {cmb, cmd};
+  }
+  function hasFeatByName(re){
+    try{ return (FEATS||[]).some(f=>re.test(f.n||'')); }catch(e){ return false; }
+  }
+  function calcInit(mods){
+    const misc = parseInt((document.getElementById('m-init-misc')||{}).value,10)||0;
+    const improved = hasFeatByName(/iniciativa\s+mejorada|improved\s+initiative/i) ? 4 : 0;
+    return (mods.dex|0) + misc + improved;
+  }
+
+  function calcConditionsAuto(){
+    try{
+      const mods = getMods();
+      const cur  = (typeof hp !== 'undefined') ? hp : 0;
+      const max  = (typeof HP_MAX !== 'undefined') ? HP_MAX : 0;
+      const nl   = (typeof hpNonlethal !== 'undefined') ? hpNonlethal : 0;
+      const setAuto = (name, on)=>{
+        window.__autoConds = window.__autoConds || new Set();
+        if(on) window.__autoConds.add(name); else window.__autoConds.delete(name);
+      };
+      const dying = cur < -(mods.con|0);
+      const unconscious = cur <= 0;
+      const knockedNonlethal = (cur === 0) || (nl >= max && max > 0);
+      setAuto('Muriendo', dying);
+      setAuto('Inconsciente', unconscious || knockedNonlethal);
+    }catch(e){}
+  }
+
+  function emit(field, value){
+    try{ window.dispatchEvent(new CustomEvent('combat-changed',{detail:{field, value}})); }catch(e){}
+  }
+  function setText(id, text){
+    const el = document.getElementById(id);
+    if(el) el.textContent = text;
+  }
+  function setInputVal(id, text){
+    const el = document.getElementById(id);
+    if(el) el.value = text;
+  }
+  function apply(){
+    const mods = getMods();
+    const bab  = calcBAB();
+    const ac   = calcAC(mods);
+    const sv   = calcSaves(mods);
+    const cm   = calcCMBCMD(mods, bab);
+    const init = calcInit(mods);
+
+    const hpMax = calcHPMax(mods);
+    if(typeof window !== 'undefined'){
+      try{
+        if(hpMax > 0 && typeof HP_MAX !== 'undefined' && HP_MAX !== hpMax){
+          window.__hpMaxCalc = hpMax;
+          emit('hp-max', hpMax);
+        }
+      }catch(e){}
+    }
+
+    setText('m-ca-total',    ac.total);
+    setText('m-ca-touch',    ac.touch);
+    setText('m-ca-flat',     ac.flat);
+    setText('m-ca-total-r',  ac.total);
+    setText('m-cmd-r',       cm.cmd);
+    emit('ac-total', ac.total); emit('ac-touch', ac.touch); emit('ac-flat', ac.flat);
+
+    setText('m-bab', sign(bab));
+    setText('m-cmb', sign(cm.cmb));
+    setText('m-cmd', cm.cmd);
+    setInputVal('m-atk-melee',  sign(bab + (mods.str|0)));
+    setInputVal('m-atk-ranged', sign(bab + (mods.dex|0)));
+    emit('bab', bab); emit('cmb', cm.cmb); emit('cmd', cm.cmd);
+
+    setText('m-init-val', sign(init));
+    setText('m-init-r',   sign(init));
+    const initBtn = document.getElementById('m-init-roll');
+    if(initBtn) initBtn.dataset.roll = '1d20' + sign(init);
+    emit('init', init);
+
+    setText('m-save-fort-r', sign(sv.fort.total));
+    setText('m-save-ref-r',  sign(sv.ref.total));
+    setText('m-save-will-r', sign(sv.will.total));
+    document.querySelectorAll('.save-row[data-save]').forEach(row=>{
+      const k = row.dataset.save;
+      const data = sv[k]; if(!data) return;
+      const tot = row.querySelector('.total');
+      const bk  = row.querySelector('.breakdown');
+      if(tot) tot.textContent = sign(data.total);
+      if(bk)  bk.textContent  = `Base ${data.base} · Atributo ${sign(data.attr)} · Objeto 0 · Misc 0`;
+    });
+    emit('save-fort', sv.fort.total);
+    emit('save-ref',  sv.ref.total);
+    emit('save-will', sv.will.total);
+
+    calcConditionsAuto();
+  }
+
+  // Listeners
+  window.addEventListener('attr-changed', ev=>{
+    try{
+      const map = {FUE:'str',DES:'dex',CON:'con',INT:'int',SAB:'wis',CAR:'cha',
+                   str:'str',dex:'dex',con:'con',int:'int',wis:'wis',cha:'cha'};
+      const k = ev.detail && ev.detail.abbr;
+      const key = k ? map[k] : null;
+      if(key && typeof ev.detail.mod === 'number') _modCache[key] = ev.detail.mod;
+    }catch(e){}
+    apply();
+  });
+  // attr-changed se dispara en document por el dominio 1, también lo escuchamos ahí
+  document.addEventListener('attr-changed', ev=>{
+    try{
+      const map = {FUE:'str',DES:'dex',CON:'con',INT:'int',SAB:'wis',CAR:'cha'};
+      const k = ev.detail && ev.detail.abbr;
+      const key = k ? map[k] : null;
+      if(key && typeof ev.detail.mod === 'number') _modCache[key] = ev.detail.mod;
+    }catch(e){}
+    apply();
+  });
+  window.addEventListener('class-changed',  ()=>apply());
+  window.addEventListener('armor-equipped', ev=>{
+    try{
+      const a = ev.detail && ev.detail.armor;
+      if(a && typeof a.maxDex === 'number') document.body.dataset.armorMaxDex = String(a.maxDex);
+    }catch(e){}
+    apply();
+  });
+  window.addEventListener('armor-removed',  ()=>{
+    try{ delete document.body.dataset.armorMaxDex; }catch(e){}
+    apply();
+  });
+
+  document.addEventListener('input', e=>{
+    const t = e.target;
+    if(!t) return;
+    if(t.matches && (t.matches('#m-ca-rows input[data-ca]')
+      || t.id === 'm-init-misc'
+      || t.id === 'pg-buff' || t.id === 'pg-misc-lvl'
+      || t.id === 'pg-temp' || t.id === 'pg-nonlethal')){
+      apply();
+    }
+  });
+
+  try{
+    if(typeof window.setHP === 'function'){
+      const _orig = window.setHP;
+      window.setHP = function(v){ _orig(v); calcConditionsAuto(); };
+    }
+  }catch(e){}
+
+  return { apply, calcHPMax, calcBAB, calcSaves, calcAC, calcCMBCMD, calcInit, calcConditionsAuto, getMods };
+})();
+/* ─── /DOMINIO 2 · COMBATE ─── */
 </script>
 </body>
 </html>
