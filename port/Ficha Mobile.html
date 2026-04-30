@@ -6466,6 +6466,463 @@ const CombatEngine = (function(){
   return { apply, calcHPMax, calcBAB, calcSaves, calcAC, calcCMBCMD, calcInit, calcConditionsAuto, getMods };
 })();
 /* ─── /DOMINIO 2 · COMBATE ─── */
+
+/* ─── DOMINIO 6 · DATOS Y PERSISTENCIA ─── */
+(function(){
+'use strict';
+
+window.RACES_DATA_FULL = [
+  {id:'humano',     name:{es:'Humano',en:'Human'},        size:'Mediano', speed:30, langs:['Común'], bonuses:'+2 a un atributo a elección', traits:['Dote extra a 1.º nivel','+1 punto de habilidad por nivel','Idioma extra a elegir']},
+  {id:'elfo',       name:{es:'Elfo',en:'Elf'},            size:'Mediano', speed:30, langs:['Común','Élfico'], bonuses:'+2 DES, +2 INT, −2 CON', traits:['Inmunidad sueño','+2 vs encantamientos','Visión en penumbra','+2 Percepción']},
+  {id:'enano',      name:{es:'Enano',en:'Dwarf'},         size:'Mediano', speed:20, langs:['Común','Enano'], bonuses:'+2 CON, +2 SAB, −2 CAR', traits:['Visión oscuridad 60 ft','+2 vs venenos','Dureza','Estabilidad +4 vs derribo']},
+  {id:'mediano',    name:{es:'Mediano',en:'Halfling'},    size:'Pequeño', speed:20, langs:['Común','Mediano'], bonuses:'+2 DES, +2 CAR, −2 FUE', traits:['Pequeño','+2 vs miedo','Suerte +1 a TS']},
+  {id:'gnomo',      name:{es:'Gnomo',en:'Gnome'},         size:'Pequeño', speed:20, langs:['Común','Gnomo','Silvano'], bonuses:'+2 CON, +2 CAR, −2 FUE', traits:['Pequeño','Magia menor a voluntad','Bajalumen']},
+  {id:'semielfo',   name:{es:'Semielfo',en:'Half-Elf'},   size:'Mediano', speed:30, langs:['Común','Élfico'], bonuses:'+2 a un atributo a elección', traits:['Inmunidad sueño','Doble herencia','Dote habilidad extra']},
+  {id:'semiorco',   name:{es:'Semiorco',en:'Half-Orc'},   size:'Mediano', speed:30, langs:['Común','Orco'], bonuses:'+2 a un atributo a elección', traits:['Visión oscuridad 60 ft','Intimidación +2','Ferocidad orca']},
+  {id:'aasimar',    name:{es:'Aasimar',en:'Aasimar'},     size:'Mediano', speed:30, langs:['Común','Celestial'], bonuses:'+2 SAB, +2 CAR', traits:['Resistencia ácido/frío/electricidad 5','Daylight 1/día']},
+  {id:'tiflin',     name:{es:'Tiflin',en:'Tiefling'},     size:'Mediano', speed:30, langs:['Común','Infernal'], bonuses:'+2 DES, +2 INT, −2 CAR', traits:['Resistencia frío/electricidad/fuego 5','Oscuridad 1/día']},
+  {id:'catfolk',    name:{es:'Catfolk',en:'Catfolk'},     size:'Mediano', speed:30, langs:['Común','Catfolk'], bonuses:'+2 DES, +2 CAR, −2 SAB', traits:['Caída felina','+2 Sigilo/Percepción']},
+];
+
+window.CLASSES_DATA_FULL = [
+  {id:'guerrero', name:{es:'Guerrero',en:'Fighter'},     hd:'d10', bab:'full',saves:['good','poor','poor'],skillPts:2,castingAttr:null,castingType:null},
+  {id:'barbaro',  name:{es:'Bárbaro',en:'Barbarian'},    hd:'d12', bab:'full',saves:['good','poor','poor'],skillPts:4,castingAttr:null,castingType:null},
+  {id:'paladin',  name:{es:'Paladín',en:'Paladin'},      hd:'d10', bab:'full',saves:['good','poor','good'],skillPts:2,castingAttr:'CAR',castingType:'prepared'},
+  {id:'explorador',name:{es:'Explorador',en:'Ranger'},   hd:'d10', bab:'full',saves:['good','good','poor'],skillPts:6,castingAttr:'SAB',castingType:'prepared'},
+  {id:'monje',    name:{es:'Monje',en:'Monk'},           hd:'d8',  bab:'3/4',saves:['good','good','good'],skillPts:4,castingAttr:null,castingType:null},
+  {id:'picaro',   name:{es:'Pícaro',en:'Rogue'},         hd:'d8',  bab:'3/4',saves:['poor','good','poor'],skillPts:8,castingAttr:null,castingType:null},
+  {id:'inquisidor',name:{es:'Inquisidor',en:'Inquisitor'},hd:'d8', bab:'3/4',saves:['good','poor','good'],skillPts:6,castingAttr:'SAB',castingType:'spontaneous'},
+  {id:'bardo',    name:{es:'Bardo',en:'Bard'},           hd:'d8',  bab:'3/4',saves:['poor','good','good'],skillPts:6,castingAttr:'CAR',castingType:'spontaneous'},
+  {id:'clerigo',  name:{es:'Clérigo',en:'Cleric'},       hd:'d8',  bab:'3/4',saves:['good','poor','good'],skillPts:2,castingAttr:'SAB',castingType:'prepared'},
+  {id:'druida',   name:{es:'Druida',en:'Druid'},         hd:'d8',  bab:'3/4',saves:['good','poor','good'],skillPts:4,castingAttr:'SAB',castingType:'prepared'},
+  {id:'mago',     name:{es:'Mago',en:'Wizard'},          hd:'d6',  bab:'1/2',saves:['poor','poor','good'],skillPts:2,castingAttr:'INT',castingType:'prepared'},
+  {id:'hechicero',name:{es:'Hechicero',en:'Sorcerer'},   hd:'d6',  bab:'1/2',saves:['poor','poor','good'],skillPts:2,castingAttr:'CAR',castingType:'spontaneous'},
+  {id:'oraculo',  name:{es:'Oráculo',en:'Oracle'},       hd:'d8',  bab:'3/4',saves:['poor','poor','good'],skillPts:4,castingAttr:'CAR',castingType:'spontaneous'},
+  {id:'witch',    name:{es:'Brujo',en:'Witch'},          hd:'d6',  bab:'1/2',saves:['poor','poor','good'],skillPts:2,castingAttr:'INT',castingType:'prepared'},
+];
+
+window.LANGUAGES = {
+  estandar:['Común','Élfico','Enano','Gnomo','Mediano','Orco','Trasgo','Celestial','Infernal','Abisal','Dracónico'],
+  exoticos:['Acuán','Auran','Ignan','Terran','Silvano','Druídico','Subcomún','Necril','Tien','Varisiano','Osiriano','Hallit','Skald','Kelish','Vudrani','Shoanti','Tengu']
+};
+
+const STATE_KEY = 'ficha-mobile-state-v1';
+const STATE_VERSION = 1;
+const SAVE_DEBOUNCE_MS = 800;
+
+function blankState(){
+  return {
+    v: STATE_VERSION,
+    identity: {nombre:'', jugador:'', raza:'Humano', clase:'Guerrero', nivel:3, deidad:'', alineamiento:'NN', edad:'', altura:'', peso:'', tamano:'Mediano', historia:'', personalidad:'', ideales:''},
+    attrs: {}, classes: [], skills: {}, feats: [],
+    weapons: [], armor: [], items: [], conds: [], buffs: [], adjusts: [],
+    notes: '', photo: null,
+    settings: { fontSize:'normal', daltonico:false },
+    theme: null, lang: null, extra: {}
+  };
+}
+window.STATE = blankState();
+
+function collectIdentity(){
+  const $=id=>document.getElementById(id);
+  const get=el=>el?el.value:'';
+  return {
+    nombre: get($('in-nombre'))||get($('in-name')),
+    jugador: get($('in-jugador')),
+    raza: get($('in-raza')),
+    deidad: get($('in-deidad')),
+    alineamiento: get($('al-r')),
+  };
+}
+function collectConds(){
+  return [...document.querySelectorAll('.cond-chip.active')].map(c=>c.dataset.cond);
+}
+function collectAttrsFromDom(){
+  const out = {};
+  document.querySelectorAll('.attr-card').forEach(card=>{
+    const ab = (card.querySelector('.attr-abbr')||{}).textContent || '';
+    if(!ab) return;
+    const ins = card.querySelectorAll('.mods-list input');
+    out[ab] = {
+      base: +(ins[0]?.value||0), racial:+(ins[1]?.value||0), mejora:+(ins[2]?.value||0),
+      inherente:+(ins[3]?.value||0), misc:+(ins[4]?.value||0), temp:+(ins[5]?.value||0),
+      dano:+(ins[6]?.value||0), drenaje:+(ins[7]?.value||0)
+    };
+  });
+  return out;
+}
+function snapshotState(){
+  const s = window.STATE;
+  s.v = STATE_VERSION;
+  s.identity = Object.assign(s.identity||{}, collectIdentity());
+  s.attrs = collectAttrsFromDom();
+  s.classes = (typeof CLASSES_DATA!=='undefined'? CLASSES_DATA: []).map(c=>({...c}));
+  s.feats = (typeof FEATS!=='undefined'?FEATS:[]).map(f=>({...f}));
+  s.weapons = (typeof WEAPONS_DATA!=='undefined'?WEAPONS_DATA:[]).map(w=>({...w}));
+  s.armor = (typeof ARMOR_DATA!=='undefined'?ARMOR_DATA:[]).map(a=>({...a}));
+  const skillObj = {};
+  document.querySelectorAll('.skill-row').forEach(r=>{
+    const n = r.querySelector('.skill-name')?.textContent||'';
+    const rk = +(r.querySelector('.skill-rank')?.value||0);
+    const cls = !!r.querySelector('.chip-class');
+    if(n) skillObj[n] = {rangos:rk, clase:cls};
+  });
+  s.skills = skillObj;
+  s.items = [...document.querySelectorAll('#inv-list li')].map(li=>li.firstChild?.textContent?.trim()||li.textContent.trim()).filter(Boolean);
+  s.conds = collectConds();
+  s.buffs = (typeof BUFFS_LIST!=='undefined'?BUFFS_LIST:[]).map(b=>({...b}));
+  s.adjusts = (typeof ADJUSTS_LIST!=='undefined'?ADJUSTS_LIST:[]).map(a=>({...a}));
+  s.notes = (document.getElementById('note-body')||{}).value || s.notes || '';
+  s.theme = document.documentElement.dataset.theme || null;
+  s.lang  = document.documentElement.dataset.lang || null;
+  return s;
+}
+
+function applyState(state){
+  if(!state) return;
+  const setVal = (id,v)=>{ const el=document.getElementById(id); if(el && v!=null) el.value = v; };
+  if(state.identity){
+    setVal('in-nombre', state.identity.nombre);
+    setVal('in-jugador', state.identity.jugador);
+    setVal('in-raza', state.identity.raza);
+    setVal('in-deidad', state.identity.deidad);
+    setVal('al-r', state.identity.alineamiento);
+  }
+  if(state.theme){ document.documentElement.dataset.theme = state.theme; try{applyDarkClass();}catch(e){} }
+  if(state.lang && typeof applyLang==='function'){ try{applyLang(state.lang);}catch(e){} }
+  try{
+    if(state.classes && typeof CLASSES_DATA!=='undefined'){ CLASSES_DATA.length=0; state.classes.forEach(c=>CLASSES_DATA.push(c)); if(typeof renderClasses==='function') renderClasses(); }
+    if(state.weapons && typeof WEAPONS_DATA!=='undefined'){ WEAPONS_DATA.length=0; state.weapons.forEach(w=>WEAPONS_DATA.push(w)); if(typeof renderWeapons==='function') renderWeapons(); }
+    if(state.armor   && typeof ARMOR_DATA!=='undefined'){ ARMOR_DATA.length=0;   state.armor.forEach(a=>ARMOR_DATA.push(a));   if(typeof renderArmor==='function') renderArmor(); }
+    if(state.feats   && typeof FEATS!=='undefined'){ FEATS.length=0;             state.feats.forEach(f=>FEATS.push(f));        if(typeof renderFeatsCrud==='function') renderFeatsCrud(); }
+    if(state.buffs   && typeof BUFFS_LIST!=='undefined'){ BUFFS_LIST.length=0;   state.buffs.forEach(b=>BUFFS_LIST.push(b));   if(typeof renderBuffs==='function') renderBuffs(); }
+    if(state.adjusts && typeof ADJUSTS_LIST!=='undefined'){ ADJUSTS_LIST.length=0; state.adjusts.forEach(a=>ADJUSTS_LIST.push(a)); if(typeof renderAdjusts==='function') renderAdjusts(); }
+  }catch(e){ console.warn('applyState datasets',e); }
+  if(state.skills){
+    document.querySelectorAll('.skill-row').forEach(r=>{
+      const n = r.querySelector('.skill-name')?.textContent;
+      if(n && state.skills[n]){
+        const inp = r.querySelector('.skill-rank');
+        if(inp) inp.value = state.skills[n].rangos||0;
+      }
+    });
+  }
+  if(state.attrs){
+    document.querySelectorAll('.attr-card').forEach(card=>{
+      const ab = (card.querySelector('.attr-abbr')||{}).textContent;
+      const a = state.attrs[ab];
+      if(!a) return;
+      const ins = card.querySelectorAll('.mods-list input');
+      const vals = [a.base,a.racial,a.mejora,a.inherente,a.misc,a.temp,a.dano,a.drenaje];
+      vals.forEach((v,i)=>{ if(ins[i]) ins[i].value = v||0; });
+    });
+  }
+  if(Array.isArray(state.conds)){
+    document.querySelectorAll('.cond-chip').forEach(c=>{
+      c.classList.toggle('active', state.conds.includes(c.dataset.cond));
+    });
+    try{ updateCondBadge(); updateSummaryConds(); }catch(e){}
+  }
+  if(state.notes!=null){ const nb=document.getElementById('note-body'); if(nb) nb.value=state.notes; }
+  if(state.photo) applyPhoto(state.photo);
+  if(state.settings){ window.STATE.settings = Object.assign(window.STATE.settings||{}, state.settings); }
+  window.STATE = Object.assign(window.STATE, state);
+  document.dispatchEvent(new CustomEvent('state-loaded',{detail:state}));
+}
+
+let __saveTimer = null;
+function saveStateDebounced(reason){
+  clearTimeout(__saveTimer);
+  __saveTimer = setTimeout(()=>{
+    try{
+      snapshotState();
+      localStorage.setItem(STATE_KEY, JSON.stringify(window.STATE));
+    }catch(e){ console.warn('saveState fail',e); }
+  }, SAVE_DEBOUNCE_MS);
+}
+window.saveStateDebounced = saveStateDebounced;
+
+function loadStoredState(){
+  try{
+    const raw = localStorage.getItem(STATE_KEY);
+    if(!raw) return null;
+    const obj = JSON.parse(raw);
+    return migrateState(obj);
+  }catch(e){ console.warn('loadState fail',e); return null; }
+}
+function migrateState(obj){
+  if(!obj) return null;
+  let v = obj.v|0;
+  if(!v) v = 0;
+  if(v===0){
+    obj = Object.assign(blankState(), {
+      identity: obj.identity || {},
+      attrs: obj.attrs || {},
+      classes: obj.classes || obj.CLASSES_DATA || [],
+      feats: obj.feats || obj.FEATS || [],
+      weapons: obj.weapons || obj.WEAPONS_DATA || [],
+      armor: obj.armor || obj.ARMOR_DATA || [],
+      skills: obj.skills || {},
+      items: obj.items || [],
+      conds: obj.conds || [],
+      buffs: obj.buffs || [],
+      adjusts: obj.adjusts || [],
+      notes: obj.notes || '',
+      photo: obj.photo || null,
+      settings: obj.settings || {},
+      theme: obj.theme || null,
+      lang: obj.lang || null,
+    });
+    obj.v = 1;
+  }
+  return obj;
+}
+
+function isAndroid(){
+  try{ return !!(window.AndroidBridge && AndroidBridge.isAndroid && AndroidBridge.isAndroid()); }catch(e){ return false; }
+}
+function suggestedFilename(){
+  const n = (window.STATE?.identity?.nombre || 'ficha').toString().trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'') || 'ficha';
+  return 'ficha-'+n+'.json';
+}
+function exportCharacter(){
+  try{
+    snapshotState();
+    const json = JSON.stringify(window.STATE, null, 2);
+    const fn = suggestedFilename();
+    if(isAndroid()){
+      try{ AndroidBridge.saveCharacter(json, fn); if(typeof toast==='function') toast(I18N_msg('exportOk')); return; }
+      catch(e){ console.warn('AndroidBridge.saveCharacter fail',e); }
+    }
+    const blob = new Blob([json], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fn;
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },200);
+    if(typeof toast==='function') toast(I18N_msg('exportOk'));
+  }catch(e){ console.warn(e); if(typeof toast==='function') toast(I18N_msg('exportFail')); }
+}
+function importCharacter(jsonStr){
+  try{
+    const obj = typeof jsonStr==='string'?JSON.parse(jsonStr):jsonStr;
+    const migrated = migrateState(obj);
+    if(!migrated){ if(typeof toast==='function') toast(I18N_msg('importFail')); return; }
+    applyState(migrated);
+    saveStateDebounced('imported');
+    if(typeof toast==='function') toast(I18N_msg('importOk'));
+  }catch(e){ console.warn(e); if(typeof toast==='function') toast(I18N_msg('importFail')); }
+}
+window.exportCharacter = exportCharacter;
+window.importCharacter = importCharacter;
+window.applyImportedData = importCharacter;
+
+function webImportPicker(){
+  const inp = document.createElement('input');
+  inp.type='file'; inp.accept='application/json,.json';
+  inp.addEventListener('change', e=>{
+    const f = e.target.files && e.target.files[0]; if(!f) return;
+    const r = new FileReader();
+    r.onload = ()=> importCharacter(String(r.result||''));
+    r.readAsText(f);
+  });
+  inp.click();
+}
+
+window._androidDeliverCharacter = function(){
+  try{
+    if(!isAndroid()) return;
+    const json = AndroidBridge.consumePendingJson && AndroidBridge.consumePendingJson();
+    if(json) importCharacter(json);
+  }catch(e){ console.warn(e); }
+};
+
+function printSheet(){
+  if(isAndroid()){
+    try{ AndroidBridge.printSheet(); return; }catch(e){}
+  }
+  try{ window.print(); }catch(e){}
+}
+window.printSheet = printSheet;
+
+function applyPhoto(dataUrl){
+  if(!dataUrl) return;
+  window.STATE.photo = dataUrl;
+  const av = document.getElementById('avatar');
+  if(av){
+    av.style.background = `center/cover no-repeat url('${dataUrl}')`;
+    av.textContent = '';
+  }
+  const av2 = document.querySelector('#sheet-identidad .avatar-id, #sheet-identidad [data-avatar-large]');
+  if(av2){ av2.style.background = `center/cover no-repeat url('${dataUrl}')`; av2.textContent=''; }
+  document.dispatchEvent(new CustomEvent('photo-changed',{detail:{dataUrl}}));
+  saveStateDebounced('photo');
+}
+function removePhoto(){
+  window.STATE.photo = null;
+  saveStateDebounced('photo-remove');
+}
+window.applyPhoto = applyPhoto;
+window.removePhoto = removePhoto;
+
+function bindPhotoButtons(){
+  document.querySelectorAll('[data-avatar-action="change"]').forEach(b=>{
+    b.addEventListener('click', ev=>{
+      ev.stopImmediatePropagation();
+      if(isAndroid()){
+        try{ AndroidBridge.pickPhoto(); return; }catch(e){}
+      }
+      const inp = document.createElement('input');
+      inp.type='file'; inp.accept='image/*';
+      inp.addEventListener('change', e=>{
+        const f = e.target.files && e.target.files[0]; if(!f) return;
+        const r = new FileReader();
+        r.onload = ()=> applyPhoto(String(r.result||''));
+        r.readAsDataURL(f);
+      });
+      inp.click();
+    }, true);
+  });
+  document.querySelectorAll('[data-avatar-action="remove"]').forEach(b=>{
+    b.addEventListener('click', ()=>{ removePhoto(); }, true);
+  });
+}
+
+function extendI18N(){
+  if(typeof I18N==='undefined') return;
+  const add = (lang,obj)=>{ I18N[lang] = Object.assign(I18N[lang]||{}, obj); };
+  add('es', {
+    sheetAjustes:'Ajustes', settingsClear:'Limpiar todos los datos',
+    settingsClearConfirm:'¿Borrar TODOS los datos guardados? Esta acción no se puede deshacer.',
+    settingsCleared:'Datos borrados',
+    exportOk:'Ficha exportada', exportFail:'Error al exportar',
+    importOk:'Ficha importada', importFail:'Error al importar JSON',
+    photoChanged:'Foto actualizada', photoRemoved:'Foto eliminada',
+    confirmTitleExport:'Exportar ficha (JSON)', confirmTitleImport:'Importar ficha', confirmTitlePrint:'Imprimir ficha',
+    btnExport:'Exportar', btnImport:'Importar', btnPrint:'Imprimir', btnConfirm:'Confirmar',
+  });
+  add('en', {
+    sheetAjustes:'Settings', settingsClear:'Clear all data',
+    settingsClearConfirm:'Erase ALL stored data? This cannot be undone.',
+    settingsCleared:'Data cleared',
+    exportOk:'Sheet exported', exportFail:'Export failed',
+    importOk:'Sheet imported', importFail:'Failed to import JSON',
+    photoChanged:'Photo updated', photoRemoved:'Photo removed',
+    confirmTitleExport:'Export sheet (JSON)', confirmTitleImport:'Import sheet', confirmTitlePrint:'Print sheet',
+    btnExport:'Export', btnImport:'Import', btnPrint:'Print', btnConfirm:'Confirm',
+  });
+}
+
+function I18N_msg(key){
+  const lang = document.documentElement.dataset.lang || 'es';
+  const dict = (typeof I18N!=='undefined' && I18N[lang]) || (typeof I18N!=='undefined' && I18N.es) || {};
+  const fallback = (typeof I18N!=='undefined' && I18N.es) || {};
+  return dict[key] || fallback[key] || key;
+}
+window.I18N_msg = I18N_msg;
+
+function applyI18NExtras(){
+  const lang = document.documentElement.dataset.lang || 'es';
+  if(typeof I18N==='undefined') return;
+  const dict = I18N[lang] || I18N.es || {};
+  const fb   = I18N.es || {};
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
+    const k = el.dataset.i18nPh; if(dict[k]||fb[k]) el.placeholder = dict[k]||fb[k];
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el=>{
+    const k = el.dataset.i18nTitle; if(dict[k]||fb[k]) el.title = dict[k]||fb[k];
+  });
+}
+
+function hookLanguage(){
+  if(typeof applyLang!=='function') return;
+  const orig = applyLang;
+  window.applyLang = function(lang){
+    orig(lang);
+    applyI18NExtras();
+    document.dispatchEvent(new CustomEvent('language-changed',{detail:{lang}}));
+    saveStateDebounced('lang');
+  };
+}
+
+function wireConfirmActions(){
+  const confirmGo = document.getElementById('confirm-go');
+  if(!confirmGo) return;
+  confirmGo.addEventListener('click', function(ev){
+    const action = confirmGo.dataset.action;
+    try{
+      if(action==='exportar'){ exportCharacter(); ev.stopImmediatePropagation(); }
+      else if(action==='importar'){
+        if(isAndroid()){
+          try{ AndroidBridge.showCharacterPicker && AndroidBridge.showCharacterPicker(); }catch(e){ webImportPicker(); }
+        } else { webImportPicker(); }
+        ev.stopImmediatePropagation();
+      }
+      else if(action==='imprimir'){ printSheet(); ev.stopImmediatePropagation(); }
+    }catch(e){ console.warn(e); }
+    try{ closeSheet(document.getElementById('sheet-confirm')); }catch(_){}
+  }, true);
+}
+function wireSettingsClear(){
+  const btn = document.querySelector('#sheet-settings [data-toast="datos-limpios"]');
+  if(!btn) return;
+  btn.addEventListener('click', function(ev){
+    ev.stopImmediatePropagation();
+    if(confirm(I18N_msg('settingsClearConfirm'))){
+      try{ localStorage.removeItem(STATE_KEY); }catch(e){}
+      try{ localStorage.removeItem('ficha-theme'); localStorage.removeItem('ficha-lang'); localStorage.removeItem('ficha-tab'); }catch(e){}
+      window.STATE = blankState();
+      if(typeof toast==='function') toast(I18N_msg('settingsCleared'));
+      setTimeout(()=>location.reload(), 600);
+    }
+  }, true);
+}
+
+function wireAutosave(){
+  document.addEventListener('input',  e=>{ if(e.target.matches('input,select,textarea')) saveStateDebounced('input'); }, true);
+  document.addEventListener('change', e=>{ if(e.target.matches('input,select,textarea')) saveStateDebounced('change'); }, true);
+  ['attr-changed','class-changed','armor-equipped','feat-changed','skill-changed',
+   'weapon-changed','item-changed','cond-changed','buff-changed','adjust-changed',
+   'notes-changed','photo-changed','language-changed','theme-changed'
+  ].forEach(ev=>document.addEventListener(ev, ()=>saveStateDebounced(ev)));
+  document.addEventListener('click', e=>{
+    if(e.target.closest && e.target.closest('.cond-chip')) saveStateDebounced('cond-click');
+  }, true);
+}
+
+function init6(){
+  extendI18N();
+  applyI18NExtras();
+  hookLanguage();
+  wireConfirmActions();
+  wireSettingsClear();
+  bindPhotoButtons();
+  wireAutosave();
+
+  const stored = loadStoredState();
+  if(stored){
+    try{ applyState(stored); }catch(e){ console.warn('apply stored state',e); }
+  } else {
+    document.dispatchEvent(new CustomEvent('state-loaded',{detail:window.STATE}));
+  }
+
+  try{ if(isAndroid()) window._androidDeliverCharacter(); }catch(e){}
+}
+
+window.Datos6 = {
+  init: init6, exportCharacter, importCharacter, applyState, snapshotState,
+  saveStateDebounced, loadStoredState, blankState, STATE_KEY, STATE_VERSION,
+  applyPhoto, removePhoto, printSheet, isAndroid, I18N_msg
+};
+
+if(document.readyState==='complete' || document.readyState==='interactive'){
+  setTimeout(init6, 0);
+} else {
+  document.addEventListener('DOMContentLoaded', init6);
+}
+
+})();
+/* ─── /DOMINIO 6 · DATOS Y PERSISTENCIA ─── */
 </script>
 </body>
 </html>
