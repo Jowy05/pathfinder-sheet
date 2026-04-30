@@ -331,7 +331,8 @@ body {
   text-shadow:0 1px 4px rgba(0,0,0,0.8), 0 0 20px rgba(200,160,60,0.3);
   text-transform:uppercase;
   margin-bottom:6px;
-  padding-right:80px; /* reserva espacio para btn-lang */
+  padding-left:80px;
+  padding-right:80px; /* reserva espacio para btn-lang; padding-left espeja para centrar visualmente */
 }
 .btn-lang {
   position:absolute;
@@ -4492,7 +4493,7 @@ html[data-cyber="on"] .cy-sound-fab {
   .header-main  { flex-direction: column; align-items: center; }
   .char-photo-wrap { align-self: center; margin-bottom: 4px; width: 72px; height: 90px; }
   .header-content  { width: 100%; }
-  .sheet-header h1 { padding-right: 52px; font-size: 13px; }
+  .sheet-header h1 { padding-left: 52px; padding-right: 52px; font-size: 13px; }
 
   /* ── HEADER FIELDS: 2 columnas ── */
   .header-fields       { grid-template-columns: 1fr 1fr; }

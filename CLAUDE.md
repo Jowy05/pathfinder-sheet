@@ -1,5 +1,15 @@
 # CLAUDE.md — Ficha Pathfinder 1e
 
+## Regla de oro: subir cada cambio a git
+
+**Cada vez que termines un cambio (por pequeño que sea) súbelo a `origin/main`:**
+
+1. `git add` de los ficheros tocados (no `git add -A` ciego — evitar comitear `.gradle/`, `port/build-output.log`, ni cualquier artifact de build).
+2. `git commit -m "<mensaje claro>"` — describir el *qué* y el *por qué*, no listar ficheros.
+3. `git push origin main`.
+
+Si hay commits nuevos en `origin/main` antes de empezar, hacer primero `git pull --rebase` (o `--ff-only` si no hay locales) para evitar divergencias. Si el pull baja cambios que tocan los mismos ficheros que tu edit (típicamente `style.css`, `index.html`), reaplicar el fix encima de la versión nueva — nunca sobrescribir lo recién bajado con una copia antigua.
+
 ## Regla de oro: doble despliegue (web + Android port)
 
 Este proyecto tiene **dos copias** del mismo código que deben mantenerse en sincronía:
