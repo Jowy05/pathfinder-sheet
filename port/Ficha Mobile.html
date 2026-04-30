@@ -3520,6 +3520,550 @@ const CLASS_FEATURES_DATA = [
 ];
 const SPELLS_DATA = []; // Guerrero no lanza, pero el sistema renderiza shell vacío con mensaje
 const SLOTS_PER_LVL = [0,0,0,0,0,0,0,0,0,0]; // niveles 0-9
+
+/* ─── DOMINIO 4 · CONJUROS Y APTITUDES ─── */
+(function(){
+'use strict';
+
+function canonicalClassId(name){
+  if(!name) return 'guerrero';
+  const k = name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+  const map = {
+    'barbaro':'barbaro','bardo':'bardo','brujo':'brujo','caballero':'cavalier','cavalier':'cavalier',
+    'clerigo':'clerigo','druida':'druida','explorador':'explorador','ranger':'explorador',
+    'guerrero':'guerrero','fighter':'guerrero','hechicero':'hechicero','sorcerer':'hechicero',
+    'inquisidor':'inquisidor','mago':'mago','wizard':'mago','monje':'monje','monk':'monje',
+    'oraculo':'oraculo','paladin':'paladin','picaro':'picaro','rogue':'picaro',
+    'pistolero':'pistolero','samurai':'samurai','bruja':'witch','witch':'witch'
+  };
+  return map[k] || 'guerrero';
+}
+
+const PF1E_CASTER_INFO = {
+  mago:       {attr:'INT', mode:'prep',  maxLvl:9, domain:false},
+  clerigo:    {attr:'SAB', mode:'prep',  maxLvl:9, domain:true},
+  druida:     {attr:'SAB', mode:'prep',  maxLvl:9, domain:false},
+  hechicero:  {attr:'CAR', mode:'spont', maxLvl:9, domain:false},
+  oraculo:    {attr:'SAB', mode:'spont', maxLvl:9, domain:false},
+  witch:      {attr:'INT', mode:'prep',  maxLvl:9, domain:false},
+  bardo:      {attr:'CAR', mode:'spont', maxLvl:6, domain:false},
+  brujo:      {attr:'CAR', mode:'spont', maxLvl:6, domain:false},
+  inquisidor: {attr:'SAB', mode:'prep',  maxLvl:6, domain:false},
+  paladin:    {attr:'CAR', mode:'prep',  maxLvl:4, domain:false, onset:4},
+  explorador: {attr:'SAB', mode:'prep',  maxLvl:4, domain:false, onset:4},
+  barbaro:{mode:'none'},guerrero:{mode:'none'},monje:{mode:'none'},picaro:{mode:'none'},
+  pistolero:{mode:'none'},cavalier:{mode:'none'},samurai:{mode:'none'}
+};
+
+const FULL9_PREP = [
+[3,1,0,0,0,0,0,0,0,0],[4,2,0,0,0,0,0,0,0,0],[4,2,1,0,0,0,0,0,0,0],
+[4,3,2,0,0,0,0,0,0,0],[4,3,2,1,0,0,0,0,0,0],[4,3,3,2,0,0,0,0,0,0],
+[4,4,3,2,1,0,0,0,0,0],[4,4,3,3,2,0,0,0,0,0],[4,4,4,3,2,1,0,0,0,0],
+[4,4,4,3,3,2,0,0,0,0],[4,4,4,4,3,2,1,0,0,0],[4,4,4,4,3,3,2,0,0,0],
+[4,4,4,4,4,3,2,1,0,0],[4,4,4,4,4,3,3,2,0,0],[4,4,4,4,4,4,3,2,1,0],
+[4,4,4,4,4,4,3,3,2,0],[4,4,4,4,4,4,4,3,2,1],[4,4,4,4,4,4,4,3,3,2],
+[4,4,4,4,4,4,4,4,3,3],[4,4,4,4,4,4,4,4,4,4]
+];
+const FULL9_SPONT = [
+[6,3,0,0,0,0,0,0,0,0],[6,4,0,0,0,0,0,0,0,0],[6,5,0,0,0,0,0,0,0,0],
+[6,6,3,0,0,0,0,0,0,0],[6,6,4,0,0,0,0,0,0,0],[6,6,5,3,0,0,0,0,0,0],
+[6,6,6,4,0,0,0,0,0,0],[6,6,6,5,3,0,0,0,0,0],[6,6,6,6,4,0,0,0,0,0],
+[6,6,6,6,5,3,0,0,0,0],[6,6,6,6,6,4,0,0,0,0],[6,6,6,6,6,5,3,0,0,0],
+[6,6,6,6,6,6,4,0,0,0],[6,6,6,6,6,6,5,3,0,0],[6,6,6,6,6,6,6,4,0,0],
+[6,6,6,6,6,6,6,5,3,0],[6,6,6,6,6,6,6,6,4,0],[6,6,6,6,6,6,6,6,5,3],
+[6,6,6,6,6,6,6,6,6,4],[6,6,6,6,6,6,6,6,6,6]
+];
+const SIX_PREP = [
+[3,1,0,0,0,0,0,0,0,0],[4,2,0,0,0,0,0,0,0,0],[4,2,1,0,0,0,0,0,0,0],[4,3,2,0,0,0,0,0,0,0],
+[4,3,2,1,0,0,0,0,0,0],[4,3,3,2,0,0,0,0,0,0],[4,4,3,2,1,0,0,0,0,0],[4,4,3,3,2,0,0,0,0,0],
+[4,4,4,3,2,1,0,0,0,0],[4,4,4,3,3,2,0,0,0,0],[4,4,4,4,3,2,0,0,0,0],[4,4,4,4,3,3,0,0,0,0],
+[4,4,4,4,4,3,0,0,0,0],[4,4,4,4,4,4,0,0,0,0],[4,4,4,4,4,4,0,0,0,0],[4,4,4,4,4,4,0,0,0,0],
+[4,4,4,4,4,4,0,0,0,0],[4,4,4,4,4,4,0,0,0,0],[4,4,4,4,4,4,0,0,0,0],[4,4,4,4,4,4,0,0,0,0]
+];
+const SIX_SPONT = [
+[2,1,0,0,0,0,0,0,0,0],[3,2,0,0,0,0,0,0,0,0],[3,3,0,0,0,0,0,0,0,0],[4,3,1,0,0,0,0,0,0,0],
+[4,4,2,0,0,0,0,0,0,0],[4,4,3,0,0,0,0,0,0,0],[5,4,3,1,0,0,0,0,0,0],[5,4,4,2,0,0,0,0,0,0],
+[5,5,4,3,0,0,0,0,0,0],[6,5,4,3,1,0,0,0,0,0],[6,5,4,4,2,0,0,0,0,0],[6,5,5,4,3,0,0,0,0,0],
+[6,6,5,4,3,1,0,0,0,0],[6,6,5,4,4,2,0,0,0,0],[6,6,5,5,4,3,0,0,0,0],[6,6,6,5,4,3,0,0,0,0],
+[6,6,6,5,4,4,0,0,0,0],[6,6,6,6,5,4,0,0,0,0],[6,6,6,6,5,4,0,0,0,0],[6,6,6,6,6,4,0,0,0,0]
+];
+const FOUR_PREP = [
+[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,1,0,0,0,0,0,0,0,0],
+[0,1,0,0,0,0,0,0,0,0],[0,1,0,0,0,0,0,0,0,0],[0,1,1,0,0,0,0,0,0,0],[0,1,1,0,0,0,0,0,0,0],
+[0,2,1,0,0,0,0,0,0,0],[0,2,1,1,0,0,0,0,0,0],[0,2,1,1,0,0,0,0,0,0],[0,2,2,1,1,0,0,0,0,0],
+[0,3,2,1,1,0,0,0,0,0],[0,3,2,2,1,0,0,0,0,0],[0,3,2,2,1,0,0,0,0,0],[0,3,3,2,2,0,0,0,0,0],
+[0,3,3,2,2,0,0,0,0,0],[0,3,3,3,2,0,0,0,0,0],[0,3,3,3,3,0,0,0,0,0],[0,3,3,3,3,0,0,0,0,0]
+];
+const SLOT_TABLES = {
+  mago:FULL9_PREP, clerigo:FULL9_PREP, druida:FULL9_PREP, witch:FULL9_PREP,
+  hechicero:FULL9_SPONT, oraculo:FULL9_SPONT,
+  bardo:SIX_SPONT, brujo:SIX_SPONT,
+  inquisidor:SIX_PREP,
+  paladin:FOUR_PREP, explorador:FOUR_PREP
+};
+
+function getAttrModD4(abbr){
+  const row = ATTRS.find(r=>r[0]===abbr);
+  return row ? row[3] : 0;
+}
+
+function computeSpellSlots(classId, classLevel, attrMod){
+  const out = [0,0,0,0,0,0,0,0,0,0];
+  const tbl = SLOT_TABLES[classId];
+  if(!tbl) return out;
+  const lvl = Math.max(1, Math.min(20, classLevel|0));
+  const base = tbl[lvl-1];
+  const info = PF1E_CASTER_INFO[classId] || {};
+  for(let s=0; s<10; s++){
+    let n = base[s]|0;
+    if(n<=0){ out[s]=0; continue; }
+    if(s>=1 && info.maxLvl && s<=info.maxLvl && attrMod >= s){
+      const bonus = 1 + Math.floor(Math.max(0, attrMod - s)/4);
+      n += bonus;
+    }
+    out[s] = n;
+  }
+  if(info.domain){
+    for(let s=1; s<=(info.maxLvl||0); s++){
+      if(out[s]>0) out[s] += 1;
+    }
+  }
+  return out;
+}
+
+const CLASS_AUTO_FEATURES_D4 = {
+  barbaro: (lvl,A)=>[
+    {name:'Rabia (PF1e)', desc:'Rondas de rabia/día. +4 FUE/+4 CON/+2 TS Voluntad, −2 CA.',
+     max: Math.max(0, 4 + A.CON + 2*Math.max(0,lvl-1)), reset:'long', tracker:true}
+  ],
+  monje: (lvl,A)=>[
+    {name:'Pool de Ki', desc:'Punto extra de movimiento, ataque flurry o golpe ágil.',
+     max: Math.max(0, Math.floor(lvl/2) + A.SAB), reset:'long', tracker:true}
+  ],
+  paladin: (lvl,A)=>[
+    {name:'Imposición de manos', desc:'Cura 1d6 cada 2 niveles. Acción estándar (uno mismo: rápida).',
+     max: Math.max(0, Math.floor(lvl/2) + A.CAR), reset:'long', tracker:true},
+    {name:'Castigo del mal', desc:'+CAR atq, +nivel daño contra mal. Bypass DR.',
+     max: 1 + Math.floor((lvl-1)/4), reset:'long', tracker:true}
+  ],
+  inquisidor: (lvl,A)=>[
+    {name:'Juicio', desc:'Bono variable (atq, daño, CA, TS, etc.) en combate.',
+     max: Math.max(1, Math.floor((lvl-1)/3)+1), reset:'long', tracker:true}
+  ],
+  bardo: (lvl,A)=>[
+    {name:'Inspiración heroica', desc:'+nivel/3 a TS contra encantamiento, +1 atq y daño en aliados.',
+     max: lvl>=17 ? 999 : (3 + A.CAR), reset:'long', tracker:true}
+  ],
+  witch: (lvl,A)=>{
+    const hexLvls = [1,2,4,6,8,10,12,14,16,18];
+    const known = hexLvls.filter(h=>h<=lvl).length;
+    return [
+      {name:'Hexes conocidos', desc:'Maleficios aprendidos del patrón. (1 a niv 1,2,4,6,8,10,12,14,16,18).',
+       max: known, reset:'none', tracker:false}
+    ];
+  },
+  cavalier: (lvl,A)=>[
+    {name:'Reto', desc:'+nivel daño contra objetivo, −2 CA contra otros.',
+     max: 1 + Math.floor((lvl-1)/3), reset:'long', tracker:true}
+  ],
+  samurai: (lvl,A)=>[
+    {name:'Reto', desc:'+nivel daño contra objetivo, +1 TS Voluntad contra miedo cerca de él.',
+     max: 1 + Math.floor((lvl-1)/3), reset:'long', tracker:true},
+    {name:'Resolución', desc:'Recupera de fatiga, sacudido, asustado, o niega 1 punto de daño/nivel.',
+     max: 4 + A.CAR + Math.floor((lvl-1)/4), reset:'long', tracker:true}
+  ],
+  clerigo: (lvl,A)=>[
+    {name:'Canalizar energía', desc:'Cura/daña a no-muertos en 30 ft. d6 cada 2 niveles.',
+     max: Math.max(0, 3 + A.CAR), reset:'long', tracker:true}
+  ],
+  druida: (lvl,A)=>[
+    {name:'Forma salvaje', desc:'Adopta forma animal/elemental.',
+     max: Math.max(0, lvl<4 ? 0 : (lvl-2)), reset:'long', tracker:true}
+  ]
+};
+
+const ARCANE_SCHOOLS = [
+  ['Abjuración','Magia protectora; desviar daño y disipar.'],
+  ['Conjuración','Invocar criaturas y crear materia.'],
+  ['Adivinación','Información, vista lejana y verdad.'],
+  ['Encantamiento','Influir mentes, fascinación y dominio.'],
+  ['Evocación','Daño elemental directo.'],
+  ['Ilusión','Imágenes, sombras y engaño sensorial.'],
+  ['Nigromancia','Energía negativa, no-muertos, drenaje.'],
+  ['Transmutación','Alterar forma, materia y atributos.'],
+  ['Universalismo','Sin especialización; flexibilidad total.']
+];
+const BLOODLINES = [
+  ['Arcano','Linaje arcano puro; +1 conjuro conocido por nivel.'],
+  ['Celestial','Sangre angélica; resistencias y curación.'],
+  ['Abisal','Sangre demoníaca; garras y resistencia al fuego.'],
+  ['Infernal','Sangre diabólica; encantamiento mejorado.'],
+  ['Dragón','Sangre dracónica; aliento, garras y alas.'],
+  ['Élemental','Vínculo con un plano elemental (fuego, aire, tierra, agua).'],
+  ['Feérico','Magia de los planos feéricos; encantamiento.'],
+  ['No-muerto','Vínculo con la muerte; resistencia al frío y drenaje.']
+];
+const DOMAINS = [
+  ['Aire','Velocidad, electricidad, vuelo.'],
+  ['Bien','Aura sagrada, +CL contra mal.'],
+  ['Curación','Curación reforzada, conjuros mejorados.'],
+  ['Fuego','Resistencia y daño elemental.'],
+  ['Guerra','+atq, dote de combate gratuita.'],
+  ['Magia','Lectura mágica e identificación a voluntad.'],
+  ['Muerte','Toque mortal y energía negativa.'],
+  ['Protección','Bono de resistencia y barreras.'],
+  ['Sol','Ceguera y daño contra no-muertos.'],
+  ['Viaje','Velocidad, libertad de movimiento.']
+];
+const MYSTERIES = [
+  ['Batalla','Conjuros marciales, dote de combate.'],
+  ['Hueso','Energía negativa, no-muertos.'],
+  ['Llamas','Fuego, resistencia y aura.'],
+  ['Vida','Curación masiva, drenaje invertido.'],
+  ['Mar','Agua, hielo y velocidad acuática.'],
+  ['Lore','Conocimiento, hechizos arcanos cruzados.'],
+  ['Piedra','Defensa, terraforma, resistencia ácido.'],
+  ['Cielos','Eléctrico, vuelo, sonido.']
+];
+const PATRONS = [
+  ['Agonía','Hexes de dolor y debilitación.'],
+  ['Ancestros','Lazos espirituales, comunicación con muertos.'],
+  ['Bestia','Forma animal, vínculo con bestias.'],
+  ['Engaño','Ilusión, robo, fascinación.'],
+  ['Luz','Resplandor, ceguera, sanación.'],
+  ['Sombra','Furtividad, oscuridad, miedo.'],
+  ['Vida','Sanación y resurrección.'],
+  ['Tiempo','Aceleración, ralentización, profecía.']
+];
+const ORDERS = [
+  ['Orden de la Espada','Caballero clásico; honor y desafío.'],
+  ['Orden del León','Servicio al señor; lealtad.'],
+  ['Orden del Dragón','Servicio en grupo; coordinación.'],
+  ['Orden del Escudo','Defensor del pueblo común.'],
+  ['Orden de la Estrella','Servicio a un dios; cruzada.'],
+  ['Orden del Cosmos','Ley universal; equilibrio.'],
+  ['Orden de la Lanza','Camino del jinete; cargas.'],
+  ['Orden Carmesí (Samurái)','Bushido; honor en la batalla.'],
+  ['Orden de la Garra (Samurái)','Cazador implacable.']
+];
+
+const SPELLS_DB = {
+  mago: [
+    {n:'Resistencia',l:0,s:'Abjuración',c:'V,S,M'},
+    {n:'Mano del mago',l:0,s:'Transmutación',c:'V,S'},
+    {n:'Luz',l:0,s:'Evocación',c:'V,M'},
+    {n:'Misil mágico',l:1,s:'Evocación',c:'V,S'},
+    {n:'Escudo',l:1,s:'Abjuración',c:'V,S'},
+    {n:'Sueño',l:1,s:'Encantamiento',c:'V,S,M'},
+    {n:'Imagen menor',l:2,s:'Ilusión',c:'V,S,M'},
+    {n:'Invisibilidad',l:2,s:'Ilusión',c:'V,S,M'},
+    {n:'Bola de fuego',l:3,s:'Evocación',c:'V,S,M'},
+    {n:'Relámpago',l:3,s:'Evocación',c:'V,S,M'}
+  ],
+  clerigo: [
+    {n:'Crear agua',l:0,s:'Conjuración',c:'V,S'},
+    {n:'Curar heridas mínimas',l:0,s:'Conjuración',c:'V,S'},
+    {n:'Bendición',l:1,s:'Encantamiento',c:'V,S,DF'},
+    {n:'Curar heridas leves',l:1,s:'Conjuración',c:'V,S'},
+    {n:'Escudo de la fe',l:1,s:'Abjuración',c:'V,S,DF'},
+    {n:'Arma espiritual',l:2,s:'Evocación',c:'V,S,DF'},
+    {n:'Curar heridas moderadas',l:2,s:'Conjuración',c:'V,S'},
+    {n:'Plegaria',l:3,s:'Encantamiento',c:'V,S,DF'},
+    {n:'Disipar magia',l:3,s:'Abjuración',c:'V,S'}
+  ],
+  druida: [
+    {n:'Crear agua',l:0,s:'Conjuración',c:'V,S'},
+    {n:'Llama',l:0,s:'Evocación',c:'V,S'},
+    {n:'Conjurar aliado natural I',l:1,s:'Conjuración',c:'V,S,DF'},
+    {n:'Curar heridas leves',l:1,s:'Conjuración',c:'V,S'},
+    {n:'Empuñar llama',l:1,s:'Evocación',c:'V,S,DF'},
+    {n:'Bramido sónico',l:2,s:'Evocación',c:'V,S'},
+    {n:'Forma arborea menor',l:2,s:'Transmutación',c:'V,S,M'},
+    {n:'Crecimiento de espinas',l:3,s:'Conjuración',c:'V,S,DF'},
+    {n:'Tormenta de llamas',l:5,s:'Evocación',c:'V,S,DF'}
+  ],
+  hechicero: [
+    {n:'Resistencia',l:0,s:'Abjuración',c:'V,S,M'},
+    {n:'Mano del mago',l:0,s:'Transmutación',c:'V,S'},
+    {n:'Toque del frío',l:0,s:'Nigromancia',c:'V,S'},
+    {n:'Misil mágico',l:1,s:'Evocación',c:'V,S'},
+    {n:'Escudo',l:1,s:'Abjuración',c:'V,S'},
+    {n:'Invisibilidad',l:2,s:'Ilusión',c:'V,S,M'},
+    {n:'Imagen reflejada',l:2,s:'Ilusión',c:'V,S'},
+    {n:'Bola de fuego',l:3,s:'Evocación',c:'V,S,M'},
+    {n:'Volar',l:3,s:'Transmutación',c:'V,S,M'}
+  ],
+  bardo: [
+    {n:'Burla',l:0,s:'Encantamiento',c:'V'},
+    {n:'Mensaje',l:0,s:'Transmutación',c:'V,S,M'},
+    {n:'Cura heridas leves',l:1,s:'Conjuración',c:'V,S'},
+    {n:'Risa horrorosa de Tasha',l:2,s:'Encantamiento',c:'V,S,M'},
+    {n:'Sugestión',l:2,s:'Encantamiento',c:'V,M'},
+    {n:'Disipar magia',l:3,s:'Abjuración',c:'V,S'},
+    {n:'Gritito',l:3,s:'Evocación',c:'V'},
+    {n:'Confusión',l:4,s:'Encantamiento',c:'V,S,M'}
+  ]
+};
+
+let CASTING_MODE = 'none';
+let CURRENT_CLASS_ID = 'guerrero';
+let DOMAIN_PICKS = ['',''];
+let SCHOOL_PICK = '', BLOODLINE_PICK = '', MYSTERY_PICK = '', PATRON_PICK = '', ORDER_PICK = '';
+let SAMURAI_RESOLVE = {max:0, used:0};
+
+function rebuildSpellSystem(){
+  const cls = (CLASSES_DATA[0]||{name:'Guerrero',level:1});
+  CURRENT_CLASS_ID = canonicalClassId(cls.name);
+  const info = PF1E_CASTER_INFO[CURRENT_CLASS_ID] || {mode:'none'};
+  CASTING_MODE = info.mode;
+  if(CASTING_MODE==='none'){
+    for(let i=0;i<10;i++){ SLOT_STATE[i].max=0; SLOT_STATE[i].used=0; SLOTS_PER_LVL[i]=0; }
+    SPELLS_DATA.length = 0;
+    if(typeof renderSlots==='function') renderSlots();
+    if(typeof renderSpells==='function') renderSpells();
+    document.dispatchEvent(new CustomEvent('spells-changed',{detail:{classId:CURRENT_CLASS_ID,spellLvl:-1}}));
+    return;
+  }
+  const attrMod = getAttrModD4(info.attr);
+  const slots = computeSpellSlots(CURRENT_CLASS_ID, cls.level||1, attrMod);
+  for(let i=0;i<10;i++){
+    SLOTS_PER_LVL[i] = slots[i];
+    SLOT_STATE[i].max = slots[i];
+    if(SLOT_STATE[i].used > slots[i]) SLOT_STATE[i].used = slots[i];
+  }
+  if(SPELLS_DATA.length===0){
+    const list = SPELLS_DB[CURRENT_CLASS_ID]||[];
+    list.forEach((sp,i)=>SPELLS_DATA.push({
+      id: 5000+i, name: sp.n, lvl: sp.l, school: sp.s, comp: sp.c,
+      prepared: CASTING_MODE==='spont', cast:false
+    }));
+  }
+  if(typeof renderSlots==='function') renderSlots();
+  if(typeof renderSpells==='function') renderSpells();
+  document.dispatchEvent(new CustomEvent('spells-changed',{detail:{classId:CURRENT_CLASS_ID,spellLvl:-1}}));
+}
+
+function rebuildClassAutoFeatures(){
+  for(let i=CLASS_FEATURES_DATA.length-1; i>=0; i--){
+    if(CLASS_FEATURES_DATA[i].id>=1000) CLASS_FEATURES_DATA.splice(i,1);
+  }
+  const cls = (CLASSES_DATA[0]||{name:'Guerrero',level:1});
+  const id = canonicalClassId(cls.name);
+  const gen = CLASS_AUTO_FEATURES_D4[id];
+  if(!gen){
+    if(typeof renderClassFeatures==='function') renderClassFeatures();
+    updateClassPickerVisibility();
+    return;
+  }
+  const A = {FUE:getAttrModD4('FUE'),DES:getAttrModD4('DES'),CON:getAttrModD4('CON'),
+             INT:getAttrModD4('INT'),SAB:getAttrModD4('SAB'),CAR:getAttrModD4('CAR')};
+  const feats = gen(cls.level||1, A) || [];
+  let nextId = 1000;
+  feats.forEach(f=>{
+    CLASS_FEATURES_DATA.push({
+      id: nextId++, name:f.name, desc:f.desc,
+      tracker: f.tracker!==false, max: f.max|0, curr: f.max|0,
+      reset: f.reset||'long', auto:true
+    });
+  });
+  if(id==='samurai'){
+    const r = feats.find(f=>f.name==='Resolución');
+    if(r){ SAMURAI_RESOLVE.max = r.max; if(SAMURAI_RESOLVE.used>r.max) SAMURAI_RESOLVE.used=r.max; }
+  }
+  if(typeof renderClassFeatures==='function') renderClassFeatures();
+  updateClassPickerVisibility();
+  renderSamuraiResolve();
+}
+
+function ensureClassPickerCard(){
+  if(document.getElementById('class-picker-card')) return;
+  const sub = document.querySelector('.sub-page[data-sub="aptclase"]');
+  if(!sub) return;
+  const card = document.createElement('div');
+  card.id = 'class-picker-card';
+  card.style.cssText = 'margin:8px 0 12px;padding:10px;border:1px dashed var(--line);border-radius:6px;background:var(--surface-2);display:none';
+  card.innerHTML = `
+    <div style="font:600 11px 'Cinzel',serif;letter-spacing:.08em;text-transform:uppercase;color:var(--leather);margin-bottom:8px">Selecciones de clase</div>
+    <div id="cp-buttons" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+    <div id="cp-current" style="margin-top:8px;font:12px system-ui;color:var(--ink-muted)"></div>
+    <div id="samurai-resolve-box" style="margin-top:10px;display:none">
+      <div style="font:600 11px 'Cinzel',serif;letter-spacing:.06em;text-transform:uppercase;color:var(--leather);margin-bottom:4px">Resolución del Samurái</div>
+      <div id="samurai-resolve-tracker" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center"></div>
+    </div>`;
+  sub.insertBefore(card, sub.firstChild);
+}
+
+function updateClassPickerVisibility(){
+  ensureClassPickerCard();
+  const card = document.getElementById('class-picker-card');
+  if(!card) return;
+  const id = CURRENT_CLASS_ID;
+  const buttons = [];
+  if(id==='mago')      buttons.push(['🎓 Escuela arcana','sheet-arcane-school',SCHOOL_PICK]);
+  if(id==='hechicero') buttons.push(['🩸 Linaje','sheet-bloodline',BLOODLINE_PICK]);
+  if(id==='clerigo'){
+    buttons.push(['⛪ Dominio 1','sheet-domain-1',DOMAIN_PICKS[0]]);
+    buttons.push(['⛪ Dominio 2','sheet-domain-2',DOMAIN_PICKS[1]]);
+  }
+  if(id==='oraculo')   buttons.push(['🔮 Misterio','sheet-mystery',MYSTERY_PICK]);
+  if(id==='witch')     buttons.push(['🦇 Patrón','sheet-patron',PATRON_PICK]);
+  if(id==='cavalier'||id==='samurai') buttons.push(['🛡 Orden','sheet-order',ORDER_PICK]);
+  if(buttons.length===0){ card.style.display='none'; return; }
+  card.style.display='block';
+  document.getElementById('cp-buttons').innerHTML = buttons.map(([lbl,sid])=>
+    `<button class="btn-secondary" data-cp-open="${sid}" style="font-size:12px;padding:6px 10px">${lbl}</button>`).join('');
+  const lines = buttons.filter(b=>b[2]).map(b=>`<div>· ${b[0].replace(/^[^ ]+ /,'')}: <b>${b[2]}</b></div>`).join('');
+  document.getElementById('cp-current').innerHTML = lines;
+  card.querySelectorAll('[data-cp-open]').forEach(b=>{
+    b.addEventListener('click',()=>{ if(typeof openSheet==='function') openSheet(b.dataset.cpOpen); });
+  });
+  document.getElementById('samurai-resolve-box').style.display = (id==='samurai')?'block':'none';
+}
+
+function renderSamuraiResolve(){
+  const c = document.getElementById('samurai-resolve-tracker');
+  if(!c) return;
+  const max = SAMURAI_RESOLVE.max|0;
+  const used = SAMURAI_RESOLVE.used|0;
+  const remaining = max - used;
+  if(max<=0){ c.innerHTML = '<span style="font:12px system-ui;color:var(--ink-muted)">Sin resolución disponible.</span>'; return; }
+  const bubbles = Array.from({length:max},(_,i)=>
+    `<button class="cf-bubble ${i>=remaining?'spent':''}" data-sr-i="${i}" aria-label="Uso ${i+1}"></button>`).join('');
+  c.innerHTML = bubbles + `<span style="font:600 12px system-ui;color:var(--ink-muted);margin-left:auto">${remaining}/${max}</span>`;
+  c.querySelectorAll('[data-sr-i]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const i = +b.dataset.srI;
+      const cur = max - SAMURAI_RESOLVE.used;
+      SAMURAI_RESOLVE.used = (i<cur) ? max - i : max - (i+1);
+      if(SAMURAI_RESOLVE.used<0) SAMURAI_RESOLVE.used=0;
+      if(SAMURAI_RESOLVE.used>max) SAMURAI_RESOLVE.used=max;
+      renderSamuraiResolve();
+      document.dispatchEvent(new CustomEvent('class-feature-used',{detail:{featureId:'samurai-resolve'}}));
+    });
+  });
+}
+
+function injectPickerSheets(){
+  if(document.getElementById('sheet-arcane-school')) return;
+  const host = document.getElementById('toast');
+  if(!host || !host.parentNode) return;
+  const mk = (id,title)=>`
+    <dialog class="bottom-sheet" id="${id}" aria-label="${title}">
+      <div class="drag-handle"></div>
+      <div class="sheet-header"><div class="sheet-title">${title}</div><button class="sheet-close" data-close>✕</button></div>
+      <div class="sheet-content"><div id="${id}-list" class="picker-list"></div></div>
+    </dialog>`;
+  const wrap = document.createElement('div');
+  wrap.innerHTML = [
+    mk('sheet-arcane-school','Elegir escuela arcana'),
+    mk('sheet-bloodline','Elegir linaje'),
+    mk('sheet-domain-1','Elegir dominio 1'),
+    mk('sheet-domain-2','Elegir dominio 2'),
+    mk('sheet-mystery','Elegir misterio'),
+    mk('sheet-patron','Elegir patrón'),
+    mk('sheet-order','Elegir orden')
+  ].join('');
+  while(wrap.firstChild) host.parentNode.insertBefore(wrap.firstChild, host);
+
+  document.querySelectorAll('.bottom-sheet').forEach(s=>{
+    if(s.dataset.cpBound) return; s.dataset.cpBound='1';
+    s.addEventListener('click',e=>{ if(e.target===s && typeof closeSheet==='function') closeSheet(s); });
+    s.addEventListener('cancel',e=>{ e.preventDefault(); if(typeof closeSheet==='function') closeSheet(s); });
+    s.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>{ if(typeof closeSheet==='function') closeSheet(s); }));
+  });
+
+  function bindPicker(sheetId, data, onPick){
+    const list = document.getElementById(sheetId+'-list');
+    list.innerHTML = data.map(([n,d],i)=>
+      `<button class="picker-row" data-pick="${i}" style="display:block;width:100%;text-align:left;padding:10px;margin-bottom:6px;border:1px solid var(--line);border-radius:6px;background:transparent">
+         <div style="font-weight:600;font-family:'Cinzel',serif">${n}</div>
+         <div style="font:12px/1.4 system-ui;color:var(--ink-muted);margin-top:2px">${d}</div>
+       </button>`).join('');
+    list.querySelectorAll('[data-pick]').forEach(b=>{
+      b.addEventListener('click',()=>{
+        onPick(data[+b.dataset.pick][0]);
+        if(typeof closeSheet==='function') closeSheet(document.getElementById(sheetId));
+        updateClassPickerVisibility();
+      });
+    });
+  }
+  bindPicker('sheet-arcane-school',ARCANE_SCHOOLS,v=>{SCHOOL_PICK=v; if(typeof toast==='function') toast('Escuela: '+v);});
+  bindPicker('sheet-bloodline',    BLOODLINES,    v=>{BLOODLINE_PICK=v; if(typeof toast==='function') toast('Linaje: '+v);});
+  bindPicker('sheet-domain-1',     DOMAINS,       v=>{DOMAIN_PICKS[0]=v; if(typeof toast==='function') toast('Dominio 1: '+v);});
+  bindPicker('sheet-domain-2',     DOMAINS,       v=>{DOMAIN_PICKS[1]=v; if(typeof toast==='function') toast('Dominio 2: '+v);});
+  bindPicker('sheet-mystery',      MYSTERIES,     v=>{MYSTERY_PICK=v; if(typeof toast==='function') toast('Misterio: '+v);});
+  bindPicker('sheet-patron',       PATRONS,       v=>{PATRON_PICK=v; if(typeof toast==='function') toast('Patrón: '+v);});
+  bindPicker('sheet-order',        ORDERS,        v=>{ORDER_PICK=v; if(typeof toast==='function') toast('Orden: '+v);});
+}
+
+document.addEventListener('attr-changed', ()=>{
+  rebuildSpellSystem();
+  rebuildClassAutoFeatures();
+});
+document.addEventListener('class-changed', ()=>{
+  for(let i=SPELLS_DATA.length-1;i>=0;i--) if(SPELLS_DATA[i].id>=5000) SPELLS_DATA.splice(i,1);
+  rebuildSpellSystem();
+  rebuildClassAutoFeatures();
+});
+document.addEventListener('rest-long', ()=>{
+  SLOT_STATE.forEach(s=>s.used=0);
+  SPELLS_DATA.forEach(s=>s.cast=false);
+  CLASS_FEATURES_DATA.forEach(f=>{ if(f.auto && f.tracker && (f.reset==='long'||!f.reset)) f.curr=f.max; });
+  SAMURAI_RESOLVE.used = 0;
+  if(typeof renderSlots==='function') renderSlots();
+  if(typeof renderSpells==='function') renderSpells();
+  if(typeof renderClassFeatures==='function') renderClassFeatures();
+  renderSamuraiResolve();
+});
+document.addEventListener('rest-short', ()=>{
+  CLASS_FEATURES_DATA.forEach(f=>{ if(f.auto && f.tracker && f.reset==='short') f.curr=f.max; });
+  if(typeof renderClassFeatures==='function') renderClassFeatures();
+});
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const rest = document.getElementById('rest-8h');
+  if(rest){
+    rest.addEventListener('click',()=>document.dispatchEvent(new CustomEvent('rest-long')));
+  }
+  injectPickerSheets();
+  ensureClassPickerCard();
+  setTimeout(()=>{ rebuildSpellSystem(); rebuildClassAutoFeatures(); },50);
+});
+
+document.addEventListener('click',e=>{
+  const t = e.target.closest('[data-slot-d],[data-slot-u],[data-spell-cast]');
+  if(!t) return;
+  const lvl = t.dataset.slotD ?? t.dataset.slotU ?? null;
+  document.dispatchEvent(new CustomEvent('spells-changed',{
+    detail:{classId:CURRENT_CLASS_ID, spellLvl: lvl!=null?+lvl:-1}
+  }));
+},true);
+
+document.addEventListener('click',e=>{
+  const t = e.target.closest('[data-cf-toggle]');
+  if(!t) return;
+  const f = CLASS_FEATURES_DATA.find(x=>x.id===+t.dataset.cfToggle);
+  if(f && f.auto){
+    document.dispatchEvent(new CustomEvent('class-feature-used',{detail:{featureId:f.name}}));
+  }
+},true);
+
+document.addEventListener('click',e=>{
+  const t = e.target.closest('[data-spell-prep]');
+  if(!t) return;
+  if(CASTING_MODE==='spont'){
+    const sp = SPELLS_DATA.find(x=>x.id===+t.dataset.spellPrep);
+    if(sp && !sp.prepared){ sp.prepared=true; if(typeof renderSpells==='function') renderSpells(); }
+  }
+},true);
+
+window.PathfinderSpells = {
+  computeSpellSlots, rebuildSpellSystem, rebuildClassAutoFeatures,
+  CASTING_MODE: ()=>CASTING_MODE, classId: ()=>CURRENT_CLASS_ID
+};
+
+})();
+/* ─── /DOMINIO 4 · CONJUROS Y APTITUDES ─── */
 const RACES_DATA = [
   ['Humano','+2 a un atributo, dote extra, +1 punto de habilidad/nivel'],
   ['Elfo','+2 DES, +2 INT, −2 CON. Inmunidad sueño, +2 vs encantamientos'],
