@@ -4648,3 +4648,154 @@ html[data-cyber="on"] .cy-sound-fab {
   #initiative-tracker-panel .ini-player-label   { font-size: 8px; }
 }
 
+/* #ANCHOR:CHROMANCER-THEME-V1 ─────────────────────────────────
+   Soporte de temas custom pegados desde Chromancer.
+   El menú de temas añade un item "+ Añadir tema (Chromancer)"
+   que abre un popup; el usuario pega el CSS y se guarda en
+   localStorage como biblioteca persistente. */
+.theme-option._custom { padding-right: 32px; position: relative; }
+.theme-option .cm-del {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(122, 0, 16, 0.12);
+  border: 1px solid rgba(122, 0, 16, 0.3);
+  color: var(--crimson, #7a0010);
+  font-size: 11px; line-height: 1;
+  cursor: pointer; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity .15s, background .15s, color .15s;
+}
+.theme-option._custom:hover .cm-del,
+.theme-option._custom:focus-within .cm-del,
+.theme-option._custom .cm-del:focus { opacity: 1; }
+.theme-option .cm-del:hover,
+.theme-option .cm-del:focus-visible {
+  background: var(--crimson, #7a0010);
+  color: var(--on-dark, #f5e9cc);
+}
+
+.theme-option-add {
+  display: flex; align-items: center; gap: 6px;
+  padding: 9px 12px; width: 100%;
+  background: transparent;
+  border: 0; border-top: 1px dashed var(--gold, #c8a060);
+  margin-top: 4px;
+  cursor: pointer;
+  color: var(--leather, #5a3a22);
+  font-family: var(--ff-head, Georgia, serif);
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.04em; text-align: left;
+  transition: background .15s;
+}
+.theme-option-add:hover,
+.theme-option-add:focus-visible {
+  background: rgba(200, 160, 96, 0.15);
+  outline: none;
+}
+.theme-option-add::before {
+  content: '＋';
+  font-size: 16px; line-height: 1;
+  width: 18px; text-align: center;
+  color: var(--crimson, #7a0010);
+}
+
+/* ── Add-theme modal ──────────────────────────────────────── */
+.cm-add-modal {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.6);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  padding: 16px;
+}
+.cm-add-modal[hidden] { display: none; }
+.cm-add-card {
+  background: var(--parchment, #f5e9cc);
+  color: var(--leather-dk, #3d2510);
+  border: 2px solid var(--gold, #c8a060);
+  border-radius: 6px;
+  width: min(560px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  padding: 18px 18px 14px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  font-family: var(--ff-body, Georgia, serif);
+  position: relative;
+}
+.cm-add-card h3 {
+  font-family: var(--ff-head, Georgia, serif);
+  font-size: 15px; letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--crimson, #7a0010);
+  border-bottom: 1px solid var(--gold, #c8a060);
+  padding-bottom: 6px; margin: 0 0 10px;
+}
+.cm-add-help {
+  font-size: 12px; line-height: 1.5;
+  color: var(--leather-lt, #6f4724);
+  margin: 0 0 8px;
+}
+.cm-add-help code {
+  background: rgba(0,0,0,0.06);
+  border-radius: 3px; padding: 1px 5px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  color: var(--leather-dk, #3d2510);
+}
+.cm-add-input {
+  width: 100%; box-sizing: border-box;
+  background: rgba(255,255,255,0.5);
+  border: 1px solid var(--leather-lt, #6f4724);
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px; line-height: 1.45;
+  color: var(--leather-dk, #3d2510);
+  resize: vertical; min-height: 160px;
+  outline: 0;
+  transition: border-color .15s, background .15s;
+}
+.cm-add-input:focus {
+  border-color: var(--crimson, #7a0010);
+  background: #fff;
+}
+.cm-add-error {
+  margin-top: 8px;
+  font-size: 12px; color: var(--crimson, #7a0010);
+  background: rgba(122,0,16,0.08);
+  border: 1px solid rgba(122,0,16,0.3);
+  border-radius: 3px;
+  padding: 7px 10px;
+}
+.cm-add-actions {
+  display: flex; justify-content: flex-end; gap: 8px;
+  margin-top: 12px;
+}
+.cm-add-btn {
+  -webkit-appearance: none; appearance: none;
+  font-family: var(--ff-head, Georgia, serif);
+  font-size: 12px; letter-spacing: 0.04em;
+  padding: 8px 16px; border-radius: 3px;
+  cursor: pointer; border: 1px solid var(--gold, #c8a060);
+  transition: background .15s, transform .12s;
+  text-transform: uppercase;
+}
+.cm-add-btn:active { transform: scale(0.97); }
+.cm-add-btn-ghost {
+  background: transparent;
+  color: var(--leather, #5a3a22);
+}
+.cm-add-btn-ghost:hover { background: rgba(200,160,96,0.18); }
+.cm-add-btn-primary {
+  background: var(--crimson, #7a0010);
+  color: var(--on-dark, #f5e9cc);
+  border-color: var(--crimson, #7a0010);
+  font-weight: 700;
+}
+.cm-add-btn-primary:hover {
+  background: var(--crimson-lt, #a00018);
+}
+@media (prefers-color-scheme: dark) {
+  /* el modal hereda los tokens del tema activo, no necesita overrides */
+}
+

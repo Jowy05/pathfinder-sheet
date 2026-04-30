@@ -2,21 +2,30 @@
    LOADER INICIAL — Dragón despertando · adaptable por tema
    ============================================================ */
 
+/* Defaults a nivel :root (baja especificidad) para que cualquier
+   :root[data-theme="..."] (incluidos los temas custom de Chromancer
+   "cm-…") pueda sobreescribirlos. Antes vivían dentro de
+   #initial-loader, donde el ID les daba especificidad ID+0 que
+   ningún :root[data-theme] podía vencer. */
+:root {
+  --loader-bg:       radial-gradient(ellipse at center, #0a1024 0%, #02030a 70%, #000 100%);
+  --loader-accent:   #00f0ff;
+  --loader-accent-2: #ff2a93;
+  --loader-rune:     #00f0ff;
+  --loader-text:     #00f0ff;
+}
+
 #initial-loader {
   position: fixed;
   inset: 0;
   z-index: 99999;
-  background: var(--loader-bg, radial-gradient(ellipse at center, #0a1024 0%, #02030a 70%, #000 100%));
+  background: var(--loader-bg);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   transition: opacity 4700ms ease, visibility 4700ms ease;
-  --loader-accent: #00f0ff;
-  --loader-accent-2: #ff2a93;
-  --loader-rune: #00f0ff;
-  --loader-text: #00f0ff;
 }
 #initial-loader.fade-out { opacity: 0; visibility: hidden; }
 

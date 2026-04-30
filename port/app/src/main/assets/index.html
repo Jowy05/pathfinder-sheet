@@ -19,7 +19,35 @@
   (function(){
     try {
       var t = localStorage.getItem('pf1e-theme');
-      if (t && t !== 'default') document.documentElement.setAttribute('data-theme', t);
+      if (t && t !== 'default') {
+        // #ANCHOR:CHROMANCER-THEME-V1 — si el tema activo es uno custom de
+        // Chromancer (id "cm-…"), inyectamos su <style> ya AQUÍ para que el
+        // primer paint no use los colores default y luego salte. Sin esto
+        // hay un flicker visible al recargar.
+        if (t.indexOf('cm-') === 0) {
+          try {
+            var lib = JSON.parse(localStorage.getItem('__chromancer_themes') || '[]');
+            var slug = t.slice(3);
+            var match = null;
+            for (var i = 0; i < lib.length; i++) {
+              var nm = (lib[i].name || 'tema').toLowerCase()
+                .replace(/[^a-z0-9-_]/g, '-')
+                .replace(/-+/g, '-').replace(/^-|-$/g, '') || 'tema';
+              if (nm === slug) { match = lib[i]; break; }
+            }
+            if (match && match.css) {
+              var s = document.createElement('style');
+              s.id = 'cm-style-' + slug;
+              s.textContent = match.css.replace(
+                /:root\[data-theme="[^"]*"\]/g,
+                ':root[data-theme="cm-' + slug + '"]'
+              );
+              document.head.appendChild(s);
+            }
+          } catch(e2){}
+        }
+        document.documentElement.setAttribute('data-theme', t);
+      }
       var cyberOn = localStorage.getItem('pf1e-cyber-mode') === 'on';
       if (cyberOn) {
         document.documentElement.setAttribute('data-cyber', 'on');
@@ -10368,6 +10396,149 @@ const THEMES = [
   { id:'royal2',        label:{es:'Royal Negro 👑',    en:'Royal Black 👑'} },
   { id:'cyber-cyan',    label:{es:'Syndra 💠',         en:'Syndra 💠'} },
 ];
+/* #ANCHOR:CHROMANCER-THEME-V1 ─────────────────────────────────
+   Biblioteca de temas custom pegados desde Chromancer.
+   El usuario copia el CSS desde Chromancer ("Copiar CSS"), abre
+   el menú de temas → "+ Añadir tema (Chromancer)", lo pega y se
+   guarda en localStorage como entrada persistente del menú. */
+const CHROMANCER_LIB_KEY = '__chromancer_themes';
+function _cmSlug(name) {
+  return ((name || 'tema') + '').toLowerCase()
+    .replace(/[^a-z0-9-_]/g, '-')
+    .replace(/-+/g, '-').replace(/^-|-$/g, '') || 'tema';
+}
+function _cmLoadLib() {
+  try { return JSON.parse(localStorage.getItem(CHROMANCER_LIB_KEY) || '[]'); }
+  catch (e) { return []; }
+}
+function _cmSaveLib(lib) {
+  try { localStorage.setItem(CHROMANCER_LIB_KEY, JSON.stringify(lib)); }
+  catch (e) {}
+}
+function _cmInjectStyle(payload, slug) {
+  const id = 'cm-style-' + slug;
+  let s = document.getElementById(id);
+  if (!s) {
+    s = document.createElement('style');
+    s.id = id;
+    document.head.appendChild(s);
+  }
+  // Reescribimos el selector :root[data-theme="…"] del CSS pegado para que
+  // coincida con el id interno cm-<slug>, sea cual sea el nombre original.
+  s.textContent = (payload.css || '').replace(
+    /:root\[data-theme="[^"]*"\]/g,
+    ':root[data-theme="cm-' + slug + '"]'
+  );
+}
+function _cmRegisterInThemes(payload, slug) {
+  const id = 'cm-' + slug;
+  const labelText = (payload.name || 'tema') + ' (custom)';
+  const entry = { id, label: { es: labelText, en: labelText }, _custom: true, _payload: payload };
+  const i = THEMES.findIndex(t => t.id === id);
+  if (i > -1) THEMES[i] = entry; else THEMES.push(entry);
+  return id;
+}
+function _cmSwatchInlineStyle(css) {
+  const hexes = (css.match(/#[0-9a-fA-F]{6}\b/g) || []).slice(0, 5);
+  if (hexes.length === 0) return '';
+  if (hexes.length === 1) return 'background:' + hexes[0] + ';';
+  return 'background:linear-gradient(135deg,' + hexes[0] + ' 0%,' + hexes[hexes.length - 1] + ' 100%);';
+}
+function parseChromancerCss(text) {
+  if (typeof text !== 'string') return null;
+  text = text.trim();
+  const m = text.match(/:root\s*\[\s*data-theme\s*=\s*"([^"]+)"\s*\]\s*\{/);
+  if (!m) return null;
+  return { name: m[1], css: text };
+}
+function addCustomThemeFromCss(text) {
+  const parsed = parseChromancerCss(text);
+  if (!parsed) {
+    return { ok: false, error: 'No encuentro :root[data-theme="…"]{…} en lo que has pegado. Comprueba que copiaste el código completo desde Chromancer.' };
+  }
+  const slug = _cmSlug(parsed.name);
+  const payload = {
+    _format: 'chromancer-theme-v1', version: 1,
+    name: parsed.name, css: parsed.css,
+    importedAt: new Date().toISOString()
+  };
+  const lib = _cmLoadLib();
+  const i = lib.findIndex(p => _cmSlug(p.name) === slug);
+  if (i > -1) lib[i] = payload; else lib.push(payload);
+  _cmSaveLib(lib);
+  _cmInjectStyle(payload, slug);
+  const id = _cmRegisterInThemes(payload, slug);
+  if (typeof buildThemeMenu === 'function') buildThemeMenu();
+  applyTheme(id);
+  return { ok: true, id, name: parsed.name };
+}
+function removeCustomTheme(id) {
+  if (!id || id.indexOf('cm-') !== 0) return false;
+  const slug = id.slice(3);
+  const lib = _cmLoadLib();
+  const i = lib.findIndex(p => _cmSlug(p.name) === slug);
+  if (i > -1) { lib.splice(i, 1); _cmSaveLib(lib); }
+  const ti = THEMES.findIndex(t => t.id === id);
+  if (ti > -1) THEMES.splice(ti, 1);
+  const s = document.getElementById('cm-style-' + slug);
+  if (s) s.remove();
+  if (getTheme() === id) applyTheme('default');
+  if (typeof buildThemeMenu === 'function') buildThemeMenu();
+  return true;
+}
+// Hidratamos AHORA — antes de getTheme()/buildThemeMenu(). Si el snippet
+// del <head> ya inyectó el <style> del tema activo, _cmInjectStyle lo
+// reutiliza por id (no duplica).
+(function _cmHydrateLibOnce(){
+  const lib = _cmLoadLib();
+  for (let i = 0; i < lib.length; i++) {
+    const slug = _cmSlug(lib[i].name);
+    _cmInjectStyle(lib[i], slug);
+    _cmRegisterInThemes(lib[i], slug);
+  }
+})();
+function openAddThemeDialog() {
+  const m   = document.getElementById('cm-add-modal');
+  const inp = document.getElementById('cm-add-input');
+  const err = document.getElementById('cm-add-error');
+  if (!m || !inp) return;
+  inp.value = '';
+  if (err) { err.hidden = true; err.textContent = ''; }
+  m.hidden = false;
+  setTimeout(() => inp.focus(), 50);
+  // Si hay algo pegable en el portapapeles que empieza por :root[data-theme,
+  // lo metemos directamente para que el usuario solo confirme.
+  if (navigator.clipboard && navigator.clipboard.readText) {
+    navigator.clipboard.readText().then(text => {
+      if (text && /:root\s*\[\s*data-theme/.test(text) && !inp.value) {
+        inp.value = text;
+      }
+    }).catch(() => {});
+  }
+}
+function closeAddThemeDialog() {
+  const m = document.getElementById('cm-add-modal');
+  if (m) m.hidden = true;
+}
+function _cmDialogConfirm() {
+  const inp = document.getElementById('cm-add-input');
+  const err = document.getElementById('cm-add-error');
+  if (!inp) return;
+  const text = (inp.value || '').trim();
+  if (!text) {
+    if (err) { err.textContent = 'Pega el CSS de tu tema antes de añadirlo.'; err.hidden = false; }
+    return;
+  }
+  const r = addCustomThemeFromCss(text);
+  if (!r.ok) {
+    if (err) { err.textContent = r.error || 'No se pudo añadir el tema.'; err.hidden = false; }
+    return;
+  }
+  closeAddThemeDialog();
+  if (typeof closeThemeMenu === 'function') closeThemeMenu();
+}
+/* ── /CHROMANCER-THEME-V1 ─── */
+
 function getTheme() {
   try { return localStorage.getItem('pf1e-theme') || 'default'; } catch(e) { return 'default'; }
 }
@@ -10414,15 +10585,45 @@ function buildThemeMenu() {
   THEMES.forEach(th => {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'theme-option';
+    btn.className = 'theme-option' + (th._custom ? ' _custom' : '');
     btn.setAttribute('role', 'menuitemradio');
     btn.setAttribute('aria-checked', th.id === current ? 'true' : 'false');
     btn.dataset.themeValue = th.id;
     const label = typeof th.label === 'string' ? th.label : (th.label[LANG] || th.label.es);
-    btn.innerHTML = `<span class="theme-swatch" data-theme-swatch="${th.id}" aria-hidden="true"></span><span class="theme-label">${label}</span>`;
-    btn.addEventListener('click', () => { applyTheme(th.id); closeThemeMenu(); });
+    // Swatch dinámico para temas chromancer (los built-in usan CSS estático
+    // por id en style.css; los custom no, así que sacamos los hex del CSS).
+    const swStyle = (th._custom && th._payload && th._payload.css)
+      ? ' style="' + _cmSwatchInlineStyle(th._payload.css) + '"' : '';
+    btn.innerHTML =
+      '<span class="theme-swatch" data-theme-swatch="' + th.id + '"' + swStyle + ' aria-hidden="true"></span>' +
+      '<span class="theme-label">' + label + '</span>' +
+      (th._custom ? '<button type="button" class="cm-del" aria-label="Borrar este tema" title="Borrar tema">✕</button>' : '');
+    btn.addEventListener('click', (ev) => {
+      if (ev.target.closest('.cm-del')) return;   // los clicks en ✕ no aplican el tema
+      applyTheme(th.id);
+      closeThemeMenu();
+    });
+    if (th._custom) {
+      const del = btn.querySelector('.cm-del');
+      if (del) del.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const nm = (th._payload && th._payload.name) || th.id;
+        if (confirm('¿Borrar el tema "' + nm + '" de tu biblioteca?')) {
+          removeCustomTheme(th.id);
+        }
+      });
+    }
     frag.appendChild(btn);
   });
+  // #ANCHOR:CHROMANCER-THEME-V1 — botón "+ Añadir tema" al final del menú
+  const addBtn = document.createElement('button');
+  addBtn.type = 'button';
+  addBtn.className = 'theme-option-add';
+  addBtn.setAttribute('role', 'menuitem');
+  addBtn.textContent = 'Añadir tema (Chromancer)';
+  addBtn.addEventListener('click', () => openAddThemeDialog());
+  frag.appendChild(addBtn);
+
   menu.innerHTML = '';
   menu.appendChild(frag);
 }
@@ -10445,6 +10646,44 @@ document.addEventListener('DOMContentLoaded', () => {
   <span class="theme-fab-icon" aria-hidden="true">🎨</span>
 </button>
 <div class="theme-menu" id="theme-menu" role="menu" aria-labelledby="theme-fab" hidden></div>
+
+<!-- #ANCHOR:CHROMANCER-THEME-V1 — popup para pegar el CSS de Chromancer -->
+<div class="cm-add-modal" id="cm-add-modal" role="dialog" aria-labelledby="cm-add-title" aria-modal="true" hidden>
+  <div class="cm-add-card">
+    <h3 id="cm-add-title">＋ Añadir tema desde Chromancer</h3>
+    <p class="cm-add-help">
+      Abre Chromancer, pulsa <strong>Copiar CSS</strong> en la pestaña <em>CSS</em> y pega aquí lo que tengas en el portapapeles. El bloque debe empezar por <code>:root[data-theme="…"] { … }</code>.
+    </p>
+    <textarea id="cm-add-input" class="cm-add-input"
+              rows="10" spellcheck="false" autocomplete="off"
+              placeholder=':root[data-theme=&quot;mi-tema&quot;] {&#10;  --parchment    : #...;&#10;  ...&#10;}'></textarea>
+    <div class="cm-add-error" id="cm-add-error" hidden></div>
+    <div class="cm-add-actions">
+      <button type="button" class="cm-add-btn cm-add-btn-ghost" id="cm-add-cancel">Cancelar</button>
+      <button type="button" class="cm-add-btn cm-add-btn-primary" id="cm-add-ok">Añadir tema</button>
+    </div>
+  </div>
+</div>
+<script>
+  // Wiring del modal: cancel / ok / Esc / click fuera
+  (function(){
+    const modal = document.getElementById('cm-add-modal');
+    const ok    = document.getElementById('cm-add-ok');
+    const cncl  = document.getElementById('cm-add-cancel');
+    if (cncl) cncl.addEventListener('click', () => closeAddThemeDialog());
+    if (ok)   ok.addEventListener('click',   () => _cmDialogConfirm());
+    if (modal) modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeAddThemeDialog();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal && !modal.hidden) closeAddThemeDialog();
+      // Ctrl/Cmd+Enter dentro del textarea = confirmar
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && modal && !modal.hidden) {
+        _cmDialogConfirm();
+      }
+    });
+  })();
+</script>
 
 <button class="feedback-fab" id="feedback-fab" type="button" aria-label="Menú" aria-haspopup="menu" aria-expanded="false" title="Menú">
   <span class="feedback-fab-icon" aria-hidden="true">?</span>
