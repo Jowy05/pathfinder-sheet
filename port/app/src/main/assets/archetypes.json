@@ -2994,48 +2994,6 @@
                                                   }
                                               ]
                       },
-    "order_of_the_flame":  {
-                               "class":  "samurai",
-                               "name":  "Order of the Flame",
-                               "name_en":  "Order of the Flame",
-                               "name_es":  "Orden de la Llama",
-                               "source":  "Ultimate Combat",
-                               "description_es":  "Los miembros de la Orden de la Llama buscan la gloria personal a cualquier costo. Cuanto más peligroso es el desafío, más grande es la recompensa. Se lanzan al combate con imprudencia, ganando poder a medida que derrotan enemigos, pero volviéndose cada vez más vulnerables.",
-                               "description_en":  "Members of the Order of the Flame seek personal glory at any cost. The more dangerous the challenge, the greater the reward. They rush into combat recklessly, gaining power as they fell enemies, but becoming increasingly vulnerable.",
-                               "features_removed":  [
-
-                                                    ],
-                               "features_gained":  [
-                                                       {
-                                                           "name":  "Desafío Glorioso",
-                                                           "name_en":  "Glorious Challenge",
-                                                           "level":  2,
-                                                           "description_es":  "Cuando reduces a 0 PG o menos al objetivo de tu Desafío, puedes emitir un Desafío Glorioso contra otro oponente en un radio de 15 pies como acción inmediata. Este desafío no gasta un uso diario. Cada desafío consecutivo impone −2 a la CA acumulativo, pero otorga +2×N al daño c.a.c. contra el objetivo (N = número de desafíos gloriosos consecutivos).",
-                                                           "description_en":  "When you reduce the target of your Challenge to 0 HP, you may issue a Glorious Challenge against another opponent within 15 feet as an immediate action. This does not expend a daily use. Each consecutive challenge imposes a cumulative −2 AC penalty but grants +2×N melee damage (N = consecutive glorious challenges)."
-                                                       },
-                                                       {
-                                                           "name":  "Embestida Imprudente",
-                                                           "name_en":  "Foolhardy Rush",
-                                                           "level":  2,
-                                                           "description_es":  "Al tirar iniciativa, si obtienes 11 o más en el dado, puedes moverte hasta tu velocidad base como acción inmediata. No estás desprevenido durante este movimiento. El movimiento realizado se resta de tu movimiento en tu primer turno.",
-                                                           "description_en":  "When rolling initiative, if you roll 11 or higher on the die, you may move up to your base speed as an immediate action. You are not flat-footed during this movement. Distance moved is subtracted from your first turn movement."
-                                                       },
-                                                       {
-                                                           "name":  "Éxito Intimidante",
-                                                           "name_en":  "Daunting Success",
-                                                           "level":  8,
-                                                           "description_es":  "Al confirmar un golpe crítico con arma c.a.c., puedes intentar Intimidar como acción inmediata para atemorizar a todos los enemigos en 15 pies que puedan verte. Solo una vez por combate.",
-                                                           "description_en":  "When you confirm a critical hit with a melee weapon, you may attempt Intimidate as an immediate action to demoralize all enemies within 15 feet who can see you. Once per combat only."
-                                                       },
-                                                       {
-                                                           "name":  "Fogata Gloriosa",
-                                                           "name_en":  "Blaze of Glory",
-                                                           "level":  15,
-                                                           "description_es":  "Acción estándar. Durante un número de rondas igual a tu modificador de CAR (mín. 1): velocidad +10 pies, ignoras terreno difícil al cargar, +4 a tiradas de ataque (en lugar de +2). Una vez por combate.",
-                                                           "description_en":  "Standard action. For a number of rounds equal to your CHA modifier (min 1): speed +10 ft, ignore difficult terrain while charging, +4 to attack rolls (instead of +2). Once per combat."
-                                                       }
-                                                   ]
-                           },
     "wild_rager":  {
                        "class":  "barbarian",
                        "name":  "Wild Rager",
