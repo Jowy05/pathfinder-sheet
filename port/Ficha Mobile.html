@@ -6890,6 +6890,36 @@ function wireAutosave(){
   }, true);
 }
 
+function wireSummaryAttack(){
+  // Bug bloqueante reportado por auditoría: el botón ⚔ Atacar del Resumen
+  // no tenía listener. Aquí lo conectamos para abrir el FAB de armas o,
+  // si solo hay una, tirar ataque directo con la primera arma equipada.
+  const btn = document.getElementById('summary-attack');
+  if(!btn) return;
+  btn.addEventListener('click', ()=>{
+    const weapons = (typeof WEAPONS_DATA!=='undefined' ? WEAPONS_DATA : []);
+    if(!weapons.length){
+      if(typeof toast==='function') toast('Sin armas en el arsenal');
+      // Cambiar a tab Equipo > Armas
+      try{ if(typeof setTab==='function') setTab('equipo'); }catch(e){}
+      return;
+    }
+    if(weapons.length===1){
+      // Tirada directa
+      const w = weapons[0];
+      if(typeof performRoll==='function') performRoll({expr:'1d20'+w.atk, label:w.name+' · Ataque', isAttack:true});
+      return;
+    }
+    // Múltiples armas: ir a tab Equipo > Armas para que el usuario elija
+    try{
+      if(typeof setTab==='function') setTab('equipo');
+      const chip = document.querySelector('.tab-page[data-tab="equipo"] .subchip[data-sub="armas"]');
+      if(chip) chip.click();
+      if(typeof toast==='function') toast('Elige un arma');
+    }catch(e){}
+  });
+}
+
 function init6(){
   extendI18N();
   applyI18NExtras();
@@ -6898,6 +6928,7 @@ function init6(){
   wireSettingsClear();
   bindPhotoButtons();
   wireAutosave();
+  wireSummaryAttack();
 
   const stored = loadStoredState();
   if(stored){
