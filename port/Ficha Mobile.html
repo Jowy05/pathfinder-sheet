@@ -4443,17 +4443,110 @@ function ageCatModFor(abbr){
   if(abbr==='FUE'||abbr==='DES'||abbr==='CON') return ac.fis;
   return ac.men;
 }
+/* ─── DOMINIO 1 · ATRIBUTOS ─── */
+/* Estado por-atributo. Slots editables (8) + acm calculado.
+   Persistencia en localStorage bajo "ficha-attrs-state". */
+const ATTR_SLOTS = ['base','racial','enhance','inherent','misc','temp','dmg','drain'];
+const ATTR_STATE = (function(){
+  const seed = {};
+  ATTRS.forEach(([abbr,,total])=>{
+    // Sembrado desde la línea inicial (FUE 16 con +1 racial = base 15)
+    const racial = (abbr==='FUE') ? 1 : 0;
+    seed[abbr] = { base: total - racial, racial, enhance:0, inherent:0, misc:0, temp:0, dmg:0, drain:0 };
+  });
+  try{
+    const raw = localStorage.getItem('ficha-attrs-state');
+    if(raw){
+      const saved = JSON.parse(raw);
+      Object.keys(seed).forEach(k=>{
+        if(saved[k]) ATTR_SLOTS.forEach(s=>{ if(typeof saved[k][s]==='number') seed[k][s] = saved[k][s]; });
+      });
+    }
+  }catch(e){}
+  return seed;
+})();
+function persistAttrState(){
+  try{ localStorage.setItem('ficha-attrs-state', JSON.stringify(ATTR_STATE)); }catch(e){}
+}
+function attrModFromTotal(total){
+  if(total===0) return -5; // paralizado/petrificado
+  return Math.floor((total - 10) / 2);
+}
+/* Cache de últimos mods, expuesto para otros dominios */
+const ATTR_LAST_MOD = {FUE:0,DES:0,CON:0,INT:0,SAB:0,CAR:0};
+window.getAttrMod = function(abbr){ return ATTR_LAST_MOD[abbr] || 0; };
+
+function recalcAttrCard(card){
+  if(!card) return;
+  const abbr = card.dataset.attr;
+  if(!abbr || !ATTR_STATE[abbr]) return;
+  const st = ATTR_STATE[abbr];
+  ATTR_SLOTS.forEach(slot=>{
+    const inp = card.querySelector(`input[data-mod="${slot}"]`);
+    if(inp){
+      const v = parseInt(inp.value,10);
+      st[slot] = isNaN(v) ? 0 : v;
+    }
+  });
+  const acm = ageCatModFor(abbr);
+  // Daño y Drenaje son magnitudes positivas; restan
+  const dmg   = Math.max(0, st.dmg|0);
+  const drain = Math.max(0, st.drain|0);
+  const total = (st.base|0) + (st.racial|0) + (st.enhance|0) + (st.inherent|0)
+              + (st.misc|0) + (st.temp|0) + acm - dmg - drain;
+  const mod = attrModFromTotal(total);
+  // Pinta DOM
+  const totalEl = card.querySelector('.attr-total');
+  const modEl   = card.querySelector('.attr-mod');
+  if(totalEl) totalEl.textContent = total;
+  if(modEl){
+    modEl.textContent = (mod>=0?'+':'') + mod;
+    modEl.classList.remove('pos','neg');
+    if(mod>0) modEl.classList.add('pos');
+    else if(mod<0) modEl.classList.add('neg');
+  }
+  // Sincroniza fila Edad (auto) por si el render no la actualizó
+  const ageInp = card.querySelector('input[data-mod="age"]');
+  if(ageInp) ageInp.value = acm;
+
+  ATTR_LAST_MOD[abbr] = mod;
+  persistAttrState();
+  document.dispatchEvent(new CustomEvent('attr-changed', { detail:{ abbr, total, mod } }));
+}
+function recalcAllAttrs(){
+  document.querySelectorAll('#attr-grid .attr-card').forEach(recalcAttrCard);
+}
+/* Delegación: un único listener por grid */
+let __attrInputsBound = false;
+function bindAttrInputs(){
+  const grid = document.getElementById('attr-grid');
+  if(!grid || __attrInputsBound) return;
+  grid.addEventListener('input', (e)=>{
+    const inp = e.target;
+    if(!(inp && inp.matches('input[data-mod]'))) return;
+    const card = inp.closest('.attr-card');
+    recalcAttrCard(card);
+  });
+  __attrInputsBound = true;
+}
+
+/* Override de renderAttrs: usa ATTR_STATE para los valores y añade
+   data-attr / data-mod en cada input para identificarlos. */
 const ORIG_renderAttrs = renderAttrs;
 renderAttrs = function(){
   const grid = document.getElementById('attr-grid');
   if(!grid) return;
-  grid.innerHTML = ATTRS.map(([abbr,name,total,mod])=>{
+  grid.innerHTML = ATTRS.map(([abbr,name])=>{
+    const st = ATTR_STATE[abbr];
+    const acm = ageCatModFor(abbr);
+    const total = (st.base|0)+(st.racial|0)+(st.enhance|0)+(st.inherent|0)+(st.misc|0)+(st.temp|0)+acm-Math.max(0,st.dmg|0)-Math.max(0,st.drain|0);
+    const mod = attrModFromTotal(total);
+    ATTR_LAST_MOD[abbr] = mod;
     const sign = mod>=0?'+':'';
     const cls = mod>0?'pos':(mod<0?'neg':'');
-    const acm = ageCatModFor(abbr);
     const acmCls = acm>0?'pos':(acm<0?'neg':'');
     const acmSign = acm>0?'+':'';
-    return `<div class="attr-card">
+    return `<div class="attr-card" data-attr="${abbr}">
       <div class="attr-head">
         <div class="attr-abbr">${abbr}</div>
         <div class="attr-name" data-attr-name="${name}">${name}</div>
@@ -4464,20 +4557,31 @@ renderAttrs = function(){
       <details>
         <summary>Modificadores</summary>
         <div class="mods-list">
-          <div class="mod-row"><label>Base</label><input type="number" inputmode="numeric" pattern="-?[0-9]*" value="${total - (abbr==='FUE'?1:0)}"></div>
-          <div class="mod-row"><label>Aj. racial</label><input type="number" inputmode="numeric" pattern="-?[0-9]*" value="${abbr==='FUE'?1:0}"></div>
-          <div class="mod-row"><label>Mejora</label><input type="number" inputmode="numeric" pattern="-?[0-9]*" value="0"></div>
-          <div class="mod-row"><label>Inherente</label><input type="number" inputmode="numeric" pattern="-?[0-9]*" value="0"></div>
-          <div class="mod-row"><label>Misc</label><input type="number" inputmode="numeric" pattern="-?[0-9]*" value="0"></div>
-          <div class="mod-row"><label>Temporal</label><input type="number" inputmode="numeric" pattern="-?[0-9]*" value="0"></div>
-          <div class="mod-row"><label>Edad (auto)</label><input type="number" inputmode="numeric" pattern="-?[0-9]*" value="${acm}" readonly style="opacity:.6"></div>
-          <div class="mod-row" style="border-top:1px dashed var(--line);padding-top:6px;margin-top:2px"><label style="color:var(--negative)">Daño</label><input type="number" inputmode="numeric" pattern="-?[0-9]*" value="0" style="border-color:var(--negative)"></div>
-          <div class="mod-row"><label style="color:var(--negative)">Drenaje</label><input type="number" inputmode="numeric" pattern="-?[0-9]*" value="0" style="border-color:var(--negative)"></div>
+          <div class="mod-row"><label>Base</label><input type="number" inputmode="numeric" pattern="-?[0-9]*" data-attr="${abbr}" data-mod="base" value="${st.base|0}"></div>
+          <div class="mod-row"><label>Aj. racial</label><input type="number" inputmode="numeric" pattern="-?[0-9]*" data-attr="${abbr}" data-mod="racial" value="${st.racial|0}"></div>
+          <div class="mod-row"><label>Mejora</label><input type="number" inputmode="numeric" pattern="-?[0-9]*" data-attr="${abbr}" data-mod="enhance" value="${st.enhance|0}"></div>
+          <div class="mod-row"><label>Inherente</label><input type="number" inputmode="numeric" pattern="-?[0-9]*" data-attr="${abbr}" data-mod="inherent" value="${st.inherent|0}"></div>
+          <div class="mod-row"><label>Misc</label><input type="number" inputmode="numeric" pattern="-?[0-9]*" data-attr="${abbr}" data-mod="misc" value="${st.misc|0}"></div>
+          <div class="mod-row"><label>Temporal</label><input type="number" inputmode="numeric" pattern="-?[0-9]*" data-attr="${abbr}" data-mod="temp" value="${st.temp|0}"></div>
+          <div class="mod-row"><label>Edad (auto)</label><input type="number" inputmode="numeric" pattern="-?[0-9]*" data-attr="${abbr}" data-mod="age" value="${acm}" readonly style="opacity:.6"></div>
+          <div class="mod-row" style="border-top:1px dashed var(--line);padding-top:6px;margin-top:2px"><label style="color:var(--negative)">Daño</label><input type="number" inputmode="numeric" pattern="-?[0-9]*" data-attr="${abbr}" data-mod="dmg" value="${st.dmg|0}" style="border-color:var(--negative)"></div>
+          <div class="mod-row"><label style="color:var(--negative)">Drenaje</label><input type="number" inputmode="numeric" pattern="-?[0-9]*" data-attr="${abbr}" data-mod="drain" value="${st.drain|0}" style="border-color:var(--negative)"></div>
         </div>
       </details>
     </div>`;
   }).join('');
+  bindAttrInputs();
+  // Notifica a los oyentes el estado tras un (re)render completo
+  ATTRS.forEach(([abbr])=>{
+    const card = grid.querySelector(`.attr-card[data-attr="${abbr}"]`);
+    if(card){
+      const total = parseInt(card.querySelector('.attr-total').textContent,10) || 0;
+      const mod = ATTR_LAST_MOD[abbr];
+      document.dispatchEvent(new CustomEvent('attr-changed', { detail:{ abbr, total, mod } }));
+    }
+  });
 };
+
 function bindAgeCat(){
   // El select "Categoría de edad" en Personaje > Identidad > Físico
   const allSelects = document.querySelectorAll('.field-select');
@@ -4491,6 +4595,45 @@ function bindAgeCat(){
     }
   });
 }
+
+/* Bonus racial automático. Mapa raceId (slug del nombre en RACES_DATA) → ajustes. */
+const RACIAL_ABILITY_MODS = {
+  'humano':    {},                                        // +2 libre (no aplicado automáticamente)
+  'elfo':      {DES:+2, INT:+2, CON:-2},
+  'enano':     {CON:+2, SAB:+2, CAR:-2},
+  'mediano':   {DES:+2, CAR:+2, FUE:-2},
+  'gnomo':     {CON:+2, CAR:+2, FUE:-2},
+  'semielfo':  {},                                        // +2 libre
+  'semiorco':  {},                                        // +2 libre
+  'aasimar':   {SAB:+2, CAR:+2},
+  'tiflin':    {DES:+2, INT:+2, CAR:-2},
+  'catfolk':   {DES:+2, CAR:+2, SAB:-2},
+};
+function _slugRace(s){
+  return (s||'').toString().toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/[^a-z0-9]+/g,'').trim();
+}
+function applyRacialBonuses(raceId){
+  const key = _slugRace(raceId);
+  const mods = RACIAL_ABILITY_MODS[key] || {};
+  ATTRS.forEach(([abbr])=>{
+    ATTR_STATE[abbr].racial = mods[abbr] || 0;
+  });
+  persistAttrState();
+  // Repinta inputs visibles si están en el DOM y recalcula
+  const grid = document.getElementById('attr-grid');
+  if(grid){
+    ATTRS.forEach(([abbr])=>{
+      const inp = grid.querySelector(`.attr-card[data-attr="${abbr}"] input[data-mod="racial"]`);
+      if(inp) inp.value = ATTR_STATE[abbr].racial;
+      const card = grid.querySelector(`.attr-card[data-attr="${abbr}"]`);
+      if(card) recalcAttrCard(card);
+    });
+  }
+  return mods;
+}
+window.applyRacialBonuses = applyRacialBonuses;
 
 /* ─── HABILIDADES: counter ─── */
 const ORIG_renderSkills = renderSkills;
