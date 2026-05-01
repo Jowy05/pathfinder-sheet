@@ -188,7 +188,10 @@
         "description_en": "Can cast beneficial touch spells on multiple allies as a full-round action.",
         "level": 8
       }
-    ]
+    ],
+    "sub_options": {
+      "domains": "Debe elegir un dominio de combate (ej. Guerra, Destrucción, Fuerza, Nobleza). / Must select a combat-oriented domain (e.g. War, Destruction, Strength, Nobility)."
+    }
   },
   "ecclesitheurge": {
     "class": "cleric",
@@ -224,7 +227,10 @@
         "description_en": "At level 4 can change their secondary domain daily when preparing spells.",
         "level": 4
       }
-    ]
+    ],
+    "sub_options": {
+      "domains": "Un único dominio; en vez de un segundo dominio obtiene poderes de dominio mejorados a niveles 8 y 16. / One domain; instead of a second domain gains enhanced domain powers at levels 8 and 16."
+    }
   },
   "blight_druid": {
     "class": "druid",
@@ -688,7 +694,10 @@
         "description_en": "Selects bloodline powers, bloodline feats, and arcanas from two different bloodlines, alternating by level.",
         "level": 1
       }
-    ]
+    ],
+    "sub_options": {
+      "bloodlines": "Elige DOS linajes. Obtiene los poderes de ambos pero con 1 nivel de retraso. Penalización de -2 a todas las tiradas de voluntad. Pierde un hechizo de sangre por nivel de hechicero. / Selects TWO bloodlines. Gains powers from both but 1 level delayed. -2 penalty to all will saves. Loses one bloodline spell per sorcerer level."
+    }
   },
   "wildblooded": {
     "class": "sorcerer",
@@ -707,7 +716,10 @@
         "description_en": "The bloodline arcana and one or more bloodline powers are replaced by mutated versions that change the fundamental function of the bloodline.",
         "level": 1
       }
-    ]
+    ],
+    "sub_options": {
+      "bloodlines": "Elige un linaje de mutación (versión alternativa de un linaje estándar). Cada linaje wildblood modifica levemente la lista de hechizos y poderes del linaje base. / Selects a mutation bloodline (alternate version of a standard bloodline). Each wildblood bloodline slightly modifies the spell list and powers of the base bloodline."
+    }
   },
   "exploiter_wizard": {
     "class": "wizard",
@@ -734,7 +746,10 @@
         "description_es": "Obtiene explotaciones de arcanista a nivel 1 y cada 4 niveles. Nivel efectivo = nivel de mago.",
         "description_en": "Gains arcanist exploits at level 1 and every 4 levels. Effective level = wizard level."
       }
-    ]
+    ],
+    "sub_options": {
+      "schools": "Pierde la especialización de escuela. En su lugar gana explotaciones de arcanista (arcane exploits) elegidas de la lista de arcanista. / Loses school specialization. Instead gains arcane exploits chosen from the arcanist list."
+    }
   },
   "spellslinger": {
     "class": "wizard",
@@ -1077,7 +1092,10 @@
         "description_en": "Can apply hexes delayed through prepared attacks.",
         "level": 4
       }
-    ]
+    ],
+    "sub_options": {
+      "hexes": "Puede elegir hexes de bruja como acanos de magus. Los hexes disponibles: vuelo, lenguas, mal de ojo, desgracia, miedo, sueño, lentitud, ceguera (lista no exhaustiva). Los hexes malignos requieren un acano para activarse con el magus. / Can select witch hexes as magus arcana. Available hexes: flight, tongues, evil eye, misfortune, fear, slumber, slow, blindness (non-exhaustive). Evil hexes require an arcana to activate with the magus."
+    }
   },
   "seeker": {
     "class": "oracle",
@@ -1166,7 +1184,10 @@
         "description_en": "The link with the fused eidolon heals the summoner's HP when the eidolon would take lethal damage.",
         "level": 1
       }
-    ]
+    ],
+    "sub_options": {
+      "evolutions": "Todas las evoluciones del eidolón se aplican al cuerpo del convocador mientras está fusionado. El eidolón actúa como una armadura viva; las evoluciones de PF del eidolón se aplican al convocador. / All eidolon evolutions apply to the summoner's body while fused. The eidolon acts as living armor; eidolon EP evolutions apply to the summoner."
+    }
   },
   "master_summoner": {
     "class": "summoner",
@@ -1192,7 +1213,10 @@
         "description_es": "Puede mantener múltiples Summon Monster activos simultáneamente cuando el eidolón no está desplegado. Sin límite normal de una sola convocación activa.",
         "description_en": "Can maintain multiple Summon Monster active simultaneously when the eidolon is not deployed. Without the normal limit of one active summon."
       }
-    ]
+    ],
+    "sub_options": {
+      "evolutions": "El eidolón tiene solo 1/4 de los Puntos de Evolución normales pero puede conjurar más monstruos invocados simultáneamente (hasta 1+ nivel de conjuración / 5). / The eidolon has only 1/4 normal Evolution Points but can summon more creatures simultaneously (up to 1 + summon level / 5)."
+    }
   },
   "hedge_witch": {
     "class": "witch",
@@ -1393,7 +1417,10 @@
         "description_en": "At level 4 and every 4 levels can replace a bloodline power with 2 barbarian rage powers. Cannot select powers that require standard barbarian rage.",
         "level": 4
       }
-    ]
+    ],
+    "sub_options": {
+      "bloodlines": "Mantiene su linaje de sangre. En vez de poderes de linaje en niveles 8, 12, 16, 20 puede elegir dos poderes de rabia en su lugar. / Keeps bloodline. Instead of bloodline powers at levels 8, 12, 16, 20 may choose two rage powers instead."
+    }
   },
   "exemplar": {
     "class": "brawler",
@@ -1608,7 +1635,10 @@
         "description_en": "At levels 4 and 8, can use their wandering spirit to access revelations from the oracle mystery tied to that spirit instead of a hex.",
         "level": 4
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Oráculo con acceso a espíritus de chamán. Elige un espíritu al nivel 3 (y opcionalmente uno wandering al nivel 7). Los poderes de espíritu reemplazan revelaciones de oráculo. / Oracle with access to shaman spirits. Chooses a spirit at level 3 (and optionally a wandering spirit at level 7). Spirit powers replace oracle revelations."
+    }
   },
   "unsworn_shaman": {
     "class": "shaman",
@@ -1634,7 +1664,10 @@
         "description_en": "Can have a number of distinct wandering spirits per day equal to 1 + 1 per 6 levels. Chooses which is active when preparing spells.",
         "level": 1
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "No vincula un espíritu al crear el personaje. Cada día puede vincular cualquier espíritu (sin espíritu de wandering fijo). Tiene menos hechizos memorables pero máxima flexibilidad de espíritu. / Does not bond a spirit at creation. Each day can channel any spirit (no fixed wandering spirit). Has fewer memorized spells but maximum spirit flexibility."
+    }
   },
   "totemic_skald": {
     "class": "skald",
@@ -3711,7 +3744,10 @@
         "description_en": "Cannot take the bloodline development exploit; any additional bloodline from multiclassing must match the original.",
         "level": 1
       }
-    ]
+    ],
+    "sub_options": {
+      "bloodlines": "Elige un linaje de hechicero al nivel 1. Gana hechizos de linaje adicionales y algunos poderes de linaje, pero no los beneficios del linaje completo. / Selects a sorcerer bloodline at level 1. Gains bonus bloodline spells and some bloodline powers, but not the full bloodline benefits."
+    }
   },
   "eldritch_font": {
     "class": "arcanist",
@@ -3828,7 +3864,10 @@
         "description_en": "Selects two opposition schools; their spells take up two prepared slots and incur -4 on crafting items requiring those schools.",
         "level": 1
       }
-    ]
+    ],
+    "sub_options": {
+      "schools": "Se especializa en una escuela arcana al nivel 1. Los hechizos de especialización se preparan con un nivel efectivo más bajo (facilita lanzamiento). La escuela opuesta impone penalización como en mago. / Specializes in one arcane school at level 1. Specialization spells prepared at effectively lower level (easier casting). Opposed school imposes penalty as for wizard."
+    }
   },
   "unlettered_arcanist": {
     "class": "arcanist",
@@ -4389,7 +4428,10 @@
         "description_en": "Suffers a permanent –2 penalty to all Will saves, and reduced morale bonuses while bloodraging.",
         "level": 1
       }
-    ]
+    ],
+    "sub_options": {
+      "bloodlines": "Elige DOS linajes (como crossblooded sorcerer). Obtiene poderes de ambos pero con 1 nivel de retraso. Penalización de -2 a todas las tiradas de voluntad. / Selects TWO bloodlines. Gains powers from both but 1 level delayed. -2 penalty to all will saves."
+    }
   },
   "metamagic_rager": {
     "class": "bloodrager",
@@ -4925,7 +4967,10 @@
         "description_en": "At 8th level, may reroll 1s on healing rolls or apply Merciful Healing benefits before rolling.",
         "level": 8
       }
-    ]
+    ],
+    "sub_options": {
+      "domains": "Dominio de Curación obligatorio. No puede elegir dominios con subdominios violentos. / Healing domain mandatory. Cannot select domains with violent subdomains."
+    }
   },
   "separatist": {
     "class": "cleric",
@@ -4948,7 +4993,10 @@
         "description_en": "Selects one deity-approved domain plus a second domain not on the deity's list. The second domain functions at 2 levels lower for effects, DCs, and daily uses; skill bonuses are gained normally.",
         "level": 1
       }
-    ]
+    ],
+    "sub_options": {
+      "domains": "Puede elegir un dominio fuera del portfolio de su deidad (acceso herético). Accede a dominios de cualquier alineamiento, incluido el opuesto. / Can select one domain outside deity portfolio (heretical access). Can access any alignment domain including opposed."
+    }
   },
   "undead_lord": {
     "class": "cleric",
@@ -4991,7 +5039,10 @@
         "description_en": "At 8th level, healing spells and abilities that target undead heal 50% more. At 16th, they automatically heal maximum damage plus the 50% bonus.",
         "level": 8
       }
-    ]
+    ],
+    "sub_options": {
+      "domains": "Debe elegir el dominio Muerte. El segundo dominio debe ser Muertos Vivientes o Mal. / Must choose the Death domain. Second domain must be Undead or Evil."
+    }
   },
   "theologian": {
     "class": "cleric",
@@ -5020,7 +5071,10 @@
         "description_en": "At 5th level, permanently modifies a domain spell with one metamagic feat (Bouncing, Disruptive, Ectoplasmic, Enlarge, Extend, Focused, Intensified, Silent, or Still) without raising slot level or owning the feat. Additional spells at 10th, 15th, and 20th.",
         "level": 8
       }
-    ]
+    ],
+    "sub_options": {
+      "domains": "Un único dominio (elegido al crear el personaje). Los poderes de dominio mejoran a niveles más altos. / One domain only (chosen at creation). Domain powers scale at higher levels."
+    }
   },
   "aquatic_druid": {
     "class": "druid",
@@ -10867,7 +10921,10 @@
         "description_en": "At 14th level, transfers damage to one eidolon at a time.",
         "level": 14
       }
-    ]
+    ],
+    "sub_options": {
+      "evolutions": "En vez de 1 eidolón potente, el convocador puede tener múltiples eidolones menores (brood). Los Puntos de Evolución se dividen entre todos. Cada eidolón de la cría tiene los mismos PEs divididos. / Instead of 1 powerful eidolon, the summoner can have multiple minor eidolons (brood). Evolution Points are divided among all. Each brood eidolon shares the same divided EPs."
+    }
   },
   "naturalist_summoner": {
     "class": "summoner",
@@ -12274,7 +12331,10 @@
         "description_en": "At 2nd level, by spending 1 full round per spell level and two prepared spells of equal or higher level, he casts a bard, cleric or druid spell as a wizard spell. Extra uses at 6th, 11th and 16th.",
         "level": 1
       }
-    ]
+    ],
+    "sub_options": {
+      "schools": "No se especializa en ninguna escuela. Puede lanzar hechizos de todas las escuelas sin penalización de hechicería opuesta. Puede identificar hechizos con tirada de Conocimiento (Arcana). / Does not specialize. Can cast from all schools without opposed school restrictions. Can identify spells with Knowledge (Arcana) checks."
+    }
   },
   "savage_technologist": {
     "class": "unchained_barbarian",
