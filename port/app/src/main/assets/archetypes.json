@@ -230,6 +230,9 @@
     ],
     "sub_options": {
       "domains": "Un único dominio; en vez de un segundo dominio obtiene poderes de dominio mejorados a niveles 8 y 16. / One domain; instead of a second domain gains enhanced domain powers at levels 8 and 16."
+    },
+    "restrictions": {
+      "domain_max": 1
     }
   },
   "blight_druid": {
@@ -5027,6 +5030,11 @@
     ],
     "sub_options": {
       "domains": "Dominio de Curación obligatorio. No puede elegir dominios con subdominios violentos. / Healing domain mandatory. Cannot select domains with violent subdomains."
+    },
+    "restrictions": {
+      "domains_required": [
+        "healing"
+      ]
     }
   },
   "separatist": {
@@ -5099,6 +5107,12 @@
     ],
     "sub_options": {
       "domains": "Debe elegir el dominio Muerte. El segundo dominio debe ser Muertos Vivientes o Mal. / Must choose the Death domain. Second domain must be Undead or Evil."
+    },
+    "restrictions": {
+      "domain_max": 2,
+      "domains_required": [
+        "death"
+      ]
     }
   },
   "theologian": {
@@ -5131,6 +5145,9 @@
     ],
     "sub_options": {
       "domains": "Un único dominio (elegido al crear el personaje). Los poderes de dominio mejoran a niveles más altos. / One domain only (chosen at creation). Domain powers scale at higher levels."
+    },
+    "restrictions": {
+      "domain_max": 1
     }
   },
   "aquatic_druid": {
@@ -13918,6 +13935,9 @@
     "source_url": "https://www.d20pfsrd.com/classes/core-classes/cleric/archetypes/paizo-cleric-archetypes/cardinal-cleric-archetype/",
     "sub_options": {
       "domains": "Un solo dominio (elegido al crear el personaje). Pierde el segundo dominio y el lanzamiento espontáneo. / One domain only at creation. Loses second domain and spontaneous casting."
+    },
+    "restrictions": {
+      "domain_max": 1
     }
   },
   "feyspeaker": {
