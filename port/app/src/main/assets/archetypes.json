@@ -4504,7 +4504,10 @@
         "description_es": "Al elegir dotes de linaje, puede escoger dotes metamágicos en su lugar.",
         "description_en": "When selecting bloodline feats, may choose metamagic feats instead."
       }
-    ]
+    ],
+    "sub_options": {
+      "bloodlines": "Mantiene el linaje de sangre estándar. Los poderes de rabia se sustituyen por la habilidad de aplicar metamagia a sus propios hechizos de forma espontánea mientras rages. El linaje determina qué hechizos pueden potenciarse. / Keeps standard bloodline. Rage powers replaced by ability to spontaneously apply metamagic to own spells while raging. Bloodline determines which spells can be enhanced."
+    }
   },
   "rageshaper": {
     "class": "bloodrager",
@@ -4534,7 +4537,10 @@
         "description_en": "At 5th level, can cast transmutation/polymorph spells from the bloodrager list while raging with extended duration; spells matching the bloodline are automatically extended without a concentration check.",
         "level": 5
       }
-    ]
+    ],
+    "sub_options": {
+      "bloodlines": "Requiere linaje Bestia (Beast) o Primordial. Los poderes de linaje se centran en la transformación física durante la rabia. La forma de rabia del rageshaper refleja el linaje elegido (reptil, mamífero, etc.). / Requires Beast or Primal bloodline. Bloodline powers focus on physical transformation during rage. Rageshaper's rage form reflects chosen bloodline (reptile, mammal, etc.)."
+    }
   },
   "spelleater": {
     "class": "bloodrager",
