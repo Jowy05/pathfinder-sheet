@@ -1,132 +1,38 @@
-# PENDIENTE — trabajo en vuelo cuando se cortó la sesión
+# PENDIENTE — trabajo en vuelo
 
-Última actualización: 2026-04-29
-
-## ⏳ TODO importante: auto-activación de aptitudes al alcanzar lvlunlock
-
-Pendiente: cuando un personaje sube de nivel, las aptitudes con `lvlunlock <= nivel_actual` deben:
-- Auto-añadirse a la ficha (no solo "habilitarse" en el picker)
-- O al menos auto-marcarse como "disponibles" en alguna lista visible
-
-Estado actual: el picker muestra todas las features de la clase y desactiva (gris) las que tienen `lvlunlock > nivel_actual`. Lo que falta es el trigger automático en el cambio de nivel.
-
-Implementación sugerida:
-1. En el listener de cambio de `level{i}` o en `recalc()`, recorrer `DB.special_abilities` filtrando por clase y `lvlunlock <= level`.
-2. Para cada match no presente todavía en el sheet, llamar a `addFeature(name, desc, uses, 0)`.
-3. Tener un toggle global para no auto-añadir si el usuario lo prefiere manual (algunas clases tienen 50+ features y saturarían la ficha).
-
-Ojo con: features con `uses/día` calculadas — `parseUsesFromDesc` ya tiene la lógica, pero hay que pasarle `level` y `mods` correctos.
-
-
+Última actualización: 2026-05-01
 
 ## Estado actual de la base de datos
 
 | Recurso | Estado |
 |---|---|
-| `archetypes.json` | 321 arquetipos integrados (90 originales + 231 nuevos verificados en d20pfsrd/aonprd, todos bilingüe ES/EN) |
-| `classes.json` | 95 clases (50 base + 5 prestige antiguas + 40 prestige nuevas) |
-| `special_abilities.json` | 383 entradas con `class_en` añadido (fix bug i18n) — **NO incluye class features de las 40 prestige nuevas ni de las 5 prestige antiguas** |
-| `index.html` | DB inline (L2621) y `FALLBACK_DB` (L8723-…) sincronizados con los JSON anteriores |
-| Port Android | Sincronizado con todo lo anterior |
+| `archetypes.json` | 328 arquetipos (322 anteriores + 6 colisiones Wave A integradas con slug único) |
+| `classes.json` | 95 clases (50 base + 45 prestige) |
+| `special_abilities.json` | 2365 entradas — cubre todas las clases base, 40 prestige nuevas y 5 prestige antiguas (con ES fix). Wave 3 integrado. |
+| `index.html` | DB inline (L2854) y `FALLBACK_DB` (L10405) sincronizados |
+| Port Android | Sincronizado |
 
-## ⚠️ PENDIENTE DE INTEGRAR (datos ya investigados, pero NO mergeados)
+## ✅ COMPLETADO
 
-Los 10 archivos en `_wave3_pending/` contienen trabajo verificado de los workers de Wave 3 que **no se llegó a integrar** por falta de tiempo. Los datos están listos, solo falta el merge mecánico.
-
-### A) Skill diffs de arquetipos — 33 entradas
-
-8 archivos: `_wave3_pending/_w3_arch_g{1..8}.json`
-
-Cada uno es un dict `{slug: {class_skills_add: [...], class_skills_remove: [...]}}`. Los 33 arquetipos identificados (resto de los 231 no modifican habilidades):
-
-- **G1 (3)**: preservationist, tyrant, urban_barbarian
-- **G2 (5)**: snakebite_striker, wild_child, strangler, evangelist (cleric), cave_druid
-- **G3 (5)**: lore_warden, urban_hunter, cipher_investigator, psychic_detective, dark_elementalist
-- **G4 (7)**: sohei, vexing_daredevil, frozen_shadow, hunting_serpent, petal_ninja, geomancer, silksworn
-- **G5 (3)**: stargazer, beastmaster, trapper
-- **G6 (1)**: speaker_for_the_past
-- **G7 (7)**: seeker_sorcerer, magical_child, warlock_vigilante, zealot_vigilante, cabalist_vigilante, avenging_beast, cult_leader
-- **G8 (2)**: savage_technologist, sensei_unchained
-
-**Cómo integrar**: para cada entrada del dict, hacer `archetypes[slug].class_skills_add = [...]; archetypes[slug].class_skills_remove = [...]`. Después regenerar `DB inline (L2621)` y `FALLBACK_DB.archetypes`. Replicar al port.
-
-### B) Class features de prestige classes — 411 entradas
-
-2 archivos: `_wave3_pending/_w3_prest_gA.json` y `_w3_prest_gB.json` — cada uno es un **array** de objetos en formato `special_abilities.json`:
-
-```json
-{"id":"assassin_death_attack","class":"Asesino","class_en":"Assassin","name":"Ataque Mortal","name_en":"Death Attack","lvlunlock":1,"description":"...","description_en":"..."}
-```
-
-Cobertura (40 prestige clases × 2-16 features cada una):
-- **PA (205 entradas)**: assassin (11), arcane_archer (10), arcane_trickster (6), duelist (13), mystic_theurge (2), shadowdancer (15), pathfinder_chronicler (13), stalwart_defender (8), holy_vindicator (11), rage_prophet (12), master_chymist (5), battle_herald (11), master_spy (16), nature_warden (14), hellknight (11), hellknight_signifer (10), red_mantis_assassin (11), inheritors_crusader (4), aldori_swordlord (10), diabolist (12)
-- **PB (206 entradas)**: cyphermage (2), evangelist (11), exalted (12), noble_scion (8), pathfinder_savant (13), sentinel (13), sleepless_detective (15), living_monolith (15), demoniac (12), divine_scion (6), lion_blade (16), hinterlander (9), winter_witch (10), riftwarden (9), dawnflower_anchorite (8), harrower (11), low_templar (10), ulfen_guard (8), souldrinker (10), stargazer (8)
-
-**Cómo integrar**: concatenar ambos arrays con `special_abilities.json` (que es un array). Después regenerar el inline `FALLBACK_DB.special_abilities` (línea ~8925, single-line JSON). Replicar al port.
-
-### Script PowerShell sugerido para hacer A + B en una pasada
-
-```powershell
-$base = 'c:\Users\Lucia\Documents\fichahtml\pathfinder-sheet'
-$pending = "$base\_wave3_pending"
-
-# A) skill diffs
-$arch = Get-Content "$base\archetypes.json" -Raw -Encoding utf8 | ConvertFrom-Json
-foreach ($n in 1..8) {
-  $diffs = Get-Content "$pending\_w3_arch_g$n.json" -Raw -Encoding utf8 | ConvertFrom-Json
-  foreach ($p in $diffs.PSObject.Properties) {
-    if ($p.Value.PSObject.Properties.Name -contains 'class_skills_add') {
-      $arch.($p.Name) | Add-Member -NotePropertyName 'class_skills_add' -NotePropertyValue $p.Value.class_skills_add -Force
-    }
-    if ($p.Value.PSObject.Properties.Name -contains 'class_skills_remove') {
-      $arch.($p.Name) | Add-Member -NotePropertyName 'class_skills_remove' -NotePropertyValue $p.Value.class_skills_remove -Force
-    }
-  }
-}
-$arch | ConvertTo-Json -Depth 50 | Out-File "$base\archetypes.json" -Encoding utf8 -NoNewline
-
-# B) prestige features
-$sa = Get-Content "$base\special_abilities.json" -Raw -Encoding utf8 | ConvertFrom-Json
-$pa = Get-Content "$pending\_w3_prest_gA.json" -Raw -Encoding utf8 | ConvertFrom-Json
-$pb = Get-Content "$pending\_w3_prest_gB.json" -Raw -Encoding utf8 | ConvertFrom-Json
-$saAll = @($sa) + @($pa) + @($pb)
-$saAll | ConvertTo-Json -Depth 50 | Out-File "$base\special_abilities.json" -Encoding utf8 -NoNewline
-
-# Regenerar inlines en index.html (L2621 DB online + FALLBACK_DB.archetypes + FALLBACK_DB.special_abilities)
-# Replicar al port
-```
-
-Recordar: cualquier cambio en `archetypes.json` o `special_abilities.json` requiere actualizar **3 sitios**: el .json, el DB inline en L2621, y el bloque dentro de `FALLBACK_DB`. Y replicar al port.
+- Wave 3 integrado (`_wave3_pending/` eliminado)
+- 6 colisiones de Wave A resueltas con slug único (`_cavalier`, `_oracle`, `_paladin`, `_ranger`, `_shifter`, `_unchained`)
+- Traducciones ES de 5 prestige antiguas en `special_abilities.json`
+- Auto-activación de aptitudes en mobile (`autoAddMobileClassFeatures()`)
+- Motor de buffs en mobile (`_BUFF_MOD_TOTALS`, `parseMod`, `rebuildBuffModTotals`)
+- Rabia/Smite/Ki como toggles en mobile
+- Compañeros editables en mobile
+- Formularios añadir arma/armadura/hechizo en mobile
 
 ## ❌ NO INVESTIGADO TODAVÍA
 
 ### Class features de las 5 prestige classes ANTIGUAS
 
-`special_abilities.json` tampoco tiene entradas para:
-- `dragon_disciple`
-- `horizon_walker`
-- `eldritch_knight`
-- `loremaster`
-- `mammoth_rider`
-
-Estas 5 estaban en `classes.json` desde antes pero nunca tuvieron sus class features añadidas a `special_abilities.json`. Estimación: ~50 entradas adicionales.
+`dragon_disciple`, `horizon_walker`, `eldritch_knight`, `loremaster`, `mammoth_rider` tienen entradas en `special_abilities.json` pero puede que les falten features — verificar cobertura vs d20pfsrd/AoN. Estimación: ~50 entradas adicionales.
 
 ### Otras lagunas conocidas
 
-- **Hit die / BAB / saves diffs en arquetipos**: 0 arquetipos en TODA la DB usan estos campos del esquema. En PF1e oficial >95% de arquetipos no los cambian, pero algunos sí (e.g. variantes con HD diferente). No está cubierto sistemáticamente.
-- **Cambios de competencias (proficiency) en arquetipos**: el esquema no contempla un campo para tracking de prof de armas/armaduras añadidas o quitadas por arquetipo. Cubierto narrativamente en `features_gained` pero no estructuralmente.
-- **Hexes, evoluciones, dominios, escuelas, etc. específicos por arquetipo**: cuando un arquetipo restringe o añade opciones de listas (e.g. winter_witch tiene patron específico, hexcrafter añade hexes a magus) no está formalmente capturado, solo descrito.
-- **Arquetipos de las 5 prestige antiguas**: el cazador buscó solo en las 40 nuevas + las prestige donde teníamos pista (Hellknight, Aldori, Pathfinder Savant, Red Mantis). No revisó si dragon_disciple/loremaster/horizon_walker/eldritch_knight/mammoth_rider tienen variants — improbable pero no descartado.
-- **Re-verificar las 6 colisiones rechazadas en el merge de Wave A**: G2 daring_champion (cavalier), G5 spirit_guide (oracle), G5 divine_hunter (paladin), G5 infiltrator (ranger), G6 rageshaper (shifter), G8 urban_barbarian (unchained_barbarian). Para cada una el slug ya existía para OTRA clase distinta. Habría que renombrar (`_paladin`, `_oracle`, etc.) e integrar — son arquetipos válidos perdidos por colisión de clave.
-- **Skill diffs aún no confirmables**: G6 marcó como caveat que AoN renderiza class skills con JS y no pudo verificar `warrior_poet` (samurai), `witch_doctor` (shaman), `urban_skald` (skald). Re-revisar con scraping diferente o consulta directa de PDFs oficiales.
-- **El error de description_es del worker G8 wave 1**: se metió `superstitious_barbarian` con sufijo, pero la versión "limpia" para `barbarian` ya existe (G1 `superstitious`). Verificar que no quedaron descripciones duplicadas o redundantes.
-
-## Cómo retomar
-
-1. Leer este archivo entero.
-2. Ejecutar el script PowerShell de arriba para integrar A + B.
-3. Regenerar los 3 sitios en `index.html` (DB inline L2621, FALLBACK_DB.archetypes, FALLBACK_DB.special_abilities).
-4. Replicar `archetypes.json`, `special_abilities.json`, `index.html` al port.
-5. Borrar `_wave3_pending/` (ya integrado).
-6. Borrar este archivo o actualizarlo con el resto pendiente.
-7. Continuar con la lista "NO INVESTIGADO".
+- **Hit die / BAB / saves diffs en arquetipos**: ningún arquetipo usa estos campos. >95% de PF1e no los cambia, pero algunos sí.
+- **Cambios de competencias (proficiency) en arquetipos**: no cubierto estructuralmente, solo en `features_gained`.
+- **Hexes, evoluciones, dominios, escuelas, etc. específicos por arquetipo**: solo descripción narrativa, no campo estructurado.
+- **Skill diffs pendientes de confirmación** (G6 caveat): `warrior_poet` (samurai), `witch_doctor` (shaman), `urban_skald` (skald) — AoN renderiza con JS, verificar con PDF oficial.
+- **Superstitious barbarian duplicado** (G8 wave 1): verificar que no quedaron descripciones redundantes entre `superstitious` (G1) y `superstitious_barbarian`.
