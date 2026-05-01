@@ -16,12 +16,18 @@ Este proyecto tiene **dos copias** del mismo código que deben mantenerse en sin
 
 | Origen (web)                        | Destino (Android port)                                      |
 |-------------------------------------|--------------------------------------------------------------|
-| `Ficha/index.html`                  | `Ficha/port/app/src/main/assets/index.html`                 |
+| `Ficha/Ficha Mobile.html`           | `Ficha/port/app/src/main/assets/index.html` ⚠️ VER NOTA    |
 | `Ficha/style.css`                   | `Ficha/port/app/src/main/assets/style.css`                  |
 | `Ficha/fallback-data.js`            | `Ficha/port/app/src/main/assets/fallback-data.js`           |
 | `Ficha/*.json` (todos)              | `Ficha/port/app/src/main/assets/*.json`                     |
 
+> ⚠️ **IMPORTANTE**: `port/app/src/main/assets/index.html` NO es una copia de `Ficha/index.html` (versión PC).
+> Es una copia de `Ficha/Ficha Mobile.html` — la versión mobile con bottom nav, menús interactivos y UI adaptada a táctil.
+> **NUNCA copiar `Ficha/index.html` al port.** Si se hace, se sobreescribe la app mobile con la versión de escritorio.
+
 **Tras cualquier cambio en la web hay que copiar el archivo modificado a `port/app/src/main/assets/`** (manual o vía `Ficha/port/sync-assets.bat`). Si no se replica, la app de Android queda desactualizada.
+
+Los cambios de datos (JSON, special_abilities, archetypes, classes) se sincronizan normalmente. Los cambios de UI/JS que afecten a la hoja hay que portarlos **manualmente** a `Ficha Mobile.html` — las dos versiones tienen estructuras HTML diferentes.
 
 ### Cuándo además hay que tocar el bridge nativo
 
