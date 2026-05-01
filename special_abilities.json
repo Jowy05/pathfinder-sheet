@@ -4540,7 +4540,7 @@
     "class": "Caminante del Horizonte",
     "class_en": "Horizon Walker",
     "name": "Excursión Etérea",
-    "lvlunlock": 12,
+    "lvlunlock": 10,
     "description": "A nivel 12, puede viajar al Plano Etéreo 1/día como el hechizo (nivel de lanzador = nivel de clase).",
     "name_es": "Excursión Etérea",
     "name_en": "Planar Jaunt",
@@ -27178,5 +27178,65 @@
     "lvlunlock": 10,
     "description": "Una vez al día, el Astrólogo puede reemplazar una de sus arcanas siderales por cualquier otra; el cambio es permanente, salvo que se vuelva a usar esta capacidad.",
     "description_en": "Once per day, the Stargazer can replace one of his sidereal arcana with any other one; the change is otherwise permanent unless this ability is used again."
+  },
+  {
+    "id": "eldritch_knight_bonus_feat",
+    "class": "Caballero Arcanista",
+    "class_en": "Eldritch Knight",
+    "name": "Talento de Combate Adicional",
+    "name_en": "Bonus Combat Feat",
+    "lvlunlock": 2,
+    "description": "El caballero arcanista obtiene un talento de combate adicional en los niveles 2, 4, 6, 8 y 10. Puede elegir cualquier talento de combate para el que cumpla los requisitos previos.",
+    "description_en": "At 2nd level and every 2 levels thereafter (4th, 6th, 8th, 10th), the eldritch knight gains a bonus combat feat. He must meet all prerequisites for the selected feat."
+  },
+  {
+    "id": "dragon_disciple_dragon_apotheosis",
+    "class": "Descendiente de Dragon",
+    "class_en": "Dragon Disciple",
+    "name": "Apoteosis Draconica",
+    "name_en": "Dragon Apotheosis",
+    "lvlunlock": 10,
+    "description": "En el nivel 10, el descendiente de dragon completa su transformacion y adquiere los subtipos dragon y nativo. Gana +4 a FUE o a CON, sus ataques naturales se consideran del alineamiento de su linaje draconico, e infligen 1d6 puntos adicionales de dano elemental en cada ataque natural.",
+    "description_en": "At 10th level, the dragon disciple completes his transformation, gaining the dragon and native subtypes. He gains +4 to STR or CON. His natural attacks are treated as aligned with his draconic ancestor's damage type, and deal 1d6 extra points of that energy damage on each hit."
+  },
+  {
+    "id": "mammoth_rider_greater_charge",
+    "class": "Jinete de Mamuts",
+    "class_en": "Mammoth Rider",
+    "name": "Carga Mayor",
+    "name_en": "Greater Charge",
+    "lvlunlock": 7,
+    "description": "A partir del nivel 7, cuando el jinete de mamuts y su montura cargan, el jinete puede realizar un ataque completo al final de la carga. La montura tambien puede hacer todos sus ataques naturales al final de la carga.",
+    "description_en": "At 7th level, when the mammoth rider and his mount charge, the rider may make a full attack at the end of the charge. The mount may also use its full natural attack routine at the end of the charge."
+  },
+  {
+    "id": "mammoth_rider_mighty_steed",
+    "class": "Jinete de Mamuts",
+    "class_en": "Mammoth Rider",
+    "name": "Montura Formidable",
+    "name_en": "Mighty Steed",
+    "lvlunlock": 8,
+    "description": "La montura del jinete de mamuts gana Esquiva mejorada. El jinete puede ademas compartir sus talentos de explorador con la montura como si esta cumpliera los requisitos.",
+    "description_en": "At 8th level, the mammoth rider's mount gains Improved Evasion. The rider may also share his ranger talents with the mount as though it met all prerequisites."
+  },
+  {
+    "id": "mammoth_rider_frightful_presence",
+    "class": "Jinete de Mamuts",
+    "class_en": "Mammoth Rider",
+    "name": "Presencia Aterradora",
+    "name_en": "Frightful Presence",
+    "lvlunlock": 9,
+    "description": "La montura del jinete de mamuts adquiere presencia aterradora con radio 9 m. La CD es 10 + mitad del nivel del jinete + modificador de CAR de la montura. Las criaturas que fallen quedan asustadas 5d6 asaltos.",
+    "description_en": "At 9th level, the mammoth rider's mount gains frightful presence (30-ft radius, DC 10 + 1/2 rider's level + mount's Cha modifier). Creatures that fail are shaken for 5d6 rounds."
+  },
+  {
+    "id": "loremaster_bonus_languages_8",
+    "class": "Erudito",
+    "class_en": "Loremaster",
+    "name": "Idiomas Adicionales II",
+    "name_en": "Bonus Languages (2nd)",
+    "lvlunlock": 8,
+    "description": "En el nivel 8, el erudito aprende dos idiomas adicionales de su eleccion.",
+    "description_en": "At 8th level, the loremaster learns 2 additional languages of his choice."
   }
 ]
