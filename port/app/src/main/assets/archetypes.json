@@ -13604,5 +13604,192 @@
         "description_en": "+1 to attack and damage against targets adjacent to 2 or more of the barbarian allies."
       }
     ]
+  },
+  "cardinal": {
+    "class": "cleric",
+    "name": "Cardinal",
+    "name_en": "Cardinal",
+    "name_es": "Cardinal",
+    "bab": "slow",
+    "skill_points": 6,
+    "description_en": "Political cleric focused on social influence. Poor BAB, 6+Int skills/level, light armor and no shields, one domain only, loses spontaneous casting.",
+    "description_es": "Clérigo político centrado en la influencia social. BAB lento, 6+Int habilidades/nivel, armadura ligera y sin escudos, un solo dominio, pierde lanzamiento espontáneo.",
+    "features_removed": [
+      "Spontaneous Casting",
+      "Second Domain"
+    ],
+    "features_removed_es": [
+      "Lanzamiento Espontáneo",
+      "Segundo Dominio"
+    ],
+    "features_gained": [
+      {
+        "name": "Habilidades Políticas",
+        "name_en": "Political Skills",
+        "description_es": "Gana Engaño, Intimidar, Conocimiento (geografía) y Conocimiento (local) como habilidades de clase adicionales. Selección de dominio reducida a un único dominio.",
+        "description_en": "Gain Bluff, Intimidate, Knowledge (geography) and Knowledge (local) as additional class skills. Domain selection is limited to one domain."
+      }
+    ],
+    "source": "Ultimate Intrigue",
+    "source_url": "https://www.d20pfsrd.com/classes/core-classes/cleric/archetypes/paizo-cleric-archetypes/cardinal-cleric-archetype/"
+  },
+  "feyspeaker": {
+    "class": "druid",
+    "name": "Hablante de las Hadas",
+    "name_en": "Feyspeaker",
+    "name_es": "Hablante de las Hadas",
+    "bab": "slow",
+    "skill_points": 6,
+    "description_en": "Fey-touched druid. Poor BAB, 6+Int skills/level, Charisma replaces Wisdom for spells, light non-metal armor only. Gains enchantment/illusion spells from sorcerer list.",
+    "description_es": "Druida tocado por las hadas. BAB lento, 6+Int habilidades/nivel, Carisma sustituye a Sabiduría para hechizos, solo armadura ligera no metálica. Gana hechizos de encantamiento/ilusión de la lista de hechicero.",
+    "class_skills_add": [
+      "bluff",
+      "diplomacy",
+      "disguise",
+      "sense_motive"
+    ],
+    "features_removed": [
+      "Spontaneous Casting (Summon Nature's Ally)",
+      "Nature Sense",
+      "Wild Shape (Standard)"
+    ],
+    "features_removed_es": [
+      "Lanzamiento Espontáneo (Convocar Aliado Natural)",
+      "Sentido de la Naturaleza",
+      "Cambio de Forma (Estándar)"
+    ],
+    "features_gained": [
+      {
+        "name": "Magia de las Hadas",
+        "name_en": "Fey Magic",
+        "description_es": "Usa Carisma en vez de Sabiduría como estadística de lanzamiento. En niveles 4, 6, 8, 10, 12, 14, 16, 18 aprende un hechizo de encantamiento o ilusión de la lista de mago/hechicero.",
+        "description_en": "Uses Charisma instead of Wisdom for spellcasting. At levels 4, 6, 8, 10, 12, 14, 16, 18 learns one enchantment or illusion spell from the sorcerer/wizard list."
+      },
+      {
+        "name": "Engaño Salvaje",
+        "name_en": "Wild Mischief",
+        "description_es": "Puede engañar animales en 30 pies (CD = CAR + nivel de clase). Las bestias mágicas con INT 1-2 tienen penalización -4.",
+        "description_en": "Can deceive animals within 30 feet (DC = Cha + class level). Magical beasts with Int 1-2 take a -4 penalty on saves."
+      }
+    ],
+    "source": "Advanced Class Guide",
+    "source_url": "https://www.d20pfsrd.com/classes/core-classes/druid/archetypes/paizo-druid-archetypes/feyspeaker-druid-archetype/"
+  },
+  "cloistered_cleric": {
+    "class": "cleric",
+    "name": "Clérigo Recluido",
+    "name_en": "Cloistered Cleric",
+    "name_es": "Clérigo Recluido",
+    "skill_points": 4,
+    "description_en": "Scholar cleric. 4+Int skills/level. Loses medium and heavy armor, shield proficiency; weapon proficiency limited to club, heavy mace, light mace, quarterstaff, sling. Gains lore-based abilities.",
+    "description_es": "Clérigo erudito. 4+Int habilidades/nivel. Pierde armadura media y pesada, competencia con escudos; competencia de armas limitada a clava, maza pesada, maza ligera, cuarto y honda. Gana habilidades basadas en conocimiento.",
+    "features_removed": [
+      "Spontaneous Casting (Cure/Inflict)",
+      "Proficiency: Martial Weapons",
+      "Proficiency: Medium/Heavy Armor",
+      "Proficiency: Shields"
+    ],
+    "features_removed_es": [
+      "Lanzamiento Espontáneo (Curar/Infligir)",
+      "Competencia: Armas Marciales",
+      "Competencia: Armadura Media/Pesada",
+      "Competencia: Escudos"
+    ],
+    "features_gained": [
+      {
+        "name": "Amplitud de Conocimiento",
+        "name_en": "Breadth of Knowledge",
+        "description_es": "Bonificación en tiradas de Conocimiento igual a la mitad del nivel de clase (mínimo +1); puede usar Conocimiento sin adiestramiento en todos los campos.",
+        "description_en": "Bonus on Knowledge checks equal to half class level (minimum +1); can make all Knowledge checks untrained."
+      },
+      {
+        "name": "Bien Leído",
+        "name_en": "Well-Read",
+        "description_es": "+2 de bonificación en tiradas de habilidad, tiradas de nivel de lanzador y tiradas de salvación relacionadas con glifos, runas, pergaminos y escrituras.",
+        "description_en": "+2 bonus on skill checks, caster level checks, and saving throws related to glyphs, runes, scrolls, and writings."
+      },
+      {
+        "name": "Instrucción Verbal",
+        "name_en": "Verbal Instruction",
+        "description_es": "Puede ayudar a aliados en 9 m en tiradas de habilidad con la acción de ayudar. Un aliado adicional cada 3 niveles a partir del 3.°.",
+        "description_en": "Can aid allies within 30 ft on skill checks as an aid another action. One additional ally per 3 levels beyond 3rd."
+      },
+      {
+        "name": "Escribir Pergamino",
+        "name_en": "Scribe Scroll",
+        "description_es": "Gana el talento Escribir Pergamino como talento de bonificación en el nivel 4.",
+        "description_en": "Gains Scribe Scroll as a bonus feat at 4th level."
+      }
+    ],
+    "source": "Ultimate Magic",
+    "source_url": "https://www.d20pfsrd.com/classes/core-classes/cleric/archetypes/paizo-cleric-archetypes/cloistered-cleric/"
+  },
+  "spire_defender": {
+    "class": "magus",
+    "name": "Defensor de la Torre",
+    "name_en": "Spire Defender",
+    "name_es": "Defensor de la Torre",
+    "description_en": "Mobile, unarmored magus. Loses all armor and shield proficiency. Weapon proficiency limited to light and one-handed simple/martial weapons + one exotic weapon with disarm or trip. Gains Combat Expertise and Dodge as bonus feats.",
+    "description_es": "Magus ágil sin armadura. Pierde toda competencia con armaduras y escudos. Competencia de armas limitada a armas simples/marciales ligeras y de una mano + un arma exótica con desarme o zancadilla. Gana Pericia en Combate y Esquivar como talentos de bonificación.",
+    "features_removed": [
+      "Spell Recall",
+      "Armor Proficiency"
+    ],
+    "features_removed_es": [
+      "Recordar Hechizo",
+      "Competencia con Armaduras"
+    ],
+    "features_gained": [
+      {
+        "name": "Talentos de Bonificación",
+        "name_en": "Bonus Feats",
+        "description_es": "Gana Pericia en Combate y Esquivar como talentos de bonificación. Si más tarde adquiere competencia con armadura ligera, automáticamente ignora el fracaso arcano de armadura ligera.",
+        "description_en": "Gains Combat Expertise and Dodge as bonus feats. If light armor proficiency is later gained, automatically ignores arcane spell failure for light armor."
+      },
+      {
+        "name": "Aumento Arcano",
+        "name_en": "Arcane Augmentation",
+        "description_es": "Gasta 1 punto de reserva arcana (acción rápida) para +5 de competencia a Acrobacias, Trepar, Escapismo, Percepción, Sigilo o Nadar durante 1 minuto. +1 cada 3 niveles desde el 4.° (máx. +10).",
+        "description_en": "Spend 1 arcane pool point (swift action) for +5 competence to Acrobatics, Climb, Escape Artist, Perception, Stealth, or Swim for 1 minute. +1 per 3 levels beyond 4th (max +10)."
+      }
+    ],
+    "source": "Inner Sea Magic",
+    "source_url": "https://www.d20pfsrd.com/classes/base-classes/magus/archetypes/paizo---magus-archetypes/spire-defender"
+  },
+  "wildborn": {
+    "class": "barbarian",
+    "name": "Nacido Salvaje",
+    "name_en": "Wildborn",
+    "name_es": "Nacido Salvaje",
+    "description_en": "Primitive barbarian. Weapon proficiency limited to simple weapons crafted from bone, stone, or wood. Armor limited to leather and hide (no shields). Gains Improved Unarmed Strike and Catch Off-Guard as bonus feats.",
+    "description_es": "Bárbaro primitivo. Competencia de armas limitada a armas simples de hueso, piedra o madera. Armadura limitada a cuero y cuero endurecido (sin escudos). Gana Ataque Desarmado Mejorado y Pillar Desprevenido como talentos de bonificación.",
+    "features_removed": [
+      "Trap Sense",
+      "Rage Powers",
+      "Standard Weapon Proficiency",
+      "Standard Armor Proficiency"
+    ],
+    "features_removed_es": [
+      "Sentido de Trampa",
+      "Poderes de Rabia",
+      "Competencia con Armas Estándar",
+      "Competencia con Armaduras Estándar"
+    ],
+    "features_gained": [
+      {
+        "name": "Vivir de la Tierra",
+        "name_en": "Live Off the Land",
+        "description_es": "Reemplaza Sentido de Trampa. +1/2 nivel de bárbaro a tiradas de Supervivencia para buscar comida. +1 a Fort contra efectos ambientales (nv3), +1 cada 3 niveles siguientes.",
+        "description_en": "Replaces trap sense. +1/2 barbarian level on Survival checks to forage. +1 Fort vs environmental effects at 3rd level, +1 per 3 levels thereafter."
+      },
+      {
+        "name": "Inagotable",
+        "name_en": "Inexhaustible",
+        "description_es": "Recupera daño no letal a razón de 1 minuto = 1 hora de descanso. Aplica reducción de daño al doble contra daño no letal.",
+        "description_en": "Recovers nonlethal damage at rate of 1 minute = 1 hour of rest. Applies double damage reduction against nonlethal damage."
+      }
+    ],
+    "source": "Ultimate Wilderness",
+    "source_url": "https://www.d20pfsrd.com/classes/core-classes/barbarian/archetypes/paizo-barbarian-archetypes/wildborn-barbarian-archetype/"
   }
 }
