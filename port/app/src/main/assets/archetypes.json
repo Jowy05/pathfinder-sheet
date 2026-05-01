@@ -536,7 +536,10 @@
         "description_en": "Summons an archon, angel, or other holy creature as a temporary ally instead of empowering a weapon.",
         "level": 5
       }
-    ]
+    ],
+    "sub_options": {
+      "domains": "Gana un dominio divino (como clérigo) en vez del compañero divino estándar. El dominio se elige de la lista de dominios de su deidad. Los poderes de dominio sustituyen las habilidades de compañero divino. / Gains one divine domain (as cleric) instead of standard divine bond. Domain chosen from deity's domain list. Domain powers replace divine bond abilities."
+    }
   },
   "urban_ranger": {
     "class": "ranger",
@@ -780,7 +783,10 @@
         "description_en": "Can use spell components to create special magical ammunition.",
         "level": 1
       }
-    ]
+    ],
+    "sub_options": {
+      "schools": "No se especializa en ninguna escuela. En su lugar se especializa en el disparo de conjuros a través de armas de fuego. Las escuelas de conjuro estándar no están disponibles pero puede elegir una \"pistola arcana\" que amplía ciertos tipos de hechizos. / Does not specialize in any school. Instead specializes in firing spells through firearms. Standard spell schools unavailable but can choose an \"arcane gun\" that amplifies certain spell types."
+    }
   },
   "vivisectionist": {
     "class": "alchemist",
@@ -1244,7 +1250,10 @@
         "description_en": "Can absorb poison or disease from another being by touch, transferring it to herself.",
         "level": 4
       }
-    ]
+    ],
+    "sub_options": {
+      "hexes": "Debe elegir el patrón de Curación. Los hexes disponibles se centran en curación y protección. Tiene acceso prioritario a hexes: curar heridas, medicina, antídoto, bendición. No puede elegir hexes de maldición o daño directo. / Must choose the Healing patron. Available hexes focus on healing and protection. Has priority access to hexes: healing, medicine, antidote, bless. Cannot choose curse or direct damage hexes."
+    }
   },
   "winter_witch": {
     "class": "witch",
@@ -1279,7 +1288,11 @@
         "description_en": "Adds 1d4 cold damage to touch attacks and touch spells.",
         "level": 4
       }
-    ]
+    ],
+    "sub_options": {
+      "hexes": "Requiere el patrón Invierno. Hexes disponibles limitados al tema del frío: escarcha (rime), congelación, tormenta de hielo. Hexes de fuego o calor no disponibles.",
+      "patrons": "El patrón debe ser Invierno. No puede elegir otro patrón. Los hechizos de patrón son todos del tema de frío y hielo. / Patron must be Winter. Cannot choose another patron. All patron spells have cold and ice themes."
+    }
   },
   "blade_adept": {
     "class": "arcanist",
@@ -1546,7 +1559,10 @@
         "description_en": "Their animal companion gains the Celestial (good) or Infernal (evil) template based on the hunter's alignment.",
         "level": 1
       }
-    ]
+    ],
+    "sub_options": {
+      "domains": "El compañero animal del cazador divino refleja el dominio de su deidad. Obtiene un mini-dominio de paladin (Misericordia o similar) en vez del vínculo animal estándar. / The divine hunter's animal companion reflects his deity's domain. Gains a paladin-like domain mini (Mercy, etc.) instead of standard animal bond."
+    }
   },
   "sleuth": {
     "class": "investigator",
@@ -1686,7 +1702,10 @@
         "description_en": "The raging song can only grant rage powers of the chosen totem (beast, spirit, fiend). Allies affected by the song only receive powers from that specific totem.",
         "level": 1
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "En vez de los poderes rúnicos estándar del escaldo, canaliza espíritus tótem animales. Cada espíritu tótem otorga una rabia simbólica diferente al escaldo y sus aliados (tótem del oso = PG extra, tótem del lobo = flanqueo, etc.). / Instead of standard runic skald powers, channels animal totem spirits. Each totem spirit grants a different symbolic rage to the skald and allies (bear totem = extra HP, wolf totem = flanking, etc.)."
+    }
   },
   "court_poet": {
     "class": "skald",
@@ -2026,7 +2045,10 @@
         "description_en": "At high levels can trap a target within a tale (similar to Maze), incapacitating them while the storyteller keeps the story active.",
         "level": 5
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Canaliza espíritus de figuras legendarias e históricas (leyendas locales, héroes de la antigüedad). En vez de los 6 espíritus estándar de médium, accede a un catálogo de personajes históricos con poderes únicos. / Channels spirits of legendary and historical figures (local legends, ancient heroes). Instead of the 6 standard medium spirits, accesses a catalog of historical figures with unique powers."
+    }
   },
   "spirit_dancer": {
     "class": "medium",
@@ -2061,7 +2083,10 @@
         "description_en": "At level 12, can channel two spirits simultaneously during the dance, gaining the benefits of both.",
         "level": 15
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Puede canalizar múltiples espíritus simultáneamente (hasta 3 a niveles altos) pero con poderes más débiles que los canalizados individualmente. Influencia de espíritu se distribuye entre todos. / Can channel multiple spirits simultaneously (up to 3 at high levels) but with weaker powers than individually channeled spirits. Spirit influence is distributed among all."
+    }
   },
   "fey_trickster": {
     "class": "mesmerist",
@@ -2183,7 +2208,10 @@
         "description_es": "Invoca guerreros espectrales vinculados al objeto para ayudar en combate.",
         "description_en": "Summons spectral warriors bonded to the object to help in combat."
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Un objeto místico (arma o armadura) alberga un espíritu guerrero que actúa como \"familiar\" del ocultista de batalla. El espíritu del objeto solo puede usar implementos de escuelas de combate. / A mystic object (weapon or armor) houses a warrior spirit acting as the battle host occultist's \"familiar.\" The object's spirit can only use implement schools from combat schools."
+    }
   },
   "necroccultist": {
     "class": "occultist",
@@ -2221,7 +2249,10 @@
         "description_en": "Can drain negative levels from enemies and transfer them to allies as temporary resistance points.",
         "level": 14
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Puede vincular espíritus no-muertos a sus implementos. Los implementos vinculados a espíritus no-muertos otorgan poderes necrománticos en vez de los estándar de cada escuela. / Can bind undead spirits to implements. Implements bound to undead spirits grant necromantic powers instead of each school's standard powers."
+    }
   },
   "amnesiac": {
     "class": "psychic",
@@ -2320,7 +2351,10 @@
         "description_en": "Scaling natural armor bonus equal to 1/2 spiritualist level while the ectoplasm is manifested.",
         "level": 1
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "El espíritu del espiritualista se manifiesta como ectoplasma físico en vez de forma espectral. El espíritu ectoplásmico puede aferrar y mover objetos. Limitación: pierde las habilidades espectrales del espíritu estándar. / Spiritualist's spirit manifests as physical ectoplasm instead of spectral form. Ectoplasmic spirit can grab and move objects. Limitation: loses standard spirit's spectral abilities."
+    }
   },
   "involutionist": {
     "class": "spiritualist",
@@ -2344,7 +2378,11 @@
         "description_es": "El fantasma puede otorgar al espiritista maleficios de bruja en lugar de los poderes de fusión estándar.",
         "description_en": "The phantom can grant the spiritualist witch hexes instead of the standard fusion powers."
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "El espíritu del espiritualista puede ganar hexes de bruja a medida que sube de nivel, en vez de los poderes de espíritu estándar. Cada vez que el espíritu ganaría un nuevo poder, puede elegir un hex en su lugar. / Spiritualist's spirit can gain witch hexes as it levels up instead of standard spirit powers. Each time the spirit would gain a new power, can choose a hex instead.",
+      "hexes": "Los hexes están disponibles para el espíritu vinculado, no para el espiritualista directamente. El espiritualista invoca el hex a través del espíritu, requiriendo que el espíritu esté manifiesto. / Hexes are available to the bound spirit, not the spiritualist directly. The spiritualist invokes the hex through the spirit, requiring the spirit to be manifest."
+    }
   },
   "sword_saint": {
     "class": "samurai",
@@ -2580,7 +2618,10 @@
         "description_es": "Los aspectos del cambiante adaptable evolucionan más rápido, obteniendo la mejora de nivel más alto a niveles impares.",
         "description_en": "The adaptive shifter's aspects evolve faster, gaining the higher-level improvement at odd levels."
       }
-    ]
+    ],
+    "sub_options": {
+      "evolutions": "En vez de formas de animal estándar, puede adaptar evolutivamente sus transformaciones. Gana puntos de evolución similares al eidolón del convocador para personalizar sus formas de cambio. A nivel 20 puede mantener múltiples adaptaciones simultáneamente. / Instead of standard animal forms, can evolutionarily adapt transformations. Gains evolution points similar to a summoner's eidolon to customize shift forms. At level 20 can maintain multiple adaptations simultaneously."
+    }
   },
   "wild_effigy": {
     "class": "shifter",
@@ -2977,7 +3018,11 @@
         "description_es": "Carga montada: doble daño (triple con lanza). Con Spirited Charge: triple (cuádruple con lanza). Crítico confirmado en carga: objetivo aturdido 1d4 rondas (Voluntad CD 10+BAB base = tambaleante).",
         "description_en": "Mounted charge: double damage (triple with a lance). With Spirited Charge: triple (quadruple with a lance). Confirmed crit on charge: target stunned 1d4 rounds (Will DC 10+base BAB = staggered)."
       }
-    ]
+    ],
+    "sub_options": {
+      "evolutions": "El eidolón del caballero monstruo actúa como montura de combate. Las evoluciones disponibles se limitan a las apropiadas para montura: tamaño, capacidad de carga, resistencia. Límite en evoluciones de ataque: pocas. / The monster knight's eidolon acts as a combat mount. Available evolutions limited to mount-appropriate: size, carry capacity, resilience. Limit on attack evolutions: few.",
+      "spirits": "El vínculo de montura aporta un espíritu de compañero animal a través del eidolón. El jinete y la montura comparten un espíritu de vínculo de caballería. / The mount bond brings an animal companion spirit through the eidolon. Rider and mount share a cavalry bond spirit."
+    }
   },
   "shadow_caller": {
     "class": "unchained_summoner",
@@ -4759,7 +4804,10 @@
         "description_en": "At 20th level, mounted charge attacks deal triple damage (quadruple with a lance), including bonuses. Confirmed criticals on mounted charges deal maximum weapon damage.",
         "level": 9
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "No tiene la habilidad Táctica (Tactician) estándar del caballero. En su lugar el caballo de batalla actúa como una extensión del espíritu de combate del jinete, ganando mejoras especiales de combate montado. / Lacks standard Cavalier Tactician ability. Instead the warhorse acts as an extension of the rider's fighting spirit, gaining special mounted combat enhancements."
+    }
   },
   "honor_guard": {
     "class": "cavalier",
@@ -4926,7 +4974,10 @@
     ],
     "class_skills_add": [
       "perform"
-    ]
+    ],
+    "sub_options": {
+      "domains": "Gana las Bendiciones de la Deidad según el dogma de su divinidad. El dominio elegido se centra en la actividad de la deidad. / Gains Deity Boons based on divine dogma. Chosen domain focuses on deity activity."
+    }
   },
   "merciful_healer": {
     "class": "cleric",
@@ -5210,7 +5261,10 @@
     ],
     "class_skills_remove": [
       "knowledge_geography"
-    ]
+    ],
+    "sub_options": {
+      "domains": "Debe elegir los dominios Tierra u Oscuridad. No puede elegir dominios relacionados con cielos o agua. / Must select the Earth or Darkness domain. Cannot choose sky- or water-related domains."
+    }
   },
   "menhir_savant": {
     "class": "druid",
@@ -5255,7 +5309,10 @@
         "description_en": "At 13th level, as a standard action becomes ethereal for a number of rounds per day equal to her druid level.",
         "level": 13
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Canaliza los espíritus de la tierra (ley lines). Puede detectar y moverse a lo largo de líneas ley. No tiene el arquetipo \"wandering spirit\" del chamán, sino acceso especial a lugares de poder. / Channels earth spirits (ley lines). Can detect and travel along ley lines. No shaman wandering spirit; instead gains special access to places of power."
+    }
   },
   "storm_druid": {
     "class": "druid",
@@ -5325,7 +5382,10 @@
         "description_en": "At 13th level, immunity to wind effects and deafness, +2 on sonic saves.",
         "level": 13
       }
-    ]
+    ],
+    "sub_options": {
+      "domains": "Debe elegir los dominios Aire o Clima. Pierde el compañero animal estándar. / Must select the Air or Weather domain. Loses standard animal companion."
+    }
   },
   "mooncaller": {
     "class": "druid",
@@ -6058,7 +6118,10 @@
         "description_en": "At 20th level activates the companion's primal aspect as a free action. When using Primal Surge, grants two evolutions instead of one.",
         "level": 20
       }
-    ]
+    ],
+    "sub_options": {
+      "evolutions": "El compañero animal puede gastar Puntos de Evolución (como eidolón de convocador). Comienza con 1 PE y gana más con el nivel. Evoluciones disponibles: las mismas que un eidolón cuadrúpedo. / The animal companion can spend Evolution Points (like a summoner's eidolon). Starts with 1 EP, gains more with level. Available evolutions: same as a quadruped eidolon."
+    }
   },
   "urban_hunter": {
     "class": "hunter",
@@ -6293,7 +6356,10 @@
         "description_en": "At 14th level, as a full-round action can transfer afflictions, conditions or harmful spell effects from another creature onto herself. Repeatable.",
         "level": 14
       }
-    ]
+    ],
+    "sub_options": {
+      "domains": "Debe pertenecer a una deidad caótica o neutral. Dominio relacionado con muerte o redención. Puede consumir los pecados de los muertos para ganar beneficios. / Must serve a chaotic or neutral deity. Domain related to death or redemption. Can consume the sins of the dead to gain benefits."
+    }
   },
   "exorcist": {
     "class": "inquisitor",
@@ -6531,7 +6597,10 @@
       "acrobatics",
       "climb",
       "perform"
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Puede usar hechizos psiónicos de detección de espíritus y emociones en vez de extractos de investigador. Detecta residuos espirituales en escenas del crimen mediante sus habilidades psíquicas. / Can use psychic spirit/emotion detection spells instead of investigator extracts. Detects spiritual residue at crime scenes through psychic abilities."
+    }
   },
   "cult_hunter": {
     "class": "investigator",
@@ -7238,7 +7307,10 @@
         "description_en": "At 13th level can use commune with nature to consult local kami.",
         "level": 14
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Solo puede canalizar kamis (espíritus de la naturaleza japoneses: kamis de árbol, río, piedra, etc.). No puede canalizar los 6 espíritus estándar. Los kamis ofrecen poderes distintos centrados en la protección de lugares naturales. / Can only channel kamis (Japanese nature spirits: tree, river, stone kami, etc.). Cannot channel the 6 standard spirits. Kamis offer different powers focused on protecting natural places."
+    }
   },
   "relic_channeler": {
     "class": "medium",
@@ -7291,7 +7363,10 @@
         "description_en": "At 7th level gains connection channel with familiarity requirements.",
         "level": 7
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Canaliza espíritus a través de reliquias físicas (objetos sagrados). Los objetos actúan como anclas para el espíritu; sin el objeto, no puede canalizar ese espíritu específico. / Channels spirits through physical relics (sacred objects). Objects act as anchors for the spirit; without the object, cannot channel that specific spirit."
+    }
   },
   "reanimated_medium": {
     "class": "medium",
@@ -7346,7 +7421,10 @@
         "description_en": "Allies can perform seances to channel the medium and access his abilities.",
         "level": 7
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Canaliza únicamente espíritus no-muertos. Tiene un espíritu no-muerto vinculado permanentemente que le otorga poderes de no-muerto. Puede sufrir maldiciones de espíritu más severas que el médium normal. / Channels only undead spirits. Has a permanently bound undead spirit granting undead powers. Can suffer more severe spirit curses than a normal medium."
+    }
   },
   "spirit_eater": {
     "class": "medium",
@@ -7377,7 +7455,10 @@
         "description_en": "At 7th level absorbs defeated incorporeal creatures for bonuses to attack, saves or skills, plus temporary HP.",
         "level": 3
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Puede consumir espíritus en vez de canalizarlos para obtener más poder a corto plazo. Los espíritus consumidos no pueden ser invocados de nuevo durante 24 horas. Gana temporalmente acceso a los poderes del espíritu consumido. / Can consume spirits instead of channeling them for more power short-term. Consumed spirits cannot be summoned again for 24 hours. Temporarily gains access to the consumed spirit's powers."
+    }
   },
   "voice_of_the_void": {
     "class": "medium",
@@ -7423,7 +7504,10 @@
         "description_en": "At 3rd level deals void damage in a 30-foot area; weaker creatures are also confused.",
         "level": 3
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Canaliza únicamente el espíritu del Vacío (de los Mitos de Cthulhu). No puede canalizar los 6 espíritus estándar. Poderes del Vacío relacionados con locura, lo desconocido y manipulación mental cósmica. / Channels only the Void spirit (from Cthulhu Mythos). Cannot channel the 6 standard spirits. Void powers relate to madness, the unknown, and cosmic mental manipulation."
+    }
   },
   "vexing_daredevil": {
     "class": "mesmerist",
@@ -7660,7 +7744,10 @@
         "description_en": "Modified healing removing sleep/fatigue conditions instead of emotions.",
         "level": 12
       }
-    ]
+    ],
+    "sub_options": {
+      "hexes": "Puede seleccionar hexes de bruja del tema onírico (sueño, profecía, ilusión) como trucos de hipnotizador. Los hexes disponibles incluyen: sueño, visión, pesadilla, profecía. / Can select dream-themed witch hexes (sleep, prophecy, illusion) as mesmerist tricks. Available hexes include: slumber, vision, nightmare, prophecy."
+    }
   },
   "drunken_master": {
     "class": "monk",
@@ -7812,7 +7899,10 @@
         "description_en": "At 20th level ceases aging and spontaneously reincarnates after death.",
         "level": 20
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Puede invocar el ki como fuerza elemental de los cuatro vientos (agua, tierra, fuego, aire). Los puntos de ki pueden manifestarse como ataques elementales en vez de usos de ki estándar. / Can invoke ki as elemental force of the four winds (water, earth, fire, air). Ki points can manifest as elemental attacks instead of standard ki uses."
+    }
   },
   "tetori": {
     "class": "monk",
@@ -8180,7 +8270,10 @@
       "disable_device",
       "knowledge_engineering",
       "knowledge_religion"
-    ]
+    ],
+    "sub_options": {
+      "schools": "Las escuelas de implemento se eligen en función del terreno: tierra, agua, aire, fuego. La selección de implementos está limitada a los 4 elementos. Cada día puede cambiar el vínculo elemental según el entorno. / Implement schools chosen based on terrain: earth, water, air, fire. Implement selection limited to the 4 elements. Can change elemental bond each day based on surroundings."
+    }
   },
   "reliquarian": {
     "class": "occultist",
@@ -8239,7 +8332,11 @@
         "description_en": "Adds his deity's favored weapon to his proficiencies.",
         "level": 1
       }
-    ]
+    ],
+    "sub_options": {
+      "domains": "Las reliquias funcionan como implementos de ocultista y como dominios divinos. Cada reliquia otorga acceso a uno de los 8 conjuntos de implementos y a un mini-dominio temático. / Relics function as both occultist implements and divine domains. Each relic grants access to one of the 8 implement sets and a thematic mini-domain.",
+      "schools": "Las escuelas de implemento se acceden a través de reliquias específicas. Solo puede usar las escuelas vinculadas a las reliquias que posee actualmente. / Implement schools accessed through specific relics. Can only use schools linked to currently held relics."
+    }
   },
   "silksworn": {
     "class": "occultist",
@@ -8312,7 +8409,10 @@
     "class_skills_remove": [
       "knowledge_engineering",
       "knowledge_planes"
-    ]
+    ],
+    "sub_options": {
+      "schools": "Los implementos deben ser ropa, joyas o accesorios. Las escuelas disponibles se limitan a aquellas que pueden incorporarse en atuendo: Abjuración, Encantamiento, Ilusión, Transmutación. / Implements must be clothing, jewelry, or accessories. Available schools limited to those that can be incorporated into attire: Abjuration, Enchantment, Illusion, Transmutation."
+    }
   },
   "panoply_savant": {
     "class": "occultist",
@@ -8412,7 +8512,10 @@
         "description_en": "At 8th level temporarily extracts spirits from implements to create spell-delivering phenomena.",
         "level": 12
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Puede \"coleccionar\" apariciones (haunts) y vincularlas a sus implementos como espíritus menores. Las apariciones recopiladas otorgan poderes espectrales. Límite: una aparición por nivel de ocultista. / Can \"collect\" haunts and bind them to implements as minor spirits. Collected haunts grant spectral powers. Limit: one haunt per occultist level."
+    }
   },
   "zen_archer_monk": {
     "class": "monk",
@@ -8989,7 +9092,10 @@
         "description_en": "At 15th level gains major amplifications instead of standard phrenic amplifications.",
         "level": 11
       }
-    ]
+    ],
+    "sub_options": {
+      "schools": "Accede a disciplinas psíquicas astrológicas. La disciplina elegida modifica qué escuelas de hechizos son favorecidas. Solo puede elegir entre las 5 disciplinas esotéricas de los astros (Marte, Venus, Mercurio, etc.). / Accesses astrological psychic disciplines. Chosen discipline modifies which spell schools are favored. Can only select from the 5 esoteric astral disciplines (Mars, Venus, Mercury, etc.)."
+    }
   },
   "trapper": {
     "class": "ranger",
@@ -9571,7 +9677,11 @@
         "description_en": "Casts etherealness once daily at 18th level.",
         "level": 18
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "En vez de los espíritus de chamán estándar, vincula espíritus de la naturaleza (espíritus de lugares: bosques, montañas, ríos). Los espíritus animistas tienen poderes distintos a los estándar. No puede acceder a los 6 espíritus estándar del chamán. / Instead of standard shaman spirits, bonds with nature spirits (place spirits: forests, mountains, rivers). Animist spirits have different powers than standard. Cannot access the 6 standard shaman spirits.",
+      "hexes": "Solo puede elegir hexes de la lista de hexes de naturaleza vinculados a su espíritu de terreno. No puede acceder a hexes genéricos como desgracia o ojo maligno. / Can only choose hexes from the nature hex list linked to its terrain spirit. Cannot access generic hexes like misfortune or evil eye."
+    }
   },
   "possessed_shaman": {
     "class": "shaman",
@@ -9609,7 +9719,11 @@
         "description_en": "Upon selecting daily wandering spirit, picks one skill with ranks equal to level and Wis mod; changes with the spirit (6th).",
         "level": 6
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Un espíritu toma posesión permanente del chamán. Este espíritu poseído no puede ser cambiado, pero es más poderoso que un espíritu elegido normalmente. El chamán pierde acceso al espíritu errante. / A spirit takes permanent possession of the shaman. This possessing spirit cannot be changed but is more powerful than a normally chosen spirit. The shaman loses access to the wandering spirit.",
+      "hexes": "Solo puede elegir hexes asociados con el espíritu que lo posee. Hexes fuera de la lista del espíritu poseedor no están disponibles. / Can only choose hexes associated with the possessing spirit. Hexes outside the possessing spirit's list are unavailable."
+    }
   },
   "speaker_for_the_past": {
     "class": "shaman",
@@ -9646,7 +9760,11 @@
       "knowledge_local",
       "perception",
       "use_magic_device"
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Canaliza espíritus de civilizaciones extintas (Azlanti, Thassilonianos, Jistka, etc.). Accede a espíritus históricos únicos en vez de los 6 espíritus estándar de chamán. Cada espíritu histórico tiene poderes únicos relacionados con esa civilización. / Channels spirits of extinct civilizations (Azlanti, Thassilonian, Jistka, etc.). Accesses unique historical spirits instead of the 6 standard shaman spirits. Each historical spirit has unique powers related to its civilization.",
+      "hexes": "Los hexes disponibles incluyen hexes arqueológicos y de recuperación del pasado (visiones del pasado, hablar con muertos, etc.). / Available hexes include archaeological and past-recovery hexes (visions of the past, speak with dead, etc.)."
+    }
   },
   "witch_doctor": {
     "class": "shaman",
@@ -9685,7 +9803,11 @@
         "description_en": "Readied counterspell using dispel magic (1d20 + level vs DC 11 + CL); not vs same caster within 24h (10th).",
         "level": 10
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Combina hechizos de chamán con magia médica tribal. Vincula espíritus curativos y de enfermedad en vez de los estándar. / Combines shaman spells with tribal medical magic. Bonds with healing and disease spirits instead of standard spirits.",
+      "hexes": "Los hexes disponibles se centran en curación y enfermedad. Puede elegir hexes de: curar heridas, antídoto, purificar comida, cura de enfermedad. Pierde acceso a hexes de daño o maldición. / Available hexes focus on healing and disease. Can choose: cure wounds, antidote, purify food, cure disease. Loses access to damage or curse hexes."
+    }
   },
   "visionary": {
     "class": "shaman",
@@ -9738,7 +9860,14 @@
         "description_en": "At 12th level, bonds with an additional spirit whose magic adds to vision and original spirit magic.",
         "level": 20
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Accede a espíritus de oráculo, chamán y bruja simultáneamente. Puede vincular un espíritu de cualquiera de estas tres fuentes cada día. / Accesses oracle, shaman, and witch spirits simultaneously. Can bond with a spirit from any of these three sources each day.",
+      "hexes": "Puede elegir hexes de la lista completa de bruja además de los hexes de chamán. Tiene la mayor selección de hexes de cualquier arquetipo de chamán. / Can choose hexes from the full witch hex list in addition to shaman hexes. Has the widest hex selection of any shaman archetype.",
+      "domains": "Puede acceder a dominios divinos de oráculo (misterios) como si fueran espíritus de chamán. / Can access oracle divine domains (mysteries) as if they were shaman spirits.",
+      "bloodlines": "Puede acceder a poderes de linaje de hechicero como si fueran características de espíritu. / Can access sorcerer bloodline powers as if they were spirit features.",
+      "schools": "Puede acceder a escuelas arcanas de mago como si fueran poderes de espíritu menores. / Can access wizard arcane schools as if they were minor spirit powers."
+    }
   },
   "oozemorph": {
     "class": "shifter",
@@ -10048,7 +10177,10 @@
         "description_en": "At 20th, successful counterspells deal 1d6 per spell level to opponent (half on Will save).",
         "level": 20
       }
-    ]
+    ],
+    "sub_options": {
+      "schools": "Puede vincular una escuela de magia a su rabia de inspiración. Mientras canta, los aliados con esa escuela activa ganan bonificadores en los CD de hechizos. Escuelas disponibles: Abjuración, Conjuración, Evocación, Transmutación (no escuelas sutiles). / Can link a magic school to his raging song. While singing, allies with that school active gain bonuses to spell DCs. Available schools: Abjuration, Conjuration, Evocation, Transmutation (not subtle schools)."
+    }
   },
   "herald_of_the_horn": {
     "class": "skald",
@@ -10449,7 +10581,11 @@
         "description_en": "At 9th level, converts one known spell into a spell-like ability usable once per day at +2 caster level.",
         "level": 7
       }
-    ]
+    ],
+    "sub_options": {
+      "bloodlines": "El linaje del hechicero está tatuado en su cuerpo. Puede cambiar entre su linaje principal y un linaje secundario (menor) una vez al día. El linaje tatuado es inmutable y define sus poderes base. / Bloodline is tattooed on the sorcerer's body. Can switch between the primary and a secondary (lesser) bloodline once per day. The tattooed bloodline is immutable and defines base powers.",
+      "schools": "Los tatuajes del hechicero pueden incluir sellos arcanos de una escuela específica. Si elige un sello de escuela, sus hechizos de esa escuela tienen +1 CD. / The sorcerer's tattoos can include arcane seals of a specific school. If a school seal is chosen, spells of that school gain +1 DC."
+    }
   },
   "seeker_sorcerer": {
     "class": "sorcerer",
@@ -10490,7 +10626,10 @@
     ],
     "class_skills_add": [
       "disable_device"
-    ]
+    ],
+    "sub_options": {
+      "bloodlines": "Tiene el linaje Arcano, pero accede a poderes de linaje de investigación en vez de los estándar. Puede usar el golpe arcano con armas ligeras y de mano. / Has the Arcane bloodline, but accesses investigation bloodline powers instead of standard. Can use arcane strike with light and one-handed weapons."
+    }
   },
   "eldritch_scrapper": {
     "class": "sorcerer",
@@ -10535,7 +10674,10 @@
         "description_en": "At 3rd level, if her initial bloodline power would grant natural attacks she may substitute it for her 3rd-level bloodline power.",
         "level": 3
       }
-    ]
+    ],
+    "sub_options": {
+      "bloodlines": "Mantiene su linaje estándar pero en vez de algunos poderes de linaje gana poderes de combate físico potenciados mágicamente (ataque sin armas, golpes de linaje). / Keeps standard bloodline but instead of some bloodline powers gains magically enhanced physical combat powers (unarmed attacks, bloodline strikes)."
+    }
   },
   "sorcerer_of_sleep": {
     "class": "sorcerer",
@@ -10573,7 +10715,10 @@
         "description_en": "Touch attack 3 + Cha/day inflicting either +2 Strength, fatigue, or –2 saves vs illusion/mind-affecting for rounds equal to half class level.",
         "level": 1
       }
-    ]
+    ],
+    "sub_options": {
+      "bloodlines": "Requiere el linaje Feérico o Celestial (o variantes oníricas). Los poderes de linaje se centran en sueño, encantamiento y compulsión. Hechizos de sueño tienen +2 a la CD. / Requires the Fey or Celestial bloodline (or dream variants). Bloodline powers focus on sleep, enchantment, and compulsion. Sleep spells gain +2 to DC."
+    }
   },
   "stone_warder": {
     "class": "sorcerer",
@@ -10611,7 +10756,10 @@
         "description_en": "Creates trap runes storing a spell that triggers when stepped on, 3 + Cha/day; lasts rounds or minutes per level on stone.",
         "level": 7
       }
-    ]
+    ],
+    "sub_options": {
+      "bloodlines": "Requiere el linaje Elemental (Tierra) o Draconico (tipo tierra). Los poderes de linaje se centran en defensa y control del terreno. Gana RD/— mientras está en contacto con tierra o piedra. / Requires the Elemental (Earth) or Draconic (earth type) bloodline. Bloodline powers focus on defense and terrain control. Gains DR/— while in contact with earth or stone."
+    }
   },
   "fractured_mind": {
     "class": "spiritualist",
@@ -10642,7 +10790,10 @@
         "description_en": "Gains spell-like abilities at 5th, 7th, 9th and 16th tied to the phantom's emotional focus (anger, dedication, despair, fear, hatred, jealousy or zeal).",
         "level": 4
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "El espíritu del espiritualista está fracturado en múltiples personalidades. Cada personalidad otorga un conjunto diferente de poderes. El espiritualista puede cambiar de personalidad del espíritu una vez por hora, pero no puede controlar cuándo. / The spiritualist's spirit is fractured into multiple personalities. Each personality grants a different set of powers. The spiritualist can switch spirit personalities once per hour but cannot control when."
+    }
   },
   "haunted_spiritualist": {
     "class": "spiritualist",
@@ -10689,7 +10840,10 @@
         "description_en": "At 17th level usurp manifestation rounds become 3 + twice her class level per day.",
         "level": 10
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "En vez de un único espíritu vinculado, el espiritualista haunted tiene varios espíritus menores que lo rodean y lo persiguen. Los espíritus menores son más débiles pero más numerosos, y proporcionan diferentes efectos de aparición. / Instead of a single bound spirit, the haunted spiritualist has several minor spirits that surround and haunt him. Minor spirits are weaker but more numerous, providing different haunt effects."
+    }
   },
   "onmyoji": {
     "class": "spiritualist",
@@ -10728,7 +10882,10 @@
         "description_en": "At 4th level and every 3 levels thereafter, adds a cleric spell to her known spells, castable only while the phantom is confined.",
         "level": 4
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Solo puede vincular espíritus de la tradición japonesa (kami, oni). Los kami son espíritus de naturaleza protectora; los oni son espíritus de corrupción. El tipo de espíritu vinculado afecta el alineamiento del espiritualista. / Can only bond with spirits from Japanese tradition (kami, oni). Kami are protective nature spirits; oni are corruption spirits. The type of bound spirit affects the spiritualist's alignment."
+    }
   },
   "phantom_blade": {
     "class": "spiritualist",
@@ -10796,7 +10953,10 @@
         "description_en": "At 4th level, centers herself as a swift action to aid casting thought-component spells; becomes a free action at 12th.",
         "level": 4
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "El espíritu del espiritualista se incorpora en un arma en vez de manifestarse como fantasma. El arma espiritual actúa como el espíritu vinculado y puede ser empuñada con o sin el espiritualista. / Spiritualist's spirit incorporates into a weapon instead of manifesting as a ghost. The spirit weapon acts as the bound spirit and can be wielded with or without the spiritualist."
+    }
   },
   "geist_channeler": {
     "class": "spiritualist",
@@ -10831,7 +10991,10 @@
         "description_es": "Su Bonded Manifestation manifiesta al fantasma únicamente en forma incorpórea.",
         "description_en": "Bonded manifestation manifests the phantom only in incorporeal form."
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Canaliza geists (espíritus alemanes/centroeuropeos de la muerte). Los geists tienen distintas formas de manifestación (geist del hogar, del bosque, de la guerra). El espiritualista elige el tipo de geist al crear el personaje. / Channels geists (German/Central European death spirits). Geists have different manifestation forms (hearth geist, forest geist, war geist). The spiritualist chooses geist type at character creation."
+    }
   },
   "wild_caller": {
     "class": "summoner",
@@ -10869,7 +11032,10 @@
         "description_en": "At 10th level, +4 on Bluff, Diplomacy, and Sense Motive checks against fey.",
         "level": 10
       }
-    ]
+    ],
+    "sub_options": {
+      "evolutions": "El eidolón del convocador salvaje es un animal mágico o bestia que no puede tener aspectos humanoides. Las evoluciones disponibles se limitan a las apropiadas para animales: pelaje, colmillos, garras, alas, veneno. Límite de PE en evoluciones humanoides: 0. / The wild caller's eidolon is a magical animal or beast that cannot have humanoid aspects. Available evolutions limited to animal-appropriate ones: fur, fangs, claws, wings, venom. EP limit on humanoid evolutions: 0."
+    }
   },
   "broodmaster": {
     "class": "summoner",
@@ -11033,7 +11199,11 @@
         "description_en": "The eidolon's form must match the chosen spirit; permanent changes inappropriate to it are forbidden.",
         "level": 1
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "El eidolón actúa como espíritu de chamán en vez de como ser extraplanar. El eidolón-espíritu otorga al convocador acceso a un espíritu de chamán elegido al crear el personaje. / The eidolon acts as a shaman spirit instead of an extraplanar being. The spirit-eidolon grants the summoner access to a shaman spirit chosen at character creation.",
+      "hexes": "A través del vínculo con el eidolón-espíritu, el convocador puede usar hexes de chamán. Los hexes disponibles son los del espíritu de chamán elegido. / Through the spirit-eidolon bond, the summoner can use shaman hexes. Available hexes are those of the chosen shaman spirit."
+    }
   },
   "evolutionist": {
     "class": "summoner",
@@ -11070,7 +11240,10 @@
         "description_en": "At 12th level, casts transmogrify once per day with no material components and a 1-minute casting time.",
         "level": 8
       }
-    ]
+    ],
+    "sub_options": {
+      "evolutions": "El eidolón puede cambiar sus evoluciones cada día (como el chamán cambia su espíritu wandering). Tiene un conjunto fijo de evoluciones base y un conjunto \"flexible\" que se elige cada mañana. / The eidolon can change its evolutions each day (like a shaman changes a wandering spirit). Has a fixed set of base evolutions and a \"flexible\" set chosen each morning."
+    }
   },
   "mouser": {
     "class": "swashbuckler",
@@ -11679,7 +11852,10 @@
       "knowledge_engineering",
       "perform",
       "sleight_of_hand"
-    ]
+    ],
+    "sub_options": {
+      "patrons": "El aspecto salvaje del vigilante bestial actúa como un patrón mágico de bruja. El patrón del vigilante bestia debe ser un espíritu animal (Lobo, Oso, Serpiente, Cuervo, etc.). / The bestial vigilante's wild aspect acts as a witch-like magical patron. The beast vigilante's patron must be an animal spirit (Wolf, Bear, Serpent, Raven, etc.)."
+    }
   },
   "disenchanter": {
     "class": "warpriest",
@@ -11982,7 +12158,11 @@
         "description_es": "Toma control directo de un muerto viviente esclavo dentro del aura usando las mecánicas de prisión de almas, con la muñeca como receptáculo.",
         "description_en": "Takes direct control of one bonethralled undead within her aura using magic jar mechanics, with the poppet as the soul receptacle."
       }
-    ]
+    ],
+    "sub_options": {
+      "hexes": "Tiene acceso a hexes necrománticos especiales: animación de muertos, magia de huesos, invocar no-muertos. El familiar de la bruja gravewalker es un no-muerto animado. / Has access to special necromantic hexes: animate dead, bone magic, summon undead. The gravewalker witch's familiar is an animated undead.",
+      "spirits": "El familiar de la bruja está animado como no-muerto. Los espíritus de los muertos que la bruja ha animado pueden ofrecerle información como si fueran hexes de \"hablar con muertos\". / The witch's familiar is animated as undead. Spirits of the dead the witch has animated can offer her information as if they were \"speak with dead\" hexes."
+    }
   },
   "sea_witch": {
     "class": "witch",
@@ -12018,7 +12198,11 @@
         "description_en": "Replaces standard patron spells with a water- and weather-themed list at levels 2, 4, 6, 8, 10, 12, 14, 16 and 18.",
         "level": 1
       }
-    ]
+    ],
+    "sub_options": {
+      "hexes": "Hexes disponibles centrados en el mar y el agua: control del clima marino, caminar sobre el agua, llamar a criaturas marinas, Toque de la Tempestad. No puede elegir hexes sin relación con agua o clima. / Available hexes focused on sea and water: maritime weather control, water walking, call sea creatures, Tempest Touch. Cannot choose hexes unrelated to water or weather.",
+      "patrons": "El patrón debe ser Agua, Tempestad o Mar. No puede elegir patrones de fuego, tierra o cielo. Los hechizos de patrón son todos del tema marino. / Patron must be Water, Tempest, or Sea. Cannot choose fire, earth, or sky patrons. All patron spells have maritime themes."
+    }
   },
   "white_haired_witch": {
     "class": "witch",
@@ -12077,7 +12261,10 @@
         "description_en": "At 10th, 12th and every 2 levels thereafter she gains a rogue talent; at 18th and 20th she may choose advanced rogue talents.",
         "level": 10
       }
-    ]
+    ],
+    "sub_options": {
+      "hexes": "Reemplaza la mayoría de sus hexes con el ataque de cabello (cabello blanco como arma de agarre/látigo). Tiene acceso muy limitado a hexes estándar (solo 2-3 según nivel). Los hexes disponibles son únicamente los no ofensivos. / Replaces most hexes with the hair attack (white hair as a grab/whip weapon). Has very limited access to standard hexes (only 2-3 per level). Available hexes are only non-offensive ones."
+    }
   },
   "ley_line_guardian": {
     "class": "witch",
@@ -12106,7 +12293,11 @@
         "description_es": "Como acción rápida, aumenta el nivel de lanzador del próximo conjuro en 1d4-1 (1d4 a nivel 8); requiere salvación de Fortaleza o queda atascada durante minutos iguales al nivel del conjuro. Usable 3 + mod. Carisma veces al día.",
         "description_en": "As a swift action she boosts her next spell's caster level by 1d4-1 (1d4 at 8th); a failed Fortitude save staggers her for minutes equal to the spell level. Usable 3 + Cha mod times per day."
       }
-    ]
+    ],
+    "sub_options": {
+      "hexes": "Debe elegir el patrón de Naturaleza o Tierra. Hexes disponibles centrados en la tierra y las líneas ley. Puede elegir hexes especiales de línea ley que no están disponibles para brujas normales. / Must choose the Nature or Earth patron. Available hexes focused on earth and ley lines. Can choose special ley line hexes not available to normal witches.",
+      "patrons": "El patrón debe ser Naturaleza, Tierra o Plantas. Patrones no relacionados con la tierra no están disponibles. / Patron must be Nature, Earth, or Plants. Non-earth-related patrons unavailable."
+    }
   },
   "havocker": {
     "class": "witch",
@@ -12143,7 +12334,11 @@
         "description_es": "A nivel 2 y cada 4 niveles obtiene una infusión de talento salvaje basada en su foco elemental, funcionando como la habilidad de cineticista del mismo nombre.",
         "description_en": "At 2nd level and every 4 levels she gains an infusion wild talent based on her elemental focus, functioning as the kineticist ability of the same name."
       }
-    ]
+    ],
+    "sub_options": {
+      "hexes": "Reemplaza todos sus hexes por explosiones cinéticas (kinetic blast). El tipo de explosión refleja el patrón elegido. Solo puede elegir hexes que amplíen el blast (no hexes de maldición o debilitamiento). / Replaces all hexes with kinetic blasts. Blast type reflects chosen patron. Can only choose hexes that enhance the blast (not curse or weakening hexes).",
+      "patrons": "El patrón determina el elemento del blast de la bruja destructora (patrón Fuego = blast de fuego, patrón Tempestad = blast de rayo). / Patron determines the element of the havocker witch's blast (Fire patron = fire blast, Tempest patron = lightning blast)."
+    }
   },
   "scrollmaster": {
     "class": "wizard",
@@ -12226,7 +12421,10 @@
         "description_en": "Forsakes three schools at 1st level; preparing opposition spells costs two slots and crafting items with them takes -4. Gains detect magic and read magic as cantrips.",
         "level": 1
       }
-    ]
+    ],
+    "sub_options": {
+      "schools": "Debe especializarse en Evocación (escuela de daño/bombardeo). Las escuelas de conjuración o encantamiento no están disponibles como especialización. Los hechizos de Evocación tienen CD+1 y alcance +25% cuando se lanzan a través de motores de asedio. / Must specialize in Evocation (damage/bombardment school). Conjuration or enchantment schools unavailable for specialization. Evocation spells gain DC+1 and range +25% when cast through siege engines."
+    }
   },
   "spirit_binder": {
     "class": "wizard",
@@ -12263,7 +12461,11 @@
         "description_en": "At 1st, 5th and every 5 levels thereafter, the familiar gains a bonus feat for which it qualifies.",
         "level": 1
       }
-    ]
+    ],
+    "sub_options": {
+      "schools": "Puede vincular espíritus a sus libros de hechizos; cada espíritu otorga acceso a una escuela arcana adicional. No tiene oposición de escuelas pero tiene restricción de espíritu: solo puede vincular un espíritu por nivel. / Can bind spirits to spellbooks; each spirit grants access to an additional arcane school. No school opposition but has spirit restriction: can only bind one spirit per level.",
+      "spirits": "Vincula espíritus a sus libros de hechizos. Cada espíritu provee poderes pasivos relacionados con una escuela arcana. Los espíritus pueden ser de cualquier plano pero deben ser sometidos mediante rituales de vinculación. / Binds spirits to spellbooks. Each spirit provides passive powers related to an arcane school. Spirits can be from any plane but must be subjected to binding rituals."
+    }
   },
   "arcane_bomber": {
     "class": "wizard",
@@ -12301,7 +12503,10 @@
         "description_en": "Must select four opposition schools; preparing spells from them costs two slots and crafting items with them takes -4.",
         "level": 1
       }
-    ]
+    ],
+    "sub_options": {
+      "schools": "Debe especializarse en Evocación o Transmutación. Las otras escuelas tienen penalización de -1 por dado de daño en conjuros explosivos. La especialización da acceso a la habilidad \"Bomba Arcana\" (área de efecto mejorada). / Must specialize in Evocation or Transmutation. Other schools have -1 per damage die in explosive spells. Specialization grants access to \"Arcane Bomb\" ability (enhanced area of effect)."
+    }
   },
   "spell_sage": {
     "class": "wizard",
@@ -12427,7 +12632,11 @@
         "description_en": "At 6th level she chooses a shaman hex, with additional selections at 8th, 10th and 16th.",
         "level": 1
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Variante Unchained del spirit_summoner. El eidolón actúa como espíritu de chamán. Acceso a espíritu de chamán elegido al inicio. / Unchained variant of spirit_summoner. Eidolon acts as a shaman spirit. Access to chosen shaman spirit at creation.",
+      "hexes": "Los hexes del espíritu de chamán elegido están disponibles a través del vínculo con el eidolón. / The chosen shaman spirit's hexes are available through the eidolon bond."
+    }
   },
   "martial_artist_unchained": {
     "class": "unchained_monk",
@@ -13086,7 +13295,10 @@
         "description_en": "At 14th level he may transfer damage to one eidolon in his brood; replaces life bond.",
         "level": 14
       }
-    ]
+    ],
+    "sub_options": {
+      "evolutions": "Variante Unchained del broodmaster. Múltiples eidolones menores con PEs divididos. Límite: cada eidolón de la cría recibe PEs totales / número de crías. Las evoluciones se aplican por separado a cada eidolón. / Unchained variant of broodmaster. Multiple minor eidolons with divided EPs. Limit: each brood eidolon receives total EPs / number of brood. Evolutions apply separately to each eidolon."
+    }
   },
   "naturalist_summoner_unchained": {
     "class": "unchained_summoner",
@@ -13439,7 +13651,10 @@
         "description_en": "12th level. Swift action 1/day: imbue one sacred weapon with the corresponding alignment special ability (anarchic for chaos, unholy for evil, holy for good, axiomatic for law). Lasts 1 minute. +1/day at 16th and 20th levels (max 3/day).",
         "level": 12
       }
-    ]
+    ],
+    "sub_options": {
+      "domains": "Las Bendiciones del sacerdote de guerra se eligen de los dominios de su deidad, que pueden incluir dominios normalmente fuera de la lista estándar de sacerdote de guerra. / Warpriest Blessings are chosen from the deity's domain list, which may include domains normally outside the standard warpriest list."
+    }
   },
   "daring_champion_cavalier": {
     "class": "cavalier",
@@ -13514,7 +13729,10 @@
         "description_es": "Puede cambiar el espíritu vinculado tras descanso completo. Los conjuros de espíritu son conjuros de clase adicionales.",
         "description_en": "Can change bonded spirit after full rest. Spirit spells become additional class spells."
       }
-    ]
+    ],
+    "sub_options": {
+      "spirits": "Oráculo con acceso a espíritus de chamán. Elige un espíritu al nivel 3, con acceso a sus poderes menores. Al nivel 7 puede vincular un segundo espíritu errante (wandering spirit) diariamente. Los poderes de espíritu reemplazan revelaciones de oráculo. / Oracle with access to shaman spirits. Selects a spirit at level 3, gaining its minor powers. At level 7 can bind a second wandering spirit daily. Spirit powers replace oracle revelations."
+    }
   },
   "divine_hunter_paladin": {
     "class": "paladin",
@@ -13691,7 +13909,10 @@
       }
     ],
     "source": "Ultimate Intrigue",
-    "source_url": "https://www.d20pfsrd.com/classes/core-classes/cleric/archetypes/paizo-cleric-archetypes/cardinal-cleric-archetype/"
+    "source_url": "https://www.d20pfsrd.com/classes/core-classes/cleric/archetypes/paizo-cleric-archetypes/cardinal-cleric-archetype/",
+    "sub_options": {
+      "domains": "Un solo dominio (elegido al crear el personaje). Pierde el segundo dominio y el lanzamiento espontáneo. / One domain only at creation. Loses second domain and spontaneous casting."
+    }
   },
   "feyspeaker": {
     "class": "druid",
