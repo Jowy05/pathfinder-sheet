@@ -1729,7 +1729,8 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
         <div id="classes-list"></div>
         <button class="btn-add" id="class-add">＋ Añadir clase</button>
         <div class="field-row" style="margin-top:10px">
-          <div class="field"><label class="field-label">Velocidad (ft)</label><input class="field-input" type="number" inputmode="numeric" pattern="[0-9]*" value="30"></div>
+          <div class="field"><label class="field-label">Velocidad base (ft)</label><input class="field-input" id="speed-base" type="number" inputmode="numeric" pattern="[0-9]*" value="30"></div>
+          <div class="field"><label class="field-label">Velocidad efectiva</label><input class="field-input" id="speed-eff" value="30 ft" readonly></div>
           <div class="field"><label class="field-label">BAB total</label><input class="field-input" value="+3" readonly></div>
         </div>
         <label style="display:flex;align-items:center;gap:8px;font:13px/1.2 system-ui;color:var(--ink-muted);cursor:pointer;margin-top:6px">
@@ -6726,10 +6727,33 @@ function D5_renderWeight(){
   return {total, max, state};
 }
 
+function D5_calcEffSpeed(){
+  const baseEl = document.getElementById('speed-base');
+  const effEl  = document.getElementById('speed-eff');
+  if(!effEl) return;
+  const base = parseInt(baseEl?.value, 10) || 30;
+  // Find heaviest equipped body armor
+  const bodyArmors = (ARMOR_DATA||[]).filter(a=>a.equipped && a.armor_type!=='shield');
+  let heaviest = 'light';
+  bodyArmors.forEach(a=>{
+    if(a.armor_type==='heavy') heaviest = 'heavy';
+    else if(a.armor_type==='medium' && heaviest!=='heavy') heaviest = 'medium';
+  });
+  let eff = base;
+  let note = '';
+  if(heaviest === 'medium' || heaviest === 'heavy') {
+    // PF1e: speed × 2/3, round down to nearest 5 ft
+    eff = Math.floor(base * 2 / 3 / 5) * 5;
+    note = ` (${heaviest==='heavy'?'pesada':'media'})`;
+  }
+  effEl.value = eff + ' ft' + note;
+  effEl.style.color = eff < base ? 'var(--negative)' : '';
+}
 function D5_recompute(){
   D5_renderCoins();
   D5_renderWeight();
   D5_refreshWeaponRolls();
+  D5_calcEffSpeed();
 }
 
 function D5_bindAddSheet(){
@@ -6782,6 +6806,10 @@ function D5_bindExternalEvents(){
     if(el) el.addEventListener('input',()=>D5_renderWeight());
     if(el && el.type==='checkbox') el.addEventListener('change',()=>D5_renderWeight());
   });
+  const speedBase = document.getElementById('speed-base');
+  if(speedBase) speedBase.addEventListener('input', ()=>D5_calcEffSpeed());
+  document.addEventListener('armor-equipped', ()=>D5_calcEffSpeed());
+  document.addEventListener('armor-removed',  ()=>D5_calcEffSpeed());
 }
 
 function D5_init(){
