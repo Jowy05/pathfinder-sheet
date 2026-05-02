@@ -1750,6 +1750,21 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
       </div>
 
       <div class="card">
+        <h3 class="card-title"><span class="ornament">✦</span>Clase Predilecta<span class="ornament">✦</span></h3>
+        <div id="fcb-totals" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;text-align:center">
+          <div class="eq-stat"><b id="fcb-hp-total">0</b><span style="display:block;font:10px system-ui;color:var(--ink-muted)">PG extra</span></div>
+          <div class="eq-stat"><b id="fcb-sk-total">0</b><span style="display:block;font:10px system-ui;color:var(--ink-muted)">Habilidad</span></div>
+          <div class="eq-stat"><b id="fcb-cl-total">0</b><span style="display:block;font:10px system-ui;color:var(--ink-muted)">Clase esp.</span></div>
+        </div>
+        <div id="fcb-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+          <button class="btn-add" id="fcb-add-hp">+1 PG</button>
+          <button class="btn-add" id="fcb-add-skill">+1 Hab</button>
+          <button class="btn-add" id="fcb-add-class">+1 Clase</button>
+        </div>
+      </div>
+
+      <div class="card">
         <h3 class="card-title"><span class="ornament">❦</span><span data-i18n="cardFisico">Físico</span><span class="ornament">❦</span></h3>
         <div class="field-row">
           <div class="field"><label class="field-label" data-i18n="lblEdad">Edad</label><input class="field-input" type="number" value="25"></div>
@@ -2717,6 +2732,7 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
       </div>
       <div class="field-row">
         <div class="field"><label class="field-label">Mejora +</label><input class="field-input" id="weap-enh" type="number" inputmode="numeric" value="0" min="0" max="5"></div>
+        <div class="field"><label class="field-label">Misc. ataque</label><input class="field-input" id="weap-misc" type="number" inputmode="numeric" value="0" title="Dotes (Foco en arma), circunstancias…"></div>
         <div class="field"><label class="field-label">Peso (lb)</label><input class="field-input" id="weap-weight" type="number" inputmode="decimal" value="4" min="0"></div>
       </div>
       <div class="field"><label class="field-label">Notas</label><textarea class="field-input" id="weap-notes" placeholder="Material especial, propiedades mágicas…"></textarea></div>
@@ -3737,9 +3753,9 @@ const CLASSES_DATA = [
 ];
 const WEAPONS_DATA = [
   /* DOMINIO 5: campos PF1e completos. atk/dmg/crit son cache visual, recalculados. */
-  {id:1,name:'Espada larga +1',type:'CaC · Marcial',style:'melee1h',damage_die:'1d8',crit_threat:19,crit_mult:2,enh:1,weight:4,hands:1,atk:'+0',dmg:'1d8',crit:'19-20/×2',notes:'Acero martillado, +1 mejora'},
-  {id:2,name:'Daga',type:'CaC/Dist · Sencilla',style:'finesse',damage_die:'1d4',crit_threat:19,crit_mult:2,enh:0,weight:1,hands:1,atk:'+0',dmg:'1d4',crit:'19-20/×2',notes:'Lanzable (10 ft)'},
-  {id:3,name:'Arco corto',type:'Dist · Marcial',style:'ranged',damage_die:'1d6',crit_threat:20,crit_mult:3,enh:0,weight:2,hands:2,atk:'+0',dmg:'1d6',crit:'×3',notes:'Alcance 60 ft'},
+  {id:1,name:'Espada larga +1',type:'CaC · Marcial',style:'melee1h',damage_die:'1d8',crit_threat:19,crit_mult:2,enh:1,misc:0,weight:4,hands:1,atk:'+0',dmg:'1d8',crit:'19-20/×2',notes:'Acero martillado, +1 mejora'},
+  {id:2,name:'Daga',type:'CaC/Dist · Sencilla',style:'finesse',damage_die:'1d4',crit_threat:19,crit_mult:2,enh:0,misc:0,weight:1,hands:1,atk:'+0',dmg:'1d4',crit:'19-20/×2',notes:'Lanzable (10 ft)'},
+  {id:3,name:'Arco corto',type:'Dist · Marcial',style:'ranged',damage_die:'1d6',crit_threat:20,crit_mult:3,enh:0,misc:0,weight:2,hands:2,atk:'+0',dmg:'1d6',crit:'×3',notes:'Alcance 60 ft'},
 ];
 const ARMOR_DATA = [
   /* DOMINIO 5: campos PF1e completos. */
@@ -3752,6 +3768,7 @@ const CLASS_FEATURES_DATA = [
   {id:3,name:'Valor (+1)',desc:'+1 a TS contra miedo.',tracker:false},
   {id:4,name:'Punto de acción',desc:'Gasta para añadir 1d6 a una tirada.',tracker:true,curr:2,max:3},
 ];
+let FCB_DATA = []; // Bonificación de clase predilecta: array de 'hp'|'skill'|'class', uno por nivel
 const SPELLS_DATA = []; // Guerrero no lanza, pero el sistema renderiza shell vacío con mensaje
 const SLOTS_PER_LVL = [0,0,0,0,0,0,0,0,0,0]; // niveles 0-9
 
@@ -4263,6 +4280,13 @@ document.addEventListener('DOMContentLoaded',()=>{
   injectPickerSheets();
   ensureClassPickerCard();
   setTimeout(()=>{ rebuildSpellSystem(); rebuildClassAutoFeatures(); },50);
+  // FCB buttons
+  [{id:'fcb-add-hp',choice:'hp'},{id:'fcb-add-skill',choice:'skill'},{id:'fcb-add-class',choice:'class'}].forEach(({id,choice})=>{
+    const btn = document.getElementById(id);
+    if(!btn) return;
+    btn.addEventListener('click',()=>{ FCB_DATA.push(choice); renderFCB(); if(typeof saveStateDebounced==='function') saveStateDebounced('fcb'); });
+  });
+  renderFCB();
 });
 
 document.addEventListener('click',e=>{
@@ -4560,6 +4584,10 @@ function renderWeapons(){
         <div class="eq-stat"><b>${w.crit}</b>Crítico</div>
       </div>
       <div class="eq-meta" style="margin-top:6px">${w.notes||''}</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+        <label style="font:600 10px 'Cinzel',serif;letter-spacing:.07em;text-transform:uppercase;color:var(--leather);white-space:nowrap">Misc. Atq</label>
+        <input type="number" inputmode="numeric" class="field-input weap-misc-inp" data-weap-id="${w.id}" value="${w.misc||0}" style="width:60px;text-align:center;padding:4px 6px" aria-label="Bono misceláneo de ataque">
+      </div>
       <div class="weap-actions">
         ${atkBtns}
         <button data-roll="${w.dmg}" data-roll-label="${w.name} · Daño">Daño</button>
@@ -4570,6 +4598,12 @@ function renderWeapons(){
     b.addEventListener('click',()=>{
       const i = WEAPONS_DATA.findIndex(x=>x.id===+b.dataset.weapDel);
       if(i>=0){ WEAPONS_DATA.splice(i,1); renderWeapons(); rebindRolls(); }
+    });
+  });
+  c.querySelectorAll('.weap-misc-inp').forEach(inp=>{
+    inp.addEventListener('change',()=>{
+      const wep = WEAPONS_DATA.find(x=>x.id===+inp.dataset.weapId);
+      if(wep){ wep.misc = parseInt(inp.value,10)||0; if(typeof D5_refreshWeaponRolls==='function') D5_refreshWeaponRolls(); }
     });
   });
 }
@@ -4663,6 +4697,29 @@ function renderClassFeatures(){
       toast(_RAGE_ACTIVE ? '🔥 ¡Rabia activa! +4 FUE/CON, +2 TS Vol, −2 CA' : 'Rabia desactivada. Fatiga 1 min.');
     });
   });
+}
+
+function renderFCB(){
+  const list = document.getElementById('fcb-list');
+  if(!list) return;
+  const labels = {hp:'PG',skill:'Hab',class:'Clase'};
+  const colors  = {hp:'#c0392b',skill:'#27ae60',class:'#2980b9'};
+  list.innerHTML = FCB_DATA.map((e,i)=>`
+    <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:99px;background:${colors[e]}22;border:1px solid ${colors[e]}55;font:600 11px system-ui;color:${colors[e]}">
+      Nv${i+1}&nbsp;${labels[e]||e}
+      <button data-fcb-del="${i}" aria-label="Eliminar" style="background:none;border:none;color:${colors[e]};cursor:pointer;padding:0;line-height:1;font-size:14px">×</button>
+    </span>`).join('');
+  list.querySelectorAll('[data-fcb-del]').forEach(b=>{
+    b.addEventListener('click',()=>{ FCB_DATA.splice(+b.dataset.fcbDel,1); renderFCB(); if(typeof saveStateDebounced==='function') saveStateDebounced('fcb'); });
+  });
+  const count = {hp:0,skill:0,class:0};
+  FCB_DATA.forEach(e=>{ if(e in count) count[e]++; });
+  const hp = document.getElementById('fcb-hp-total');
+  const sk = document.getElementById('fcb-sk-total');
+  const cl = document.getElementById('fcb-cl-total');
+  if(hp) hp.textContent = count.hp;
+  if(sk) sk.textContent = count.skill;
+  if(cl) cl.textContent = count.class;
 }
 
 /* slot state per level: {max, used} */
@@ -4853,7 +4910,7 @@ function renderInit(){
 const COMP_DATA = {
   familiar: {n:'Cuervo "Tinta"',hp:'4/4',ca:14,atks:'Picotazo +5 (1d2−5)',extra:'Familiar de mago: alerta'},
   animal: {n:'Lobo "Sombra"',hp:'18/18',ca:14,atks:'Mordisco +3 (1d6+1, derribo)',extra:'Trucos: atacar, defender, buscar, ataque furtivo'},
-  eidolon: {n:'Eidolón "Khaes"',hp:'24/24',ca:16,atks:'2 garras +5 (1d4+3)',extra:'Evoluciones',evol:['Garras','Resistencia','Nadar','Brazos extra','Inteligencia +2']},
+  eidolon: {n:'Eidolón "Khaes"',hp:'24/24',ca:16,atks:'2 garras +5 (1d4+3)',extra:'Evoluciones',subtipo:'',evol:['Garras','Resistencia','Nadar','Brazos extra','Inteligencia +2']},
   invocadas: {n:'Lobo terrenal',hp:'13/13',ca:14,atks:'Mordisco +3',extra:'Duración: 3 asaltos (rondas 2/3)'}
 };
 function renderComp(which='familiar'){
@@ -4861,6 +4918,14 @@ function renderComp(which='familiar'){
   const d = COMP_DATA[which];
   const L = (lbl)=>`<label class="field-label" style="font:700 10px 'Cinzel',serif;letter-spacing:.07em;text-transform:uppercase;color:var(--leather);display:block;margin-bottom:3px">${lbl}</label>`;
   const I = (field,val,ph,type='text')=>`<input class="field-input" data-comp-field="${field}" data-comp-which="${which}" type="${type}" inputmode="${type==='number'?'numeric':'text'}" value="${(val||'').toString().replace(/"/g,'&quot;')}" placeholder="${ph}" style="margin-bottom:8px">`;
+  const subtypeBlock = which==='eidolon' ? `
+    <div style="margin-bottom:8px">
+      ${L('Subtipo Unchained')}
+      <select class="field-select" data-comp-field="subtipo" data-comp-which="${which}">
+        <option value="">— Ninguno —</option>
+        ${['Agatión','Ángel','Archon','Azata','Daemon','Demonio','Diablo','Div','Inevitable','Protean','Psicopompo'].map(s=>`<option value="${s}"${d.subtipo===s?' selected':''}>${s}</option>`).join('')}
+      </select>
+    </div>` : '';
   const evolBlock = which==='eidolon' ? `
     <div style="margin-top:4px">
       ${L('Evoluciones (una por línea)')}
@@ -4877,11 +4942,12 @@ function renderComp(which='familiar'){
       ${L('Ataques')}${I('atks',d.atks,'Mordisco +3 (1d6+1)')}
       ${L('Notas / Trucos / Habilidades')}
       <textarea class="field-input" data-comp-field="extra" data-comp-which="${which}" rows="3" style="margin-bottom:8px">${d.extra||''}</textarea>
+      ${subtypeBlock}
       ${evolBlock}
     </div>`;
   // Bind live-save on input/change
   c.querySelectorAll('[data-comp-field]').forEach(el=>{
-    el.addEventListener('input',()=>{
+    const compHandler = ()=>{
       const k = el.dataset.compField;
       const w = el.dataset.compWhich;
       if(!COMP_DATA[w]) return;
@@ -4892,7 +4958,9 @@ function renderComp(which='familiar'){
       } else {
         COMP_DATA[w][k] = el.value;
       }
-    });
+    };
+    el.addEventListener('input', compHandler);
+    el.addEventListener('change', compHandler);
   });
 }
 
@@ -5094,7 +5162,7 @@ function bindNewSheets(){
   if(weapAdd) weapAdd.addEventListener('click',()=>{
     // Clear form and open sheet
     ['weap-name','weap-notes'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-    ['weap-enh','weap-weight'].forEach((id,i)=>{ const el=document.getElementById(id); if(el) el.value=[0,4][i]; });
+    ['weap-enh','weap-misc','weap-weight'].forEach((id,i)=>{ const el=document.getElementById(id); if(el) el.value=[0,0,4][i]; });
     openSheet('sheet-weapon-add');
   });
   const weapSave = document.getElementById('weap-save');
@@ -5105,7 +5173,8 @@ function bindNewSheets(){
     const styleOpt = document.getElementById('weap-style');
     const styleV = styleOpt.value;
     const id = (WEAPONS_DATA[WEAPONS_DATA.length-1]?.id||0)+1;
-    const enh = parseInt(document.getElementById('weap-enh').value,10)||0;
+    const enh  = parseInt(document.getElementById('weap-enh').value,10)||0;
+    const misc = parseInt(document.getElementById('weap-misc').value,10)||0;
     const crit_threat = parseInt(document.getElementById('weap-threat').value,10);
     const crit_mult   = parseInt(document.getElementById('weap-crit').value,10);
     const damage_die  = document.getElementById('weap-die').value;
@@ -5114,7 +5183,7 @@ function bindNewSheets(){
       id, name: n,
       type: typeOpt.value,
       style: styleV,
-      damage_die, crit_threat, crit_mult, enh,
+      damage_die, crit_threat, crit_mult, enh, misc,
       weight: parseFloat(document.getElementById('weap-weight').value)||0,
       hands, notes: document.getElementById('weap-notes').value.trim(),
       atk: '+0', dmg: damage_die, crit: `${crit_threat===20?'20':crit_threat+'-20'}/×${crit_mult}`
@@ -6636,8 +6705,9 @@ function D5_getIterativeAttacks(w){
   const sizeAtk = (D5_SIZE?.[size]||{atk:0}).atk||0;
   const attr = (w.style==='ranged'||w.style==='finesse') ? 'DES' : 'FUE';
   const mod = D5_getMod(attr);
-  const enh = parseInt(w.enh,10)||0;
-  const extras = mod + enh + sizeAtk + buffAtk;
+  const enh  = parseInt(w.enh,10)||0;
+  const misc = parseInt(w.misc,10)||0;
+  const extras = mod + enh + misc + sizeAtk + buffAtk;
   const fmt = n=>(n>=0?'+':'')+n;
   const attacks = [fmt(rawBab + extras)];
   if(rawBab >= 6)  attacks.push(fmt(rawBab - 5  + extras));
@@ -6716,9 +6786,10 @@ function D5_computeWeaponAttack(w){
   let attr = 'FUE';
   if(w.style==='ranged') attr = 'DES';
   else if(w.style==='finesse') attr = 'DES';
-  const mod = D5_getMod(attr);
-  const enh = parseInt(w.enh,10)||0;
-  return bab + mod + enh + sizeAtk;
+  const mod  = D5_getMod(attr);
+  const enh  = parseInt(w.enh,10)||0;
+  const misc = parseInt(w.misc,10)||0;
+  return bab + mod + enh + misc + sizeAtk;
 }
 function D5_computeWeaponDamage(w){
   const enh = parseInt(w.enh,10)||0;
@@ -7338,6 +7409,7 @@ function blankState(){
     identity: {nombre:'', jugador:'', raza:'Humano', clase:'Guerrero', nivel:3, deidad:'', alineamiento:'NN', edad:'', altura:'', peso:'', tamano:'Mediano', historia:'', personalidad:'', ideales:''},
     attrs: {}, classes: [], skills: {}, feats: [],
     weapons: [], armor: [], items: [], conds: [], buffs: [], adjusts: [],
+    fcb: [],
     notes: '', photo: null,
     settings: { fontSize:'normal', daltonico:false },
     theme: null, lang: null, extra: {}
@@ -7445,6 +7517,7 @@ function snapshotState(){
     s.classFeatures = (typeof CLASS_FEATURES_DATA !== 'undefined') ? CLASS_FEATURES_DATA.map(f=>({...f})) : [];
     s.spellsCast    = (typeof SPELLS_DATA !== 'undefined') ? SPELLS_DATA.map(sp=>({id:sp.id,cast:!!sp.cast,prepared:!!sp.prepared})) : [];
     s.rageActive    = (typeof _RAGE_ACTIVE !== 'undefined') ? _RAGE_ACTIVE : false;
+    s.fcb           = (typeof FCB_DATA !== 'undefined') ? FCB_DATA.slice() : [];
   }catch(e){}
   return s;
 }
@@ -7530,6 +7603,11 @@ function applyState(state){
       SPELLS_DATA.forEach(sp=>{ const c=castMap.get(sp.id); if(c){ sp.cast=c.cast; sp.prepared=c.prepared; } });
     }
     if(typeof state.rageActive === 'boolean') _RAGE_ACTIVE = state.rageActive;
+    if(Array.isArray(state.fcb) && typeof FCB_DATA !== 'undefined'){
+      FCB_DATA.length = 0;
+      state.fcb.forEach(e=>FCB_DATA.push(e));
+      if(typeof renderFCB === 'function') renderFCB();
+    }
     rebuildBuffModTotals();
   }catch(e){ console.warn('applyState internal vars', e); }
   window.STATE = Object.assign(window.STATE, state);
