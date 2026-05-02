@@ -1222,6 +1222,13 @@ body.theme-dark .sheet-title{color:#f5d8b0}
 }
 .spell-level-h{font:700 11px/1 'Cinzel',serif;letter-spacing:.08em;text-transform:uppercase;color:var(--leather);margin:14px 2px 6px}
 .spell-level-h:first-child{margin-top:4px}
+#spell-dc-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;
+  background:var(--accent-soft);border:1px solid rgba(var(--crimson-rgb),.2);
+  border-radius:10px;padding:8px 12px;margin-bottom:10px;font:12px/1.3 system-ui}
+#spell-dc-bar.hidden{display:none}
+#spell-dc-bar .dc-stat{font-weight:700;color:var(--accent)}
+.dc-chip{background:var(--surface);border:1px solid var(--line);border-radius:6px;
+  padding:3px 8px;font:700 11px system-ui;color:var(--ink)}
 
 /* ─── CLASS FEATURE TRACKERS ─── */
 .cf-card{
@@ -2113,6 +2120,7 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
       <button class="btn-secondary" id="rest-8h" style="width:100%;margin-bottom:10px">🌙 Descansar 8h · Restaurar slots</button>
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:6px" id="slot-grid"></div>
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px" id="slot-grid-2"></div>
+      <div id="spell-dc-bar"></div>
       <div class="spell-filter" id="spell-filter">
         <button class="active" data-sf="todos">Todos</button>
         <button data-sf="conocidos">Conocidos</button>
@@ -4036,6 +4044,7 @@ function rebuildSpellSystem(){
   }
   if(typeof renderSlots==='function') renderSlots();
   if(typeof renderSpells==='function') renderSpells();
+  if(typeof renderSpellDC==='function') renderSpellDC();
   document.dispatchEvent(new CustomEvent('spells-changed',{detail:{classId:CURRENT_CLASS_ID,spellLvl:-1}}));
 }
 
@@ -4647,6 +4656,7 @@ function renderSlots(){
   }
   g1.innerHTML = [0,1,2,3,4].map(tile).join('');
   g2.innerHTML = [5,6,7,8,9].map(tile).join('');
+  try{ renderSpellDC(); }catch(e){}
   document.querySelectorAll('[data-slot-d]').forEach(b=>{
     b.addEventListener('click',()=>{
       const i=+b.dataset.slotD;
@@ -4693,7 +4703,10 @@ function renderSpells(){
       return true;
     });
     if(!items.length) return;
-    html += `<div class="spell-level-h">Nivel ${lvl} · slots ${SLOT_STATE[+lvl]?(SLOT_STATE[+lvl].max-SLOT_STATE[+lvl].used)+'/'+SLOT_STATE[+lvl].max:'—'}</div>`;
+    const slotStr = SLOT_STATE[+lvl] ? (SLOT_STATE[+lvl].max-SLOT_STATE[+lvl].used)+'/'+SLOT_STATE[+lvl].max : '—';
+    const dc = calcSpellDC(+lvl);
+    const dcStr = dc !== null ? ` · DC ${dc}` : '';
+    html += `<div class="spell-level-h">Nivel ${lvl} · slots ${slotStr}${dcStr}</div>`;
     items.forEach(s=>{
       html += `<div class="spell-row ${s.cast?'cast':''}" data-spell="${s.id}">
         <span class="lvl-badge">Nv ${s.lvl}</span>
@@ -4725,6 +4738,27 @@ function renderSpells(){
     const lvlEl = document.getElementById('spell-add-lvl'); if(lvlEl) lvlEl.value = b.dataset.spellAddLvl;
     openSheet('sheet-spell-add');
   }));
+}
+
+/* ─── SPELL DC ─── */
+function calcSpellDC(spellLvl){
+  const info = PF1E_CASTER_INFO[CURRENT_CLASS_ID] || {};
+  if(!info.attr || info.mode==='none') return null;
+  return 10 + (spellLvl|0) + getAttrModD4(info.attr);
+}
+function renderSpellDC(){
+  const bar = document.getElementById('spell-dc-bar');
+  if(!bar) return;
+  const info = PF1E_CASTER_INFO[CURRENT_CLASS_ID] || {};
+  if(!info.attr || info.mode==='none'){ bar.classList.add('hidden'); return; }
+  bar.classList.remove('hidden');
+  const attr = info.attr;
+  const mod = getAttrModD4(attr);
+  const fmt = n=>(n>=0?'+':'')+n;
+  // show chips for each active spell level
+  const activeLvls = SLOT_STATE.map((s,i)=>i).filter(i=>i>0 && SLOT_STATE[i].max>0);
+  const chips = activeLvls.map(lvl=>`<span class="dc-chip">Nv${lvl}: <b>${10+lvl+mod}</b></span>`).join('');
+  bar.innerHTML = `<span>⚡ DC</span><span class="dc-stat">${attr} ${fmt(mod)}</span><span style="color:var(--ink-muted)">= 10 + nivel + ${fmt(mod)}</span>${chips}`;
 }
 
 /* ─── PICKERS ─── */
