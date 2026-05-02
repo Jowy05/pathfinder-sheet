@@ -1532,7 +1532,10 @@ body.theme-dark .confirm-preview .pv-title{color:#f5d8b0}
 .tmp-card .name{font:700 13px/1.2 'Cinzel',serif;color:var(--leather);padding-right:24px}
 body.theme-dark .tmp-card .name{color:#f5d8b0}
 .tmp-card .meta{font:11px/1.3 system-ui;color:var(--ink-muted);margin-top:3px}
-.tmp-card .dur{display:inline-block;font:700 9.5px/1 system-ui;background:var(--accent-soft);color:var(--accent);padding:3px 7px;border-radius:99px;margin-top:6px;letter-spacing:.04em}
+.tmp-card .dur{display:inline-block;font:700 9.5px/1 system-ui;background:var(--accent-soft);color:var(--accent);padding:3px 7px;border-radius:99px;letter-spacing:.04em}
+.tmp-card .dur-expired{background:rgba(var(--negative-rgb),.15);color:var(--negative)}
+.tmp-card.buff-expired{opacity:.6}
+.buff-tick{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:3px 10px;font:700 11px system-ui;cursor:pointer;color:var(--ink);min-width:36px}
 
 /* ─── INITIAL LOADER (portado de cyberpunk-loader.css del desktop) ─── */
 #initial-loader{
@@ -5130,23 +5133,55 @@ function renderSearchResults(q){
 /* ─── BUFFS / AJUSTES PERMANENTES (CRUD visual) ─── */
 const BUFFS_LIST = [];
 const ADJUSTS_LIST = [];
+const BUFF_COUNTABLE = new Set(['Asaltos','Minutos','Horas']);
+function _buffRemove(i){
+  BUFFS_LIST.splice(i,1);
+  rebuildBuffModTotals();
+  renderBuffs();
+  if(typeof CombatEngine!=='undefined') CombatEngine.apply();
+}
 function renderBuffs(){
   const c = document.getElementById('buffs-list');
   if(!c) return;
-  c.innerHTML = BUFFS_LIST.map((b,i)=>`
-    <div class="tmp-card">
+  c.innerHTML = BUFFS_LIST.map((b,i)=>{
+    const countable = BUFF_COUNTABLE.has(b.dur);
+    // migrate old buffs without remaining
+    if(b.remaining == null) b.remaining = parseInt(b.qty,10)||0;
+    const rem = b.remaining;
+    const tot = parseInt(b.qty,10)||0;
+    const expired = countable && rem <= 0;
+    const durLabel = countable
+      ? `<span class="dur${expired?' dur-expired':''}">${expired?'⚠ Expirado':rem+'/'+tot+' '+b.dur}</span>`
+      : `<span class="dur">${b.dur==='Permanente'?'∞ Permanente':'↺ '+b.dur}</span>`;
+    const tickBtn = (countable && !expired)
+      ? `<button class="buff-tick" data-buff-tick="${i}" aria-label="−1 ${b.dur}" title="−1 ${b.dur}">−1</button>`
+      : '';
+    return `<div class="tmp-card${expired?' buff-expired':''}">
       <button class="crud-del" data-buff-del="${i}" aria-label="Quitar buff">×</button>
       <div class="name">${b.name}</div>
       <div class="meta">${b.mod}</div>
-      <span class="dur">${b.qty} ${b.dur}</span>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap">
+        ${durLabel}${tickBtn}
+      </div>
       ${b.notes?`<div class="meta" style="margin-top:4px">${b.notes}</div>`:''}
-    </div>`).join('');
+    </div>`;
+  }).join('');
   c.querySelectorAll('[data-buff-del]').forEach(btn=>{
+    btn.addEventListener('click',()=>_buffRemove(+btn.dataset.buffDel));
+  });
+  c.querySelectorAll('[data-buff-tick]').forEach(btn=>{
     btn.addEventListener('click',()=>{
-      BUFFS_LIST.splice(+btn.dataset.buffDel,1);
-      rebuildBuffModTotals();
-      renderBuffs();
-      if(typeof CombatEngine!=='undefined') CombatEngine.apply();
+      const i = +btn.dataset.buffTick;
+      const b = BUFFS_LIST[i];
+      if(!b) return;
+      b.remaining = Math.max(0, (b.remaining||0) - 1);
+      if(b.remaining === 0){
+        toast('⌛ '+b.name+' ha expirado');
+        setTimeout(()=>_buffRemove(i), 600);
+      } else {
+        renderBuffs();
+      }
+      if(typeof saveStateDebounced==='function') saveStateDebounced('buff-tick');
     });
   });
 }
@@ -5303,7 +5338,8 @@ function bindFormSheets(){
     const qty = document.getElementById('buff-qty').value;
     const notes = document.getElementById('buff-notes').value.trim();
     if(!n){ toast('Falta nombre'); return; }
-    BUFFS_LIST.push({name:n,mod:m,dur,qty,notes});
+    const qtyN = parseInt(qty,10)||0;
+    BUFFS_LIST.push({name:n,mod:m,dur,qty:qtyN,remaining:qtyN,notes});
     ['buff-name','buff-mod','buff-notes'].forEach(id=>document.getElementById(id).value='');
     rebuildBuffModTotals();
     renderBuffs();
