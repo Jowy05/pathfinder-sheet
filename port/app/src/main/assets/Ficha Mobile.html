@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
 <meta name="theme-color" content="#3d2510" />
-<title>Ficha · Joel Vorník</title>
+<title>Ficha PF1e</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1650,8 +1650,8 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
 <header class="topbar" role="banner">
   <button class="avatar-btn" id="avatar" aria-label="Identidad del personaje">J</button>
   <div class="topbar-center">
-    <div class="char-name">Joel Vorník</div>
-    <div class="char-sub" data-i18n="charSub">Guerrero · Nivel 3 · Humano</div>
+    <div class="char-name" id="topbar-char-name">—</div>
+    <div class="char-sub" id="topbar-char-sub">—</div>
   </div>
   <div class="topbar-actions">
     <button class="icon-btn" id="btn-lang" aria-label="Cambiar idioma">
@@ -1688,11 +1688,11 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
         <h3 class="card-title"><span class="ornament">✦</span><span data-i18n="cardBasicos">Datos básicos</span><span class="ornament">✦</span></h3>
         <div class="field">
           <label class="field-label" data-i18n="lblNombre">Nombre</label>
-          <input class="field-input" value="Joel Vorník" />
+          <input class="field-input" id="in-nombre" value="" placeholder="Nombre del personaje" />
         </div>
         <div class="field">
           <label class="field-label" data-i18n="lblJugador">Jugador</label>
-          <input class="field-input" value="Lucia" />
+          <input class="field-input" id="in-jugador" value="" placeholder="Nombre del jugador" />
         </div>
         <div class="field">
           <label class="field-label" data-i18n="lblRaza">Raza</label>
@@ -1703,7 +1703,7 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
         </div>
         <div class="field">
           <label class="field-label" data-i18n="lblDeidad">Deidad</label>
-          <input class="field-input" id="in-deidad" value="Iomedae" />
+          <input class="field-input" id="in-deidad" value="" placeholder="Deidad" />
         </div>
         <label class="field-label" data-i18n="lblAlineamiento">Alineamiento</label>
         <div class="field-row">
@@ -1821,13 +1821,13 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
         <h3 class="card-title"><span class="ornament">❦</span><span data-i18n="cardTrasfondo">Trasfondo</span><span class="ornament">❦</span></h3>
         <div class="field">
           <label class="field-label" data-i18n="lblHistoria">Historia</label>
-          <textarea class="field-input">Hijo segundo de una familia de mercenarios del norte. Joel sirvió cuatro años en la guarnición de Vellica antes de desertar tras un encargo que le marcó. Lleva la espada larga de su padre y un colgante con el sello de Iomedae que le entregó su hermana al partir.</textarea>
+          <textarea class="field-input" id="in-historia" placeholder="Historia del personaje…"></textarea>
         </div>
         <div class="field-row">
-          <div class="field"><label class="field-label" data-i18n="lblRasgosPers">Rasgos personalidad</label><input class="field-input" value="Reservado, leal a su palabra"></div>
+          <div class="field"><label class="field-label" data-i18n="lblRasgosPers">Rasgos personalidad</label><input class="field-input" id="in-personalidad" value="" placeholder="Rasgos de personalidad…"></div>
         </div>
         <div class="field"><label class="field-label" data-i18n="lblIdeales">Ideales / Vínculos / Defectos</label>
-          <textarea class="field-input" style="min-height:80px">Justicia ante la ley superior. Vínculo: su hermana Mira. Defecto: desconfía de los nobles.</textarea>
+          <textarea class="field-input" id="in-ideales" style="min-height:80px" placeholder="Ideales, vínculos, defectos…"></textarea>
         </div>
       </div>
     </div>
@@ -2357,13 +2357,13 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
       <button class="btn-secondary" data-avatar-action="remove" data-i18n="btnQuitarFoto">Quitar foto</button>
     </div>
     <div class="id-summary">
-      <div class="id-row"><span data-i18n="lblNombre">Nombre</span><span>Joel Vorník</span></div>
-      <div class="id-row"><span data-i18n="lblRaza">Raza</span><span>Humano</span></div>
-      <div class="id-row"><span data-i18n="lblClase">Clase</span><span>Guerrero</span></div>
-      <div class="id-row"><span data-i18n="lblNivel">Nivel</span><span>3</span></div>
-      <div class="id-row"><span data-i18n="lblAlineamiento">Alineamiento</span><span>Neutral (NN)</span></div>
-      <div class="id-row"><span data-i18n="lblDeidad">Deidad</span><span>Iomedae</span></div>
-      <div class="id-row"><span data-i18n="lblXP">Experiencia</span><span>4500 / 6000</span></div>
+      <div class="id-row"><span data-i18n="lblNombre">Nombre</span><span id="sum-nombre">—</span></div>
+      <div class="id-row"><span data-i18n="lblRaza">Raza</span><span id="sum-raza">—</span></div>
+      <div class="id-row"><span data-i18n="lblClase">Clase</span><span id="sum-clase">—</span></div>
+      <div class="id-row"><span data-i18n="lblNivel">Nivel</span><span id="sum-nivel">—</span></div>
+      <div class="id-row"><span data-i18n="lblAlineamiento">Alineamiento</span><span id="sum-alineamiento">—</span></div>
+      <div class="id-row"><span data-i18n="lblDeidad">Deidad</span><span id="sum-deidad">—</span></div>
+      <div class="id-row"><span data-i18n="lblXP">Experiencia</span><span id="sum-xp">—</span></div>
     </div>
   </div>
 </dialog>
@@ -7121,13 +7121,48 @@ window.STATE = blankState();
 function collectIdentity(){
   const $=id=>document.getElementById(id);
   const get=el=>el?el.value:'';
+  const getTA=el=>el?(el.tagName==='TEXTAREA'?el.textContent||el.value:el.value):'';
   return {
     nombre: get($('in-nombre'))||get($('in-name')),
     jugador: get($('in-jugador')),
     raza: get($('in-raza')),
     deidad: get($('in-deidad')),
     alineamiento: get($('al-r')),
+    historia: get($('in-historia')),
+    personalidad: get($('in-personalidad')),
+    ideales: get($('in-ideales')),
   };
+}
+function updateTopbar(){
+  try{
+    const id = window.STATE?.identity || {};
+    const nombre = id.nombre || '—';
+    const tn = document.getElementById('topbar-char-name');
+    if(tn) tn.textContent = nombre;
+    // sub: clases + nivel total
+    const cls = (typeof CLASSES_DATA !== 'undefined' ? CLASSES_DATA : []);
+    let sub = '—';
+    if(cls.length){
+      const totalLvl = cls.reduce((s,c)=>s+(+c.level||0),0);
+      sub = cls.map(c=>c.name).join(' / ') + ' · Nv ' + totalLvl;
+      if(id.raza) sub += ' · ' + id.raza;
+    }
+    const ts = document.getElementById('topbar-char-sub');
+    if(ts) ts.textContent = sub;
+    // summary dialog
+    const setText=(sid,val)=>{ const el=document.getElementById(sid); if(el) el.textContent=val||'—'; };
+    setText('sum-nombre', nombre);
+    setText('sum-raza', id.raza);
+    setText('sum-clase', cls.map(c=>c.name).join(' / ') || '—');
+    const totalNivel = cls.reduce((s,c)=>s+(+c.level||0),0);
+    setText('sum-nivel', totalNivel||'—');
+    setText('sum-alineamiento', id.alineamiento||'—');
+    setText('sum-deidad', id.deidad);
+    // XP — buscar en DOM
+    const xpCur = document.getElementById('xp-current');
+    const xpNext = document.getElementById('xp-next');
+    if(xpCur&&xpNext) setText('sum-xp', (xpCur.value||'0')+' / '+(xpNext.value||'?'));
+  }catch(e){}
 }
 function collectConds(){
   return [...document.querySelectorAll('.cond-chip.active')].map(c=>c.dataset.cond);
@@ -7196,7 +7231,11 @@ function applyState(state){
     setVal('in-raza', state.identity.raza);
     setVal('in-deidad', state.identity.deidad);
     setVal('al-r', state.identity.alineamiento);
+    setVal('in-historia', state.identity.historia);
+    setVal('in-personalidad', state.identity.personalidad);
+    setVal('in-ideales', state.identity.ideales);
   }
+  try{ updateTopbar(); }catch(e){}
   if(state.theme){ document.documentElement.dataset.theme = state.theme; try{applyDarkClass();}catch(e){} }
   if(state.lang && typeof applyLang==='function'){ try{applyLang(state.lang);}catch(e){} }
   try{
@@ -7519,12 +7558,18 @@ function wireSettingsClear(){
 }
 
 function wireAutosave(){
-  document.addEventListener('input',  e=>{ if(e.target.matches('input,select,textarea')) saveStateDebounced('input'); }, true);
+  document.addEventListener('input',  e=>{
+    if(e.target.matches('input,select,textarea')) saveStateDebounced('input');
+    if(e.target.id==='in-nombre'||e.target.id==='in-raza'||e.target.id==='in-deidad') try{updateTopbar();}catch(_){}
+  }, true);
   document.addEventListener('change', e=>{ if(e.target.matches('input,select,textarea')) saveStateDebounced('change'); }, true);
   ['attr-changed','class-changed','armor-equipped','feat-changed','skill-changed',
    'weapon-changed','item-changed','cond-changed','buff-changed','adjust-changed',
    'notes-changed','photo-changed','language-changed','theme-changed'
-  ].forEach(ev=>document.addEventListener(ev, ()=>saveStateDebounced(ev)));
+  ].forEach(ev=>document.addEventListener(ev, ()=>{
+    saveStateDebounced(ev);
+    if(ev==='class-changed') try{updateTopbar();}catch(_){}
+  }));
   document.addEventListener('click', e=>{
     if(e.target.closest && e.target.closest('.cond-chip')) saveStateDebounced('cond-click');
   }, true);
@@ -7576,6 +7621,7 @@ function init6(){
   } else {
     document.dispatchEvent(new CustomEvent('state-loaded',{detail:window.STATE}));
   }
+  try{ updateTopbar(); }catch(e){}
 
   try{ if(isAndroid()) window._androidDeliverCharacter(); }catch(e){}
 }
