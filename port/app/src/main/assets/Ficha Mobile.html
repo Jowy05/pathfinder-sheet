@@ -1278,10 +1278,17 @@ body.theme-dark .sheet-title{color:#f5d8b0}
 /* ─── INITIATIVE TRACKER (MASTER) ─── */
 .init-tracker{display:grid;gap:6px;margin-bottom:10px}
 .init-card{
-  display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;
+  display:grid;grid-template-columns:32px 1fr auto auto;gap:6px;align-items:center;
   padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);
 }
 .init-card.active{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 2px var(--accent-soft)}
+.init-card.init-dead{opacity:.45}
+.init-card .ir-val{font-family:'Cinzel',serif;font-weight:700;font-size:16px;color:var(--accent);text-align:center}
+.init-card .ir-name{font:13px/1.2 system-ui;color:var(--ink)}
+.init-card .init-hp-wrap{display:flex;align-items:center;gap:3px}
+.init-hp{font:700 11px system-ui;color:var(--ink-muted);min-width:36px;text-align:center}
+.init-hp.init-hp-dead{color:var(--negative)}
+.init-hp-btn{background:var(--surface);border:1px solid var(--line);border-radius:5px;width:22px;height:22px;font:700 12px/1 system-ui;cursor:pointer;color:var(--ink)}
 .init-card .num{font-family:'Cinzel',serif;font-weight:700;font-size:16px;color:var(--accent);min-width:24px}
 .init-card .nm{font:13px/1.2 system-ui;color:var(--ink)}
 .init-card .iv{font-family:'Cinzel',serif;font-weight:700;font-size:14px;color:var(--ink-muted)}
@@ -2490,14 +2497,19 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
   <div class="drag-handle"></div>
   <div class="sheet-header"><div class="sheet-title">Modo Máster</div><button class="sheet-close" data-close>✕</button></div>
   <div class="sheet-content">
-    <h4 style="font-family:'Cinzel',serif;letter-spacing:.06em;text-transform:uppercase;font-size:12px;color:var(--leather);margin:0 0 6px">Tracker de iniciativa</h4>
-    <div id="init-list" style="display:grid;gap:6px;margin-bottom:8px"></div>
-    <div style="display:flex;gap:6px">
-      <input class="field-input" id="init-name" placeholder="Nombre" style="flex:2">
-      <input class="field-input" id="init-val" type="number" inputmode="numeric" pattern="-?[0-9]*" placeholder="Init" style="flex:1">
-      <button class="btn-secondary" id="init-add">＋</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <h4 style="font-family:'Cinzel',serif;letter-spacing:.06em;text-transform:uppercase;font-size:12px;color:var(--leather);margin:0" id="init-round">Asalto 1</h4>
+      <button class="btn-secondary" id="init-reset" style="font-size:11px;padding:4px 10px">↺ Nueva batalla</button>
     </div>
-    <button class="btn-primary" id="init-next" style="width:100%;margin-top:10px">Siguiente turno ▶</button>
+    <div id="init-list" style="display:grid;gap:6px;margin-bottom:8px"></div>
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:6px;margin-bottom:6px">
+      <input class="field-input" id="init-name" placeholder="Nombre" >
+      <input class="field-input" id="init-val" type="number" inputmode="numeric" pattern="-?[0-9]*" placeholder="Init">
+      <input class="field-input" id="init-hp-max" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="PG">
+      <button class="btn-secondary" id="init-add" style="padding:8px 12px">＋</button>
+    </div>
+    <button class="btn-secondary" id="init-add-pc" style="width:100%;margin-bottom:6px">⚔ Añadir PJ (init auto)</button>
+    <button class="btn-primary" id="init-next" style="width:100%">▶ Siguiente turno</button>
     <div class="over-sep" style="margin:14px 0 8px"></div>
     <h4 style="font-family:'Cinzel',serif;letter-spacing:.06em;text-transform:uppercase;font-size:12px;color:var(--leather);margin:0 0 6px">Avisos de completitud</h4>
     <ul style="margin:0;padding-left:18px;font:13px/1.5 system-ui;color:var(--ink-muted)">
@@ -4789,23 +4801,51 @@ function fillPicker(listEl, data, onPick){
 }
 
 /* ─── INIT TRACKER ─── */
-const INIT_LIST = [
-  {n:'Joel Vorník',v:18,active:true},
-  {n:'Goblin alfa',v:14,active:false},
-  {n:'Goblin 1',v:11,active:false},
-  {n:'Goblin 2',v:9,active:false},
-];
+const INIT_LIST = [];
+let INIT_ROUND = 1;
 function renderInit(){
   const c = document.getElementById('init-list');
   if(!c) return;
-  c.innerHTML = INIT_LIST.map((r,i)=>`
-    <div class="init-row ${r.active?'active':''}">
-      <span class="ir-val">${r.v}</span>
-      <span class="ir-name">${r.n}</span>
+  // Round counter header
+  const roundEl = document.getElementById('init-round');
+  if(roundEl) roundEl.textContent = 'Asalto ' + INIT_ROUND;
+  if(!INIT_LIST.length){
+    c.innerHTML = '<div style="text-align:center;color:var(--ink-muted);font:12px system-ui;padding:8px">Sin combatientes — añade al PJ y enemigos</div>';
+    return;
+  }
+  c.innerHTML = INIT_LIST.map((r,i)=>{
+    const pcBadge = r.isPC ? `<span style="font:700 8px system-ui;background:var(--positive);color:#fff;padding:1px 5px;border-radius:99px;margin-right:4px">PJ</span>` : '';
+    const hpStr = r.hpMax != null
+      ? `<span class="init-hp${r.hp<=0?' init-hp-dead':''}" data-init-hp="${i}">${r.hp}/${r.hpMax}</span>`
+      : '';
+    const hpBtns = r.hpMax != null ? `
+      <button class="init-hp-btn" data-init-dmg="${i}" title="Daño">−</button>
+      <button class="init-hp-btn" data-init-heal="${i}" title="Curar">+</button>` : '';
+    return `<div class="init-card ${r.active?'active':''}${r.hp!=null&&r.hp<=0?' init-dead':''}">
+      <span class="ir-val">${r.v>=0?'+':'' }${r.v}</span>
+      <span class="ir-name">${pcBadge}${r.n}</span>
+      <span class="init-hp-wrap">${hpStr}${hpBtns}</span>
       <button class="crud-del" data-init-del="${i}" aria-label="Quitar">×</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   c.querySelectorAll('[data-init-del]').forEach(b=>{
     b.addEventListener('click',()=>{ INIT_LIST.splice(+b.dataset.initDel,1); renderInit(); });
+  });
+  c.querySelectorAll('[data-init-dmg]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const v = prompt('Daño:'); if(!v) return;
+      const r = INIT_LIST[+b.dataset.initDmg]; if(!r) return;
+      r.hp = Math.max(-99, r.hp - (parseInt(v,10)||0));
+      renderInit();
+    });
+  });
+  c.querySelectorAll('[data-init-heal]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const v = prompt('Curar:'); if(!v) return;
+      const r = INIT_LIST[+b.dataset.initHeal]; if(!r) return;
+      r.hp = Math.min(r.hpMax, r.hp + (parseInt(v,10)||0));
+      renderInit();
+    });
   });
 }
 
@@ -5001,18 +5041,52 @@ function bindNewSheets(){
   if(initAdd) initAdd.addEventListener('click',()=>{
     const n = document.getElementById('init-name').value.trim();
     const v = parseInt(document.getElementById('init-val').value,10)||0;
-    if(!n) return;
-    INIT_LIST.push({n,v,active:false});
+    const hpMax = parseInt(document.getElementById('init-hp-max')?.value,10)||null;
+    if(!n){ toast('Falta nombre'); return; }
+    INIT_LIST.push({n, v, active:false, hp: hpMax, hpMax, isPC:false});
     INIT_LIST.sort((a,b)=>b.v-a.v);
     document.getElementById('init-name').value='';
     document.getElementById('init-val').value='';
+    if(document.getElementById('init-hp-max')) document.getElementById('init-hp-max').value='';
+    if(!INIT_LIST.find(x=>x.active) && INIT_LIST.length) INIT_LIST[0].active=true;
+    renderInit();
+  });
+  const initAddPC = document.getElementById('init-add-pc');
+  if(initAddPC) initAddPC.addEventListener('click',()=>{
+    const nombre = document.getElementById('in-nombre')?.value?.trim() || 'PJ';
+    // Get calculated init from CombatEngine
+    let initVal = 0;
+    try{ const el = document.getElementById('m-init-val'); initVal = parseInt(el?.textContent,10)||0; }catch(e){}
+    // Roll d20 + init bonus
+    const roll = Math.floor(Math.random()*20)+1;
+    const total = roll + initVal;
+    // Get current HP
+    let hpCur = null, hpMax = null;
+    try{
+      const hpEl = document.getElementById('pg-current'); hpCur = parseInt(hpEl?.textContent||hpEl?.value,10)||null;
+      const hpMEl = document.getElementById('pg-max');    hpMax = parseInt(hpMEl?.textContent||hpMEl?.value,10)||null;
+    }catch(e){}
+    INIT_LIST.push({n:nombre, v:total, active:false, hp:hpCur??hpMax, hpMax, isPC:true, initBonus:initVal, roll});
+    INIT_LIST.sort((a,b)=>b.v-a.v);
+    if(!INIT_LIST.find(x=>x.active)) INIT_LIST[0].active=true;
+    toast(`${nombre}: 🎲${roll}${initVal>=0?'+':''}${initVal} = ${total}`);
     renderInit();
   });
   const initNext = document.getElementById('init-next');
   if(initNext) initNext.addEventListener('click',()=>{
+    if(!INIT_LIST.length) return;
     const i = INIT_LIST.findIndex(x=>x.active);
     INIT_LIST.forEach(x=>x.active=false);
-    INIT_LIST[(i+1)%INIT_LIST.length].active = true;
+    const next = (i+1) % INIT_LIST.length;
+    INIT_LIST[next].active = true;
+    if(next === 0) { INIT_ROUND++; const r=document.getElementById('init-round'); if(r) r.textContent='Asalto '+INIT_ROUND; toast('Asalto '+INIT_ROUND); }
+    renderInit();
+  });
+  const initReset = document.getElementById('init-reset');
+  if(initReset) initReset.addEventListener('click',()=>{
+    if(!confirm('¿Resetear el tracker de iniciativa?')) return;
+    INIT_LIST.length = 0;
+    INIT_ROUND = 1;
     renderInit();
   });
   // weapon/armor add (stubs that add a placeholder card)
