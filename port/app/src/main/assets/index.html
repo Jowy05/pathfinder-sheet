@@ -4505,22 +4505,28 @@ function _triggerClassFeaturesFor(cl){
 function renderWeapons(){
   const c = document.getElementById('weapons-list');
   if(!c) return;
-  c.innerHTML = WEAPONS_DATA.map(w=>`
+  c.innerHTML = WEAPONS_DATA.map(w=>{
+    const atks = w.iterativeAtks || [w.atk||'+0'];
+    const atkDisplay = atks.join('/');
+    const multi = atks.length > 1;
+    const atkBtns = atks.map((a,i)=>`<button data-roll="1d20${a}" data-roll-label="${w.name}${multi?' ('+(i+1)+'º atq)':''} · Ataque">${multi?(i===0?'Atq 1':'Atq '+(i+1)):'Atacar'}</button>`).join('');
+    return `
     <div class="eq-card" data-id="${w.id}">
       <button class="crud-del" data-weap-del="${w.id}" aria-label="Eliminar arma">×</button>
       <div class="eq-name">${w.name}</div>
       <div class="eq-meta">${w.type}</div>
       <div class="eq-stats">
-        <div class="eq-stat"><b>${w.atk}</b>Ataque</div>
+        <div class="eq-stat"><b>${atkDisplay}</b>Ataque</div>
         <div class="eq-stat"><b>${w.dmg}</b>Daño</div>
         <div class="eq-stat"><b>${w.crit}</b>Crítico</div>
       </div>
       <div class="eq-meta" style="margin-top:6px">${w.notes||''}</div>
       <div class="weap-actions">
-        <button data-roll="1d20${w.atk}" data-roll-label="${w.name} · Ataque">Atacar</button>
+        ${atkBtns}
         <button data-roll="${w.dmg}" data-roll-label="${w.name} · Daño">Daño</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   c.querySelectorAll('[data-weap-del]').forEach(b=>{
     b.addEventListener('click',()=>{
       const i = WEAPONS_DATA.findIndex(x=>x.id===+b.dataset.weapDel);
@@ -6446,10 +6452,39 @@ function D5_getSize(){
   for(const s of all){ for(const o of s.options){ if(D5_SIZE[o.text]) return s.value || o.text; } }
   return 'Mediano';
 }
-function D5_getBAB(){
+function D5_getRawBAB(){
   let bab = 0;
-  if(typeof CLASSES_DATA!=='undefined') CLASSES_DATA.forEach(c=>{ bab += parseInt(c.level,10)||0; });
+  try{
+    (CLASSES_DATA||[]).forEach(c=>{
+      const lvl = parseInt(c.level,10)||0;
+      const dbCls = c.classKey && typeof DB!=='undefined' ? (DB.classes||{})[c.classKey] : null;
+      const fullEntry = (window.CLASSES_DATA_FULL||[]).find(x=>x.id===c.classKey||x.name?.es===c.name||x.name?.en===c.name);
+      const prog = dbCls?.bab_progression || fullEntry?.bab || 'full';
+      if(prog==='full') bab += lvl;
+      else if(prog==='3/4'||prog==='medium') bab += Math.floor(lvl*3/4);
+      else bab += Math.floor(lvl/2);
+    });
+  }catch(e){}
   return bab;
+}
+function D5_getBAB(){
+  return D5_getRawBAB() + (_BUFF_MOD_TOTALS?.atk||0);
+}
+function D5_getIterativeAttacks(w){
+  const rawBab = D5_getRawBAB();
+  const buffAtk = _BUFF_MOD_TOTALS?.atk||0;
+  const size = D5_getSize ? D5_getSize() : 'Mediano';
+  const sizeAtk = (D5_SIZE?.[size]||{atk:0}).atk||0;
+  const attr = (w.style==='ranged'||w.style==='finesse') ? 'DES' : 'FUE';
+  const mod = D5_getMod(attr);
+  const enh = parseInt(w.enh,10)||0;
+  const extras = mod + enh + sizeAtk + buffAtk;
+  const fmt = n=>(n>=0?'+':'')+n;
+  const attacks = [fmt(rawBab + extras)];
+  if(rawBab >= 6)  attacks.push(fmt(rawBab - 5  + extras));
+  if(rawBab >= 11) attacks.push(fmt(rawBab - 10 + extras));
+  if(rawBab >= 16) attacks.push(fmt(rawBab - 15 + extras));
+  return attacks;
 }
 function D5_getMod(attr){
   const a = ATTRS.find(x=>x[0]===attr); return a ? a[3] : 0;
@@ -6540,9 +6575,8 @@ function D5_computeWeaponDamage(w){
 }
 function D5_refreshWeaponRolls(){
   WEAPONS_DATA.forEach(w=>{
-    const atk = D5_computeWeaponAttack(w);
-    const sign = atk>=0 ? '+' : '';
-    w.atk = `${sign}${atk}`;
+    w.iterativeAtks = D5_getIterativeAttacks(w);
+    w.atk = w.iterativeAtks[0];
     w.dmg = D5_computeWeaponDamage(w);
     w.crit = `${w.crit_threat===20?'20':w.crit_threat+'-20'}/×${w.crit_mult||2}`;
   });
