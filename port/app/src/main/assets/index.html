@@ -2176,14 +2176,28 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
       <div class="card">
         <h3 class="card-title"><span class="ornament">✦</span><span data-i18n="cardPeso">Carga</span><span class="ornament">✦</span></h3>
         <div class="xp-meta">
-          <span>Portado: 67 lb</span>
-          <span style="color:var(--accent)">Carga media</span>
+          <span>Portado: <b id="weight-current">0</b> lb</span>
+          <span id="weight-state-lbl" style="color:var(--positive)">—</span>
         </div>
-        <div class="xp-bar" style="height:12px"><div class="xp-bar-fill" style="width:62%;background:linear-gradient(90deg,#4a7a3a,#c89030)"></div></div>
+        <div class="xp-bar" style="height:12px;margin:8px 0">
+          <div id="weight-bar" class="xp-bar-fill" style="width:0%"></div>
+        </div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:14px;font:12px/1.2 system-ui;text-align:center">
-          <div><div style="color:var(--ink-muted);font-weight:600">Ligera</div><div style="font-family:Cinzel;font-weight:700;font-size:18px">≤ 76 lb</div></div>
-          <div><div style="color:var(--accent);font-weight:600">Media</div><div style="font-family:Cinzel;font-weight:700;font-size:18px;color:var(--accent)">≤ 153 lb</div></div>
-          <div><div style="color:var(--ink-muted);font-weight:600">Pesada</div><div style="font-family:Cinzel;font-weight:700;font-size:18px">≤ 230 lb</div></div>
+          <div><div style="color:var(--positive);font-weight:600">Ligera</div><div id="enc-lim-light" style="font-family:Cinzel;font-weight:700;font-size:18px">—</div></div>
+          <div><div style="color:var(--accent);font-weight:600">Media</div><div id="enc-lim-med" style="font-family:Cinzel;font-weight:700;font-size:18px;color:var(--accent)">—</div></div>
+          <div><div style="color:var(--ink-muted);font-weight:600">Pesada</div><div id="enc-lim-heavy" style="font-family:Cinzel;font-weight:700;font-size:18px">—</div></div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:14px;margin-top:14px">
+          <label style="display:flex;align-items:center;gap:8px;font:13px system-ui;color:var(--ink-muted);cursor:pointer">
+            <input type="checkbox" id="enc-quadruped"> Cuadrúpedo (×1.5)
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font:13px system-ui;color:var(--ink-muted);cursor:pointer">
+            <input type="checkbox" id="enc-muleback"> Don mular (×3)
+          </label>
+        </div>
+        <div class="field" style="margin-top:10px">
+          <label class="field-label">Peso manual (lb) — sobreescribe el automático</label>
+          <input class="field-input" type="number" inputmode="decimal" id="weight-override" placeholder="Dejar vacío = calcular auto">
         </div>
       </div>
     </div>
@@ -6692,15 +6706,22 @@ function D5_renderWeight(){
   const lblMap = {ligera:'Carga ligera', media:'Carga media', pesada:'Carga pesada', sobrecarga:'Sobrecarga'};
   const colMap = {ligera:'#4a7a3a', media:'var(--accent)', pesada:'#c89030', sobrecarga:'var(--negative)'};
 
-  const cur = document.getElementById('weight-current'); if(cur) cur.textContent = total.toFixed(1);
-  const stl = document.getElementById('weight-state-lbl');
+  const $ = id => document.getElementById(id);
+  if($('weight-current')) $('weight-current').textContent = total.toFixed(1);
+  const stl = $('weight-state-lbl');
   if(stl){ stl.textContent = lblMap[state]; stl.style.color = colMap[state]; }
-  const bar = document.getElementById('weight-bar');
+  const bar = $('weight-bar');
   if(bar){
     const pct = Math.min(100, max>0 ? (total/max)*100 : 0);
     bar.style.width = pct+'%';
     bar.style.background = `linear-gradient(90deg,#4a7a3a,${colMap[state]})`;
   }
+  // Thresholds based on actual STR/size
+  const limLight = Math.floor(max/3);
+  const limMed   = Math.floor(2*max/3);
+  if($('enc-lim-light')) $('enc-lim-light').textContent = '≤ '+limLight+' lb';
+  if($('enc-lim-med'))   $('enc-lim-med').textContent   = '≤ '+limMed+' lb';
+  if($('enc-lim-heavy')) $('enc-lim-heavy').textContent = '≤ '+max+' lb';
   document.dispatchEvent(new CustomEvent('weight-changed',{detail:{total, max, state}}));
   return {total, max, state};
 }
