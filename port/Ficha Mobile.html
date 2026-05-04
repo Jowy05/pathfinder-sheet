@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
 <meta name="theme-color" content="#3d2510" />
-<title>Ficha · Joel Vorník</title>
+<title>Ficha PF1e</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1222,6 +1222,13 @@ body.theme-dark .sheet-title{color:#f5d8b0}
 }
 .spell-level-h{font:700 11px/1 'Cinzel',serif;letter-spacing:.08em;text-transform:uppercase;color:var(--leather);margin:14px 2px 6px}
 .spell-level-h:first-child{margin-top:4px}
+#spell-dc-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;
+  background:var(--accent-soft);border:1px solid rgba(var(--crimson-rgb),.2);
+  border-radius:10px;padding:8px 12px;margin-bottom:10px;font:12px/1.3 system-ui}
+#spell-dc-bar.hidden{display:none}
+#spell-dc-bar .dc-stat{font-weight:700;color:var(--accent)}
+.dc-chip{background:var(--surface);border:1px solid var(--line);border-radius:6px;
+  padding:3px 8px;font:700 11px system-ui;color:var(--ink)}
 
 /* ─── CLASS FEATURE TRACKERS ─── */
 .cf-card{
@@ -1271,10 +1278,17 @@ body.theme-dark .sheet-title{color:#f5d8b0}
 /* ─── INITIATIVE TRACKER (MASTER) ─── */
 .init-tracker{display:grid;gap:6px;margin-bottom:10px}
 .init-card{
-  display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;
+  display:grid;grid-template-columns:32px 1fr auto auto;gap:6px;align-items:center;
   padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);
 }
 .init-card.active{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 2px var(--accent-soft)}
+.init-card.init-dead{opacity:.45}
+.init-card .ir-val{font-family:'Cinzel',serif;font-weight:700;font-size:16px;color:var(--accent);text-align:center}
+.init-card .ir-name{font:13px/1.2 system-ui;color:var(--ink)}
+.init-card .init-hp-wrap{display:flex;align-items:center;gap:3px}
+.init-hp{font:700 11px system-ui;color:var(--ink-muted);min-width:36px;text-align:center}
+.init-hp.init-hp-dead{color:var(--negative)}
+.init-hp-btn{background:var(--surface);border:1px solid var(--line);border-radius:5px;width:22px;height:22px;font:700 12px/1 system-ui;cursor:pointer;color:var(--ink)}
 .init-card .num{font-family:'Cinzel',serif;font-weight:700;font-size:16px;color:var(--accent);min-width:24px}
 .init-card .nm{font:13px/1.2 system-ui;color:var(--ink)}
 .init-card .iv{font-family:'Cinzel',serif;font-weight:700;font-size:14px;color:var(--ink-muted)}
@@ -1525,7 +1539,10 @@ body.theme-dark .confirm-preview .pv-title{color:#f5d8b0}
 .tmp-card .name{font:700 13px/1.2 'Cinzel',serif;color:var(--leather);padding-right:24px}
 body.theme-dark .tmp-card .name{color:#f5d8b0}
 .tmp-card .meta{font:11px/1.3 system-ui;color:var(--ink-muted);margin-top:3px}
-.tmp-card .dur{display:inline-block;font:700 9.5px/1 system-ui;background:var(--accent-soft);color:var(--accent);padding:3px 7px;border-radius:99px;margin-top:6px;letter-spacing:.04em}
+.tmp-card .dur{display:inline-block;font:700 9.5px/1 system-ui;background:var(--accent-soft);color:var(--accent);padding:3px 7px;border-radius:99px;letter-spacing:.04em}
+.tmp-card .dur-expired{background:rgba(var(--negative-rgb),.15);color:var(--negative)}
+.tmp-card.buff-expired{opacity:.6}
+.buff-tick{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:3px 10px;font:700 11px system-ui;cursor:pointer;color:var(--ink);min-width:36px}
 
 /* ─── INITIAL LOADER (portado de cyberpunk-loader.css del desktop) ─── */
 #initial-loader{
@@ -1650,8 +1667,8 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
 <header class="topbar" role="banner">
   <button class="avatar-btn" id="avatar" aria-label="Identidad del personaje">J</button>
   <div class="topbar-center">
-    <div class="char-name">Joel Vorník</div>
-    <div class="char-sub" data-i18n="charSub">Guerrero · Nivel 3 · Humano</div>
+    <div class="char-name" id="topbar-char-name">—</div>
+    <div class="char-sub" id="topbar-char-sub">—</div>
   </div>
   <div class="topbar-actions">
     <button class="icon-btn" id="btn-lang" aria-label="Cambiar idioma">
@@ -1688,11 +1705,11 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
         <h3 class="card-title"><span class="ornament">✦</span><span data-i18n="cardBasicos">Datos básicos</span><span class="ornament">✦</span></h3>
         <div class="field">
           <label class="field-label" data-i18n="lblNombre">Nombre</label>
-          <input class="field-input" value="Joel Vorník" />
+          <input class="field-input" id="in-nombre" value="" placeholder="Nombre del personaje" />
         </div>
         <div class="field">
           <label class="field-label" data-i18n="lblJugador">Jugador</label>
-          <input class="field-input" value="Lucia" />
+          <input class="field-input" id="in-jugador" value="" placeholder="Nombre del jugador" />
         </div>
         <div class="field">
           <label class="field-label" data-i18n="lblRaza">Raza</label>
@@ -1703,7 +1720,7 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
         </div>
         <div class="field">
           <label class="field-label" data-i18n="lblDeidad">Deidad</label>
-          <input class="field-input" id="in-deidad" value="Iomedae" />
+          <input class="field-input" id="in-deidad" value="" placeholder="Deidad" />
         </div>
         <label class="field-label" data-i18n="lblAlineamiento">Alineamiento</label>
         <div class="field-row">
@@ -1722,13 +1739,29 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
         <div id="classes-list"></div>
         <button class="btn-add" id="class-add">＋ Añadir clase</button>
         <div class="field-row" style="margin-top:10px">
-          <div class="field"><label class="field-label">Velocidad (ft)</label><input class="field-input" type="number" inputmode="numeric" pattern="[0-9]*" value="30"></div>
+          <div class="field"><label class="field-label">Velocidad base (ft)</label><input class="field-input" id="speed-base" type="number" inputmode="numeric" pattern="[0-9]*" value="30"></div>
+          <div class="field"><label class="field-label">Velocidad efectiva</label><input class="field-input" id="speed-eff" value="30 ft" readonly></div>
           <div class="field"><label class="field-label">BAB total</label><input class="field-input" value="+3" readonly></div>
         </div>
         <label style="display:flex;align-items:center;gap:8px;font:13px/1.2 system-ui;color:var(--ink-muted);cursor:pointer;margin-top:6px">
           <input type="checkbox"> BAB / TS Fraccionales (Unchained)
         </label>
         <button class="btn-secondary" style="width:100%;margin-top:8px" data-toast="tirar-dg">🎲 Tirar todos los DG</button>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title"><span class="ornament">✦</span>Clase Predilecta<span class="ornament">✦</span></h3>
+        <div id="fcb-totals" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;text-align:center">
+          <div class="eq-stat"><b id="fcb-hp-total">0</b><span style="display:block;font:10px system-ui;color:var(--ink-muted)">PG extra</span></div>
+          <div class="eq-stat"><b id="fcb-sk-total">0</b><span style="display:block;font:10px system-ui;color:var(--ink-muted)">Habilidad</span></div>
+          <div class="eq-stat"><b id="fcb-cl-total">0</b><span style="display:block;font:10px system-ui;color:var(--ink-muted)">Clase esp.</span></div>
+        </div>
+        <div id="fcb-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+          <button class="btn-add" id="fcb-add-hp">+1 PG</button>
+          <button class="btn-add" id="fcb-add-skill">+1 Hab</button>
+          <button class="btn-add" id="fcb-add-class">+1 Clase</button>
+        </div>
       </div>
 
       <div class="card">
@@ -1821,13 +1854,13 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
         <h3 class="card-title"><span class="ornament">❦</span><span data-i18n="cardTrasfondo">Trasfondo</span><span class="ornament">❦</span></h3>
         <div class="field">
           <label class="field-label" data-i18n="lblHistoria">Historia</label>
-          <textarea class="field-input">Hijo segundo de una familia de mercenarios del norte. Joel sirvió cuatro años en la guarnición de Vellica antes de desertar tras un encargo que le marcó. Lleva la espada larga de su padre y un colgante con el sello de Iomedae que le entregó su hermana al partir.</textarea>
+          <textarea class="field-input" id="in-historia" placeholder="Historia del personaje…"></textarea>
         </div>
         <div class="field-row">
-          <div class="field"><label class="field-label" data-i18n="lblRasgosPers">Rasgos personalidad</label><input class="field-input" value="Reservado, leal a su palabra"></div>
+          <div class="field"><label class="field-label" data-i18n="lblRasgosPers">Rasgos personalidad</label><input class="field-input" id="in-personalidad" value="" placeholder="Rasgos de personalidad…"></div>
         </div>
         <div class="field"><label class="field-label" data-i18n="lblIdeales">Ideales / Vínculos / Defectos</label>
-          <textarea class="field-input" style="min-height:80px">Justicia ante la ley superior. Vínculo: su hermana Mira. Defecto: desconfía de los nobles.</textarea>
+          <textarea class="field-input" id="in-ideales" style="min-height:80px" placeholder="Ideales, vínculos, defectos…"></textarea>
         </div>
       </div>
     </div>
@@ -2113,6 +2146,7 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
       <button class="btn-secondary" id="rest-8h" style="width:100%;margin-bottom:10px">🌙 Descansar 8h · Restaurar slots</button>
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:6px" id="slot-grid"></div>
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px" id="slot-grid-2"></div>
+      <div id="spell-dc-bar"></div>
       <div class="spell-filter" id="spell-filter">
         <button class="active" data-sf="todos">Todos</button>
         <button data-sf="conocidos">Conocidos</button>
@@ -2168,14 +2202,28 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
       <div class="card">
         <h3 class="card-title"><span class="ornament">✦</span><span data-i18n="cardPeso">Carga</span><span class="ornament">✦</span></h3>
         <div class="xp-meta">
-          <span>Portado: 67 lb</span>
-          <span style="color:var(--accent)">Carga media</span>
+          <span>Portado: <b id="weight-current">0</b> lb</span>
+          <span id="weight-state-lbl" style="color:var(--positive)">—</span>
         </div>
-        <div class="xp-bar" style="height:12px"><div class="xp-bar-fill" style="width:62%;background:linear-gradient(90deg,#4a7a3a,#c89030)"></div></div>
+        <div class="xp-bar" style="height:12px;margin:8px 0">
+          <div id="weight-bar" class="xp-bar-fill" style="width:0%"></div>
+        </div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:14px;font:12px/1.2 system-ui;text-align:center">
-          <div><div style="color:var(--ink-muted);font-weight:600">Ligera</div><div style="font-family:Cinzel;font-weight:700;font-size:18px">≤ 76 lb</div></div>
-          <div><div style="color:var(--accent);font-weight:600">Media</div><div style="font-family:Cinzel;font-weight:700;font-size:18px;color:var(--accent)">≤ 153 lb</div></div>
-          <div><div style="color:var(--ink-muted);font-weight:600">Pesada</div><div style="font-family:Cinzel;font-weight:700;font-size:18px">≤ 230 lb</div></div>
+          <div><div style="color:var(--positive);font-weight:600">Ligera</div><div id="enc-lim-light" style="font-family:Cinzel;font-weight:700;font-size:18px">—</div></div>
+          <div><div style="color:var(--accent);font-weight:600">Media</div><div id="enc-lim-med" style="font-family:Cinzel;font-weight:700;font-size:18px;color:var(--accent)">—</div></div>
+          <div><div style="color:var(--ink-muted);font-weight:600">Pesada</div><div id="enc-lim-heavy" style="font-family:Cinzel;font-weight:700;font-size:18px">—</div></div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:14px;margin-top:14px">
+          <label style="display:flex;align-items:center;gap:8px;font:13px system-ui;color:var(--ink-muted);cursor:pointer">
+            <input type="checkbox" id="enc-quadruped"> Cuadrúpedo (×1.5)
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font:13px system-ui;color:var(--ink-muted);cursor:pointer">
+            <input type="checkbox" id="enc-muleback"> Don mular (×3)
+          </label>
+        </div>
+        <div class="field" style="margin-top:10px">
+          <label class="field-label">Peso manual (lb) — sobreescribe el automático</label>
+          <input class="field-input" type="number" inputmode="decimal" id="weight-override" placeholder="Dejar vacío = calcular auto">
         </div>
       </div>
     </div>
@@ -2357,13 +2405,13 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
       <button class="btn-secondary" data-avatar-action="remove" data-i18n="btnQuitarFoto">Quitar foto</button>
     </div>
     <div class="id-summary">
-      <div class="id-row"><span data-i18n="lblNombre">Nombre</span><span>Joel Vorník</span></div>
-      <div class="id-row"><span data-i18n="lblRaza">Raza</span><span>Humano</span></div>
-      <div class="id-row"><span data-i18n="lblClase">Clase</span><span>Guerrero</span></div>
-      <div class="id-row"><span data-i18n="lblNivel">Nivel</span><span>3</span></div>
-      <div class="id-row"><span data-i18n="lblAlineamiento">Alineamiento</span><span>Neutral (NN)</span></div>
-      <div class="id-row"><span data-i18n="lblDeidad">Deidad</span><span>Iomedae</span></div>
-      <div class="id-row"><span data-i18n="lblXP">Experiencia</span><span>4500 / 6000</span></div>
+      <div class="id-row"><span data-i18n="lblNombre">Nombre</span><span id="sum-nombre">—</span></div>
+      <div class="id-row"><span data-i18n="lblRaza">Raza</span><span id="sum-raza">—</span></div>
+      <div class="id-row"><span data-i18n="lblClase">Clase</span><span id="sum-clase">—</span></div>
+      <div class="id-row"><span data-i18n="lblNivel">Nivel</span><span id="sum-nivel">—</span></div>
+      <div class="id-row"><span data-i18n="lblAlineamiento">Alineamiento</span><span id="sum-alineamiento">—</span></div>
+      <div class="id-row"><span data-i18n="lblDeidad">Deidad</span><span id="sum-deidad">—</span></div>
+      <div class="id-row"><span data-i18n="lblXP">Experiencia</span><span id="sum-xp">—</span></div>
     </div>
   </div>
 </dialog>
@@ -2464,14 +2512,19 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
   <div class="drag-handle"></div>
   <div class="sheet-header"><div class="sheet-title">Modo Máster</div><button class="sheet-close" data-close>✕</button></div>
   <div class="sheet-content">
-    <h4 style="font-family:'Cinzel',serif;letter-spacing:.06em;text-transform:uppercase;font-size:12px;color:var(--leather);margin:0 0 6px">Tracker de iniciativa</h4>
-    <div id="init-list" style="display:grid;gap:6px;margin-bottom:8px"></div>
-    <div style="display:flex;gap:6px">
-      <input class="field-input" id="init-name" placeholder="Nombre" style="flex:2">
-      <input class="field-input" id="init-val" type="number" inputmode="numeric" pattern="-?[0-9]*" placeholder="Init" style="flex:1">
-      <button class="btn-secondary" id="init-add">＋</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <h4 style="font-family:'Cinzel',serif;letter-spacing:.06em;text-transform:uppercase;font-size:12px;color:var(--leather);margin:0" id="init-round">Asalto 1</h4>
+      <button class="btn-secondary" id="init-reset" style="font-size:11px;padding:4px 10px">↺ Nueva batalla</button>
     </div>
-    <button class="btn-primary" id="init-next" style="width:100%;margin-top:10px">Siguiente turno ▶</button>
+    <div id="init-list" style="display:grid;gap:6px;margin-bottom:8px"></div>
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:6px;margin-bottom:6px">
+      <input class="field-input" id="init-name" placeholder="Nombre" >
+      <input class="field-input" id="init-val" type="number" inputmode="numeric" pattern="-?[0-9]*" placeholder="Init">
+      <input class="field-input" id="init-hp-max" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="PG">
+      <button class="btn-secondary" id="init-add" style="padding:8px 12px">＋</button>
+    </div>
+    <button class="btn-secondary" id="init-add-pc" style="width:100%;margin-bottom:6px">⚔ Añadir PJ (init auto)</button>
+    <button class="btn-primary" id="init-next" style="width:100%">▶ Siguiente turno</button>
     <div class="over-sep" style="margin:14px 0 8px"></div>
     <h4 style="font-family:'Cinzel',serif;letter-spacing:.06em;text-transform:uppercase;font-size:12px;color:var(--leather);margin:0 0 6px">Avisos de completitud</h4>
     <ul style="margin:0;padding-left:18px;font:13px/1.5 system-ui;color:var(--ink-muted)">
@@ -2679,6 +2732,7 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
       </div>
       <div class="field-row">
         <div class="field"><label class="field-label">Mejora +</label><input class="field-input" id="weap-enh" type="number" inputmode="numeric" value="0" min="0" max="5"></div>
+        <div class="field"><label class="field-label">Misc. ataque</label><input class="field-input" id="weap-misc" type="number" inputmode="numeric" value="0" title="Dotes (Foco en arma), circunstancias…"></div>
         <div class="field"><label class="field-label">Peso (lb)</label><input class="field-input" id="weap-weight" type="number" inputmode="decimal" value="4" min="0"></div>
       </div>
       <div class="field"><label class="field-label">Notas</label><textarea class="field-input" id="weap-notes" placeholder="Material especial, propiedades mágicas…"></textarea></div>
@@ -3547,12 +3601,16 @@ function refreshHP(){
 function setHP(v){
   hp = Math.max(0,Math.min(HP_MAX,v));
   refreshHP();
+  /* X-01: autosave HP al cambiar */
+  if(typeof saveStateDebounced==='function') saveStateDebounced('hp');
 }
 document.querySelectorAll('[data-hp]').forEach(b=>{
   b.addEventListener('click',()=>{
     const v = b.dataset.hp;
     if(v==='rest'){ setHP(HP_MAX); hpTemp=0; hpNonlethal=0; refreshHP(); }
     else setHP(hp + parseInt(v,10));
+    /* X-01: autosave HP/temp/nonlethal */
+    if(typeof saveStateDebounced==='function') saveStateDebounced('hp-action');
   });
 });
 
@@ -3699,9 +3757,9 @@ const CLASSES_DATA = [
 ];
 const WEAPONS_DATA = [
   /* DOMINIO 5: campos PF1e completos. atk/dmg/crit son cache visual, recalculados. */
-  {id:1,name:'Espada larga +1',type:'CaC · Marcial',style:'melee1h',damage_die:'1d8',crit_threat:19,crit_mult:2,enh:1,weight:4,hands:1,atk:'+0',dmg:'1d8',crit:'19-20/×2',notes:'Acero martillado, +1 mejora'},
-  {id:2,name:'Daga',type:'CaC/Dist · Sencilla',style:'finesse',damage_die:'1d4',crit_threat:19,crit_mult:2,enh:0,weight:1,hands:1,atk:'+0',dmg:'1d4',crit:'19-20/×2',notes:'Lanzable (10 ft)'},
-  {id:3,name:'Arco corto',type:'Dist · Marcial',style:'ranged',damage_die:'1d6',crit_threat:20,crit_mult:3,enh:0,weight:2,hands:2,atk:'+0',dmg:'1d6',crit:'×3',notes:'Alcance 60 ft'},
+  {id:1,name:'Espada larga +1',type:'CaC · Marcial',style:'melee1h',damage_die:'1d8',crit_threat:19,crit_mult:2,enh:1,misc:0,weight:4,hands:1,atk:'+0',dmg:'1d8',crit:'19-20/×2',notes:'Acero martillado, +1 mejora'},
+  {id:2,name:'Daga',type:'CaC/Dist · Sencilla',style:'finesse',damage_die:'1d4',crit_threat:19,crit_mult:2,enh:0,misc:0,weight:1,hands:1,atk:'+0',dmg:'1d4',crit:'19-20/×2',notes:'Lanzable (10 ft)'},
+  {id:3,name:'Arco corto',type:'Dist · Marcial',style:'ranged',damage_die:'1d6',crit_threat:20,crit_mult:3,enh:0,misc:0,weight:2,hands:2,atk:'+0',dmg:'1d6',crit:'×3',notes:'Alcance 60 ft'},
 ];
 const ARMOR_DATA = [
   /* DOMINIO 5: campos PF1e completos. */
@@ -3714,6 +3772,7 @@ const CLASS_FEATURES_DATA = [
   {id:3,name:'Valor (+1)',desc:'+1 a TS contra miedo.',tracker:false},
   {id:4,name:'Punto de acción',desc:'Gasta para añadir 1d6 a una tirada.',tracker:true,curr:2,max:3},
 ];
+let FCB_DATA = []; // Bonificación de clase predilecta: array de 'hp'|'skill'|'class', uno por nivel
 const SPELLS_DATA = []; // Guerrero no lanza, pero el sistema renderiza shell vacío con mensaje
 const SLOTS_PER_LVL = [0,0,0,0,0,0,0,0,0,0]; // niveles 0-9
 
@@ -4036,6 +4095,7 @@ function rebuildSpellSystem(){
   }
   if(typeof renderSlots==='function') renderSlots();
   if(typeof renderSpells==='function') renderSpells();
+  if(typeof renderSpellDC==='function') renderSpellDC();
   document.dispatchEvent(new CustomEvent('spells-changed',{detail:{classId:CURRENT_CLASS_ID,spellLvl:-1}}));
 }
 
@@ -4224,6 +4284,13 @@ document.addEventListener('DOMContentLoaded',()=>{
   injectPickerSheets();
   ensureClassPickerCard();
   setTimeout(()=>{ rebuildSpellSystem(); rebuildClassAutoFeatures(); },50);
+  // FCB buttons
+  [{id:'fcb-add-hp',choice:'hp'},{id:'fcb-add-skill',choice:'skill'},{id:'fcb-add-class',choice:'class'}].forEach(({id,choice})=>{
+    const btn = document.getElementById(id);
+    if(!btn) return;
+    btn.addEventListener('click',()=>{ FCB_DATA.push(choice); renderFCB(); if(typeof saveStateDebounced==='function') saveStateDebounced('fcb'); });
+  });
+  renderFCB();
 });
 
 document.addEventListener('click',e=>{
@@ -4505,26 +4572,42 @@ function _triggerClassFeaturesFor(cl){
 function renderWeapons(){
   const c = document.getElementById('weapons-list');
   if(!c) return;
-  c.innerHTML = WEAPONS_DATA.map(w=>`
+  c.innerHTML = WEAPONS_DATA.map(w=>{
+    const atks = w.iterativeAtks || [w.atk||'+0'];
+    const atkDisplay = atks.join('/');
+    const multi = atks.length > 1;
+    const atkBtns = atks.map((a,i)=>`<button data-roll="1d20${a}" data-roll-label="${w.name}${multi?' ('+(i+1)+'º atq)':''} · Ataque">${multi?(i===0?'Atq 1':'Atq '+(i+1)):'Atacar'}</button>`).join('');
+    return `
     <div class="eq-card" data-id="${w.id}">
       <button class="crud-del" data-weap-del="${w.id}" aria-label="Eliminar arma">×</button>
       <div class="eq-name">${w.name}</div>
       <div class="eq-meta">${w.type}</div>
       <div class="eq-stats">
-        <div class="eq-stat"><b>${w.atk}</b>Ataque</div>
+        <div class="eq-stat"><b>${atkDisplay}</b>Ataque</div>
         <div class="eq-stat"><b>${w.dmg}</b>Daño</div>
         <div class="eq-stat"><b>${w.crit}</b>Crítico</div>
       </div>
       <div class="eq-meta" style="margin-top:6px">${w.notes||''}</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+        <label style="font:600 10px 'Cinzel',serif;letter-spacing:.07em;text-transform:uppercase;color:var(--leather);white-space:nowrap">Misc. Atq</label>
+        <input type="number" inputmode="numeric" class="field-input weap-misc-inp" data-weap-id="${w.id}" value="${w.misc||0}" style="width:60px;text-align:center;padding:4px 6px" aria-label="Bono misceláneo de ataque">
+      </div>
       <div class="weap-actions">
-        <button data-roll="1d20${w.atk}" data-roll-label="${w.name} · Ataque">Atacar</button>
+        ${atkBtns}
         <button data-roll="${w.dmg}" data-roll-label="${w.name} · Daño">Daño</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   c.querySelectorAll('[data-weap-del]').forEach(b=>{
     b.addEventListener('click',()=>{
       const i = WEAPONS_DATA.findIndex(x=>x.id===+b.dataset.weapDel);
       if(i>=0){ WEAPONS_DATA.splice(i,1); renderWeapons(); rebindRolls(); }
+    });
+  });
+  c.querySelectorAll('.weap-misc-inp').forEach(inp=>{
+    inp.addEventListener('change',()=>{
+      const wep = WEAPONS_DATA.find(x=>x.id===+inp.dataset.weapId);
+      if(wep){ wep.misc = parseInt(inp.value,10)||0; if(typeof D5_refreshWeaponRolls==='function') D5_refreshWeaponRolls(); }
     });
   });
 }
@@ -4620,6 +4703,29 @@ function renderClassFeatures(){
   });
 }
 
+function renderFCB(){
+  const list = document.getElementById('fcb-list');
+  if(!list) return;
+  const labels = {hp:'PG',skill:'Hab',class:'Clase'};
+  const colors  = {hp:'#c0392b',skill:'#27ae60',class:'#2980b9'};
+  list.innerHTML = FCB_DATA.map((e,i)=>`
+    <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:99px;background:${colors[e]}22;border:1px solid ${colors[e]}55;font:600 11px system-ui;color:${colors[e]}">
+      Nv${i+1}&nbsp;${labels[e]||e}
+      <button data-fcb-del="${i}" aria-label="Eliminar" style="background:none;border:none;color:${colors[e]};cursor:pointer;padding:0;line-height:1;font-size:14px">×</button>
+    </span>`).join('');
+  list.querySelectorAll('[data-fcb-del]').forEach(b=>{
+    b.addEventListener('click',()=>{ FCB_DATA.splice(+b.dataset.fcbDel,1); renderFCB(); if(typeof saveStateDebounced==='function') saveStateDebounced('fcb'); });
+  });
+  const count = {hp:0,skill:0,class:0};
+  FCB_DATA.forEach(e=>{ if(e in count) count[e]++; });
+  const hp = document.getElementById('fcb-hp-total');
+  const sk = document.getElementById('fcb-sk-total');
+  const cl = document.getElementById('fcb-cl-total');
+  if(hp) hp.textContent = count.hp;
+  if(sk) sk.textContent = count.skill;
+  if(cl) cl.textContent = count.class;
+}
+
 /* slot state per level: {max, used} */
 const SLOT_STATE = SLOTS_PER_LVL.map(()=>({max:0,used:0}));
 function renderSlots(){
@@ -4641,6 +4747,7 @@ function renderSlots(){
   }
   g1.innerHTML = [0,1,2,3,4].map(tile).join('');
   g2.innerHTML = [5,6,7,8,9].map(tile).join('');
+  try{ renderSpellDC(); }catch(e){}
   document.querySelectorAll('[data-slot-d]').forEach(b=>{
     b.addEventListener('click',()=>{
       const i=+b.dataset.slotD;
@@ -4687,7 +4794,10 @@ function renderSpells(){
       return true;
     });
     if(!items.length) return;
-    html += `<div class="spell-level-h">Nivel ${lvl} · slots ${SLOT_STATE[+lvl]?(SLOT_STATE[+lvl].max-SLOT_STATE[+lvl].used)+'/'+SLOT_STATE[+lvl].max:'—'}</div>`;
+    const slotStr = SLOT_STATE[+lvl] ? (SLOT_STATE[+lvl].max-SLOT_STATE[+lvl].used)+'/'+SLOT_STATE[+lvl].max : '—';
+    const dc = calcSpellDC(+lvl);
+    const dcStr = dc !== null ? ` · DC ${dc}` : '';
+    html += `<div class="spell-level-h">Nivel ${lvl} · slots ${slotStr}${dcStr}</div>`;
     items.forEach(s=>{
       html += `<div class="spell-row ${s.cast?'cast':''}" data-spell="${s.id}">
         <span class="lvl-badge">Nv ${s.lvl}</span>
@@ -4721,6 +4831,27 @@ function renderSpells(){
   }));
 }
 
+/* ─── SPELL DC ─── */
+function calcSpellDC(spellLvl){
+  const info = PF1E_CASTER_INFO[CURRENT_CLASS_ID] || {};
+  if(!info.attr || info.mode==='none') return null;
+  return 10 + (spellLvl|0) + getAttrModD4(info.attr);
+}
+function renderSpellDC(){
+  const bar = document.getElementById('spell-dc-bar');
+  if(!bar) return;
+  const info = PF1E_CASTER_INFO[CURRENT_CLASS_ID] || {};
+  if(!info.attr || info.mode==='none'){ bar.classList.add('hidden'); return; }
+  bar.classList.remove('hidden');
+  const attr = info.attr;
+  const mod = getAttrModD4(attr);
+  const fmt = n=>(n>=0?'+':'')+n;
+  // show chips for each active spell level
+  const activeLvls = SLOT_STATE.map((s,i)=>i).filter(i=>i>0 && SLOT_STATE[i].max>0);
+  const chips = activeLvls.map(lvl=>`<span class="dc-chip">Nv${lvl}: <b>${10+lvl+mod}</b></span>`).join('');
+  bar.innerHTML = `<span>⚡ DC</span><span class="dc-stat">${attr} ${fmt(mod)}</span><span style="color:var(--ink-muted)">= 10 + nivel + ${fmt(mod)}</span>${chips}`;
+}
+
 /* ─── PICKERS ─── */
 function fillPicker(listEl, data, onPick){
   listEl.innerHTML = data.map(([n,d],i)=>
@@ -4731,23 +4862,51 @@ function fillPicker(listEl, data, onPick){
 }
 
 /* ─── INIT TRACKER ─── */
-const INIT_LIST = [
-  {n:'Joel Vorník',v:18,active:true},
-  {n:'Goblin alfa',v:14,active:false},
-  {n:'Goblin 1',v:11,active:false},
-  {n:'Goblin 2',v:9,active:false},
-];
+const INIT_LIST = [];
+let INIT_ROUND = 1;
 function renderInit(){
   const c = document.getElementById('init-list');
   if(!c) return;
-  c.innerHTML = INIT_LIST.map((r,i)=>`
-    <div class="init-row ${r.active?'active':''}">
-      <span class="ir-val">${r.v}</span>
-      <span class="ir-name">${r.n}</span>
+  // Round counter header
+  const roundEl = document.getElementById('init-round');
+  if(roundEl) roundEl.textContent = 'Asalto ' + INIT_ROUND;
+  if(!INIT_LIST.length){
+    c.innerHTML = '<div style="text-align:center;color:var(--ink-muted);font:12px system-ui;padding:8px">Sin combatientes — añade al PJ y enemigos</div>';
+    return;
+  }
+  c.innerHTML = INIT_LIST.map((r,i)=>{
+    const pcBadge = r.isPC ? `<span style="font:700 8px system-ui;background:var(--positive);color:#fff;padding:1px 5px;border-radius:99px;margin-right:4px">PJ</span>` : '';
+    const hpStr = r.hpMax != null
+      ? `<span class="init-hp${r.hp<=0?' init-hp-dead':''}" data-init-hp="${i}">${r.hp}/${r.hpMax}</span>`
+      : '';
+    const hpBtns = r.hpMax != null ? `
+      <button class="init-hp-btn" data-init-dmg="${i}" title="Daño">−</button>
+      <button class="init-hp-btn" data-init-heal="${i}" title="Curar">+</button>` : '';
+    return `<div class="init-card ${r.active?'active':''}${r.hp!=null&&r.hp<=0?' init-dead':''}">
+      <span class="ir-val">${r.v>=0?'+':'' }${r.v}</span>
+      <span class="ir-name">${pcBadge}${r.n}</span>
+      <span class="init-hp-wrap">${hpStr}${hpBtns}</span>
       <button class="crud-del" data-init-del="${i}" aria-label="Quitar">×</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   c.querySelectorAll('[data-init-del]').forEach(b=>{
     b.addEventListener('click',()=>{ INIT_LIST.splice(+b.dataset.initDel,1); renderInit(); });
+  });
+  c.querySelectorAll('[data-init-dmg]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const v = prompt('Daño:'); if(!v) return;
+      const r = INIT_LIST[+b.dataset.initDmg]; if(!r) return;
+      r.hp = Math.max(-99, r.hp - (parseInt(v,10)||0));
+      renderInit();
+    });
+  });
+  c.querySelectorAll('[data-init-heal]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const v = prompt('Curar:'); if(!v) return;
+      const r = INIT_LIST[+b.dataset.initHeal]; if(!r) return;
+      r.hp = Math.min(r.hpMax, r.hp + (parseInt(v,10)||0));
+      renderInit();
+    });
   });
 }
 
@@ -4755,7 +4914,7 @@ function renderInit(){
 const COMP_DATA = {
   familiar: {n:'Cuervo "Tinta"',hp:'4/4',ca:14,atks:'Picotazo +5 (1d2−5)',extra:'Familiar de mago: alerta'},
   animal: {n:'Lobo "Sombra"',hp:'18/18',ca:14,atks:'Mordisco +3 (1d6+1, derribo)',extra:'Trucos: atacar, defender, buscar, ataque furtivo'},
-  eidolon: {n:'Eidolón "Khaes"',hp:'24/24',ca:16,atks:'2 garras +5 (1d4+3)',extra:'Evoluciones',evol:['Garras','Resistencia','Nadar','Brazos extra','Inteligencia +2']},
+  eidolon: {n:'Eidolón "Khaes"',hp:'24/24',ca:16,atks:'2 garras +5 (1d4+3)',extra:'Evoluciones',subtipo:'',evol:['Garras','Resistencia','Nadar','Brazos extra','Inteligencia +2']},
   invocadas: {n:'Lobo terrenal',hp:'13/13',ca:14,atks:'Mordisco +3',extra:'Duración: 3 asaltos (rondas 2/3)'}
 };
 function renderComp(which='familiar'){
@@ -4763,6 +4922,14 @@ function renderComp(which='familiar'){
   const d = COMP_DATA[which];
   const L = (lbl)=>`<label class="field-label" style="font:700 10px 'Cinzel',serif;letter-spacing:.07em;text-transform:uppercase;color:var(--leather);display:block;margin-bottom:3px">${lbl}</label>`;
   const I = (field,val,ph,type='text')=>`<input class="field-input" data-comp-field="${field}" data-comp-which="${which}" type="${type}" inputmode="${type==='number'?'numeric':'text'}" value="${(val||'').toString().replace(/"/g,'&quot;')}" placeholder="${ph}" style="margin-bottom:8px">`;
+  const subtypeBlock = which==='eidolon' ? `
+    <div style="margin-bottom:8px">
+      ${L('Subtipo Unchained')}
+      <select class="field-select" data-comp-field="subtipo" data-comp-which="${which}">
+        <option value="">— Ninguno —</option>
+        ${['Agatión','Ángel','Archon','Azata','Daemon','Demonio','Diablo','Div','Inevitable','Protean','Psicopompo'].map(s=>`<option value="${s}"${d.subtipo===s?' selected':''}>${s}</option>`).join('')}
+      </select>
+    </div>` : '';
   const evolBlock = which==='eidolon' ? `
     <div style="margin-top:4px">
       ${L('Evoluciones (una por línea)')}
@@ -4779,11 +4946,12 @@ function renderComp(which='familiar'){
       ${L('Ataques')}${I('atks',d.atks,'Mordisco +3 (1d6+1)')}
       ${L('Notas / Trucos / Habilidades')}
       <textarea class="field-input" data-comp-field="extra" data-comp-which="${which}" rows="3" style="margin-bottom:8px">${d.extra||''}</textarea>
+      ${subtypeBlock}
       ${evolBlock}
     </div>`;
   // Bind live-save on input/change
   c.querySelectorAll('[data-comp-field]').forEach(el=>{
-    el.addEventListener('input',()=>{
+    const compHandler = ()=>{
       const k = el.dataset.compField;
       const w = el.dataset.compWhich;
       if(!COMP_DATA[w]) return;
@@ -4794,7 +4962,9 @@ function renderComp(which='familiar'){
       } else {
         COMP_DATA[w][k] = el.value;
       }
-    });
+    };
+    el.addEventListener('input', compHandler);
+    el.addEventListener('change', compHandler);
   });
 }
 
@@ -4943,18 +5113,52 @@ function bindNewSheets(){
   if(initAdd) initAdd.addEventListener('click',()=>{
     const n = document.getElementById('init-name').value.trim();
     const v = parseInt(document.getElementById('init-val').value,10)||0;
-    if(!n) return;
-    INIT_LIST.push({n,v,active:false});
+    const hpMax = parseInt(document.getElementById('init-hp-max')?.value,10)||null;
+    if(!n){ toast('Falta nombre'); return; }
+    INIT_LIST.push({n, v, active:false, hp: hpMax, hpMax, isPC:false});
     INIT_LIST.sort((a,b)=>b.v-a.v);
     document.getElementById('init-name').value='';
     document.getElementById('init-val').value='';
+    if(document.getElementById('init-hp-max')) document.getElementById('init-hp-max').value='';
+    if(!INIT_LIST.find(x=>x.active) && INIT_LIST.length) INIT_LIST[0].active=true;
+    renderInit();
+  });
+  const initAddPC = document.getElementById('init-add-pc');
+  if(initAddPC) initAddPC.addEventListener('click',()=>{
+    const nombre = document.getElementById('in-nombre')?.value?.trim() || 'PJ';
+    // Get calculated init from CombatEngine
+    let initVal = 0;
+    try{ const el = document.getElementById('m-init-val'); initVal = parseInt(el?.textContent,10)||0; }catch(e){}
+    // Roll d20 + init bonus
+    const roll = Math.floor(Math.random()*20)+1;
+    const total = roll + initVal;
+    // Get current HP
+    let hpCur = null, hpMax = null;
+    try{
+      const hpEl = document.getElementById('pg-current'); hpCur = parseInt(hpEl?.textContent||hpEl?.value,10)||null;
+      const hpMEl = document.getElementById('pg-max');    hpMax = parseInt(hpMEl?.textContent||hpMEl?.value,10)||null;
+    }catch(e){}
+    INIT_LIST.push({n:nombre, v:total, active:false, hp:hpCur??hpMax, hpMax, isPC:true, initBonus:initVal, roll});
+    INIT_LIST.sort((a,b)=>b.v-a.v);
+    if(!INIT_LIST.find(x=>x.active)) INIT_LIST[0].active=true;
+    toast(`${nombre}: 🎲${roll}${initVal>=0?'+':''}${initVal} = ${total}`);
     renderInit();
   });
   const initNext = document.getElementById('init-next');
   if(initNext) initNext.addEventListener('click',()=>{
+    if(!INIT_LIST.length) return;
     const i = INIT_LIST.findIndex(x=>x.active);
     INIT_LIST.forEach(x=>x.active=false);
-    INIT_LIST[(i+1)%INIT_LIST.length].active = true;
+    const next = (i+1) % INIT_LIST.length;
+    INIT_LIST[next].active = true;
+    if(next === 0) { INIT_ROUND++; const r=document.getElementById('init-round'); if(r) r.textContent='Asalto '+INIT_ROUND; toast('Asalto '+INIT_ROUND); }
+    renderInit();
+  });
+  const initReset = document.getElementById('init-reset');
+  if(initReset) initReset.addEventListener('click',()=>{
+    if(!confirm('¿Resetear el tracker de iniciativa?')) return;
+    INIT_LIST.length = 0;
+    INIT_ROUND = 1;
     renderInit();
   });
   // weapon/armor add (stubs that add a placeholder card)
@@ -4962,7 +5166,7 @@ function bindNewSheets(){
   if(weapAdd) weapAdd.addEventListener('click',()=>{
     // Clear form and open sheet
     ['weap-name','weap-notes'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-    ['weap-enh','weap-weight'].forEach((id,i)=>{ const el=document.getElementById(id); if(el) el.value=[0,4][i]; });
+    ['weap-enh','weap-misc','weap-weight'].forEach((id,i)=>{ const el=document.getElementById(id); if(el) el.value=[0,0,4][i]; });
     openSheet('sheet-weapon-add');
   });
   const weapSave = document.getElementById('weap-save');
@@ -4973,7 +5177,8 @@ function bindNewSheets(){
     const styleOpt = document.getElementById('weap-style');
     const styleV = styleOpt.value;
     const id = (WEAPONS_DATA[WEAPONS_DATA.length-1]?.id||0)+1;
-    const enh = parseInt(document.getElementById('weap-enh').value,10)||0;
+    const enh  = parseInt(document.getElementById('weap-enh').value,10)||0;
+    const misc = parseInt(document.getElementById('weap-misc').value,10)||0;
     const crit_threat = parseInt(document.getElementById('weap-threat').value,10);
     const crit_mult   = parseInt(document.getElementById('weap-crit').value,10);
     const damage_die  = document.getElementById('weap-die').value;
@@ -4982,7 +5187,7 @@ function bindNewSheets(){
       id, name: n,
       type: typeOpt.value,
       style: styleV,
-      damage_die, crit_threat, crit_mult, enh,
+      damage_die, crit_threat, crit_mult, enh, misc,
       weight: parseFloat(document.getElementById('weap-weight').value)||0,
       hands, notes: document.getElementById('weap-notes').value.trim(),
       atk: '+0', dmg: damage_die, crit: `${crit_threat===20?'20':crit_threat+'-20'}/×${crit_mult}`
@@ -5075,23 +5280,55 @@ function renderSearchResults(q){
 /* ─── BUFFS / AJUSTES PERMANENTES (CRUD visual) ─── */
 const BUFFS_LIST = [];
 const ADJUSTS_LIST = [];
+const BUFF_COUNTABLE = new Set(['Asaltos','Minutos','Horas']);
+function _buffRemove(i){
+  BUFFS_LIST.splice(i,1);
+  rebuildBuffModTotals();
+  renderBuffs();
+  if(typeof CombatEngine!=='undefined') CombatEngine.apply();
+}
 function renderBuffs(){
   const c = document.getElementById('buffs-list');
   if(!c) return;
-  c.innerHTML = BUFFS_LIST.map((b,i)=>`
-    <div class="tmp-card">
+  c.innerHTML = BUFFS_LIST.map((b,i)=>{
+    const countable = BUFF_COUNTABLE.has(b.dur);
+    // migrate old buffs without remaining
+    if(b.remaining == null) b.remaining = parseInt(b.qty,10)||0;
+    const rem = b.remaining;
+    const tot = parseInt(b.qty,10)||0;
+    const expired = countable && rem <= 0;
+    const durLabel = countable
+      ? `<span class="dur${expired?' dur-expired':''}">${expired?'⚠ Expirado':rem+'/'+tot+' '+b.dur}</span>`
+      : `<span class="dur">${b.dur==='Permanente'?'∞ Permanente':'↺ '+b.dur}</span>`;
+    const tickBtn = (countable && !expired)
+      ? `<button class="buff-tick" data-buff-tick="${i}" aria-label="−1 ${b.dur}" title="−1 ${b.dur}">−1</button>`
+      : '';
+    return `<div class="tmp-card${expired?' buff-expired':''}">
       <button class="crud-del" data-buff-del="${i}" aria-label="Quitar buff">×</button>
       <div class="name">${b.name}</div>
       <div class="meta">${b.mod}</div>
-      <span class="dur">${b.qty} ${b.dur}</span>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap">
+        ${durLabel}${tickBtn}
+      </div>
       ${b.notes?`<div class="meta" style="margin-top:4px">${b.notes}</div>`:''}
-    </div>`).join('');
+    </div>`;
+  }).join('');
   c.querySelectorAll('[data-buff-del]').forEach(btn=>{
+    btn.addEventListener('click',()=>_buffRemove(+btn.dataset.buffDel));
+  });
+  c.querySelectorAll('[data-buff-tick]').forEach(btn=>{
     btn.addEventListener('click',()=>{
-      BUFFS_LIST.splice(+btn.dataset.buffDel,1);
-      rebuildBuffModTotals();
-      renderBuffs();
-      if(typeof CombatEngine!=='undefined') CombatEngine.apply();
+      const i = +btn.dataset.buffTick;
+      const b = BUFFS_LIST[i];
+      if(!b) return;
+      b.remaining = Math.max(0, (b.remaining||0) - 1);
+      if(b.remaining === 0){
+        toast('⌛ '+b.name+' ha expirado');
+        setTimeout(()=>_buffRemove(i), 600);
+      } else {
+        renderBuffs();
+      }
+      if(typeof saveStateDebounced==='function') saveStateDebounced('buff-tick');
     });
   });
 }
@@ -5160,6 +5397,8 @@ function applyDH(amount){
     hpTemp = Math.max(0, hpTemp + amount);
     refreshHP();
   }
+  /* X-01: autosave tras daño/curación específica */
+  if(typeof saveStateDebounced==='function') saveStateDebounced('dh');
 }
 
 /* ─── CONFIRMAR ACCIÓN (Exportar/Importar/Imprimir) ─── */
@@ -5248,7 +5487,8 @@ function bindFormSheets(){
     const qty = document.getElementById('buff-qty').value;
     const notes = document.getElementById('buff-notes').value.trim();
     if(!n){ toast('Falta nombre'); return; }
-    BUFFS_LIST.push({name:n,mod:m,dur,qty,notes});
+    const qtyN = parseInt(qty,10)||0;
+    BUFFS_LIST.push({name:n,mod:m,dur,qty:qtyN,remaining:qtyN,notes});
     ['buff-name','buff-mod','buff-notes'].forEach(id=>document.getElementById(id).value='');
     rebuildBuffModTotals();
     renderBuffs();
@@ -6446,10 +6686,40 @@ function D5_getSize(){
   for(const s of all){ for(const o of s.options){ if(D5_SIZE[o.text]) return s.value || o.text; } }
   return 'Mediano';
 }
-function D5_getBAB(){
+function D5_getRawBAB(){
   let bab = 0;
-  if(typeof CLASSES_DATA!=='undefined') CLASSES_DATA.forEach(c=>{ bab += parseInt(c.level,10)||0; });
+  try{
+    (CLASSES_DATA||[]).forEach(c=>{
+      const lvl = parseInt(c.level,10)||0;
+      const dbCls = c.classKey && typeof DB!=='undefined' ? (DB.classes||{})[c.classKey] : null;
+      const fullEntry = (window.CLASSES_DATA_FULL||[]).find(x=>x.id===c.classKey||x.name?.es===c.name||x.name?.en===c.name);
+      const prog = dbCls?.bab_progression || fullEntry?.bab || 'full';
+      if(prog==='full') bab += lvl;
+      else if(prog==='3/4'||prog==='medium') bab += Math.floor(lvl*3/4);
+      else bab += Math.floor(lvl/2);
+    });
+  }catch(e){}
   return bab;
+}
+function D5_getBAB(){
+  return D5_getRawBAB() + (_BUFF_MOD_TOTALS?.atk||0);
+}
+function D5_getIterativeAttacks(w){
+  const rawBab = D5_getRawBAB();
+  const buffAtk = _BUFF_MOD_TOTALS?.atk||0;
+  const size = D5_getSize ? D5_getSize() : 'Mediano';
+  const sizeAtk = (D5_SIZE?.[size]||{atk:0}).atk||0;
+  const attr = (w.style==='ranged'||w.style==='finesse') ? 'DES' : 'FUE';
+  const mod = D5_getMod(attr);
+  const enh  = parseInt(w.enh,10)||0;
+  const misc = parseInt(w.misc,10)||0;
+  const extras = mod + enh + misc + sizeAtk + buffAtk;
+  const fmt = n=>(n>=0?'+':'')+n;
+  const attacks = [fmt(rawBab + extras)];
+  if(rawBab >= 6)  attacks.push(fmt(rawBab - 5  + extras));
+  if(rawBab >= 11) attacks.push(fmt(rawBab - 10 + extras));
+  if(rawBab >= 16) attacks.push(fmt(rawBab - 15 + extras));
+  return attacks;
 }
 function D5_getMod(attr){
   const a = ATTRS.find(x=>x[0]===attr); return a ? a[3] : 0;
@@ -6522,9 +6792,10 @@ function D5_computeWeaponAttack(w){
   let attr = 'FUE';
   if(w.style==='ranged') attr = 'DES';
   else if(w.style==='finesse') attr = 'DES';
-  const mod = D5_getMod(attr);
-  const enh = parseInt(w.enh,10)||0;
-  return bab + mod + enh + sizeAtk;
+  const mod  = D5_getMod(attr);
+  const enh  = parseInt(w.enh,10)||0;
+  const misc = parseInt(w.misc,10)||0;
+  return bab + mod + enh + misc + sizeAtk;
 }
 function D5_computeWeaponDamage(w){
   const enh = parseInt(w.enh,10)||0;
@@ -6540,9 +6811,8 @@ function D5_computeWeaponDamage(w){
 }
 function D5_refreshWeaponRolls(){
   WEAPONS_DATA.forEach(w=>{
-    const atk = D5_computeWeaponAttack(w);
-    const sign = atk>=0 ? '+' : '';
-    w.atk = `${sign}${atk}`;
+    w.iterativeAtks = D5_getIterativeAttacks(w);
+    w.atk = w.iterativeAtks[0];
     w.dmg = D5_computeWeaponDamage(w);
     w.crit = `${w.crit_threat===20?'20':w.crit_threat+'-20'}/×${w.crit_mult||2}`;
   });
@@ -6624,23 +6894,53 @@ function D5_renderWeight(){
   const lblMap = {ligera:'Carga ligera', media:'Carga media', pesada:'Carga pesada', sobrecarga:'Sobrecarga'};
   const colMap = {ligera:'#4a7a3a', media:'var(--accent)', pesada:'#c89030', sobrecarga:'var(--negative)'};
 
-  const cur = document.getElementById('weight-current'); if(cur) cur.textContent = total.toFixed(1);
-  const stl = document.getElementById('weight-state-lbl');
+  const $ = id => document.getElementById(id);
+  if($('weight-current')) $('weight-current').textContent = total.toFixed(1);
+  const stl = $('weight-state-lbl');
   if(stl){ stl.textContent = lblMap[state]; stl.style.color = colMap[state]; }
-  const bar = document.getElementById('weight-bar');
+  const bar = $('weight-bar');
   if(bar){
     const pct = Math.min(100, max>0 ? (total/max)*100 : 0);
     bar.style.width = pct+'%';
     bar.style.background = `linear-gradient(90deg,#4a7a3a,${colMap[state]})`;
   }
+  // Thresholds based on actual STR/size
+  const limLight = Math.floor(max/3);
+  const limMed   = Math.floor(2*max/3);
+  if($('enc-lim-light')) $('enc-lim-light').textContent = '≤ '+limLight+' lb';
+  if($('enc-lim-med'))   $('enc-lim-med').textContent   = '≤ '+limMed+' lb';
+  if($('enc-lim-heavy')) $('enc-lim-heavy').textContent = '≤ '+max+' lb';
   document.dispatchEvent(new CustomEvent('weight-changed',{detail:{total, max, state}}));
   return {total, max, state};
 }
 
+function D5_calcEffSpeed(){
+  const baseEl = document.getElementById('speed-base');
+  const effEl  = document.getElementById('speed-eff');
+  if(!effEl) return;
+  const base = parseInt(baseEl?.value, 10) || 30;
+  // Find heaviest equipped body armor
+  const bodyArmors = (ARMOR_DATA||[]).filter(a=>a.equipped && a.armor_type!=='shield');
+  let heaviest = 'light';
+  bodyArmors.forEach(a=>{
+    if(a.armor_type==='heavy') heaviest = 'heavy';
+    else if(a.armor_type==='medium' && heaviest!=='heavy') heaviest = 'medium';
+  });
+  let eff = base;
+  let note = '';
+  if(heaviest === 'medium' || heaviest === 'heavy') {
+    // PF1e: speed × 2/3, round down to nearest 5 ft
+    eff = Math.floor(base * 2 / 3 / 5) * 5;
+    note = ` (${heaviest==='heavy'?'pesada':'media'})`;
+  }
+  effEl.value = eff + ' ft' + note;
+  effEl.style.color = eff < base ? 'var(--negative)' : '';
+}
 function D5_recompute(){
   D5_renderCoins();
   D5_renderWeight();
   D5_refreshWeaponRolls();
+  D5_calcEffSpeed();
 }
 
 function D5_bindAddSheet(){
@@ -6693,6 +6993,10 @@ function D5_bindExternalEvents(){
     if(el) el.addEventListener('input',()=>D5_renderWeight());
     if(el && el.type==='checkbox') el.addEventListener('change',()=>D5_renderWeight());
   });
+  const speedBase = document.getElementById('speed-base');
+  if(speedBase) speedBase.addEventListener('input', ()=>D5_calcEffSpeed());
+  document.addEventListener('armor-equipped', ()=>D5_calcEffSpeed());
+  document.addEventListener('armor-removed',  ()=>D5_calcEffSpeed());
 }
 
 function D5_init(){
@@ -7111,6 +7415,7 @@ function blankState(){
     identity: {nombre:'', jugador:'', raza:'Humano', clase:'Guerrero', nivel:3, deidad:'', alineamiento:'NN', edad:'', altura:'', peso:'', tamano:'Mediano', historia:'', personalidad:'', ideales:''},
     attrs: {}, classes: [], skills: {}, feats: [],
     weapons: [], armor: [], items: [], conds: [], buffs: [], adjusts: [],
+    fcb: [],
     notes: '', photo: null,
     settings: { fontSize:'normal', daltonico:false },
     theme: null, lang: null, extra: {}
@@ -7121,13 +7426,48 @@ window.STATE = blankState();
 function collectIdentity(){
   const $=id=>document.getElementById(id);
   const get=el=>el?el.value:'';
+  const getTA=el=>el?(el.tagName==='TEXTAREA'?el.textContent||el.value:el.value):'';
   return {
     nombre: get($('in-nombre'))||get($('in-name')),
     jugador: get($('in-jugador')),
     raza: get($('in-raza')),
     deidad: get($('in-deidad')),
     alineamiento: get($('al-r')),
+    historia: get($('in-historia')),
+    personalidad: get($('in-personalidad')),
+    ideales: get($('in-ideales')),
   };
+}
+function updateTopbar(){
+  try{
+    const id = window.STATE?.identity || {};
+    const nombre = id.nombre || '—';
+    const tn = document.getElementById('topbar-char-name');
+    if(tn) tn.textContent = nombre;
+    // sub: clases + nivel total
+    const cls = (typeof CLASSES_DATA !== 'undefined' ? CLASSES_DATA : []);
+    let sub = '—';
+    if(cls.length){
+      const totalLvl = cls.reduce((s,c)=>s+(+c.level||0),0);
+      sub = cls.map(c=>c.name).join(' / ') + ' · Nv ' + totalLvl;
+      if(id.raza) sub += ' · ' + id.raza;
+    }
+    const ts = document.getElementById('topbar-char-sub');
+    if(ts) ts.textContent = sub;
+    // summary dialog
+    const setText=(sid,val)=>{ const el=document.getElementById(sid); if(el) el.textContent=val||'—'; };
+    setText('sum-nombre', nombre);
+    setText('sum-raza', id.raza);
+    setText('sum-clase', cls.map(c=>c.name).join(' / ') || '—');
+    const totalNivel = cls.reduce((s,c)=>s+(+c.level||0),0);
+    setText('sum-nivel', totalNivel||'—');
+    setText('sum-alineamiento', id.alineamiento||'—');
+    setText('sum-deidad', id.deidad);
+    // XP — buscar en DOM
+    const xpCur = document.getElementById('xp-current');
+    const xpNext = document.getElementById('xp-next');
+    if(xpCur&&xpNext) setText('sum-xp', (xpCur.value||'0')+' / '+(xpNext.value||'?'));
+  }catch(e){}
 }
 function collectConds(){
   return [...document.querySelectorAll('.cond-chip.active')].map(c=>c.dataset.cond);
@@ -7183,6 +7523,33 @@ function snapshotState(){
     s.classFeatures = (typeof CLASS_FEATURES_DATA !== 'undefined') ? CLASS_FEATURES_DATA.map(f=>({...f})) : [];
     s.spellsCast    = (typeof SPELLS_DATA !== 'undefined') ? SPELLS_DATA.map(sp=>({id:sp.id,cast:!!sp.cast,prepared:!!sp.prepared})) : [];
     s.rageActive    = (typeof _RAGE_ACTIVE !== 'undefined') ? _RAGE_ACTIVE : false;
+    s.fcb           = (typeof FCB_DATA !== 'undefined') ? FCB_DATA.slice() : [];
+    /* X-01 — HP live, equipo D5, notas, iniciativa, CA components, PG details */
+    s.hpCurrent  = (typeof hp !== 'undefined') ? hp : null;
+    s.hpTemp     = (typeof hpTemp !== 'undefined') ? hpTemp : 0;
+    s.hpNonleth  = (typeof hpNonlethal !== 'undefined') ? hpNonlethal : 0;
+    s.invD5      = (typeof D5_INVENTORY !== 'undefined') ? D5_INVENTORY.map(it=>({...it})) : [];
+    s.coinsD5    = (typeof D5_COINS !== 'undefined') ? {...D5_COINS} : null;
+    s.notesList  = (typeof NOTES_LIST !== 'undefined') ? NOTES_LIST.map(n=>({...n})) : [];
+    s.initList   = (typeof INIT_LIST !== 'undefined') ? INIT_LIST.map(i=>({...i})) : [];
+    s.caRows = {};
+    document.querySelectorAll('#m-ca-rows input[data-ca]').forEach(i=>{
+      s.caRows[i.dataset.ca] = +(i.value||0);
+    });
+    const __v = id => { const el=document.getElementById(id); return el ? el.value : null; };
+    s.pgDetails = {
+      buff: parseInt(__v('pg-buff'),10) || 0,
+      miscPerLvl: parseInt(__v('pg-misc-lvl'),10) || 0,
+    };
+    s.combatMisc = {
+      initMisc: parseInt(__v('m-init-misc'),10) || 0,
+      baseSpeed: parseInt(__v('base-speed'),10) || 30,
+    };
+    s.activeSubtabs = {};
+    document.querySelectorAll('.tab-page[data-tab]').forEach(p=>{
+      const active = p.querySelector('.subchip.active');
+      if(active) s.activeSubtabs[p.dataset.tab] = active.dataset.sub;
+    });
   }catch(e){}
   return s;
 }
@@ -7196,7 +7563,11 @@ function applyState(state){
     setVal('in-raza', state.identity.raza);
     setVal('in-deidad', state.identity.deidad);
     setVal('al-r', state.identity.alineamiento);
+    setVal('in-historia', state.identity.historia);
+    setVal('in-personalidad', state.identity.personalidad);
+    setVal('in-ideales', state.identity.ideales);
   }
+  try{ updateTopbar(); }catch(e){}
   if(state.theme){ document.documentElement.dataset.theme = state.theme; try{applyDarkClass();}catch(e){} }
   if(state.lang && typeof applyLang==='function'){ try{applyLang(state.lang);}catch(e){} }
   try{
@@ -7264,6 +7635,67 @@ function applyState(state){
       SPELLS_DATA.forEach(sp=>{ const c=castMap.get(sp.id); if(c){ sp.cast=c.cast; sp.prepared=c.prepared; } });
     }
     if(typeof state.rageActive === 'boolean') _RAGE_ACTIVE = state.rageActive;
+    if(Array.isArray(state.fcb) && typeof FCB_DATA !== 'undefined'){
+      FCB_DATA.length = 0;
+      state.fcb.forEach(e=>FCB_DATA.push(e));
+      if(typeof renderFCB === 'function') renderFCB();
+    }
+    /* X-01 — HP live, equipo D5, notas, iniciativa, CA components, PG details */
+    if(typeof state.hpCurrent === 'number' && typeof hp !== 'undefined'){
+      hp = state.hpCurrent;
+      if(typeof hpTemp !== 'undefined' && typeof state.hpTemp === 'number') hpTemp = state.hpTemp;
+      if(typeof hpNonlethal !== 'undefined' && typeof state.hpNonleth === 'number') hpNonlethal = state.hpNonleth;
+      if(typeof refreshHP === 'function') refreshHP();
+    }
+    if(Array.isArray(state.invD5) && typeof D5_INVENTORY !== 'undefined'){
+      D5_INVENTORY.length = 0;
+      state.invD5.forEach(it=>D5_INVENTORY.push(it));
+    }
+    if(state.coinsD5 && typeof D5_COINS !== 'undefined'){
+      Object.assign(D5_COINS, state.coinsD5);
+    }
+    if(typeof D5_renderInventory === 'function') D5_renderInventory();
+    if(typeof D5_renderCoins === 'function') D5_renderCoins();
+    if(typeof D5_recompute === 'function') D5_recompute();
+    if(Array.isArray(state.notesList) && typeof NOTES_LIST !== 'undefined'){
+      NOTES_LIST.length = 0;
+      state.notesList.forEach(n=>NOTES_LIST.push(n));
+      if(typeof renderNotes === 'function') renderNotes();
+    }
+    if(Array.isArray(state.initList) && typeof INIT_LIST !== 'undefined'){
+      INIT_LIST.length = 0;
+      state.initList.forEach(i=>INIT_LIST.push(i));
+      if(typeof renderInit === 'function') renderInit();
+    }
+    if(state.caRows){
+      Object.entries(state.caRows).forEach(([k,v])=>{
+        const inp = document.querySelector('#m-ca-rows input[data-ca="'+k+'"]');
+        if(inp) inp.value = v;
+      });
+    }
+    if(state.pgDetails){
+      const setVal = (id,v)=>{ const el=document.getElementById(id); if(el && v!=null) el.value = v; };
+      setVal('pg-buff', state.pgDetails.buff);
+      setVal('pg-misc-lvl', state.pgDetails.miscPerLvl);
+    }
+    if(state.combatMisc){
+      const setVal = (id,v)=>{ const el=document.getElementById(id); if(el && v!=null) el.value = v; };
+      setVal('m-init-misc', state.combatMisc.initMisc);
+      setVal('base-speed', state.combatMisc.baseSpeed);
+    }
+    /* CombatEngine recalc tras cargar inputs */
+    try{ if(typeof CombatEngine !== 'undefined' && CombatEngine.apply) CombatEngine.apply(); }catch(e){}
+    /* Subtabs activas (diferido para que el render exista) */
+    if(state.activeSubtabs){
+      setTimeout(()=>{
+        Object.entries(state.activeSubtabs).forEach(([tab, sub])=>{
+          const page = document.querySelector('.tab-page[data-tab="'+tab+'"]');
+          if(!page) return;
+          const chip = page.querySelector('.subchip[data-sub="'+sub+'"]');
+          if(chip && !chip.classList.contains('active')) chip.click();
+        });
+      }, 120);
+    }
     rebuildBuffModTotals();
   }catch(e){ console.warn('applyState internal vars', e); }
   window.STATE = Object.assign(window.STATE, state);
@@ -7519,12 +7951,18 @@ function wireSettingsClear(){
 }
 
 function wireAutosave(){
-  document.addEventListener('input',  e=>{ if(e.target.matches('input,select,textarea')) saveStateDebounced('input'); }, true);
+  document.addEventListener('input',  e=>{
+    if(e.target.matches('input,select,textarea')) saveStateDebounced('input');
+    if(e.target.id==='in-nombre'||e.target.id==='in-raza'||e.target.id==='in-deidad') try{updateTopbar();}catch(_){}
+  }, true);
   document.addEventListener('change', e=>{ if(e.target.matches('input,select,textarea')) saveStateDebounced('change'); }, true);
   ['attr-changed','class-changed','armor-equipped','feat-changed','skill-changed',
    'weapon-changed','item-changed','cond-changed','buff-changed','adjust-changed',
    'notes-changed','photo-changed','language-changed','theme-changed'
-  ].forEach(ev=>document.addEventListener(ev, ()=>saveStateDebounced(ev)));
+  ].forEach(ev=>document.addEventListener(ev, ()=>{
+    saveStateDebounced(ev);
+    if(ev==='class-changed') try{updateTopbar();}catch(_){}
+  }));
   document.addEventListener('click', e=>{
     if(e.target.closest && e.target.closest('.cond-chip')) saveStateDebounced('cond-click');
   }, true);
@@ -7576,6 +8014,7 @@ function init6(){
   } else {
     document.dispatchEvent(new CustomEvent('state-loaded',{detail:window.STATE}));
   }
+  try{ updateTopbar(); }catch(e){}
 
   try{ if(isAndroid()) window._androidDeliverCharacter(); }catch(e){}
 }

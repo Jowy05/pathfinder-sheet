@@ -3601,12 +3601,16 @@ function refreshHP(){
 function setHP(v){
   hp = Math.max(0,Math.min(HP_MAX,v));
   refreshHP();
+  /* X-01: autosave HP al cambiar */
+  if(typeof saveStateDebounced==='function') saveStateDebounced('hp');
 }
 document.querySelectorAll('[data-hp]').forEach(b=>{
   b.addEventListener('click',()=>{
     const v = b.dataset.hp;
     if(v==='rest'){ setHP(HP_MAX); hpTemp=0; hpNonlethal=0; refreshHP(); }
     else setHP(hp + parseInt(v,10));
+    /* X-01: autosave HP/temp/nonlethal */
+    if(typeof saveStateDebounced==='function') saveStateDebounced('hp-action');
   });
 });
 
@@ -5393,6 +5397,8 @@ function applyDH(amount){
     hpTemp = Math.max(0, hpTemp + amount);
     refreshHP();
   }
+  /* X-01: autosave tras daño/curación específica */
+  if(typeof saveStateDebounced==='function') saveStateDebounced('dh');
 }
 
 /* ─── CONFIRMAR ACCIÓN (Exportar/Importar/Imprimir) ─── */
@@ -7518,6 +7524,32 @@ function snapshotState(){
     s.spellsCast    = (typeof SPELLS_DATA !== 'undefined') ? SPELLS_DATA.map(sp=>({id:sp.id,cast:!!sp.cast,prepared:!!sp.prepared})) : [];
     s.rageActive    = (typeof _RAGE_ACTIVE !== 'undefined') ? _RAGE_ACTIVE : false;
     s.fcb           = (typeof FCB_DATA !== 'undefined') ? FCB_DATA.slice() : [];
+    /* X-01 — HP live, equipo D5, notas, iniciativa, CA components, PG details */
+    s.hpCurrent  = (typeof hp !== 'undefined') ? hp : null;
+    s.hpTemp     = (typeof hpTemp !== 'undefined') ? hpTemp : 0;
+    s.hpNonleth  = (typeof hpNonlethal !== 'undefined') ? hpNonlethal : 0;
+    s.invD5      = (typeof D5_INVENTORY !== 'undefined') ? D5_INVENTORY.map(it=>({...it})) : [];
+    s.coinsD5    = (typeof D5_COINS !== 'undefined') ? {...D5_COINS} : null;
+    s.notesList  = (typeof NOTES_LIST !== 'undefined') ? NOTES_LIST.map(n=>({...n})) : [];
+    s.initList   = (typeof INIT_LIST !== 'undefined') ? INIT_LIST.map(i=>({...i})) : [];
+    s.caRows = {};
+    document.querySelectorAll('#m-ca-rows input[data-ca]').forEach(i=>{
+      s.caRows[i.dataset.ca] = +(i.value||0);
+    });
+    const __v = id => { const el=document.getElementById(id); return el ? el.value : null; };
+    s.pgDetails = {
+      buff: parseInt(__v('pg-buff'),10) || 0,
+      miscPerLvl: parseInt(__v('pg-misc-lvl'),10) || 0,
+    };
+    s.combatMisc = {
+      initMisc: parseInt(__v('m-init-misc'),10) || 0,
+      baseSpeed: parseInt(__v('base-speed'),10) || 30,
+    };
+    s.activeSubtabs = {};
+    document.querySelectorAll('.tab-page[data-tab]').forEach(p=>{
+      const active = p.querySelector('.subchip.active');
+      if(active) s.activeSubtabs[p.dataset.tab] = active.dataset.sub;
+    });
   }catch(e){}
   return s;
 }
@@ -7607,6 +7639,62 @@ function applyState(state){
       FCB_DATA.length = 0;
       state.fcb.forEach(e=>FCB_DATA.push(e));
       if(typeof renderFCB === 'function') renderFCB();
+    }
+    /* X-01 — HP live, equipo D5, notas, iniciativa, CA components, PG details */
+    if(typeof state.hpCurrent === 'number' && typeof hp !== 'undefined'){
+      hp = state.hpCurrent;
+      if(typeof hpTemp !== 'undefined' && typeof state.hpTemp === 'number') hpTemp = state.hpTemp;
+      if(typeof hpNonlethal !== 'undefined' && typeof state.hpNonleth === 'number') hpNonlethal = state.hpNonleth;
+      if(typeof refreshHP === 'function') refreshHP();
+    }
+    if(Array.isArray(state.invD5) && typeof D5_INVENTORY !== 'undefined'){
+      D5_INVENTORY.length = 0;
+      state.invD5.forEach(it=>D5_INVENTORY.push(it));
+    }
+    if(state.coinsD5 && typeof D5_COINS !== 'undefined'){
+      Object.assign(D5_COINS, state.coinsD5);
+    }
+    if(typeof D5_renderInventory === 'function') D5_renderInventory();
+    if(typeof D5_renderCoins === 'function') D5_renderCoins();
+    if(typeof D5_recompute === 'function') D5_recompute();
+    if(Array.isArray(state.notesList) && typeof NOTES_LIST !== 'undefined'){
+      NOTES_LIST.length = 0;
+      state.notesList.forEach(n=>NOTES_LIST.push(n));
+      if(typeof renderNotes === 'function') renderNotes();
+    }
+    if(Array.isArray(state.initList) && typeof INIT_LIST !== 'undefined'){
+      INIT_LIST.length = 0;
+      state.initList.forEach(i=>INIT_LIST.push(i));
+      if(typeof renderInit === 'function') renderInit();
+    }
+    if(state.caRows){
+      Object.entries(state.caRows).forEach(([k,v])=>{
+        const inp = document.querySelector('#m-ca-rows input[data-ca="'+k+'"]');
+        if(inp) inp.value = v;
+      });
+    }
+    if(state.pgDetails){
+      const setVal = (id,v)=>{ const el=document.getElementById(id); if(el && v!=null) el.value = v; };
+      setVal('pg-buff', state.pgDetails.buff);
+      setVal('pg-misc-lvl', state.pgDetails.miscPerLvl);
+    }
+    if(state.combatMisc){
+      const setVal = (id,v)=>{ const el=document.getElementById(id); if(el && v!=null) el.value = v; };
+      setVal('m-init-misc', state.combatMisc.initMisc);
+      setVal('base-speed', state.combatMisc.baseSpeed);
+    }
+    /* CombatEngine recalc tras cargar inputs */
+    try{ if(typeof CombatEngine !== 'undefined' && CombatEngine.apply) CombatEngine.apply(); }catch(e){}
+    /* Subtabs activas (diferido para que el render exista) */
+    if(state.activeSubtabs){
+      setTimeout(()=>{
+        Object.entries(state.activeSubtabs).forEach(([tab, sub])=>{
+          const page = document.querySelector('.tab-page[data-tab="'+tab+'"]');
+          if(!page) return;
+          const chip = page.querySelector('.subchip[data-sub="'+sub+'"]');
+          if(chip && !chip.classList.contains('active')) chip.click();
+        });
+      }, 120);
     }
     rebuildBuffModTotals();
   }catch(e){ console.warn('applyState internal vars', e); }

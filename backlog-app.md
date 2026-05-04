@@ -151,10 +151,12 @@
 
 ## PERSISTENCIA GENERAL
 
-### X-01 🔴 Save/Load de estado roto o incompleto
-- El personaje no se guarda correctamente entre sesiones.
-- Auditar `snapshotState()` / `applyState()` / `saveStateDebounced()`: verificar que todos los campos del DOM (identidad, atributos, clase, nivel, HP, etc.) se incluyen.
-- En Android el guardado va por `AndroidBridge.saveCharacter()` → verificar que el JSON que se le pasa no esté vacío.
+### X-01 ✅ Save/Load de estado roto o incompleto
+- ~~El personaje no se guarda correctamente entre sesiones.~~
+- ~~Auditar `snapshotState()` / `applyState()` / `saveStateDebounced()`: verificar que todos los campos del DOM (identidad, atributos, clase, nivel, HP, etc.) se incluyen.~~
+- ~~En Android el guardado va por `AndroidBridge.saveCharacter()` → verificar que el JSON que se le pasa no esté vacío.~~
+
+**Resuelto**: extendido `snapshotState`/`applyState` con HP actual, hpTemp, hpNonlethal, D5_INVENTORY, D5_COINS, NOTES_LIST, INIT_LIST, CA components (`#m-ca-rows`), pgDetails (buff/miscPerLvl), combatMisc (initMisc/baseSpeed) y subtab activa por tab. Hook en `setHP` y `applyDH` para autosave inmediato al cambiar HP. La exportación/importación JSON ya cubría el resto (D6 commit f8677ab) — ahora el snapshot incluye toda la sesión viva.
 
 ---
 
