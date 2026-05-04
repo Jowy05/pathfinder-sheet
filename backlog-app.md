@@ -47,10 +47,12 @@
 
 **Resuelto**: card de Experiencia ahora con tres inputs editables (`xp-current`, `xp-next`, `xp-track`). Tabla `XP_TABLE` PF1e canónica para los 3 avances (Lento/Medio/Rápido) × 20 niveles. Función `autoFillXPNext()` calcula el umbral según nivel total del personaje (suma de niveles de clase) y avance seleccionado. `refreshXPBar()` actualiza barra y porcentaje en vivo. Si XP actual >= XP next muestra mensaje "¡Subes de nivel!" en color verde. Listeners conectados a `class-changed` para auto-recalcular el umbral al subir nivel. Persistencia en `STATE.xp = {current, next, track}`.
 
-### P-06 🔵 Idiomas conocidos: copiar lista de la ficha PC
-- La ficha PC tiene el listado completo de idiomas de PF1e.
-- Copiar esa lista al selector de idiomas de la mobile.
-- Mantener el botón de idioma personalizado.
+### P-06 ✅ Idiomas conocidos: copiar lista de la ficha PC
+- ~~La ficha PC tiene el listado completo de idiomas de PF1e.~~
+- ~~Copiar esa lista al selector de idiomas de la mobile.~~
+- ~~Mantener el botón de idioma personalizado.~~
+
+**Resuelto**: la card de Idiomas pasa de 6 checkboxes hardcoded a render dinámico desde `LANGUAGES` (D6) con dos secciones: **Estándar** (Común, Élfico, Enano, Gnomo, Mediano, Orco, Trasgo, Celestial, Infernal, Abisal, Dracónico) y **Exóticos** (Acuán, Auran, Ignan, Terran, Silvano, Druídico, Subcomún, Necril, Tien, Varisiano, Osiriano, Hallit, Skald, Kelish, Vudrani, Shoanti, Tengu). `renderLanguagesLists()` genera los checkboxes preservando los marcados al re-render. Botón "+ Idioma personalizado" (`addCustomLanguage`) añade al área `#lang-list-custom` con botón × para borrar individualmente. Persistencia en `STATE.langs = {std:[], exo:[], custom:[{name,checked}]}`.
 
 ### P-07 🔴 Rasgos no se actualizan al cambiar clase/raza
 - Actualmente los rasgos de clase (aptitudes de clase) y raciales son estáticos (datos seed del guerrero/humano).

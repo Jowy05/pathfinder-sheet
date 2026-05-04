@@ -1822,18 +1822,17 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
       </div>
       <div class="card">
         <h3 class="card-title"><span class="ornament">❦</span><span>Idiomas conocidos</span><span class="ornament">❦</span></h3>
-        <div id="lang-list" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font:13px/1.2 system-ui;margin-bottom:10px">
-          <label style="display:flex;gap:6px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2)"><input type="checkbox" checked> Común</label>
-          <label style="display:flex;gap:6px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2)"><input type="checkbox" checked> Élfico</label>
-          <label style="display:flex;gap:6px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2)"><input type="checkbox"> Enano</label>
-          <label style="display:flex;gap:6px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2)"><input type="checkbox"> Gnomo</label>
-          <label style="display:flex;gap:6px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2)"><input type="checkbox"> Mediano</label>
-          <label style="display:flex;gap:6px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2)"><input type="checkbox"> Dracónico</label>
-        </div>
+        <div style="font:600 10.5px/1 system-ui;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:6px">Estándar</div>
+        <div id="lang-list-std" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font:13px/1.2 system-ui;margin-bottom:10px"></div>
+        <div style="font:600 10.5px/1 system-ui;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:6px">Exóticos</div>
+        <div id="lang-list-exo" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font:13px/1.2 system-ui;margin-bottom:10px"></div>
+        <div id="lang-list-custom" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font:13px/1.2 system-ui;margin-bottom:10px"></div>
         <div class="field-with-action">
           <input class="field-input" id="lang-custom" placeholder="Idioma personalizado…">
           <button class="field-attach" id="lang-add" aria-label="Añadir idioma">+</button>
         </div>
+        <!-- back-compat: lang-list legacy id apunta a estándar para no romper otros listeners -->
+        <div id="lang-list" hidden></div>
       </div>
     </div>
 
@@ -5529,22 +5528,22 @@ function bindCustomAdds(){
       toast('Habilidad añadida');
     });
   }
-  // Idioma personalizado
+  // P-06: Idioma personalizado → addCustomLanguage en lang-list-custom
   const lgAdd = document.getElementById('lang-add');
   const lgIn  = document.getElementById('lang-custom');
   if(lgAdd && lgIn){
     lgAdd.addEventListener('click',()=>{
       const name = lgIn.value.trim();
       if(!name) return;
-      const list = document.getElementById('lang-list');
-      const lab = document.createElement('label');
-      lab.style.cssText='display:flex;gap:6px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2)';
-      lab.innerHTML = `<input type="checkbox" checked> ${name}`;
-      list.appendChild(lab);
+      if(typeof addCustomLanguage==='function') addCustomLanguage(name);
       lgIn.value='';
-      toast('Idioma añadido');
+      if(typeof toast==='function') toast('Idioma añadido');
     });
+    /* Enter en el input también añade */
+    lgIn.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); lgAdd.click(); } });
   }
+  /* Render inicial de los catálogos estándar/exóticos */
+  if(typeof renderLanguagesLists==='function') setTimeout(renderLanguagesLists, 100);
   // Inventario item con [×] eliminar
   const invList = document.getElementById('inv-list');
   const invIn = document.getElementById('inv-input');
@@ -7761,6 +7760,15 @@ function snapshotState(){
       next: parseInt(__v('xp-next'),10) || 0,
       track: __v('xp-track') || 'medium',
     };
+    /* P-06: idiomas marcados (estándar + exóticos + custom) */
+    s.langs = {
+      std: [...document.querySelectorAll('#lang-list-std label[data-lang]')]
+        .filter(l=>l.querySelector('input')?.checked).map(l=>l.dataset.lang),
+      exo: [...document.querySelectorAll('#lang-list-exo label[data-lang]')]
+        .filter(l=>l.querySelector('input')?.checked).map(l=>l.dataset.lang),
+      custom: [...document.querySelectorAll('#lang-list-custom label[data-lang]')]
+        .map(l=>({name:l.dataset.lang, checked:!!l.querySelector('input')?.checked}))
+    };
   }catch(e){}
   return s;
 }
@@ -7903,6 +7911,27 @@ function applyState(state){
       setVal('xp-next', state.xp.next);
       setVal('xp-track', state.xp.track);
       try{ if(typeof refreshXPBar==='function') refreshXPBar(); }catch(e){}
+    }
+    /* P-06: idiomas */
+    if(state.langs){
+      try{ if(typeof renderLanguagesLists==='function') renderLanguagesLists(); }catch(e){}
+      const allChecked = new Set([...(state.langs.std||[]), ...(state.langs.exo||[])]);
+      setTimeout(()=>{
+        document.querySelectorAll('#lang-list-std label[data-lang], #lang-list-exo label[data-lang]').forEach(l=>{
+          const inp = l.querySelector('input'); if(!inp) return;
+          inp.checked = allChecked.has(l.dataset.lang);
+        });
+        /* Custom: limpiar y re-añadir */
+        const cst = document.getElementById('lang-list-custom');
+        if(cst){
+          cst.innerHTML = '';
+          (state.langs.custom||[]).forEach(c=>{
+            if(typeof addCustomLanguage==='function') addCustomLanguage(c.name);
+            const lab = cst.querySelector('label[data-lang="'+c.name+'"]');
+            if(lab && lab.querySelector('input')) lab.querySelector('input').checked = c.checked;
+          });
+        }
+      }, 150);
     }
     /* CombatEngine recalc tras cargar inputs */
     try{ if(typeof CombatEngine !== 'undefined' && CombatEngine.apply) CombatEngine.apply(); }catch(e){}
@@ -8280,6 +8309,52 @@ function wireRollAllHd(){
     if(typeof saveStateDebounced==='function') saveStateDebounced('roll-hd');
   });
 }
+
+/* P-06: render dinámico de idiomas desde LANGUAGES (D6) */
+function renderLanguagesLists(){
+  const std = document.getElementById('lang-list-std');
+  const exo = document.getElementById('lang-list-exo');
+  const cst = document.getElementById('lang-list-custom');
+  if(!std || !exo) return;
+  const LANGS = (typeof LANGUAGES!=='undefined') ? LANGUAGES : {estandar:['Común'], exoticos:[]};
+  /* preservar checks previos */
+  const checked = new Set();
+  document.querySelectorAll('#lang-list-std input[type=checkbox]:checked, #lang-list-exo input[type=checkbox]:checked, #lang-list-custom input[type=checkbox]:checked')
+    .forEach(c=>{ const lab = c.parentElement?.textContent?.trim(); if(lab) checked.add(lab); });
+  /* Idiomas marcados por defecto en primera carga: Común */
+  if(checked.size===0) checked.add('Común');
+  const mk = (n)=>'<label style="display:flex;gap:6px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2)" data-lang="'+n+'"><input type="checkbox"'+(checked.has(n)?' checked':'')+'> '+n+'</label>';
+  std.innerHTML = (LANGS.estandar||[]).map(mk).join('');
+  exo.innerHTML = (LANGS.exoticos||[]).map(mk).join('');
+  /* listeners para autosave */
+  document.querySelectorAll('#lang-list-std input,#lang-list-exo input,#lang-list-custom input').forEach(c=>{
+    if(c.__langBound) return; c.__langBound = true;
+    c.addEventListener('change', ()=>{ if(typeof saveStateDebounced==='function') saveStateDebounced('langs'); });
+  });
+}
+
+/* hook para añadir idioma personalizado (renderiza en lang-list-custom) */
+function addCustomLanguage(name){
+  const cst = document.getElementById('lang-list-custom');
+  if(!cst || !name) return;
+  /* evitar duplicados */
+  if([...cst.querySelectorAll('label')].some(l=>l.textContent.trim().toLowerCase()===name.trim().toLowerCase())) return;
+  const lab = document.createElement('label');
+  lab.style.cssText='display:flex;gap:6px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);position:relative';
+  lab.dataset.lang = name;
+  lab.innerHTML = '<input type="checkbox" checked> '+name+
+    '<button class="lang-del" style="margin-left:auto;background:transparent;border:0;color:var(--negative);cursor:pointer;font:700 14px system-ui" aria-label="Quitar">×</button>';
+  cst.appendChild(lab);
+  lab.querySelector('.lang-del').addEventListener('click', ()=>{
+    lab.remove();
+    if(typeof saveStateDebounced==='function') saveStateDebounced('lang-del');
+  });
+  lab.querySelector('input').addEventListener('change', ()=>{
+    if(typeof saveStateDebounced==='function') saveStateDebounced('langs');
+  });
+  if(typeof saveStateDebounced==='function') saveStateDebounced('lang-add');
+}
+window.addCustomLanguage = addCustomLanguage;
 
 /* P-05: XP editable + auto-cálculo de umbrales según tabla PF1e */
 const XP_TABLE = {
