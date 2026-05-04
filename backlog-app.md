@@ -190,9 +190,11 @@ Hints actualizados con texto descriptivo PF1e por modo. Botón "cure-nonlethal" 
 - Botón "Quitar foto" probablemente tampoco funciona.
 - Revisar que `AndroidBridge.pickPhoto()` esté correctamente conectado.
 
-### M-14 🔴 Datos de identidad no persisten / no se actualizan en la UI
-- Campos de nombre, jugador, raza, clase, etc. no se reflejan en el topbar ni en otros sitios donde deberían verse.
-- Revisar que `collectIdentity()` → `snapshotState()` → `saveStateDebounced()` esté conectado a los `input` events.
+### M-14 ✅ Datos de identidad no persisten / no se actualizan en la UI
+- ~~Campos de nombre, jugador, raza, clase, etc. no se reflejan en el topbar ni en otros sitios donde deberían verse.~~
+- ~~Revisar que `collectIdentity()` → `snapshotState()` → `saveStateDebounced()` esté conectado a los `input` events.~~
+
+**Resuelto**: bug en `updateTopbar()` que leía de `window.STATE.identity` (snapshot que va con 800ms de debounce) en vez del DOM directo, así los cambios no se veían hasta el siguiente snapshot. Ahora lee de `getElementById(...).value` directo. El listener de `input` también amplía a `in-name`, `in-jugador`, `al-r`. Nuevo listener de `change` para selects de alineamiento (al-1, al-2). Avatar muestra automáticamente la inicial del nombre si no tiene foto puesta. Persistencia ya estaba bien en `wireAutosave` + `snapshotState`.
 
 ---
 

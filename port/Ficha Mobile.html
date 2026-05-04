@@ -7758,8 +7758,12 @@ function collectIdentity(){
 }
 function updateTopbar(){
   try{
-    const id = window.STATE?.identity || {};
-    const nombre = id.nombre || '—';
+    /* M-14: leer del DOM directo (no del STATE snapshot que puede ir retrasado) */
+    const v = id => { const el=document.getElementById(id); return el ? el.value : ''; };
+    const nombre = v('in-nombre') || v('in-name') || (window.STATE?.identity?.nombre) || '—';
+    const raza   = v('in-raza')   || (window.STATE?.identity?.raza)   || '';
+    const deidad = v('in-deidad') || (window.STATE?.identity?.deidad) || '';
+    const align  = v('al-r')      || (window.STATE?.identity?.alineamiento) || '';
     const tn = document.getElementById('topbar-char-name');
     if(tn) tn.textContent = nombre;
     // sub: clases + nivel total
@@ -7768,23 +7772,28 @@ function updateTopbar(){
     if(cls.length){
       const totalLvl = cls.reduce((s,c)=>s+(+c.level||0),0);
       sub = cls.map(c=>c.name).join(' / ') + ' · Nv ' + totalLvl;
-      if(id.raza) sub += ' · ' + id.raza;
+      if(raza) sub += ' · ' + raza;
     }
     const ts = document.getElementById('topbar-char-sub');
     if(ts) ts.textContent = sub;
     // summary dialog
     const setText=(sid,val)=>{ const el=document.getElementById(sid); if(el) el.textContent=val||'—'; };
     setText('sum-nombre', nombre);
-    setText('sum-raza', id.raza);
+    setText('sum-raza', raza);
     setText('sum-clase', cls.map(c=>c.name).join(' / ') || '—');
     const totalNivel = cls.reduce((s,c)=>s+(+c.level||0),0);
     setText('sum-nivel', totalNivel||'—');
-    setText('sum-alineamiento', id.alineamiento||'—');
-    setText('sum-deidad', id.deidad);
+    setText('sum-alineamiento', align);
+    setText('sum-deidad', deidad);
     // XP — buscar en DOM
     const xpCur = document.getElementById('xp-current');
     const xpNext = document.getElementById('xp-next');
     if(xpCur&&xpNext) setText('sum-xp', (xpCur.value||'0')+' / '+(xpNext.value||'?'));
+    // Avatar inicial: primera letra del nombre
+    const av = document.getElementById('avatar');
+    if(av && !av.style.backgroundImage && !av.dataset.photoSet){
+      av.textContent = (nombre||'?').trim()[0]?.toUpperCase() || '?';
+    }
   }catch(e){}
 }
 function collectConds(){
@@ -8326,9 +8335,14 @@ function wireSettingsClear(){
 function wireAutosave(){
   document.addEventListener('input',  e=>{
     if(e.target.matches('input,select,textarea')) saveStateDebounced('input');
-    if(e.target.id==='in-nombre'||e.target.id==='in-raza'||e.target.id==='in-deidad') try{updateTopbar();}catch(_){}
+    /* M-14: actualiza topbar al editar identidad */
+    if(['in-nombre','in-name','in-jugador','in-raza','in-deidad','al-r'].includes(e.target.id)) try{updateTopbar();}catch(_){}
   }, true);
-  document.addEventListener('change', e=>{ if(e.target.matches('input,select,textarea')) saveStateDebounced('change'); }, true);
+  document.addEventListener('change', e=>{
+    if(e.target.matches('input,select,textarea')) saveStateDebounced('change');
+    /* M-14: cualquier cambio de input/select que dispare 'change' (selects de alineamiento) */
+    if(e.target.id==='al-1'||e.target.id==='al-2'||e.target.id==='al-r') try{updateTopbar();}catch(_){}
+  }, true);
   ['attr-changed','class-changed','armor-equipped','feat-changed','skill-changed',
    'weapon-changed','item-changed','cond-changed','buff-changed','adjust-changed',
    'notes-changed','photo-changed','language-changed','theme-changed'
