@@ -4677,7 +4677,11 @@ function renderWeapons(){
   c.querySelectorAll('[data-weap-del]').forEach(b=>{
     b.addEventListener('click',()=>{
       const i = WEAPONS_DATA.findIndex(x=>x.id===+b.dataset.weapDel);
-      if(i>=0){ WEAPONS_DATA.splice(i,1); renderWeapons(); rebindRolls(); }
+      if(i>=0){
+        WEAPONS_DATA.splice(i,1); renderWeapons(); rebindRolls();
+        /* E-01: peso recalculado al eliminar arma */
+        if(typeof D5_recompute==='function') D5_recompute();
+      }
     });
   });
   c.querySelectorAll('.weap-misc-inp').forEach(inp=>{
@@ -5309,6 +5313,8 @@ function bindNewSheets(){
     });
     if(typeof D5_refreshWeaponRolls==='function') D5_refreshWeaponRolls();
     else { renderWeapons(); rebindRolls(); }
+    /* E-01: peso recalculado al añadir arma */
+    if(typeof D5_recompute==='function') D5_recompute();
     closeSheet(document.getElementById('sheet-weapon-add'));
     toast('Arma añadida');
   });
@@ -5344,6 +5350,8 @@ function bindNewSheets(){
       D5_setArmorEquipped(id, true);
     }
     renderArmor();
+    /* E-01: peso recalculado al añadir armadura */
+    if(typeof D5_recompute==='function') D5_recompute();
     closeSheet(document.getElementById('sheet-armor-add'));
     toast('Armadura añadida');
   });
@@ -8824,6 +8832,8 @@ function init6(){
   try{ if(typeof renderClassTraitsCard==='function') renderClassTraitsCard(); }catch(e){}
   /* C-04: render inicial de notas de combate */
   try{ if(typeof renderCombatNotesList==='function') renderCombatNotesList(); }catch(e){}
+  /* E-01: render inicial del peso (recompute total + categorias) */
+  try{ if(typeof D5_recompute==='function') setTimeout(D5_recompute, 200); }catch(e){}
 
   try{ if(isAndroid()) window._androidDeliverCharacter(); }catch(e){}
 }

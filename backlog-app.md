@@ -126,10 +126,12 @@ Hints actualizados con texto descriptivo PF1e por modo. Botón "cure-nonlethal" 
 
 ## EQUIPAMIENTO
 
-### E-01 🔴 Carga: dinámica, no estática
-- El peso total y la categoría de carga (sin carga / carga ligera / media / pesada) no se recalculan al añadir/quitar objetos.
-- La función `D5_computeTotalWeight()` existe pero no está conectada al render dinámico.
-- Reconectar a los eventos de cambio de equipo.
+### E-01 ✅ Carga: dinámica, no estática
+- ~~El peso total y la categoría de carga (sin carga / carga ligera / media / pesada) no se recalculan al añadir/quitar objetos.~~
+- ~~La función `D5_computeTotalWeight()` existe pero no está conectada al render dinámico.~~
+- ~~Reconectar a los eventos de cambio de equipo.~~
+
+**Resuelto**: ya estaba bien para inventario y monedas (D5_recompute se llamaba). Faltaban hooks al añadir/eliminar **arma** (`weap-save` push y `weapon delete`) y al añadir **armadura** (`armor-save` push). Ahora todos llaman `D5_recompute()` que ejecuta `D5_renderCoins() + D5_renderWeight() + D5_refreshWeaponRolls()`. También render inicial en `init6` con setTimeout 200ms para que el card de Equipo > Peso muestre los valores reales al arrancar (antes se quedaba con los placeholders "—").
 
 ---
 
