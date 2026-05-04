@@ -1478,6 +1478,54 @@ body.theme-dark .spell-level-h{color:#f5d8b0}
 .dh-mode button.active.heal{background:var(--positive);color:white;border-color:var(--positive)}
 .dh-mode button.active.nonlethal{background:#7a4830;color:white;border-color:#7a4830}
 .dh-mode button.active.cure-nonlethal{background:#5a8c5e;color:white;border-color:#5a8c5e}
+
+/* M-08: vista de impresión — todo expandido, sin botones */
+@media print {
+  /* Ocultar elementos interactivos */
+  .topbar, .bottom-nav, .fab, .bottom-sheet, .subtab-strip,
+  #toast, .crud-del, .btn-add, .btn-roll, .btn-secondary, .btn-primary,
+  .skill-rank, .field-attach, .icon-btn, [data-i18n="btnTirar"],
+  [data-confirm], [data-toast], button { display:none !important; }
+  /* Forzar visibilidad de todas las tabs y subtabs */
+  .tab-page, .sub-page { display:block !important; visibility:visible !important; opacity:1 !important; }
+  .tab-page[hidden], .sub-page[hidden] { display:block !important; }
+  /* Estilo de impresión */
+  body { background:white !important; color:black !important; font-size:10pt !important; }
+  .card, .stat-tile, .attr-card, .save-row, .skill-row, .eq-card, .feat-card {
+    page-break-inside:avoid;
+    background:white !important;
+    border:1px solid #999 !important;
+    box-shadow:none !important;
+  }
+  .card-title, .attr-abbr, .save-row .name, .stat-tile-value {
+    color:black !important;
+    text-shadow:none !important;
+  }
+  .stat-tile-value, .attr-total, .attr-mod, .save-row .total, .skill-total, .hp-bar-text {
+    color:black !important;
+  }
+  /* Saltos de página entre tab principales */
+  .tab-page { page-break-before:always; }
+  .tab-page:first-of-type { page-break-before:auto; }
+  /* Heading visual para cada tab */
+  .tab-page::before {
+    content:attr(data-tab);
+    display:block;
+    font-family:'Cinzel',serif;
+    font-weight:700;
+    font-size:18pt;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    border-bottom:2px solid black;
+    margin-bottom:10pt;
+    padding-bottom:4pt;
+  }
+  /* Mostrar todos los <details> abiertos */
+  details > div, details[open] > div { display:block !important; }
+  details summary { font-weight:700; }
+  /* Inputs en print: solo valor */
+  input, select, textarea { border:0 !important; background:transparent !important; color:black !important; }
+}
 .dh-mode button.active.temp{background:var(--accent);color:white;border-color:var(--accent)}
 .dh-amount{
   width:100%;min-height:56px;text-align:center;
@@ -8259,10 +8307,19 @@ window._androidDeliverCharacter = function(){
 };
 
 function printSheet(){
-  if(isAndroid()){
-    try{ AndroidBridge.printSheet(); return; }catch(e){}
-  }
-  try{ window.print(); }catch(e){}
+  /* M-08: preparar la vista antes de imprimir
+     - Abrir todos los <details>
+     - Forzar render de todas las tabs (con CSS @media print, suficiente) */
+  try{
+    document.querySelectorAll('details').forEach(d=>d.setAttribute('open',''));
+  }catch(e){}
+  /* Esperar un tick para que el DOM esté listo */
+  setTimeout(()=>{
+    if(isAndroid()){
+      try{ AndroidBridge.printSheet(); return; }catch(e){}
+    }
+    try{ window.print(); }catch(e){}
+  }, 100);
 }
 window.printSheet = printSheet;
 

@@ -175,9 +175,19 @@ Hints actualizados con texto descriptivo PF1e por modo. Botón "cure-nonlethal" 
 
 **Resuelto**: el handler **mock** (línea 5617) que mostraba "Ficha exportada (mock)" estaba registrado en bubbling phase y aunque el handler real de D6 (`wireConfirmActions`) corría primero en capture con `stopImmediatePropagation`, podía no propagarse en algunos navegadores. Eliminado el mock por completo. Ahora `confirm-go` solo tiene el handler real de D6 que llama `exportCharacter()` (Android: `AndroidBridge.saveCharacter`; web: `<a download>`) o `importCharacter()` (Android: `AndroidBridge.showCharacterPicker` + `_androidDeliverCharacter`; web: `<input type=file>` + FileReader). El nombre del archivo (`ficha-<slug>.json`) y el tamaño aproximado en bytes se calculan dinámicamente desde `STATE.identity.nombre` en el preview del sheet de confirmación.
 
-### M-08 🟡 Imprimir: imprime la pestaña activa ("Más") en lugar de la hoja
-- `AndroidBridge.printSheet()` imprime el WebView tal como está → se ve la pestaña "Más".
-- Antes de imprimir, cambiar a una vista de impresión (tab personaje, o mejor: generar una vista all-in-one sin botones).
+### M-08 ✅ Imprimir: imprime la pestaña activa ("Más") en lugar de la hoja
+- ~~`AndroidBridge.printSheet()` imprime el WebView tal como está → se ve la pestaña "Más".~~
+- ~~Antes de imprimir, cambiar a una vista de impresión (tab personaje, o mejor: generar una vista all-in-one sin botones).~~
+
+**Resuelto**: regla `@media print` añadida que:
+- Oculta UI interactiva: topbar, bottom-nav, FAB, sheets, subtabs, botones, inputs CRUD, icon-buttons.
+- Fuerza visibilidad de TODAS las tab-pages y sub-pages (forzando `display:block !important` aunque tengan `hidden`).
+- Cards en blanco/negro con bordes finos y `page-break-inside:avoid`.
+- Salto de página entre tabs principales con heading "PERSONAJE / COMBATE / APTITUDES / EQUIPO / MÁS".
+- `<details>` se imprimen abiertos con summary en negrita.
+- `printSheet()` además abre todos los `<details>` antes de imprimir y espera 100ms para que el DOM se asiente.
+
+Ahora imprimiendo en Android (`AndroidBridge.printSheet`) o web (`window.print`) sale la ficha completa, no solo la tab activa.
 
 ### M-09 ✅ Modo master: avisos de dotes/trasfondo fuera de lugar
 - ~~Los avisos "Faltan X dotes por seleccionar" y "Trasfondo sin completar" aparecen en la sección del master cuando deberían ir en la sección del jugador (o flotantes globales).~~
