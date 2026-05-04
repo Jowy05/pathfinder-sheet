@@ -2,7 +2,7 @@
   "_meta": {
     "source": "Pathfinder Unchained (PZO1131)",
     "official_subtypes_total_aon": 26,
-    "subtypes_in_this_file": 11,
+    "subtypes_in_this_file": 12,
     "subtypes_dropped": ["Qlippoth", "Asura", "Daeva"],
     "dropped_reason": "Not present in AoN official unchained eidolon subtype list (verified via aonprd.com/EidolonUCSubtypes.aspx)",
     "skills_class_note": "All subtypes use standard eidolon class skills unless noted. Standard: Bluff, Craft, Knowledge (planes), Perception, Sense Motive, Stealth. Summoner designates 4 additional class skills at 1st level. Source: d20pfsrd classic eidolon entry (unchained uses same base list).",
@@ -440,6 +440,63 @@
     ],
     "skills_class": ["bluff", "craft", "knowledge_planes", "perception", "sense_motive", "stealth"],
     "source_url": "https://aonprd.com/EidolonUCSubtypes.aspx?ItemName=Div",
+    "source_book": "Pathfinder Unchained pg. 25"
+  },
+  "elemental": {
+    "name_es": "Elemental",
+    "name_en": "Elemental",
+    "alignment": "N",
+    "base_forms": ["biped (limbs [arms], limbs [legs], slam)", "quadruped (limbs [legs, 2], slam)", "serpentine (slam, tail, tail slap)"],
+    "languages": ["[VERIFICAR - Aquan/Auran/Ignan/Terran según elemento elegido; ver Pathfinder Unchained pg. 25]"],
+    "elemental_choice_required": true,
+    "elemental_choices_es": ["Aire", "Tierra", "Fuego", "Agua"],
+    "elemental_choices_en": ["Air", "Earth", "Fire", "Water"],
+    "features_per_hd": [
+      {
+        "hd": 1,
+        "name_es": "Vínculo elemental + Resistencia 5 (elemento elegido)",
+        "name_en": "Elemental bond + Resistance 5 (chosen element)",
+        "description_es": "Al elegir el subtipo elemental, el invocador escoge un elemento (aire, tierra, fuego o agua). El eidolon gana resistencia a la energía asociada (electricidad para aire, ácido para tierra, fuego para fuego, frío para agua) por valor de 5, y oscurovisión de 60 pies. Este elemento no puede cambiarse posteriormente.",
+        "description_en": "When choosing the elemental subtype, the summoner picks an element (air, earth, fire, or water). The eidolon gains resistance 5 to the associated energy (electricity for air, acid for earth, fire for fire, cold for water) and darkvision 60 ft. The element cannot be changed later."
+      },
+      {
+        "hd": 4,
+        "name_es": "+1 punto al pool de evolución; mejora de resistencia",
+        "name_en": "+1 evolution pool point; resistance upgrade",
+        "description_es": "[VERIFICAR contra Pathfinder Unchained pg. 25] El eidolon añade 1 punto a su pool de evolución y mejora la resistencia al elemento a 10.",
+        "description_en": "[VERIFY against Pathfinder Unchained pg. 25] The eidolon gains +1 evolution pool point and upgrades resistance to the chosen element to 10."
+      },
+      {
+        "hd": 8,
+        "name_es": "Rasgos del subtipo elemental",
+        "name_en": "Elemental subtype traits",
+        "description_es": "[VERIFICAR] El eidolon gana los rasgos típicos de las criaturas elementales: inmunidad a sangrado, golpes críticos, flanqueo, parálisis, veneno, sueño y aturdimiento.",
+        "description_en": "[VERIFY] The eidolon gains typical elemental creature traits: immunity to bleed, critical hits, flanking, paralysis, poison, sleep, and stunning."
+      },
+      {
+        "hd": 12,
+        "name_es": "Resistencia 20 al elemento; RD 5/elemento opuesto",
+        "name_en": "Resistance 20 to chosen element; DR 5/opposed element",
+        "description_es": "[VERIFICAR] La resistencia del eidolon al elemento elegido sube a 20 y gana RD 5 superable por daño del elemento opuesto.",
+        "description_en": "[VERIFY] The eidolon's resistance to the chosen element increases to 20 and it gains DR 5/opposed element."
+      },
+      {
+        "hd": 16,
+        "name_es": "Inmunidad al elemento elegido",
+        "name_en": "Immunity to chosen element",
+        "description_es": "[VERIFICAR] El eidolon pierde la resistencia al elemento elegido y gana inmunidad a esa energía.",
+        "description_en": "[VERIFY] The eidolon loses resistance to the chosen element and gains immunity to that energy type."
+      },
+      {
+        "hd": 20,
+        "name_es": "Forma elemental constante",
+        "name_en": "Constant elemental form",
+        "description_es": "[VERIFICAR] El eidolon adopta una forma vinculada permanentemente al elemento, ganando subtype apropiado y movimiento o sentidos especiales relacionados.",
+        "description_en": "[VERIFY] The eidolon takes on a form permanently tied to the element, gaining the appropriate subtype and related movement or senses."
+      }
+    ],
+    "skills_class": ["bluff", "craft", "knowledge_planes", "perception", "sense_motive", "stealth"],
+    "source_url": "https://aonprd.com/EidolonUCSubtypes.aspx?ItemName=Elemental",
     "source_book": "Pathfinder Unchained pg. 25"
   },
   "inevitable": {

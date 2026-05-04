@@ -4752,9 +4752,13 @@ function renderWeapons(){
         <div class="eq-stat"><b>${w.crit}</b>Crítico</div>
       </div>
       <div class="eq-meta" style="margin-top:6px">${w.notes||''}</div>
-      <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
-        <label style="font:600 10px 'Cinzel',serif;letter-spacing:.07em;text-transform:uppercase;color:var(--leather);white-space:nowrap">Misc. Atq</label>
-        <input type="number" inputmode="numeric" class="field-input weap-misc-inp" data-weap-id="${w.id}" value="${w.misc||0}" style="width:60px;text-align:center;padding:4px 6px" aria-label="Bono misceláneo de ataque">
+      <div style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap">
+        <label style="font:600 10px 'Cinzel',serif;letter-spacing:.07em;text-transform:uppercase;color:var(--leather);white-space:nowrap" title="Suma al ataque: Weapon Focus, Especialización, Tirador, etc.">Bono atq (dotes)</label>
+        <label style="display:flex;align-items:center;gap:4px;font:600 10px system-ui;color:var(--leather);cursor:pointer">
+          <input type="checkbox" class="weap-misc-on" data-weap-id="${w.id}" ${w.miscOn!==false?'checked':''} aria-label="Activar bono">activo
+        </label>
+        <input type="number" inputmode="numeric" class="field-input weap-misc-inp" data-weap-id="${w.id}" value="${w.misc||0}" style="width:60px;text-align:center;padding:4px 6px" aria-label="Bono de ataque por dotes" title="Suma al ataque cuando 'activo' está marcado">
+        ${(w.miscOn!==false && (w.misc||0)!==0) ? `<span style="font:700 11px system-ui;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:99px">${w.misc>0?'+':''}${w.misc}</span>` : ''}
       </div>
       <div class="weap-actions">
         ${atkBtns}
@@ -4776,6 +4780,12 @@ function renderWeapons(){
     inp.addEventListener('change',()=>{
       const wep = WEAPONS_DATA.find(x=>x.id===+inp.dataset.weapId);
       if(wep){ wep.misc = parseInt(inp.value,10)||0; if(typeof D5_refreshWeaponRolls==='function') D5_refreshWeaponRolls(); }
+    });
+  });
+  c.querySelectorAll('.weap-misc-on').forEach(chk=>{
+    chk.addEventListener('change',()=>{
+      const wep = WEAPONS_DATA.find(x=>x.id===+chk.dataset.weapId);
+      if(wep){ wep.miscOn = chk.checked; if(typeof D5_refreshWeaponRolls==='function') D5_refreshWeaponRolls(); }
     });
   });
 }
@@ -5126,11 +5136,13 @@ const COMP_DEFAULTS = {
     atks:'', extra:''
   }),
   eidolon: ()=>({
-    id:_compId(), n:'', subtipo:'', tamano:'Mediano',
+    id:_compId(), n:'', subtipo:'', elementoElemental:'', tamano:'Mediano',
     hp:'', ca:10,
     str:10, dex:10, con:13, int:7, wis:10, cha:11,
     armaduraNatural:0,
     puntosEvolUsados:0, puntosEvolTotal:0,
+    /* FCB (Favored Class Bonus) — Half-elf/Human Summoner */
+    fcbEidolonHP:0, fcbEidolonSkill:0, fcbHP:0, fcbSkill:0,
     evol:[], atks:'', extra:''
   }),
   invocadas: ()=>({
@@ -5174,16 +5186,22 @@ const COMP_FIELDS = {
   ],
   eidolon: [
     {row:[{k:'n', label:'Nombre', placeholder:'Eidolón "Khaes"'},
-          {select:{k:'subtipo', label:'Subtipo Unchained', options:['','Agatión','Ángel','Archon','Azata','Daemon','Demonio','Diablo','Div','Inevitable','Protean','Psicopompo']}}]},
-    {row:[{select:{k:'tamano', label:'Tamaño', options:['Diminuto','Pequeño','Mediano','Grande','Enorme']}},
-          {k:'armaduraNatural', label:'Armadura natural', type:'number'}]},
-    {row:[{k:'hp', label:'PG (act/máx)', placeholder:'24/24'},
+          {select:{k:'subtipo', label:'Subtipo Unchained', options:['','Agatión','Ángel','Archon','Azata','Daemon','Demonio','Diablo','Div','Elemental','Inevitable','Protean','Psicopompo']}}]},
+    {row:[{select:{k:'elementoElemental', label:'Elemento (si Elemental)', options:['','Aire','Tierra','Fuego','Agua']}},
+          {select:{k:'tamano', label:'Tamaño', options:['Diminuto','Pequeño','Mediano','Grande','Enorme']}}]},
+    {row:[{k:'armaduraNatural', label:'Armadura natural', type:'number'},
           {k:'ca', label:'CA', type:'number', placeholder:'16'}]},
+    {row:[{k:'hp', label:'PG (act/máx)', placeholder:'24/24'}]},
     {label:'Atributos', divider:true},
     {row:[{k:'str', label:'FUE', type:'number'}, {k:'dex', label:'DES', type:'number'}, {k:'con', label:'CON', type:'number'}]},
     {row:[{k:'int', label:'INT', type:'number'}, {k:'wis', label:'SAB', type:'number'}, {k:'cha', label:'CAR', type:'number'}]},
     {row:[{k:'puntosEvolUsados', label:'Puntos evol. usados', type:'number'},
           {k:'puntosEvolTotal', label:'Puntos evol. totales', type:'number'}]},
+    {label:'Class Features / Bonos clase favorecida', divider:true},
+    {row:[{k:'fcbEidolonHP', label:'Bonus Eidolon HP', type:'number'},
+          {k:'fcbEidolonSkill', label:'Bonus Eidolon Skill Rank', type:'number'}]},
+    {row:[{k:'fcbHP', label:'Bonus HP (invocador)', type:'number'},
+          {k:'fcbSkill', label:'Bonus Skill Rank (invocador)', type:'number'}]},
     {label:'Evoluciones (1 por línea)', k:'evolText', textarea:true, rows:5, special:'evol', placeholder:'Garras\nResistencia (frío)\nNadar\nBrazos extra\nInteligencia +2'},
     {label:'Ataques', k:'atks', textarea:true, rows:2, placeholder:'2 garras +5 (1d4+3)'},
     {label:'Notas adicionales', k:'extra', textarea:true, rows:2}
@@ -5319,7 +5337,7 @@ function renderComp(which='familiar', idx){
       const k = el.dataset.compField;
       if(k==='evolText'){
         d.evol = el.value.split('\n').map(s=>s.trim()).filter(Boolean);
-      } else if(['ca','str','dex','con','int','wis','cha','fort','ref','will','armaduraNatural','puntosEvolUsados','puntosEvolTotal','duracionRondas','rondaActual'].includes(k)){
+      } else if(['ca','str','dex','con','int','wis','cha','fort','ref','will','armaduraNatural','puntosEvolUsados','puntosEvolTotal','duracionRondas','rondaActual','fcbEidolonHP','fcbEidolonSkill','fcbHP','fcbSkill'].includes(k)){
         d[k] = parseInt(el.value,10)||0;
       } else {
         d[k] = el.value;
@@ -7323,7 +7341,7 @@ function D5_getIterativeAttacks(w){
   const attr = (w.style==='ranged'||w.style==='finesse') ? 'DES' : 'FUE';
   const mod = D5_getMod(attr);
   const enh  = parseInt(w.enh,10)||0;
-  const misc = parseInt(w.misc,10)||0;
+  const misc = (w.miscOn===false ? 0 : (parseInt(w.misc,10)||0));
   const extras = mod + enh + misc + sizeAtk + buffAtk;
   const fmt = n=>(n>=0?'+':'')+n;
   const attacks = [fmt(rawBab + extras)];
@@ -7405,7 +7423,7 @@ function D5_computeWeaponAttack(w){
   else if(w.style==='finesse') attr = 'DES';
   const mod  = D5_getMod(attr);
   const enh  = parseInt(w.enh,10)||0;
-  const misc = parseInt(w.misc,10)||0;
+  const misc = (w.miscOn===false ? 0 : (parseInt(w.misc,10)||0));
   return bab + mod + enh + misc + sizeAtk;
 }
 function D5_computeWeaponDamage(w){

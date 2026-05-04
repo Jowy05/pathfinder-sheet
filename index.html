@@ -1210,6 +1210,16 @@
             <option value="" data-i18n="opt.pickUcSubtype">— Selecciona —</option>
           </select>
         </div>
+        <div class="label-row" id="eid-elemental-choice-row" style="display:none;margin-bottom:6px;">
+          <span data-i18n="label.eidElementalChoice">Elemento (Elemental)</span>
+          <select id="eid-elemental-choice" class="recalc-eid">
+            <option value="">—</option>
+            <option value="aire" data-i18n="elem.air">Aire</option>
+            <option value="tierra" data-i18n="elem.earth">Tierra</option>
+            <option value="fuego" data-i18n="elem.fire">Fuego</option>
+            <option value="agua" data-i18n="elem.water">Agua</option>
+          </select>
+        </div>
         <div class="label-row" style="margin-bottom:6px;"><span data-i18n="label.eidAlign">Alineamiento</span><input type="text" id="eid-align" placeholder="LG, NE…"></div>
         <div class="label-row" style="margin-bottom:6px;"><span data-i18n="label.eidSize">Tamaño</span><select id="eid-size" class="recalc-eid"></select></div>
         <h3 style="margin-top:8px;" data-i18n="p.eidAttrs">Atributos</h3>
@@ -1241,6 +1251,18 @@
         <h3 style="margin-top:8px;" data-i18n="p.eidNotes">Notas</h3>
         <textarea id="eid-notes" rows="4" style="width:100%;font-size:11px;" placeholder="Habilidades, evolutions seleccionadas, descripción..."></textarea>
         <div id="eid-archetype-note" style="display:none;font-size:11px;background:rgba(200,160,60,0.10);padding:5px 8px;border-left:3px solid var(--leather);margin-top:6px;border-radius:2px;"></div>
+      </div>
+    </div>
+
+    <!-- CLASS FEATURES / FCB (Favored Class Bonus) -->
+    <div id="eid-class-features-section" style="margin-top:12px;padding:8px 10px;background:rgba(200,160,60,0.06);border:1px dashed var(--leather);border-radius:3px;">
+      <h3 data-i18n="p.eidClassFeatures" style="margin-bottom:6px;font-size:13px;">Class Features (Bonos de Clase Favorecida)</h3>
+      <div style="font-size:11px;color:var(--leather-lt);margin-bottom:6px;" data-i18n="eid.fcbNote">Bonos acumulados al elegir +1 PG / +1 rango habilidad como bonificación de clase favorecida en cada nivel de Convocador (Half-elf y Humano). Suma manual.</div>
+      <div class="two-col" style="gap:8px;">
+        <div class="label-row"><span data-i18n="fcb.eidHP">Bonus Eidolon Hit Point</span><input type="number" id="eid-fcb-eid-hp" min="0" value="0" placeholder="0"></div>
+        <div class="label-row"><span data-i18n="fcb.eidSkill">Bonus Eidolon Skill Rank</span><input type="number" id="eid-fcb-eid-skill" min="0" value="0" placeholder="0"></div>
+        <div class="label-row"><span data-i18n="fcb.hp">Bonus Hit Point (invocador)</span><input type="number" id="eid-fcb-hp" min="0" value="0" placeholder="0"></div>
+        <div class="label-row"><span data-i18n="fcb.skill">Bonus Skill Rank (invocador)</span><input type="number" id="eid-fcb-skill" min="0" value="0" placeholder="0"></div>
       </div>
     </div>
 
@@ -1748,7 +1770,7 @@ const I18N = {
     'wpn.2h':'2 manos','wpn.1h':'1 mano',
     'w.eqp':'Eqp.','w.name':'Nombre del Arma','ph.wpnName':'Espada larga...','w.type':'Tipo/Uso',
     'w.1m':'1M','w.2m':'2M','w.dmg':'Daño','ph.dmg':'1d8','w.crit':'Crítico','ph.crit':'19-20/x2',
-    'w.dtype':'Tipo','ph.dtype':'C/P/Co','w.magic':'Mágico','w.dmgBonus':'+Dmg',
+    'w.dtype':'Tipo','ph.dtype':'C/P/Co','w.magic':'Mágico','w.dmgBonus':'+Dmg','w.atkBonus':'+Atq','tt.atkBonusFeats':'Bono al ataque por dotes (Weapon Focus, Especialización, Tirador…)','tt.atkBonusToggle':'Activar/desactivar este bono sin perder el valor',
     // #ANCHOR:P6-I18N-ES-DAMAGE-TYPE-KEYS-V1
     'label.dtypeChips':'Tipo de daño',
     'dtype.piercing':'Perforante',
@@ -1922,7 +1944,7 @@ const I18N = {
     'fb.empty':'Sin entradas aún.','fb.delete':'Eliminar',
     'console.noArch':'archetypes.json no disponible, sin arquetipos.','console.noData':'No se pudieron cargar los archivos de datos, usando datos embebidos.',
     'opt.lvAbbr':'Nv.','fallback.className':'clase','m.copyCmd':'Copia este comando:','opt.searchPlaceholder':'Buscar…','label.compTemplate':'Plantilla','opt.pickTemplate':'— Selecciona animal —',
-    'p.eidolon':'Eidolón','label.eidName':'Nombre del Eidolón','label.eidBaseForm':'Forma Base','opt.pickBaseForm':'— Selecciona —','eid.biped':'Bípedo','eid.quadruped':'Cuadrúpedo','eid.serpentine':'Serpentino','eid.aquatic':'Acuático','eid.avian':'Aviano','eid.tauric':'Tauriforme','label.eidSubtype':'Subtipo / Linaje','label.eidAlign':'Alineamiento','label.eidSize':'Tamaño','p.eidAttrs':'Atributos','p.eidStats':'Estadísticas Calculadas','p.eidNotes':'Notas','label.skillPoints':'Puntos Hab.','label.eidNatAC':'CA Nat.','label.eidMaxAtk':'Atq. Máx','label.eidEP':'EP','ph.eidName':'Ej. Vorthag','p.eidEvolutions':'Evolutions','eid.epUsed':'PE usados','opt.allCosts':'— Coste —','opt.pickEvolution':'Selecciona una evolution…','btn.addEvolution':'Añadir Evolution','p.eidSelectedEvos':'Evolutions Seleccionadas','p.eidFreeEvos':'Evolutions Gratis (por forma base)','opt.allDcs':'— DC —','opt.tricksPackage':'Paquete','opt.pickTrick':'Selecciona un truco…','btn.addTrickFromList':'Añadir desde lista','btn.addCustomTrick':'[+] Personalizado','label.eidUcSubtype':'Subtipo Unchained','opt.pickUcSubtype':'— Selecciona —','p.eidUcFeatures':'Habilidades de Subtipo (Unchained)','eid.ucFeaturesNote':'Habilidades fijas que el eidolón gana automáticamente al alcanzar el HD correspondiente, según el subtipo elegido.',
+    'p.eidolon':'Eidolón','label.eidName':'Nombre del Eidolón','label.eidBaseForm':'Forma Base','opt.pickBaseForm':'— Selecciona —','eid.biped':'Bípedo','eid.quadruped':'Cuadrúpedo','eid.serpentine':'Serpentino','eid.aquatic':'Acuático','eid.avian':'Aviano','eid.tauric':'Tauriforme','label.eidSubtype':'Subtipo / Linaje','label.eidAlign':'Alineamiento','label.eidSize':'Tamaño','p.eidAttrs':'Atributos','p.eidStats':'Estadísticas Calculadas','p.eidNotes':'Notas','label.skillPoints':'Puntos Hab.','label.eidNatAC':'CA Nat.','label.eidMaxAtk':'Atq. Máx','label.eidEP':'EP','ph.eidName':'Ej. Vorthag','p.eidEvolutions':'Evolutions','eid.epUsed':'PE usados','opt.allCosts':'— Coste —','opt.pickEvolution':'Selecciona una evolution…','btn.addEvolution':'Añadir Evolution','p.eidSelectedEvos':'Evolutions Seleccionadas','p.eidFreeEvos':'Evolutions Gratis (por forma base)','opt.allDcs':'— DC —','opt.tricksPackage':'Paquete','opt.pickTrick':'Selecciona un truco…','btn.addTrickFromList':'Añadir desde lista','btn.addCustomTrick':'[+] Personalizado','label.eidUcSubtype':'Subtipo Unchained','opt.pickUcSubtype':'— Selecciona —','p.eidUcFeatures':'Habilidades de Subtipo (Unchained)','eid.ucFeaturesNote':'Habilidades fijas que el eidolón gana automáticamente al alcanzar el HD correspondiente, según el subtipo elegido.','label.eidElementalChoice':'Elemento (Elemental)','elem.air':'Aire','elem.earth':'Tierra','elem.fire':'Fuego','elem.water':'Agua','p.eidClassFeatures':'Class Features (Bonos de Clase Favorecida)','eid.fcbNote':'Bonos acumulados al elegir +1 PG / +1 rango habilidad como bonificación de clase favorecida en cada nivel de Convocador (Half-elf y Humano). Suma manual.','fcb.eidHP':'Bonus Eidolon Hit Point','fcb.eidSkill':'Bonus Eidolon Skill Rank','fcb.hp':'Bonus Hit Point (invocador)','fcb.skill':'Bonus Skill Rank (invocador)',
     'dmg.critX':'×CRIT','dmg.dmg':'DMG',
     'attrName.str':'Fuerza','attrName.dex':'Destreza','attrName.con':'Constitución','attrName.int':'Inteligencia','attrName.wis':'Sabiduría','attrName.cha':'Carisma',
     // P-1 · Buff Tracker
@@ -2164,7 +2186,7 @@ const I18N = {
     'wpn.2h':'2-handed','wpn.1h':'1-handed',
     'w.eqp':'Eq.','w.name':'Weapon Name','ph.wpnName':'Longsword...','w.type':'Type/Use',
     'w.1m':'1H','w.2m':'2H','w.dmg':'Damage','ph.dmg':'1d8','w.crit':'Critical','ph.crit':'19-20/x2',
-    'w.dtype':'Type','ph.dtype':'B/P/S','w.magic':'Magic','w.dmgBonus':'+Dmg',
+    'w.dtype':'Type','ph.dtype':'B/P/S','w.magic':'Magic','w.dmgBonus':'+Dmg','w.atkBonus':'+Atk','tt.atkBonusFeats':'Attack bonus from feats (Weapon Focus, Specialization, Marksman…)','tt.atkBonusToggle':'Enable/disable this bonus without losing the value',
     // #ANCHOR:P6-I18N-EN-DAMAGE-TYPE-KEYS-V1
     'label.dtypeChips':'Damage type',
     'dtype.piercing':'Piercing',
@@ -2329,7 +2351,7 @@ const I18N = {
     'fb.empty':'No entries yet.','fb.delete':'Delete',
     'console.noArch':'archetypes.json unavailable, no archetypes.','console.noData':'Could not load data files, using embedded data.',
     'opt.lvAbbr':'Lv.','fallback.className':'class','m.copyCmd':'Copy this command:','opt.searchPlaceholder':'Search…','label.compTemplate':'Template','opt.pickTemplate':'— Select animal —',
-    'p.eidolon':'Eidolon','label.eidName':'Eidolon Name','label.eidBaseForm':'Base Form','opt.pickBaseForm':'— Select —','eid.biped':'Biped','eid.quadruped':'Quadruped','eid.serpentine':'Serpentine','eid.aquatic':'Aquatic','eid.avian':'Avian','eid.tauric':'Tauric','label.eidSubtype':'Subtype / Lineage','label.eidAlign':'Alignment','label.eidSize':'Size','p.eidAttrs':'Attributes','p.eidStats':'Computed Stats','p.eidNotes':'Notes','label.skillPoints':'Skill Pts','label.eidNatAC':'Nat. AC','label.eidMaxAtk':'Max Atk','label.eidEP':'EP','ph.eidName':'e.g. Vorthag','p.eidEvolutions':'Evolutions','eid.epUsed':'EP used','opt.allCosts':'— Cost —','opt.pickEvolution':'Pick an evolution…','btn.addEvolution':'Add Evolution','p.eidSelectedEvos':'Selected Evolutions','p.eidFreeEvos':'Free Evolutions (per base form)','opt.allDcs':'— DC —','opt.tricksPackage':'Package','opt.pickTrick':'Pick a trick…','btn.addTrickFromList':'Add from list','btn.addCustomTrick':'[+] Custom','label.eidUcSubtype':'Unchained Subtype','opt.pickUcSubtype':'— Select —','p.eidUcFeatures':'Subtype Features (Unchained)','eid.ucFeaturesNote':'Fixed features the eidolon gains automatically upon reaching the matching HD, according to the chosen subtype.',
+    'p.eidolon':'Eidolon','label.eidName':'Eidolon Name','label.eidBaseForm':'Base Form','opt.pickBaseForm':'— Select —','eid.biped':'Biped','eid.quadruped':'Quadruped','eid.serpentine':'Serpentine','eid.aquatic':'Aquatic','eid.avian':'Avian','eid.tauric':'Tauric','label.eidSubtype':'Subtype / Lineage','label.eidAlign':'Alignment','label.eidSize':'Size','p.eidAttrs':'Attributes','p.eidStats':'Computed Stats','p.eidNotes':'Notes','label.skillPoints':'Skill Pts','label.eidNatAC':'Nat. AC','label.eidMaxAtk':'Max Atk','label.eidEP':'EP','ph.eidName':'e.g. Vorthag','p.eidEvolutions':'Evolutions','eid.epUsed':'EP used','opt.allCosts':'— Cost —','opt.pickEvolution':'Pick an evolution…','btn.addEvolution':'Add Evolution','p.eidSelectedEvos':'Selected Evolutions','p.eidFreeEvos':'Free Evolutions (per base form)','opt.allDcs':'— DC —','opt.tricksPackage':'Package','opt.pickTrick':'Pick a trick…','btn.addTrickFromList':'Add from list','btn.addCustomTrick':'[+] Custom','label.eidUcSubtype':'Unchained Subtype','opt.pickUcSubtype':'— Select —','p.eidUcFeatures':'Subtype Features (Unchained)','eid.ucFeaturesNote':'Fixed features the eidolon gains automatically upon reaching the matching HD, according to the chosen subtype.','label.eidElementalChoice':'Element (Elemental)','elem.air':'Air','elem.earth':'Earth','elem.fire':'Fire','elem.water':'Water','p.eidClassFeatures':'Class Features (Favored Class Bonuses)','eid.fcbNote':'Bonuses accumulated by picking +1 HP / +1 skill rank as the favored class bonus at each Summoner level (Half-elf and Human). Manual sum.','fcb.eidHP':'Bonus Eidolon Hit Point','fcb.eidSkill':'Bonus Eidolon Skill Rank','fcb.hp':'Bonus Hit Point (summoner)','fcb.skill':'Bonus Skill Rank (summoner)',
     'dmg.critX':'×CRIT','dmg.dmg':'DMG',
     'attrName.str':'Strength','attrName.dex':'Dexterity','attrName.con':'Constitution','attrName.int':'Intelligence','attrName.wis':'Wisdom','attrName.cha':'Charisma',
     // P-1 · Buff Tracker
@@ -5556,6 +5578,12 @@ function calcCombat(mods, bab, effDex, buffDeltas, encLevel = 'light') {
     const wType    = card.querySelector('.weapon-type').value || '—';
     const enhance  = parseInt(card.querySelector('.weapon-enhance').value) || 0;
     const bonusDmg = parseInt(card.querySelector('.weapon-dmg-bonus').value) || 0;
+    /* Bono atq por dotes (Weapon Focus, Especialización…) — toggleable */
+    const atkBonusInp = card.querySelector('.weapon-atk-bonus');
+    const atkBonusOnEl = card.querySelector('.weapon-atk-bonus-on');
+    const atkBonusVal = atkBonusInp ? (parseInt(atkBonusInp.value) || 0) : 0;
+    const atkBonusOn  = atkBonusOnEl ? atkBonusOnEl.checked : true;
+    const featAtk = atkBonusOn ? atkBonusVal : 0;
 
     // Selectores de Atributo Ofensivo
     let atkStat = mods.str;
@@ -5604,7 +5632,7 @@ function calcCombat(mods, bab, effDex, buffDeltas, encLevel = 'light') {
       paDmgBonus = Math.abs(paPenalty) * 2;
     }
 
-    const wAtk = bab + atkStat + sizeAtk + condAtk + (isRangedWeapon ? 0 : pronePenalty) + enhance + (buffDeltas.atk||0) + (broken ? -2 : 0) + twfPenalty + paAtkMod;
+    const wAtk = bab + atkStat + sizeAtk + condAtk + (isRangedWeapon ? 0 : pronePenalty) + enhance + (buffDeltas.atk||0) + (broken ? -2 : 0) + twfPenalty + paAtkMod + featAtk;
     const wDmg = dmgStat + enhance + bonusDmg + condDmg + (buffDeltas.dmg||0) + (broken ? -2 : 0) + paDmgBonus;
 
     const atkSeq = formatAtkProgression(wAtk, bab);
@@ -7354,6 +7382,12 @@ function addWeapon(data = {}) {
     <div class="item-field"><label>${t('w.crit')}</label><input type="text" class="weapon-crit recalc" placeholder="${t('ph.crit')}" style="width:65px;" value="${wCrit}"></div>
     <div class="item-field"><label>${t('w.dtype')}</label><input type="text" class="weapon-type recalc" placeholder="${t('ph.dtype')}" style="width:40px;" value="${wType}"></div>
     <div class="item-field"><label>${t('w.magic')}</label><input type="number" class="weapon-enhance recalc" value="0" style="width:40px;"></div>
+    <div class="item-field"><label title="${t('tt.atkBonusFeats')}">${t('w.atkBonus')}</label>
+      <div style="display:flex;align-items:center;gap:2px;">
+        <input type="checkbox" class="weapon-atk-bonus-on recalc" id="watkbon-${i}" checked title="${t('tt.atkBonusToggle')}" style="margin:0;">
+        <input type="number" class="weapon-atk-bonus recalc" value="0" style="width:40px;" title="${t('tt.atkBonusFeats')}">
+      </div>
+    </div>
     <div class="item-field"><label>${t('w.dmgBonus')}</label><input type="number" class="weapon-dmg-bonus recalc" value="0" style="width:40px;"></div>
     <div class="item-field weapon-composite-field" style="display:${selStyle==='composite'?'block':'none'};"><label title="${t('tt.strCap')}">${t('w.strCap')}</label><input type="number" class="weapon-composite-cap recalc" value="0" style="width:40px;"></div>
     <div class="item-field weapon-ammo-field" style="display:${(selStyle==='ranged'||selStyle==='composite')?'flex':'none'};flex-direction:column;">
@@ -8024,6 +8058,12 @@ function renderEidolonUcFeatures() {
   const isUnchained = getSummonerClassKey() === 'unchained_summoner';
   row.style.display = isUnchained ? 'flex' : 'none';
   const subSlug = document.getElementById('eid-uc-subtype')?.value;
+  /* Mostrar selector de elemento sólo si subtipo == elemental */
+  const elRow = document.getElementById('eid-elemental-choice-row');
+  if (elRow) {
+    const isElemental = isUnchained && subSlug === 'elemental';
+    elRow.style.display = isElemental ? 'flex' : 'none';
+  }
   if (!isUnchained || !subSlug || !DB.eidolon_subtypes?.[subSlug]) {
     section.style.display = 'none';
     cont.innerHTML = '';
