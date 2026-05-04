@@ -87,9 +87,11 @@
 - El botón "Guardar" de notas de combate no persiste el texto.
 - Conectar al sistema de persistencia (save state).
 
-### C-05 🔴 Condiciones: que afecten stats automáticamente
-- Al activar una condición (Aturdido, Asustado, Fatigado, etc.) deben aplicarse los modificadores de PF1e correspondientes a CA, ataque, salvaciones, etc.
-- Lista de modificadores por condición en `normas.md`.
+### C-05 ✅ Condiciones: que afecten stats automáticamente
+- ~~Al activar una condición (Aturdido, Asustado, Fatigado, etc.) deben aplicarse los modificadores de PF1e correspondientes a CA, ataque, salvaciones, etc.~~
+- ~~Lista de modificadores por condición en `normas.md`.~~
+
+**Resuelto**: nuevo map `CONDITION_MODS` con los modificadores parsables por condición (Asustado=−2 atq/ts, Fatigado=−2 FUE/DES, Cegado=−2 ac/atq, Sacudido=−2 atq/ts/hab, Enredado=−2 atq −4 dex, Exhausto=−6 FUE/DES, Enfermo=−2 atq/dmg/ts, Tumbado=−4 atq, Inmovilizado=−4 ac, Agarrado=−4 dex/−2 atq/cmb, Deslumbrado=−1 atq, Ensordecido=−4 init, En Pánico=−2 ts, Acobardado/Aturdido/Aturdido grave=−2 ac…). `rebuildBuffModTotals()` ahora también itera `.cond-chip.active` y suma sus mods al `_BUFF_MOD_TOTALS` (que ya consume CombatEngine para CA, ataque, saves, init, hp). Toggle de condición dispara `rebuildBuffModTotals + CombatEngine.apply` y autosave. `applyState` también recalcula tras restaurar conditions. Condiciones con efectos no parsables (Confundido = comport. aleatorio, Indefenso = DES 0, Inconsciente, Petrificado, Paralizado, Mareado, Tambaleante, Fascinado, Muriendo, Sangrando) quedan como advertencias visuales sin auto-aplicación.
 
 ---
 

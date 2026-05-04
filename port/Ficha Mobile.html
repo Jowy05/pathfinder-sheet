@@ -3307,6 +3307,10 @@ function bindCondChips(){
       c.classList.toggle('active');
       updateCondBadge();
       updateSummaryConds();
+      /* C-05: aplicar/quitar mods de la condición a stats */
+      try{ if(typeof rebuildBuffModTotals==='function') rebuildBuffModTotals(); }catch(e){}
+      try{ if(typeof CombatEngine!=='undefined' && CombatEngine.apply) CombatEngine.apply(); }catch(e){}
+      if(typeof saveStateDebounced==='function') saveStateDebounced('cond-toggle');
     });
     const start = ()=>{
       longPressed=false;
@@ -7263,11 +7267,51 @@ function parseMod(text){
   return out;
 }
 
+/* C-05: modificadores PF1e por condición activa */
+const CONDITION_MODS = {
+  'Sangrando':     '',                                /* solo HP/turno, no stat */
+  'Cegado':        '−2 ac, −2 atq',                   /* + sin DES (no parsable simple) */
+  'Confundido':    '',                                /* comport aleatorio */
+  'Acobardado':    '−2 ac',                           /* sin DES */
+  'Aturdido':      '−2 ac',                           /* sin acciones */
+  'Aturdido grave':'−2 ac',
+  'Deslumbrado':   '−1 atq',
+  'Ensordecido':   '−4 init',
+  'Muriendo':      '',
+  'Enredado':      '−2 atq, −4 dex',
+  'Exhausto':      '−6 str, −6 dex',
+  'Fascinado':     '',
+  'Fatigado':      '−2 str, −2 dex',
+  'Desprevenido':  '',                                /* sin DES */
+  'Asustado':      '−2 atq, −2 fort, −2 ref, −2 will',
+  'En Pánico':     '−2 fort, −2 ref, −2 will',
+  'Indefenso':     '',                                /* DES 0 (caso extremo) */
+  'Incapacitado':  '',
+  'Agarrado':      '−4 dex, −2 atq, −2 cmb',
+  'Mareado':       '',                                /* solo mov */
+  'Paralizado':    '',                                /* str/dex 0 caso extremo */
+  'Petrificado':   '',
+  'Inmovilizado':  '−4 ac',                           /* + sin DES */
+  'Tumbado':       '−4 atq',                          /* +4 ac vs ranged, −4 ac vs melee → simplificación: −4 atq */
+  'Sacudido':      '−2 atq, −2 fort, −2 ref, −2 will',
+  'Enfermo':       '−2 atq, −2 dmg, −2 fort, −2 ref, −2 will',
+  'Tambaleante':   '',
+  'Inconsciente':  '',
+  'Flanqueado':    '',                                /* +2 atq enemigo, no afecta a mí */
+};
+
 function rebuildBuffModTotals(){
   Object.keys(_BUFF_MOD_TOTALS).forEach(k=>_BUFF_MOD_TOTALS[k]=0);
+  /* Buffs y ajustes */
   [...(typeof BUFFS_LIST!=='undefined'?BUFFS_LIST:[]),
    ...(typeof ADJUSTS_LIST!=='undefined'?ADJUSTS_LIST:[])
   ].forEach(b=>parseMod(b.mod||'').forEach(({k,v})=>{ if(k in _BUFF_MOD_TOTALS) _BUFF_MOD_TOTALS[k]+=v; }));
+  /* C-05: condiciones activas */
+  document.querySelectorAll('.cond-chip.active').forEach(c=>{
+    const name = c.dataset.cond;
+    const mod = CONDITION_MODS[name];
+    if(mod) parseMod(mod).forEach(({k,v})=>{ if(k in _BUFF_MOD_TOTALS) _BUFF_MOD_TOTALS[k]+=v; });
+  });
 }
 
 /* ─────────────────────────────────────────────────────────────── */
@@ -7826,6 +7870,8 @@ function applyState(state){
       c.classList.toggle('active', state.conds.includes(c.dataset.cond));
     });
     try{ updateCondBadge(); updateSummaryConds(); }catch(e){}
+    /* C-05: recalcular mods de condiciones tras restaurar */
+    try{ if(typeof rebuildBuffModTotals==='function') rebuildBuffModTotals(); }catch(e){}
   }
   if(state.notes!=null){ const nb=document.getElementById('note-body'); if(nb) nb.value=state.notes; }
   if(state.photo) applyPhoto(state.photo);
