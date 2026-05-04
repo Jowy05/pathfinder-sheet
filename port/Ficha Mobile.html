@@ -4346,8 +4346,13 @@ let DB = {};
 async function loadDB() {
   const files = ['classes','archetypes','special_abilities','feats','races','skills','equipment','items','domains','bloodlines','orders','arcane_schools','oracle_mysteries','witch_patrons','sizes'];
   const res = {};
+  const failed = [];
   await Promise.all(files.map(async f => {
-    try { const r = await fetch(f+'.json'); if(r.ok) res[f] = await r.json(); } catch(e) {}
+    try {
+      const r = await fetch(f+'.json');
+      if(r.ok) res[f] = await r.json();
+      else failed.push(f+' ('+r.status+')');
+    } catch(e) { failed.push(f+' (network)'); }
   }));
   DB = {
     classes:          res.classes          || {},
@@ -4366,6 +4371,16 @@ async function loadDB() {
     witch_patrons:    res.witch_patrons     || [],
     sizes:            res.sizes             || [],
   };
+  /* P-03: telemetría de carga */
+  const counts = {
+    classes: Object.keys(DB.classes).length,
+    archetypes: Object.keys(DB.archetypes).length,
+    feats: DB.feats.length, races: DB.races.length,
+    skills: DB.skills.length, equipment: DB.equipment.length, items: DB.items.length,
+    domains: DB.domains.length, bloodlines: DB.bloodlines.length, orders: DB.orders.length
+  };
+  console.log('[loadDB]', counts, failed.length?'FALLOS: '+failed.join(', '):'OK');
+  window.__DB_STATS = {counts, failed};
 }
 
 function getClassPickerData() {
@@ -5076,6 +5091,10 @@ function bindNewSheets(){
       closeSheet(document.getElementById('sheet-class-picker'));
       toast('Clase añadida: '+n);
       _triggerClassFeaturesFor(cl);
+      /* P-03/P-04: notificar al sistema */
+      document.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'add',id:newId,name:n}}));
+      window.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'add',id:newId,name:n}}));
+      if(typeof saveStateDebounced==='function') saveStateDebounced('class-add');
     };
     fillPickerTriple(list, allData, addCls);
     if(search){ search.value=''; search.oninput=()=>{ const q=search.value.toLowerCase(); fillPickerTriple(list, allData.filter(([n,d])=>(n+d).toLowerCase().includes(q)), addCls); }; }

@@ -16,10 +16,12 @@
 - Actualmente la lista no permite escribir nombre personalizado.
 - Mantener el desplegable pero añadir opción "Personalizada…" que habilite input de texto libre.
 
-### P-03 🔴 Clases: importar catálogo completo
-- La ficha PC tiene ~60 clases y ~304 arquetipos; la mobile solo tiene las básicas de seed.
-- Usar el `classes.json` y `archetypes.json` existentes en assets para poblar el selector.
-- El arquetipo debería filtrar por clase seleccionada.
+### P-03 ✅ Clases: importar catálogo completo
+- ~~La ficha PC tiene ~60 clases y ~304 arquetipos; la mobile solo tiene las básicas de seed.~~
+- ~~Usar el `classes.json` y `archetypes.json` existentes en assets para poblar el selector.~~
+- ~~El arquetipo debería filtrar por clase seleccionada.~~
+
+**Resuelto**: ya estaba implementado vía `loadDB()` (línea ~4346) que hace fetch de los 15 JSON al arrancar y `getClassPickerData()` lista las 96 clases del JSON (con búsqueda live en `#class-search`). `getArchetypePickerData(classKey)` filtra arquetipos por `a.class === classKey || a.class_key === classKey`. **Mejoras añadidas en este commit**: telemetría de carga en `loadDB` (`window.__DB_STATS = {counts, failed}` + `console.log` con conteos). Botón "+ Añadir clase" ahora dispara `class-changed` (que faltaba) — resto del sistema se entera y recalcula todo.
 
 ### P-04 ✅ Campos auto-calculables no se actualizan
 - ~~Al cambiar clase/nivel no se recalcula: Dados de Golpe totales, DG a tirar, BAB, Tiradas de Salvación, Puntos de Habilidad disponibles, Iniciativa, etc.~~
