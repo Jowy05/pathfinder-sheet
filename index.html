@@ -5222,6 +5222,10 @@ function calcAttributes(buffDeltas = {}) {
   if(document.getElementById('cond-grappled').checked) condDex -= 4;
 
   const isParalyzed = document.getElementById('cond-paralyzed').checked;
+  /* Fix P-36/P-38: helpless y pinned tambien fuerzan DEX 0 (PF1e) */
+  const forcesDexZero = isParalyzed
+    || document.getElementById('cond-helpless').checked
+    || document.getElementById('cond-pinned').checked;
 
   const mods = {};
   ATTRS.forEach(a => {
@@ -5241,6 +5245,10 @@ function calcAttributes(buffDeltas = {}) {
     if(a==='dex') total += condDex;
 
     if (isParalyzed && (a==='str' || a==='dex')) {
+      total = 0;
+    }
+    /* Fix P-36/P-38: helpless/pinned fuerzan DEX 0 (no FUE) */
+    if (forcesDexZero && a==='dex' && !isParalyzed) {
       total = 0;
     }
 
@@ -5437,11 +5445,14 @@ function calcEncumbrance() {
 function calcEffectiveDex(dexMod, maxDex) {
   let eff = Math.min(dexMod, maxDex);
   
-  const losesDex = document.getElementById('cond-blinded').checked || 
+  const losesDex = document.getElementById('cond-blinded').checked ||
                    document.getElementById('cond-cowering').checked ||
                    document.getElementById('cond-stunned').checked ||
                    document.getElementById('cond-unconscious').checked ||
-                   document.getElementById('cond-paralyzed').checked;
+                   document.getElementById('cond-paralyzed').checked ||
+                   /* Fix P-36/P-38 */
+                   document.getElementById('cond-helpless').checked ||
+                   document.getElementById('cond-pinned').checked;
                    
   if (losesDex) {
       eff = Math.min(0, eff);
@@ -5466,6 +5477,11 @@ function calcDefense(mods, effDex, acpTotal, spellFailure) {
   if(document.getElementById('cond-cowering').checked)    condAC -= 2;
   if(document.getElementById('cond-stunned').checked)     condAC -= 2;
   if(document.getElementById('cond-unconscious').checked) condAC -= 2;
+  /* Fix P-38: pinned aplica -4 CA adicional (PF1e) */
+  if(document.getElementById('cond-pinned').checked)      condAC -= 4;
+  /* Fix P-39: flat-footed aplica -2 a CA Toque/CA Total (proxy: pierde dodge ya manejado por effDexFlat) */
+  /* helpless: el +4 al atacante se cubre con coup-de-grace, aqui aplicamos -2 CA defensiva como atajo PF1e */
+  if(document.getElementById('cond-helpless').checked)    condAC -= 4;
   // Tumbado: -4 CA contra CaC, +4 CA contra distancia
   const isProne = document.getElementById('cond-prone').checked;
   if(isProne) condAC -= 4;
@@ -5476,6 +5492,12 @@ function calcDefense(mods, effDex, acpTotal, spellFailure) {
   let acTotal = 10 + armorACBonus + shieldACBonus + effDex + sizeMod + natArmor + deflect + dodge + condAC;
   const acTouch = 10 + effDex + sizeMod + deflect + dodge + condAC;
   const acFlat  = 10 + armorACBonus + shieldACBonus + effDexFlat + sizeMod + natArmor + deflect + condAC;
+
+  /* Fix P-39: si flat-footed esta marcado, la CA Total efectiva es la flat-footed */
+  const isFlatFooted = document.getElementById('cond-flat-footed')?.checked;
+  if (isFlatFooted) {
+    acTotal = acFlat;
+  }
 
   sv('ac-total', acTotal);
   sv('ac-touch', acTouch);
