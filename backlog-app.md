@@ -93,9 +93,11 @@ Hints actualizados con texto descriptivo PF1e por modo. Botón "cure-nonlethal" 
 
 **Resuelto**: el botón "Reposo" de la HP card abre `sheet-rest` con preview en vivo. Fórmula PF1e: `cura = max(1, (nivel_total + CON_mod) × multiplicador)`, daño no letal cura el doble. Multiplicadores por calidad: Mala ×0.5, Normal ×1, Buena ×1.5, Excelente ×2. Antes el botón curaba todo a tope (irreal). Aplicar también dispara `rest-long` event para que conjuros y aptitudes auto se reseteen (handler ya existente en D4). Toast con resumen.
 
-### C-04 🟡 Notas de combate: no se guardan
-- El botón "Guardar" de notas de combate no persiste el texto.
-- Conectar al sistema de persistencia (save state).
+### C-04 ✅ Notas de combate: no se guardan
+- ~~El botón "Guardar" de notas de combate no persiste el texto.~~
+- ~~Conectar al sistema de persistencia (save state).~~
+
+**Resuelto**: nuevo array `window.COMBAT_NOTES = [{t,body,at}]` con render `renderCombatNotesList()` debajo del formulario. Botón "💾 Guardar nota" ahora añade entrada (con timestamp) y limpia inputs. Cada nota tiene botón × para borrar individualmente. Persistencia en `STATE.combatNotes` con autosave + restauración en applyState. Las notas guardadas se muestran ordenadas (más recientes primero) con título, fecha (formato ES corto) y cuerpo.
 
 ### C-05 ✅ Condiciones: que afecten stats automáticamente
 - ~~Al activar una condición (Aturdido, Asustado, Fatigado, etc.) deben aplicarse los modificadores de PF1e correspondientes a CA, ataque, salvaciones, etc.~~

@@ -2056,11 +2056,12 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
 
       <div class="card">
         <h3 class="card-title"><span class="ornament">❦</span><span>Notas de combate</span><span class="ornament">❦</span></h3>
-        <div class="field"><label class="field-label">Título</label><input class="field-input" placeholder="Encuentro actual…"></div>
+        <div class="field"><label class="field-label">Título</label><input class="field-input" id="combat-note-title" placeholder="Encuentro actual…"></div>
         <div class="field"><label class="field-label">Tácticas</label>
-          <textarea class="field-input" placeholder="Tácticas, condiciones del encuentro, iniciativas, objetivos…"></textarea>
+          <textarea class="field-input" id="combat-note-body" placeholder="Tácticas, condiciones del encuentro, iniciativas, objetivos…"></textarea>
         </div>
-        <button class="btn-primary" style="width:100%;margin-top:6px">💾 Guardar nota</button>
+        <button class="btn-primary" id="btn-save-combat-note" style="width:100%;margin-top:6px">💾 Guardar nota</button>
+        <div id="combat-notes-list" style="margin-top:10px"></div>
       </div>
     </div>
 
@@ -5749,11 +5750,19 @@ function bindFormSheets(){
       renderConds();
     });
   });
-  // Save combat note (botón existente)
-  document.querySelectorAll('button.btn-primary').forEach(b=>{
-    if(b.textContent.trim().startsWith('💾')){
-      b.addEventListener('click',()=>toast('Nota de combate guardada'));
-    }
+  /* C-04: Save combat note real */
+  const cnBtn = document.getElementById('btn-save-combat-note');
+  if(cnBtn) cnBtn.addEventListener('click',()=>{
+    const t = (document.getElementById('combat-note-title')||{}).value || '';
+    const b = (document.getElementById('combat-note-body')||{}).value || '';
+    if(!t.trim() && !b.trim()){ if(typeof toast==='function') toast('Vacío'); return; }
+    if(typeof COMBAT_NOTES === 'undefined') window.COMBAT_NOTES = [];
+    COMBAT_NOTES.push({t:t.trim()||'(sin título)', body:b.trim(), at:Date.now()});
+    document.getElementById('combat-note-title').value='';
+    document.getElementById('combat-note-body').value='';
+    renderCombatNotesList();
+    if(typeof toast==='function') toast('Nota guardada');
+    if(typeof saveStateDebounced==='function') saveStateDebounced('combat-note');
   });
   // Sync inputs PG temp / no letales con overlays visuales
   const pgTempInput = document.getElementById('pg-temp');
@@ -7857,6 +7866,8 @@ function snapshotState(){
       next: parseInt(__v('xp-next'),10) || 0,
       track: __v('xp-track') || 'medium',
     };
+    /* C-04: notas de combate */
+    s.combatNotes = (typeof COMBAT_NOTES!=='undefined') ? COMBAT_NOTES.map(n=>({...n})) : [];
     /* P-06: idiomas marcados (estándar + exóticos + custom) */
     s.langs = {
       std: [...document.querySelectorAll('#lang-list-std label[data-lang]')]
@@ -8002,6 +8013,11 @@ function applyState(state){
       const setVal = (id,v)=>{ const el=document.getElementById(id); if(el && v!=null) el.value = v; };
       setVal('m-init-misc', state.combatMisc.initMisc);
       setVal('base-speed', state.combatMisc.baseSpeed);
+    }
+    /* C-04: notas de combate */
+    if(Array.isArray(state.combatNotes)){
+      window.COMBAT_NOTES = state.combatNotes.slice();
+      try{ if(typeof renderCombatNotesList==='function') renderCombatNotesList(); }catch(e){}
     }
     /* P-05: XP */
     if(state.xp){
@@ -8409,6 +8425,33 @@ function wireRollAllHd(){
   });
 }
 
+/* C-04: Notas de combate persistentes */
+window.COMBAT_NOTES = window.COMBAT_NOTES || [];
+function renderCombatNotesList(){
+  const c = document.getElementById('combat-notes-list');
+  if(!c) return;
+  if(!COMBAT_NOTES.length){ c.innerHTML = '<div style="font:12px/1.4 system-ui;color:var(--ink-muted);text-align:center;padding:8px">Sin notas guardadas.</div>'; return; }
+  c.innerHTML = '<div style="font:600 11px/1 system-ui;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:6px">Guardadas ('+COMBAT_NOTES.length+')</div>'+
+    COMBAT_NOTES.slice().reverse().map((n,idx)=>{
+      const realIdx = COMBAT_NOTES.length-1-idx;
+      const date = new Date(n.at||Date.now()).toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+      return `<div style="background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:6px;position:relative">
+        <button data-cn-del="${realIdx}" style="position:absolute;top:4px;right:4px;background:transparent;border:0;color:var(--negative);cursor:pointer;font:700 14px system-ui">×</button>
+        <div style="font:600 12px 'Cinzel',serif;color:var(--leather)">${n.t||'(sin título)'}</div>
+        <div style="font:11px system-ui;color:var(--ink-muted);margin-bottom:4px">${date}</div>
+        <div style="font:13px/1.4 'EB Garamond',serif;white-space:pre-wrap;color:var(--ink)">${(n.body||'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}</div>
+      </div>`;
+    }).join('');
+  c.querySelectorAll('[data-cn-del]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const i = +b.dataset.cnDel;
+      COMBAT_NOTES.splice(i,1);
+      renderCombatNotesList();
+      if(typeof saveStateDebounced==='function') saveStateDebounced('combat-note-del');
+    });
+  });
+}
+
 /* C-03: Reposo PF1e — sheet de descanso con calidad y fórmula nivel+CON */
 let _REST_QUALITY = 'normal';
 function _restMultiplier(q){ return ({bad:0.5, normal:1, good:1.5, excellent:2})[q] || 1; }
@@ -8779,6 +8822,8 @@ function init6(){
   }catch(e){}
   /* P-07: render inicial de rasgos de clase */
   try{ if(typeof renderClassTraitsCard==='function') renderClassTraitsCard(); }catch(e){}
+  /* C-04: render inicial de notas de combate */
+  try{ if(typeof renderCombatNotesList==='function') renderCombatNotesList(); }catch(e){}
 
   try{ if(isAndroid()) window._androidDeliverCharacter(); }catch(e){}
 }
