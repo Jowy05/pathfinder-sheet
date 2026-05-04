@@ -2483,13 +2483,21 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
   <div class="sheet-header"><div class="sheet-title">Ajustes</div><button class="sheet-close" data-close>✕</button></div>
   <div class="sheet-content">
     <div class="field"><label class="field-label">Idioma por defecto</label>
-      <select class="field-select"><option>Español</option><option>English</option></select></div>
+      <select class="field-select" id="settings-lang"><option value="es">Español</option><option value="en">English</option></select></div>
     <div class="field"><label class="field-label">Tema por defecto</label>
-      <select class="field-select"><option>Pergamino</option><option>Oscuro</option></select></div>
+      <select class="field-select" id="settings-theme"></select>
+      <div style="font:11px/1.4 system-ui;color:var(--ink-muted);margin-top:4px">Lista completa también en el icono 🎨 de la barra superior.</div>
+    </div>
     <div class="field"><label class="field-label">Tamaño de fuente</label>
-      <select class="field-select"><option>Pequeño</option><option selected>Normal</option><option>Grande</option></select></div>
+      <select class="field-select" id="settings-fontsize">
+        <option value="small">Pequeño</option>
+        <option value="normal" selected>Normal</option>
+        <option value="large">Grande</option>
+        <option value="xlarge">Extra grande</option>
+      </select>
+    </div>
     <label style="display:flex;align-items:center;gap:10px;margin:10px 0">
-      <input type="checkbox"> <span>Modo daltónico</span>
+      <input type="checkbox" id="settings-daltonic"> <span>Modo daltónico (alto contraste, texto en negrita, sin rojos críticos)</span>
     </label>
     <button class="btn-secondary" data-toast="datos-limpios" style="width:100%;margin-top:8px">Limpiar todos los datos</button>
     <div style="text-align:center;margin-top:12px;color:var(--ink-muted);font:11px system-ui">Versión 1.0 · build 2024.11</div>
@@ -8518,6 +8526,94 @@ function wireRollAllHd(){
   });
 }
 
+/* M-06: Settings persistentes (idioma/tema/tamaño fuente/daltónico) */
+const SETTINGS_KEY = 'ficha-mobile-settings';
+function loadSettings(){
+  try{
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if(raw){
+      const s = JSON.parse(raw);
+      return Object.assign({lang:'es', theme:null, fontSize:'normal', daltonic:false}, s);
+    }
+  }catch(e){}
+  return {lang:'es', theme:null, fontSize:'normal', daltonic:false};
+}
+function saveSettings(s){
+  try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }catch(e){}
+}
+function applyFontSize(size){
+  const px = ({small:14, normal:16, large:18, xlarge:20})[size] || 16;
+  document.documentElement.style.fontSize = px+'px';
+  document.body.style.fontSize = '';
+}
+function applyDaltonic(on){
+  document.body.classList.toggle('daltonic-mode', !!on);
+  let st = document.getElementById('css-daltonic');
+  if(on){
+    if(!st){
+      st = document.createElement('style');
+      st.id = 'css-daltonic';
+      st.textContent = `
+        body.daltonic-mode{ font-weight:600 !important; }
+        body.daltonic-mode :root{ --accent:#0066cc; --negative:#aa0000; --positive:#0a6b00; }
+        body.daltonic-mode *{ text-shadow:none !important; }
+        body.daltonic-mode .stat-tile-value, body.daltonic-mode .save-row .total{ font-weight:900 !important; }
+        body.daltonic-mode .cond-chip.active{ outline:3px dashed var(--accent); outline-offset:-3px; }
+      `;
+      document.head.appendChild(st);
+    }
+  }
+}
+function populateThemeDropdown(){
+  const sel = document.getElementById('settings-theme');
+  if(!sel) return;
+  /* Opciones reflejan los temas reales del sistema (mismo set que el icono pincel) */
+  const themes = (typeof THEMES!=='undefined' && THEMES.length)
+    ? THEMES.map(t=>({value:t.id, label:t.n||t.id}))
+    : [{value:'pergamino',label:'Pergamino'},{value:'oscuro',label:'Oscuro'}];
+  sel.innerHTML = themes.map(t=>`<option value="${t.value}">${t.label}</option>`).join('');
+}
+function wireSettingsControls(){
+  populateThemeDropdown();
+  const cur = loadSettings();
+  /* Setear inputs */
+  const langSel = document.getElementById('settings-lang');
+  const themeSel = document.getElementById('settings-theme');
+  const fsSel = document.getElementById('settings-fontsize');
+  const dalChk = document.getElementById('settings-daltonic');
+  if(langSel) langSel.value = cur.lang || 'es';
+  if(themeSel) themeSel.value = cur.theme || (document.documentElement.dataset.theme||'pergamino');
+  if(fsSel)   fsSel.value = cur.fontSize || 'normal';
+  if(dalChk)  dalChk.checked = !!cur.daltonic;
+  /* Aplicar settings actuales */
+  applyFontSize(cur.fontSize||'normal');
+  applyDaltonic(!!cur.daltonic);
+  /* Listeners */
+  langSel && langSel.addEventListener('change',()=>{
+    cur.lang = langSel.value;
+    saveSettings(cur);
+    if(typeof applyLang==='function') applyLang(cur.lang);
+  });
+  themeSel && themeSel.addEventListener('change',()=>{
+    cur.theme = themeSel.value;
+    saveSettings(cur);
+    document.documentElement.dataset.theme = cur.theme;
+    try{localStorage.setItem('ficha-theme', cur.theme);}catch(e){}
+    try{ if(typeof applyDarkClass==='function') applyDarkClass(); }catch(e){}
+    try{ if(typeof renderThemes==='function') renderThemes(); }catch(e){}
+  });
+  fsSel && fsSel.addEventListener('change',()=>{
+    cur.fontSize = fsSel.value;
+    saveSettings(cur);
+    applyFontSize(cur.fontSize);
+  });
+  dalChk && dalChk.addEventListener('change',()=>{
+    cur.daltonic = dalChk.checked;
+    saveSettings(cur);
+    applyDaltonic(cur.daltonic);
+  });
+}
+
 /* M-09: Avisos del personaje (validaciones dinámicas) */
 function computeWarnings(){
   const warnings = [];
@@ -8983,6 +9079,7 @@ function init6(){
   wireCAAutoFill();
   wireXPInputs();
   wireRestPF1e();
+  wireSettingsControls();
 
   const stored = loadStoredState();
   if(stored){

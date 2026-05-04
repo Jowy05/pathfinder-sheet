@@ -157,10 +157,16 @@ Hints actualizados con texto descriptivo PF1e por modo. Botón "cure-nonlethal" 
 
 **Resuelto**: cards de notas ahora son tap-able. El cuerpo se trunca a 100 caracteres en la preview con "…" y nota "Tap para leer/editar completa". Al hacer tap, carga título y body al editor superior, marca el botón Save como "💾 Sobreescribir nota" y `dataset.editingIdx`. Save sobreescribe la nota en su posición original (mantiene el orden) en vez de añadir una nueva. Botón × por nota para borrar individual con `stopPropagation` para no abrir la nota. Counter de cantidad en la cabecera. Autosave en delete + sobreescritura.
 
-### M-06 🟡 Ajustes: temas incompletos y no persisten
-- Solo aparecen 2 temas en la lista (deberían ser más: pergamino claro, pergamino oscuro, cyberpunk, etc.).
-- Al volver a abrir el menú, la configuración vuelve al valor por defecto (no persiste).
-- El modo daltónico no aplica cambios visuales.
+### M-06 ✅ Ajustes: temas incompletos y no persisten
+- ~~Solo aparecen 2 temas en la lista (deberían ser más: pergamino claro, pergamino oscuro, cyberpunk, etc.).~~
+- ~~Al volver a abrir el menú, la configuración vuelve al valor por defecto (no persiste).~~
+- ~~El modo daltónico no aplica cambios visuales.~~
+
+**Resuelto**:
+- **Tema**: el dropdown ahora se rellena dinámicamente desde `THEMES[]` (los 13 temas registrados, mismos del icono pincel) en vez de hardcoded "Pergamino/Oscuro". Cambiar tema desde Ajustes lo aplica inmediatamente y persiste en `ficha-theme`.
+- **Persistencia**: nueva clave `ficha-mobile-settings` con `{lang, theme, fontSize, daltonic}`. Al abrir el sheet de Ajustes los inputs reflejan los valores guardados.
+- **Tamaño de fuente**: 4 niveles (Pequeño 14px / Normal 16px / Grande 18px / Extra grande 20px). Aplica a `:root` con re-flow automático.
+- **Modo daltónico**: ahora SÍ aplica visualmente. Inyecta CSS que (a) pone fuente en negrita, (b) cambia accent a azul + negative a rojo oscuro + positive a verde oscuro (más contrastes para deutaranopia/protanopia), (c) elimina text-shadows que confunden, (d) condiciones activas ganan outline dashed para contraste visual.
 
 ### M-07 ✅ Exportar / Importar no funcionan
 - ~~El botón "Guardar" / exportar no genera ni descarga el JSON del personaje.~~
