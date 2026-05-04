@@ -1546,7 +1546,7 @@
 </div>
 
 </div>
-<script src="fallback-data.js"></script>
+<script src="fallback-data.js?v=20260504-elem"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════
    PATHFINDER 1e CHARACTER SHEET ENGINE
@@ -2934,7 +2934,7 @@ async function init() {
     }
     // Eidolon Unchained subtypes non-fatal
     try {
-      const eidolon_subtypes = await fetch('./eidolon_subtypes.json').then(r => { if(!r.ok) throw new Error(r.status); return r.json(); });
+      const eidolon_subtypes = await fetch('./eidolon_subtypes.json?v=20260504-elem').then(r => { if(!r.ok) throw new Error(r.status); return r.json(); });
       DB.eidolon_subtypes = eidolon_subtypes;
     } catch(e) {
       console.warn('eidolon_subtypes.json no disponible.', e);
