@@ -86,10 +86,12 @@ Hints actualizados con texto descriptivo PF1e por modo. Botón "cure-nonlethal" 
 
 **Resuelto**: nueva función `recomputeCAAuto()` rellena los 4 inputs auto-calculables (`armor`, `shield`, `dex`, `size`) cada vez que se emite `armor-equipped`, `armor-removed`, `attr-changed`, `size-changed` o `class-changed`. Suma `ac_bonus` de armaduras body equipadas, idem para escudos, capa DES_mod por el menor `max_dex` de las armaduras, y aplica `SIZE_AC_MOD` por tamaño. CombatEngine recalcula CA Total/Toque/Desp con los nuevos componentes. Los campos auto-rellenados se marcan visualmente con borde dashed + fondo distinto + `data-auto-filled="1"` (el usuario puede editarlos pero el siguiente evento sobreescribirá). Los slots `nat`, `deflect`, `dodge` se dejan al usuario (son misceláneos no derivables).
 
-### C-03 🟡 Botón de reposo: cálculo correcto PF1e
-- En PF1e un descanso largo NO cura todos los HP.
-- Fórmula: curar `NivelPersonaje` HP + modificador CON (mínimo 1 HP) por noche de descanso completo.
-- Añadir pregunta sobre calidad del descanso/comida: Buena (normal), Mala (solo la mitad), Excelente (doble).
+### C-03 ✅ Botón de reposo: cálculo correcto PF1e
+- ~~En PF1e un descanso largo NO cura todos los HP.~~
+- ~~Fórmula: curar `NivelPersonaje` HP + modificador CON (mínimo 1 HP) por noche de descanso completo.~~
+- ~~Añadir pregunta sobre calidad del descanso/comida: Buena (normal), Mala (solo la mitad), Excelente (doble).~~
+
+**Resuelto**: el botón "Reposo" de la HP card abre `sheet-rest` con preview en vivo. Fórmula PF1e: `cura = max(1, (nivel_total + CON_mod) × multiplicador)`, daño no letal cura el doble. Multiplicadores por calidad: Mala ×0.5, Normal ×1, Buena ×1.5, Excelente ×2. Antes el botón curaba todo a tope (irreal). Aplicar también dispara `rest-long` event para que conjuros y aptitudes auto se reseteen (handler ya existente en D4). Toast con resumen.
 
 ### C-04 🟡 Notas de combate: no se guardan
 - El botón "Guardar" de notas de combate no persiste el texto.

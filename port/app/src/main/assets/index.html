@@ -2003,7 +2003,7 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
           <button class="hp-btn" data-hp="-5">−5</button>
           <button class="hp-btn" data-hp="1">+1</button>
           <button class="hp-btn" data-hp="5">+5</button>
-          <button class="hp-btn rest" data-hp="rest" data-i18n="btnReposo">Reposo</button>
+          <button class="hp-btn rest" id="btn-rest-pf1e" data-i18n="btnReposo">Reposo</button>
         </div>
         <button class="btn-secondary" id="hp-edit" style="width:100%;margin-top:8px;min-height:40px">⚕ Daño / Curación específica</button>
       </div>
@@ -2631,6 +2631,34 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
 </dialog>
 
 <!-- ─── DAÑO / CURACIÓN ESPECÍFICA ─── -->
+<!-- C-03: sheet de Reposo PF1e -->
+<dialog class="bottom-sheet" id="sheet-rest" aria-label="Descansar">
+  <div class="drag-handle"></div>
+  <div class="sheet-header"><div class="sheet-title">Descansar</div><button class="sheet-close" data-close>✕</button></div>
+  <div class="sheet-content">
+    <p style="margin:0 0 10px;font:14px/1.5 'EB Garamond',serif;color:var(--ink-muted)">
+      En PF1e, una noche de descanso completo (8 h) cura <b>nivel + CON_mod (mín 1) HP</b> y <b>el doble en daño no letal</b>. Slots de conjuros y aptitudes diarias se restauran.
+    </p>
+    <div style="font:600 12px/1 system-ui;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-muted);margin:8px 0 6px">Calidad del descanso</div>
+    <div class="dh-mode" id="rest-quality" style="flex-wrap:wrap;margin-bottom:10px">
+      <button data-rq="bad">Mala (×½)</button>
+      <button class="active heal" data-rq="normal">Normal</button>
+      <button data-rq="good">Buena (×1.5)</button>
+      <button data-rq="excellent">Excelente (×2)</button>
+    </div>
+    <div id="rest-preview" style="background:var(--surface-2);padding:10px;border-radius:8px;font:13px/1.5 'EB Garamond',serif;margin-bottom:10px">
+      Calculando…
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="btn-secondary" data-close>Cancelar</button>
+      <button class="btn-primary" id="btn-rest-apply">🌙 Descansar 8h</button>
+    </div>
+    <div style="margin-top:10px;font:11px/1.4 system-ui;color:var(--ink-muted);text-align:center">
+      Ojo: el reset de slots de conjuros y aptitudes auto se hace por separado en <b>Aptitudes &gt; Conjuros &gt; Descansar 8h</b>.
+    </div>
+  </div>
+</dialog>
+
 <dialog class="bottom-sheet" id="sheet-hp-edit" aria-label="Daño o curación">
   <div class="drag-handle"></div>
   <div class="sheet-header"><div class="sheet-title">Daño / Curación</div><button class="sheet-close" data-close>✕</button></div>
@@ -3620,8 +3648,7 @@ function setHP(v){
 document.querySelectorAll('[data-hp]').forEach(b=>{
   b.addEventListener('click',()=>{
     const v = b.dataset.hp;
-    if(v==='rest'){ setHP(HP_MAX); hpTemp=0; hpNonlethal=0; refreshHP(); }
-    else setHP(hp + parseInt(v,10));
+    setHP(hp + parseInt(v,10));
     /* X-01: autosave HP/temp/nonlethal */
     if(typeof saveStateDebounced==='function') saveStateDebounced('hp-action');
   });
@@ -8382,6 +8409,82 @@ function wireRollAllHd(){
   });
 }
 
+/* C-03: Reposo PF1e — sheet de descanso con calidad y fórmula nivel+CON */
+let _REST_QUALITY = 'normal';
+function _restMultiplier(q){ return ({bad:0.5, normal:1, good:1.5, excellent:2})[q] || 1; }
+function _restCharLevel(){
+  let lvl = 1;
+  try{
+    if(typeof CLASSES_DATA!=='undefined') lvl = CLASSES_DATA.reduce((s,c)=>s+(+c.level||0),0) || 1;
+  }catch(e){}
+  return Math.max(1, lvl);
+}
+function _restConMod(){
+  try{
+    if(typeof window.getAttrMod==='function') return window.getAttrMod('CON')||0;
+    const a = (typeof ATTRS!=='undefined'?ATTRS:[]).find(x=>x[0]==='CON');
+    return a ? (a[3]||0) : 0;
+  }catch(e){ return 0; }
+}
+function _restPreview(){
+  const lvl = _restCharLevel();
+  const con = _restConMod();
+  const mult = _restMultiplier(_REST_QUALITY);
+  const baseHp = Math.max(1, lvl + con);
+  const healed = Math.max(1, Math.round(baseHp * mult));
+  const healedNL = Math.max(1, Math.round(baseHp * 2 * mult));
+  const el = document.getElementById('rest-preview');
+  if(!el) return;
+  const hpAfter = (typeof hp!=='undefined') ? Math.min(HP_MAX, hp + healed) : '?';
+  const nlAfter = (typeof hpNonlethal!=='undefined') ? Math.max(0, hpNonlethal - healedNL) : '?';
+  el.innerHTML = `
+    <div><b>Nivel total:</b> ${lvl} · <b>CON mod:</b> ${con>=0?'+':''}${con}</div>
+    <div style="margin-top:4px">Cura: <b>${healed} PG</b> (${baseHp} × ${mult})</div>
+    <div>Cura no letal: <b>${healedNL} PG</b></div>
+    <div style="margin-top:6px;font-size:12px;color:var(--ink-muted)">
+      PG: ${hp}/${HP_MAX} → <b>${hpAfter}/${HP_MAX}</b> · No letal: ${hpNonlethal} → <b>${nlAfter}</b>
+    </div>`;
+}
+function wireRestPF1e(){
+  const btn = document.getElementById('btn-rest-pf1e');
+  if(btn) btn.addEventListener('click', ()=>{
+    _REST_QUALITY = 'normal';
+    /* reset visual de quality buttons */
+    document.querySelectorAll('#rest-quality button').forEach(b=>{
+      b.classList.remove('active','heal');
+      if(b.dataset.rq==='normal'){ b.classList.add('active','heal'); }
+    });
+    _restPreview();
+    if(typeof openSheet==='function') openSheet('sheet-rest');
+  });
+  document.querySelectorAll('#rest-quality button').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      _REST_QUALITY = b.dataset.rq;
+      document.querySelectorAll('#rest-quality button').forEach(x=>{
+        x.classList.remove('active','heal');
+        if(x===b){ x.classList.add('active','heal'); }
+      });
+      _restPreview();
+    });
+  });
+  const apply = document.getElementById('btn-rest-apply');
+  if(apply) apply.addEventListener('click', ()=>{
+    const lvl = _restCharLevel();
+    const con = _restConMod();
+    const mult = _restMultiplier(_REST_QUALITY);
+    const baseHp = Math.max(1, lvl + con);
+    const healed = Math.max(1, Math.round(baseHp * mult));
+    const healedNL = Math.max(1, Math.round(baseHp * 2 * mult));
+    setHP(hp + healed);
+    if(typeof hpNonlethal!=='undefined'){ hpNonlethal = Math.max(0, hpNonlethal - healedNL); refreshHP(); }
+    if(typeof toast==='function') toast('Reposo: +'+healed+' PG, −'+healedNL+' no letal');
+    /* dispara rest-long para que conjuros y aptitudes auto se reseteen también */
+    document.dispatchEvent(new CustomEvent('rest-long',{detail:{quality:_REST_QUALITY}}));
+    if(typeof closeSheet==='function') closeSheet(document.getElementById('sheet-rest'));
+    if(typeof saveStateDebounced==='function') saveStateDebounced('rest');
+  });
+}
+
 /* P-07: render dinámico de "Rasgos de clase" en Personaje > Rasgos */
 function renderClassTraitsCard(){
   const titleEl = document.getElementById('rasgos-clase-title');
@@ -8660,6 +8763,7 @@ function init6(){
   wireHpMaxFromCombat();
   wireCAAutoFill();
   wireXPInputs();
+  wireRestPF1e();
 
   const stored = loadStoredState();
   if(stored){
