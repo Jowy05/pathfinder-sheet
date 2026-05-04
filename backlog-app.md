@@ -7,10 +7,19 @@
 
 ## PERSONAJE
 
-### P-01 🔴 Selector de raza con ajustes automáticos
-- Dropdown de raza que aplique automáticamente los bonos raciales (+2/−2 atributos).
-- Razas con bono libre (Humano +2 libre, semi-elfo +2 libre, semi-orco +2 libre) → popup modal para elegir a qué atributo va el bono.
-- Los rasgos raciales deben actualizarse en la sección "Rasgos" al cambiar la raza.
+### P-01 ✅ Selector de raza con ajustes automáticos
+- ~~Dropdown de raza que aplique automáticamente los bonos raciales (+2/−2 atributos).~~
+- ~~Razas con bono libre (Humano +2 libre, semi-elfo +2 libre, semi-orco +2 libre) → popup modal para elegir a qué atributo va el bono.~~
+- ~~Los rasgos raciales deben actualizarse en la sección "Rasgos" al cambiar la raza.~~
+
+**Resuelto**: nueva función `applyRaceFull(raceName)` que al elegir raza en el picker:
+1. Aplica los bonos raciales fijos vía `applyRacialBonuses` (Elfo +2DES/+2INT/−2CON, Enano +2CON/+2SAB/−2CAR, Mediano, Gnomo, Aasimar, Tiflin, Catfolk).
+2. Para Humano/Semielfo/Semiorco abre un modal `sheet-free-bonus` (creado al vuelo) con 6 botones FUE/DES/CON/INT/SAB/CAR — el usuario elige a qué atributo va el +2.
+3. Renderiza la card "Rasgos raciales" en Personaje > Rasgos con datos de `RACES_DATA_FULL` (D6): bonuses, tamaño, velocidad, idiomas iniciales, traits.
+4. Si la raza tiene tamaño definido, sincroniza el `<select>` de tamaño y dispara `size-changed`.
+5. Dispara `race-changed` y autosave.
+
+`applyState` también re-renderiza los rasgos al cargar el state guardado (sin re-disparar el modal de +2 libre).
 
 ### P-02 🟡 Campo de deidad: escritura libre + lista
 - Actualmente la lista no permite escribir nombre personalizado.

@@ -1829,14 +1829,10 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
     </div>
 
     <div class="sub-page" data-sub="rasgos" hidden>
-      <div class="card">
-        <h3 class="card-title"><span class="ornament">✦</span><span data-i18n="cardRasgosRaciales">Rasgos raciales · Humano</span><span class="ornament">✦</span></h3>
-        <ul class="inv-list">
-          <li>Bonus +1 a un atributo a elección (FUE +1 aplicado)</li>
-          <li>Dote extra a nivel 1</li>
-          <li>1 punto de habilidad extra por nivel</li>
-          <li>Tamaño Mediano · Velocidad 9 m</li>
-          <li>Idiomas: Común + cualquiera (Élfico)</li>
+      <div class="card" id="rasgos-raciales-card">
+        <h3 class="card-title"><span class="ornament">✦</span><span id="rasgos-raciales-title">Rasgos raciales · Humano</span><span class="ornament">✦</span></h3>
+        <ul class="inv-list" id="rasgos-raciales-list">
+          <li>Carga una raza desde el picker para ver sus rasgos.</li>
         </ul>
       </div>
       <div class="card">
@@ -5071,6 +5067,8 @@ function bindNewSheets(){
       document.getElementById('in-raza').value = n;
       updateCharSub();
       const s = document.getElementById('sheet-race-picker'); closeSheet(s);
+      /* P-01: aplicar ajustes raciales y rasgos automáticamente */
+      try{ applyRaceFull(n); }catch(e){ console.warn(e); }
       toast('Raza: '+n);
     });
     openSheet('sheet-race-picker');
@@ -5998,6 +5996,118 @@ function applyRacialBonuses(raceId){
   return mods;
 }
 window.applyRacialBonuses = applyRacialBonuses;
+
+/* ─── P-01: aplica raza completa (ajustes + rasgos + idioma + tamaño) ─── */
+const RACES_FREE_BONUS = new Set(['humano','semielfo','semiorco']);
+
+function _findRaceData(raceName){
+  const slug = _slugRace(raceName);
+  /* Busca en RACES_DATA_FULL primero (D6) */
+  if(typeof RACES_DATA_FULL !== 'undefined'){
+    const r = RACES_DATA_FULL.find(x => x.id===slug
+      || _slugRace(x.name?.es)===slug
+      || _slugRace(x.name?.en)===slug);
+    if(r) return r;
+  }
+  /* Fallback: tupla de RACES_DATA */
+  const r2 = (RACES_DATA||[]).find(x => _slugRace(x[0])===slug);
+  if(r2) return {id:slug, name:{es:r2[0]}, traits:[r2[1]||'']};
+  return null;
+}
+
+function renderRacialTraits(raceName){
+  const r = _findRaceData(raceName);
+  const titleEl = document.getElementById('rasgos-raciales-title');
+  const listEl = document.getElementById('rasgos-raciales-list');
+  if(!titleEl || !listEl) return;
+  if(!r){
+    titleEl.textContent = 'Rasgos raciales · ' + (raceName||'—');
+    listEl.innerHTML = '<li>Sin datos para esta raza.</li>';
+    return;
+  }
+  const lang = document.documentElement.dataset.lang || 'es';
+  const dispName = (lang==='en' ? r.name?.en : r.name?.es) || r.name?.es || raceName;
+  titleEl.textContent = 'Rasgos raciales · ' + dispName;
+  const items = [];
+  if(r.bonuses) items.push('<b>Ajustes:</b> '+r.bonuses);
+  if(r.size)    items.push('<b>Tamaño:</b> '+r.size);
+  if(r.speed)   items.push('<b>Velocidad:</b> '+r.speed+' ft');
+  if(r.langs && r.langs.length) items.push('<b>Idiomas iniciales:</b> '+r.langs.join(', '));
+  (r.traits||[]).forEach(t => items.push(t));
+  listEl.innerHTML = items.length ? items.map(t=>'<li>'+t+'</li>').join('') : '<li>—</li>';
+}
+
+function applyRaceFull(raceName){
+  /* Ajustes de atributos */
+  applyRacialBonuses(raceName);
+  /* Rasgos raciales en la sección Rasgos */
+  renderRacialTraits(raceName);
+  /* Tamaño: actualizar select si existe */
+  const r = _findRaceData(raceName);
+  if(r && r.size){
+    document.querySelectorAll('.sub-page[data-sub="fisico"] select, .sub-page[data-sub="identidad"] select').forEach(sel=>{
+      for(const o of sel.options){
+        if(o.text===r.size){ sel.value = o.value || o.text; sel.dispatchEvent(new Event('change')); break; }
+      }
+    });
+  }
+  /* Si la raza tiene +2 libre, abrir modal de elección */
+  const slug = _slugRace(raceName);
+  if(RACES_FREE_BONUS.has(slug)){
+    openFreeBonusPicker(raceName);
+  }
+  /* Notificar al sistema */
+  document.dispatchEvent(new CustomEvent('race-changed',{detail:{race:raceName}}));
+  if(typeof saveStateDebounced==='function') saveStateDebounced('race');
+}
+window.applyRaceFull = applyRaceFull;
+
+/* Modal: pide al usuario a qué atributo va el +2 libre */
+function openFreeBonusPicker(raceName){
+  let dlg = document.getElementById('sheet-free-bonus');
+  if(!dlg){
+    dlg = document.createElement('dialog');
+    dlg.className = 'bottom-sheet';
+    dlg.id = 'sheet-free-bonus';
+    dlg.innerHTML = `
+      <div class="drag-handle"></div>
+      <div class="sheet-header"><div class="sheet-title">+2 racial libre</div><button class="sheet-close" data-close>✕</button></div>
+      <div class="sheet-content">
+        <p style="margin:0 0 12px;font:14px/1.4 'EB Garamond',serif;color:var(--ink-muted)" id="free-bonus-msg">Elige a qué atributo aplicar el +2 racial.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          ${['FUE','DES','CON','INT','SAB','CAR'].map(a=>`<button class="btn-secondary" data-free-attr="${a}" style="padding:14px 8px;font-size:16px;font-family:'Cinzel',serif;font-weight:700">${a}</button>`).join('')}
+        </div>
+      </div>`;
+    document.body.appendChild(dlg);
+    dlg.addEventListener('click',e=>{
+      if(e.target.matches('[data-close]')) try{ dlg.close(); }catch(_){ dlg.removeAttribute('open'); }
+    });
+    dlg.querySelectorAll('[data-free-attr]').forEach(b=>{
+      b.addEventListener('click',()=>{
+        const attr = b.dataset.freeAttr;
+        if(typeof ATTR_STATE !== 'undefined' && ATTR_STATE[attr]){
+          ATTR_STATE[attr].racial = (ATTR_STATE[attr].racial||0) + 2;
+          if(typeof persistAttrState==='function') persistAttrState();
+          /* repinta input visible */
+          const grid = document.getElementById('attr-grid');
+          if(grid){
+            const inp = grid.querySelector('.attr-card[data-attr="'+attr+'"] input[data-mod="racial"]');
+            if(inp) inp.value = ATTR_STATE[attr].racial;
+            const card = grid.querySelector('.attr-card[data-attr="'+attr+'"]');
+            if(card && typeof recalcAttrCard==='function') recalcAttrCard(card);
+          }
+          if(typeof toast==='function') toast('+2 '+attr+' aplicado');
+        }
+        try{ dlg.close(); }catch(_){ dlg.removeAttribute('open'); }
+      });
+    });
+  }
+  document.getElementById('free-bonus-msg').textContent =
+    'Tu raza ('+raceName+') concede +2 a un atributo a tu elección. Selecciónalo:';
+  if(typeof dlg.showModal==='function'){ try{ dlg.showModal(); }catch(_){ dlg.setAttribute('open',''); } }
+  else dlg.setAttribute('open','');
+}
+window.openFreeBonusPicker = openFreeBonusPicker;
 
 /* ─── HABILIDADES: counter ─── */
 const ORIG_renderSkills = renderSkills;
@@ -7615,6 +7725,8 @@ function applyState(state){
     setVal('in-historia', state.identity.historia);
     setVal('in-personalidad', state.identity.personalidad);
     setVal('in-ideales', state.identity.ideales);
+    /* P-01: re-render rasgos raciales sin re-disparar el modal de +2 libre */
+    try{ if(typeof renderRacialTraits==='function' && state.identity.raza) renderRacialTraits(state.identity.raza); }catch(e){}
   }
   try{ updateTopbar(); }catch(e){}
   if(state.theme){ document.documentElement.dataset.theme = state.theme; try{applyDarkClass();}catch(e){} }
@@ -8230,6 +8342,11 @@ function init6(){
     document.dispatchEvent(new CustomEvent('state-loaded',{detail:window.STATE}));
   }
   try{ updateTopbar(); }catch(e){}
+  /* P-01: render inicial de rasgos raciales con la raza visible */
+  try{
+    const raza = (document.getElementById('in-raza')||{}).value || 'Humano';
+    if(typeof renderRacialTraits==='function') renderRacialTraits(raza);
+  }catch(e){}
 
   try{ if(isAndroid()) window._androidDeliverCharacter(); }catch(e){}
 }
