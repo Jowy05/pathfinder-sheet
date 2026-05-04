@@ -184,8 +184,10 @@ Hints actualizados con texto descriptivo PF1e por modo. Botón "cure-nonlethal" 
 - La sección de combate no tiene tracker de buffs activos con countdown de rounds.
 - Añadir lista de buffs con duración en rounds y botón "avanzar round" que los decremente.
 
-### M-12 🔵 Tracker iniciativa: botón ordenar por iniciativa
-- Botón para ordenar automáticamente los combatientes de mayor a menor iniciativa.
+### M-12 ✅ Tracker iniciativa: botón ordenar por iniciativa
+- ~~Botón para ordenar automáticamente los combatientes de mayor a menor iniciativa.~~
+
+**Resuelto**: nuevo botón `#init-sort` "⇅ Ordenar por iniciativa" en sheet-master que reordena `INIT_LIST` por valor descendente. Toast de feedback + autosave.
 
 ### M-13 ✅ Foto del personaje no funciona
 - ~~Botón "Cambiar foto" no abre el selector de imagen.~~

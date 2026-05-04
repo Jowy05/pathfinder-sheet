@@ -2532,6 +2532,7 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
       <button class="btn-secondary" id="init-add" style="padding:8px 12px">＋</button>
     </div>
     <button class="btn-secondary" id="init-add-pc" style="width:100%;margin-bottom:6px">⚔ Añadir PJ (init auto)</button>
+    <button class="btn-secondary" id="init-sort" style="width:100%;margin-bottom:6px">⇅ Ordenar por iniciativa</button>
     <button class="btn-primary" id="init-next" style="width:100%">▶ Siguiente turno</button>
     <div class="over-sep" style="margin:14px 0 8px"></div>
     <h4 style="font-family:'Cinzel',serif;letter-spacing:.06em;text-transform:uppercase;font-size:12px;color:var(--leather);margin:0 0 6px">Avisos de completitud</h4>
@@ -5324,6 +5325,16 @@ function bindNewSheets(){
     INIT_LIST.length = 0;
     INIT_ROUND = 1;
     renderInit();
+  });
+  /* M-12: ordenar combatientes por iniciativa descendente */
+  const initSort = document.getElementById('init-sort');
+  if(initSort) initSort.addEventListener('click',()=>{
+    if(!INIT_LIST.length) return;
+    INIT_LIST.sort((a,b)=>(+b.v||0)-(+a.v||0));
+    /* mantener el active en su posición tras orden */
+    renderInit();
+    if(typeof toast==='function') toast('Ordenado por iniciativa');
+    if(typeof saveStateDebounced==='function') saveStateDebounced('init-sort');
   });
   // weapon/armor add (stubs that add a placeholder card)
   const weapAdd = document.getElementById('weap-add');
