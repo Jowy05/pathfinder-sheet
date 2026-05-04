@@ -76,10 +76,12 @@
 
 ## APTITUDES
 
-### A-01 🔴 Campos de habilidades incompletos
-- Cada habilidad debería mostrar: Rangos + Mod. atributo + Clase (+3 si clase) + Misc = Total.
-- Actualmente solo hay el campo de rangos; el total no se recalcula.
-- Ver ficha PC para referencia de todos los campos.
+### A-01 ✅ Campos de habilidades incompletos
+- ~~Cada habilidad debería mostrar: Rangos + Mod. atributo + Clase (+3 si clase) + Misc = Total.~~
+- ~~Actualmente solo hay el campo de rangos; el total no se recalcula.~~
+- ~~Ver ficha PC para referencia de todos los campos.~~
+
+**Resuelto**: ya estaba implementado por D3 (Dominio Habilidades). `calcSkillTotal(s)` (línea ~6310) calcula `rangos + atributo_mod + (3 si rangos>0 && esClase) + misc + ACP de armadura`. Listener de `input` en cada `.skill-rank` actualiza `.skill-total` en vivo. Listeners de `attr-changed`, `class-changed`, `armor-equipped` causan re-render. Counter `getSkillPointsTotal()` (PF1e: max(1, base+INT)×nivel + bono humano) muestra Disponibles/Gastados en `#sc-disp` y `#sc-spent`. Tap en fila tira `1d20+total` dinámico. Long-press abre sheet detalle con desglose.
 
 ### A-02 🔴 Botón añadir conjuros no funciona
 - El botón "+" en la sección de conjuros no abre diálogo ni añade hechizos.
