@@ -246,6 +246,100 @@ Channel Energy, Lay on Hands y Bardic Performance ya existían. Clérigo, bardo 
 
 ---
 
+## 🆕 CICLO 2026-05-04 — Reglas avanzadas detectadas en auditoría (ver normas.md §15-bis)
+
+> Cada `R-2X` apunta a la sección equivalente de `normas.md` con la regla oficial citada.
+
+### Alta prioridad (bugs reales que rompen reglas oficiales)
+
+- **R-21 · Eidolon evolutions: validar prereqs y stacking** *(normas §15-bis-1)*
+  - Hoy: el picker permite añadir cualquier evolución N veces sin validar `prereqs.base_form`, `prereqs.min_summoner_level`, `prereqs.requires_evolutions` ni `stacking: single|limited|unlimited`.
+  - Implementar:
+    1. En `addEidolonEvolution()` leer `prereqs` del slug; si la `eid-base-form` no coincide con `prereqs.base_form`, rechazar con toast.
+    2. Si `eid-hd < prereqs.min_summoner_level`, rechazar.
+    3. Si `prereqs.requires_evolutions` lista evos no presentes en `_eidolonSelectedEvos`, rechazar.
+    4. Contar `_eidolonSelectedEvos` por slug base; si `stacking==='single'` y ya hay 1, bloquear; si `stacking==='limited'` y count >= `max_stacks`, bloquear.
+    5. Pintar las opciones bloqueadas en `populateEidolonEvolutionSelect()` con `[Bloqueada]` prefijo + tooltip explicando por qué.
+
+- **R-22 · Multi-caster: slots por clase separados** *(normas §15-bis-2)*
+  - Hoy: `buildSpellSlots()` genera UN único bloque global Nv0–9.
+  - Implementar:
+    1. Detectar todas las clases caster activas en `getActiveClassRows()` filtrando por `cls.spells_per_day` definido.
+    2. Generar un bloque `<details>` por cada clase con su propio header, set de slots Nv0–9, atributo lanzador, DC y conjuros conocidos/preparados.
+    3. Persistir cada set por separado en `__spell_slots_<classKey>` y `__spells_known_<classKey>` para round-trip.
+    4. Mantener compat con fichas viejas (fallback al bloque global si solo hay 1 clase caster).
+
+- **R-23 · Mystic Theurge / Eldritch Knight / etc.: progression doble +1 NL** *(normas §15-bis-3)*
+  - Hoy: `caster-level` es input manual; los slots no se bumpean.
+  - Implementar:
+    1. Crear constante `PRESTIGE_CASTER_BUMPS` con cada prestige y su patrón (ej. `mystic_theurge: { arcane:'+1/lvl', divine:'+1/lvl' }`, `eldritch_knight: { arcane:'+1/lvl from level 2' }`, `loremaster: { caster_chosen:'+1/lvl except 1,4,7,10' }`).
+    2. En `buildSpellSlots()` y `calcCasterLevel()`, añadir el bump correspondiente al CL efectivo y al `spells_per_day`.
+    3. Para Loremaster (elige clase a bumpear), abrir picker al añadir el primer nivel.
+  - Depende de R-22 (necesita slots por clase para saber a cuál se aplica el bump).
+
+- **R-24 · Broodmaster: dos eidolones simultáneos** *(normas §15-bis-4)*
+  - Hoy: solo un panel; al activar broodmaster solo se halve EP.
+  - Implementar:
+    1. Cuando `archetype === 'broodmaster'`, duplicar el panel `#eidolon-panel` en `#eidolon-panel-2`.
+    2. Cada panel tiene su propio `_eidolonSelectedEvos`, `eid-name`, `eid-base-form`, etc.
+    3. Compartir el pool de EP: muestra `EP usados (eidolon 1) + EP usados (eidolon 2)` ≤ EP totales (mitad del normal).
+    4. Cada eidolon tiene HD = nivel del invocador, una talla menor que un eidolon normal.
+    5. Persistir `__broodmaster_eidolon_2` aparte para no romper compat con fichas pre-broodmaster.
+
+- **R-25 · Synthesist: fusión de stats físicos** *(normas §15-bis-5)*
+  - Hoy: solo nota descriptiva, ningún cálculo.
+  - Implementar:
+    1. Cuando `archetype === 'synthesist'` y un toggle "Fusionado" está activo, en `calcAttributes()` reemplazar FUE/DES/CON por las del eidolon (`eid-str`/`eid-dex`/`eid-con`).
+    2. Mantener INT/SAB/CAR del invocador.
+    3. BAB pasa a usar el del eidolon (`eid-bab` ya calculado).
+    4. PG: añadir bloque "PG eidolon" como overlay azul antes de PG normales (al estilo de PG temporales). Daño consume eidolon-PG primero.
+    5. Salvaciones: tomar el max(invocador, eidolon) de cada save base + atributo según stats fusionados.
+    6. Talla y velocidad pasan a las del eidolon.
+    7. Toggle visible solo si archetype === synthesist.
+
+- **R-26 · Clases prestigiosas: validación de prerrequisitos** *(normas §15-bis-6)*
+  - Hoy: `classes.json` no tiene `prerequisites` para prestige; el picker permite Arcane Trickster nivel 1.
+  - Implementar:
+    1. Añadir campo `prerequisites` a cada entrada prestige de `classes.json` (formato similar a feats.json: `{type:'skill', name:'stealth', value:5}`, `{type:'feat', name:'Dodge'}`, `{type:'caster_level', kind:'arcane', value:2}`, `{type:'sneak_attack', value:'+2d6'}`, `{type:'bab', value:6}`).
+    2. En `populateArchetypeSelect`/picker de clase, evaluar prerequisites contra el PJ actual (`refreshFeatPrereqChips` ya tiene el parser).
+    3. Mostrar chip ⚠️/✓/❓ junto al nombre de la clase prestige en el picker.
+    4. Si el usuario añade igualmente, mostrar warning y permitir override (algunos DMs son flexibles).
+
+### Media prioridad (sistemas opcionales que algunas mesas usan)
+
+- **R-27 · Mythic Adventures: niveles míticos paralelos** *(normas §15-bis-7)*
+  - Implementar:
+    1. Panel `#mythic-panel` (full-row, colapsable) entre identidad y atributos.
+    2. Campos: `mythic-tier` (1-10), `mythic-path` (select: Archmage/Champion/Guardian/Hierophant/Marshal/Trickster), pool `mythic-power` (max=3+2*tier), tracker de surges usados.
+    3. Botón "⚡ Surge" que tira `1d6` (escala con tier hasta 1d12) y resta 1 punto mítico.
+    4. Listado de Mythic Feats elegidos.
+    5. Override de "Hard to Kill": si tiene mythic tier ≥ 1 y HP < 0, no aplica auto-unconscious hasta -CON×2.
+    6. Crear `mythic_paths.json` con features por tier por path.
+
+- **R-28 · Modo Gestalt** *(normas §15-bis-8)*
+  - Hoy: P-12 implementó multiclase pero NO Gestalt puro (suma niveles en lugar de fusionar al máximo por nivel).
+  - Implementar:
+    1. Toggle global "🧬 Modo Gestalt" en settings. Al activarlo, cada `class-row` muestra DOS selects de clase (clase A / clase B).
+    2. Para cada nivel, las stats se calculan tomando MAX(claseA, claseB) en BAB, HD, cada save base.
+    3. Skill points = suma de las dos clases.
+    4. Class skills = unión.
+    5. Class features = unión (si dos pidieran competencia con mismo objeto, se ignora duplicado).
+    6. Persistir `__gestalt: true` y `gestalt_secondary_class_<idx>` por fila.
+
+- **R-29 · Epic / niveles 21-30** *(normas §15-bis-9)*
+  - Hoy: `<input id="level{idx}" max="20">`.
+  - Implementar:
+    1. Toggle "Modo Epic" en settings que cambia max a 30.
+    2. Tablas extrapoladas para spells_per_day (slots de 10º nivel, 11º…) — el jugador escribe a mano si su DM las tiene.
+    3. Aviso: "Modo Epic: el contenido oficial PF1e termina en 20. Las reglas Epic son material de comunidad."
+
+### Notas
+
+- R-21 a R-26 son bugs reales que rompen reglas oficiales — alta prioridad si en partida se juegan summoners, multiclasers o prestige.
+- R-27 a R-29 son **opcionales por diseño** — solo afectan si el DM las usa.
+
+---
+
 ## 📌 NO IMPLEMENTAR AUTOMÁTICAMENTE (demasiado complejo o fuera de alcance)
 
 - **Retroactividad de INT/CON:** recalcular puntos de habilidad y PG al subir INT/CON en niveles pasados. Requiere historial por nivel; el usuario debe hacerlo a mano.
@@ -253,4 +347,4 @@ Channel Energy, Lay on Hands y Bardic Performance ya existían. Clérigo, bardo 
 - **Tirada de confirmación de crítico:** integrada en el flujo de combate — el usuario tira aparte.
 - **Exclusión de daño de precisión/elemental en críticos:** requiere que el usuario marque qué dados no se multiplican.
 - **Concentración integrada con CD contextual:** demasiadas situaciones; el usuario calcula la CD.
-- **Eidolón del Summoner:** sistema tan complejo como una segunda ficha entera.
+- ~~**Eidolón del Summoner:** sistema tan complejo como una segunda ficha entera.~~ → reabierto en R-21/R-24/R-25 (regla por regla, no implementación monolítica).

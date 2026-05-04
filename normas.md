@@ -422,6 +422,153 @@ Ejemplo del error
 Hacha de batalla rota (crítico ×3).
 Oficial: crítico ×2. Hoja: sigue mostrando ×3 (y al tirar daño crítico multiplica por 3, incorrecto). El jugador debe recordar que el crítico es solo ×2.
 
+15-bis. Reglas avanzadas detectadas en auditoría 2026-05-04
+
+Estas reglas estaban documentadas en SRD/CRB/APG/Unchained/Mythic Adventures pero no se habían recogido aquí ni se implementaban en la ficha. Se añaden ahora como referencia y se vinculan a tareas pendientes en `Tareas.md`.
+
+### 15-bis-1. Eidolon Evolutions: prerequisitos y stacking
+**Fuente:** Pathfinder Unchained pg. 25 + Advanced Player's Guide pg. 60 (Summoner) + Bestiary entries de eidolon.
+
+Cada evolución tiene metadatos clave:
+- **`cost`** en puntos de evolución (1, 2, 3 o 4 EP).
+- **`prereqs.base_form`** — formas base permitidas (biped/quadruped/serpentine/aquatic/avian/tauric).
+- **`prereqs.min_summoner_level`** — nivel mínimo de invocador para comprarla.
+- **`prereqs.requires_evolutions`** — evoluciones que deben existir antes (ej. *Magic Attacks* requiere nivel 5; *Improved Damage* requiere el ataque natural correspondiente).
+- **`stacking`** — `single` (no se puede comprar más de una vez), `limited` con `max_stacks` (ej. *Ability Increase* máx 4 stacks; *Skilled* máx 8), o `unlimited`.
+
+**Regla "Bite":** *Bite* es un ataque natural primario (1d6 daño Mediano). Es `stacking: single` — un eidolon solo puede tener UNA mordedura, aunque sí puede tener mordedura mejorada con *Improved Damage (Bite)* (cuesta otro EP).
+
+**¿La hoja lo sigue bien?**  
+**No.** El picker permite añadir cualquier evolución N veces sin validar prereqs ni stacking. Se puede comprar Bite 50 veces y gastar EP que no se tiene. Ver tarea **R-21**.
+
+### 15-bis-2. Multi-caster: slots por clase separados
+**Fuente:** Core Rulebook pg. 30, "Multiclassing".
+
+> "If a character has more than one spellcasting class, his caster level for each is determined separately. He cannot combine levels of different classes to determine the slots available for a single class."
+
+**Regla:** Un PJ que sea Hechicero 3 / Mago 2 lanza:
+- Como Hechicero 3 (slots Nv 0–1, ATR=CAR).
+- Como Mago 2 (slots Nv 0–1, ATR=INT).
+- **Por separado.** Tiene 4+1 slots Nv1 de Hechicero Y 2+1 slots Nv1 de Mago, no 6+2.
+
+La excepción son las **clases prestigiosas** que indican explícitamente "+1 caster level" (Mystic Theurge, Arcane Trickster, Eldritch Knight, Loremaster…). Esas SÍ apilan al stack que el jugador eligió.
+
+**¿La hoja lo sigue bien?**  
+**No.** `buildSpellSlots()` genera UN único bloque global Nv0–9. El jugador con Hechicero+Mago tiene que llevar la cuenta a mano. Ver tarea **R-22**.
+
+### 15-bis-3. Mystic Theurge: progression doble +1 NL/nivel
+**Fuente:** Core Rulebook pg. 379 (clase prestigiosa Mystic Theurge), tabla "Spells per Day".
+
+> "At the indicated levels, the mystic theurge gains new spells per day (and spells known, if applicable) as if she had also gained a level in an arcane spellcasting class she belonged to before adding the prestige class. She does not, however, gain other benefits a character of that class would have gained."
+
+**Regla:** Cada nivel de Mystic Theurge añade +1 nivel efectivo de lanzador (CL) a una clase arcana **Y** a una clase divina ya existentes. Así, Mago 3 / Clérigo 3 / Mystic Theurge 4 lanza como Mago 7 y Clérigo 7 (slots y CL), pero sin las features (familiar mejorado, dominios extra, etc.).
+
+Lo mismo aplica con variaciones a:
+- **Arcane Trickster** (+1 NL clase arcana cada nivel salvo el 4º; +1 NL ladrón sneak attack).
+- **Eldritch Knight** (+1 NL clase arcana cada nivel a partir del 2º).
+- **Loremaster** (+1 NL clase elegida cada nivel salvo 1º, 4º, 7º, 10º).
+- **Dragon Disciple** (+1 NL hechicero cada nivel salvo 1º, 3º, 7º).
+- **Holy Vindicator**, **Hellknight Signifer**, **Pathfinder Savant**, etc.
+
+**¿La hoja lo sigue bien?**  
+**No.** El campo `caster-level` es un input manual. Tampoco se aplica el bump al `spells_per_day` de la clase base. Ver tarea **R-23**.
+
+### 15-bis-4. Broodmaster (Summoner archetype): dos eidolones
+**Fuente:** Advanced Player's Guide pg. 139 + Pathfinder Unchained pg. 88.
+
+> "A broodmaster's eidolon evolution pool is split between two eidolons (instead of just one). When the broodmaster summons her eidolons, she splits the evolution points between them as she sees fit. Both eidolons are smaller versions of the same eidolon."
+
+**Regla:** El Broodmaster **siempre** tiene 2 eidolones simultáneos. El pool de EP se divide a la mitad y se reparte como el invocador quiera entre los dos. Cada eidolon avanza por su tabla de Eidolon Base normal (HD = nivel del invocador, igual que un eidolon estándar) pero comparten el pool y son una talla menor que un eidolon normal.
+
+**¿La hoja lo sigue bien?**  
+**No.** El panel de eidolón es único. Cuando se elige Broodmaster solo aplica `floor(ep/2)` y muestra una nota; no hay segundo panel para gestionar el segundo eidolon. Ver tarea **R-24**.
+
+### 15-bis-5. Synthesist (Summoner archetype): fusión de stats
+**Fuente:** Advanced Player's Guide pg. 142 + Ultimate Magic pg. 80 + Pathfinder Unchained pg. 90.
+
+> "When a synthesist's eidolon is fused with him, the synthesist gains the eidolon's physical ability scores (Strength, Dexterity, and Constitution), but retains his own mental ability scores (Intelligence, Wisdom, and Charisma). The character uses the eidolon's BAB, hit points, and armor (natural, dodge, deflection from evolutions). The character uses the higher of his own base saving throws and the eidolon's base saving throws (without ability modifiers)."
+
+**Regla detallada:**
+- **Stats físicos** del eidolon reemplazan los del invocador mientras está fusionado.
+- **Stats mentales** del invocador permanecen.
+- **BAB** del eidolon (igual al de su tabla, fórmula del Summoner: HD×3/4).
+- **PG** del eidolon se usan como "armadura temporal" — el daño llega primero al eidolon, cuando se queda a 0 PG el eidolon se despide y el invocador queda a sus PG normales.
+- **Salvaciones:** se usan las base más altas (eidolon o invocador), modificador por atributo según los stats fusionados.
+- **Talla:** la del eidolon.
+- **Velocidad:** la del eidolon.
+- **Tipo de criatura:** outsider mientras esté fusionado.
+
+**¿La hoja lo sigue bien?**  
+**No.** Solo aparece una nota descriptiva. Ningún cálculo se modifica. El jugador debe llevar dos fichas mentales o usar campos manuales. Ver tarea **R-25**.
+
+### 15-bis-6. Clases Prestigiosas: prerrequisitos
+**Fuente:** Core Rulebook capítulo 11 ("Prestige Classes") pp. 374-389 + entradas individuales en APG/UM/UC.
+
+Cada clase prestigiosa tiene un bloque "Requirements" que debe cumplirse ANTES de tomar el primer nivel. Ejemplos:
+
+| Clase | Prerrequisitos clave |
+|-------|---------------------|
+| **Arcane Trickster** | Alineamiento no-legal · Disable Device 4 rangos · Escape Artist 4 rangos · Knowledge (arcana) 4 rangos · Sneak Attack +2d6 · Capacidad de lanzar mage hand y un conjuro arcano de 2º o superior |
+| **Assassin** | Alineamiento maligno · Disguise 2 rangos · Stealth 5 rangos · Death attack… |
+| **Dragon Disciple** | Cualquier raza con sangre dracónica · Knowledge (arcana) 5 rangos · Capacidad de lanzar conjuros arcanos sin preparación de 1er nivel |
+| **Duelist** | BAB +6 · Acrobatics 2 rangos · Perform (act) 2 rangos · Dodge, Mobility, Weapon Finesse |
+| **Eldritch Knight** | Competencia con todas las armas marciales · Capacidad de lanzar conjuros arcanos de 3er nivel |
+| **Loremaster** | Skill Focus en una habilidad de Knowledge · 7 rangos en dos habilidades de Knowledge distintas · 3 dotes de metamagia, item creation o Skill Focus (Knowledge) · Capacidad de lanzar 7 conjuros divinos, incluyendo 3 o más de 3er nivel |
+| **Mystic Theurge** | Knowledge (arcana) 3 rangos · Knowledge (religion) 3 rangos · Capacidad de lanzar conjuros divinos de 2º nivel · Capacidad de lanzar conjuros arcanos de 2º nivel |
+| **Pathfinder Chronicler** | Linguistics 5 rangos · Perform (oratory) 5 rangos · Profession (scribe) 5 rangos |
+| **Shadowdancer** | Acrobatics 2 rangos · Stealth 5 rangos · Perform (dance) 2 rangos · Combat Reflexes, Dodge, Mobility |
+
+**¿La hoja lo sigue bien?**  
+**No.** El JSON `classes.json` no almacena `prerequisites` para prestige. El picker permite asignar Arcane Trickster a un personaje nivel 1 sin sneak attack ni mage hand. Ver tarea **R-26**.
+
+### 15-bis-7. Mythic Adventures: niveles míticos paralelos
+**Fuente:** Mythic Adventures (Paizo, 2013) pp. 4-72.
+
+**Regla:** Las reglas míticas son una capa **opcional** que coexiste con los niveles normales. Cada criatura mítica tiene:
+
+- **Mythic Tier** (1-10): se gana superando "ascension trials". Independiente del nivel de personaje.
+- **Mythic Path** (1 de 6): Archmage, Champion, Guardian, Hierophant, Marshal, Trickster. Cada path tiene su tabla con features por tier.
+- **Mythic Power**: pool de "puntos míticos" usables 3 + (2×tier) por día. Recargables al descansar.
+- **Surge**: 1 punto mítico para añadir 1d6 (escala con tier hasta 1d12) a cualquier d20.
+- **Mythic Feats**: dotes especiales (versiones míticas de dotes normales).
+- **Hard to Kill**: en negativo, no muere hasta -CON×2 (en lugar de -CON normal). No queda inconsciente automáticamente.
+
+Los stats normales no cambian — el mítico es una capa adicional encima del PJ existente.
+
+**¿La hoja lo sigue bien?**  
+**No.** No existe sección Mythic. El que juegue con esta capa lleva la cuenta a mano. Ver tarea **R-27**.
+
+### 15-bis-8. Gestalt characters
+**Fuente:** Unearthed Arcana 3.5 pg. 25 (regla casera adaptada a PF1e por la comunidad).
+
+**Regla:** En modo Gestalt, cada nivel cuenta como dos clases simultáneas. Para cada estadística se toma el **máximo** entre las dos clases:
+
+- **HD**: el dado más grande (Bárbaro/Mago → d12).
+- **BAB**: el mejor (full > medium > low).
+- **Salvaciones**: para cada save, se toma la mejor base.
+- **Skill points**: la suma de las dos clases (no el máximo).
+- **Class skills**: unión de ambos sets.
+- **Class features**: ambas. Si dos features chocan (proficiencias, casting), el jugador elige.
+
+**No es regla oficial de Pathfinder**, pero es una opción común en mesas que quieren personajes versátiles. Algunas clases especialmente potentes (Druid, Wizard) pueden requerir restricciones del DM.
+
+**¿La hoja lo sigue bien?**  
+**Parcialmente.** La tarea P-12 (completada) implementó multiclase con BAB acumulado y saves fraccionales, pero no es Gestalt puro: si se pone Bárbaro 5 / Mago 5 la suma da nivel 10 (no Gestalt nivel 5 con stats máximos). Ver tarea **R-28**.
+
+### 15-bis-9. Epic / niveles 21+
+**Fuente:** d20 Epic Level Handbook (3.5e, no oficial en PF1e core) + variantes de la comunidad PF1e.
+
+**Regla:** PF1e termina oficialmente en nivel 20. Más allá hay variantes:
+
+- **Mythic** (oficial Paizo) — alternativa preferida en PF1e.
+- **Epic 6 / Epic 8** — el PJ deja de subir nivel a 6 u 8 y solo gana dotes adicionales (regla de Wizards 3.5e).
+- **Niveles 21-30 con tablas extrapoladas** — la comunidad PF1e proporciona tablas para algunas clases pero no es contenido core.
+
+**¿La hoja lo sigue bien?**  
+**No.** El input de nivel está limitado a `max="20"`. No hay tablas de slots de conjuro >20. Ver tarea **R-29**.
+
+---
+
 15. Resumen del estado actual (post-auditoría 2026-04-20)
 
 Arreglado en código (ya no son bugs):
