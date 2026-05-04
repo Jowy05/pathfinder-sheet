@@ -185,10 +185,12 @@ Hints actualizados con texto descriptivo PF1e por modo. Botón "cure-nonlethal" 
 ### M-12 🔵 Tracker iniciativa: botón ordenar por iniciativa
 - Botón para ordenar automáticamente los combatientes de mayor a menor iniciativa.
 
-### M-13 🟡 Foto del personaje no funciona
-- Botón "Cambiar foto" no abre el selector de imagen.
-- Botón "Quitar foto" probablemente tampoco funciona.
-- Revisar que `AndroidBridge.pickPhoto()` esté correctamente conectado.
+### M-13 ✅ Foto del personaje no funciona
+- ~~Botón "Cambiar foto" no abre el selector de imagen.~~
+- ~~Botón "Quitar foto" probablemente tampoco funciona.~~
+- ~~Revisar que `AndroidBridge.pickPhoto()` esté correctamente conectado.~~
+
+**Resuelto**: existía un handler MOCK (línea 6371) registrado en bubbling phase que cambiaba el avatar a un gradient feo con "J" hardcoded; coexistía con el handler real de D6 (`bindPhotoButtons` en capture). Eliminado el mock por completo. Ahora "Cambiar foto" llama `AndroidBridge.pickPhoto()` (Android) o `<input type=file>` + FileReader (web). "Quitar foto" llama `removePhoto()` que limpia background, marca `delete dataset.photoSet` y dispara `updateTopbar()` para que pinte la inicial del nombre real (no "J" hardcoded). `applyPhoto()` marca `dataset.photoSet='1'` para que `updateTopbar` no sobreescriba con la inicial. Toast de feedback en ambos casos.
 
 ### M-14 ✅ Datos de identidad no persisten / no se actualizan en la UI
 - ~~Campos de nombre, jugador, raza, clase, etc. no se reflejan en el topbar ni en otros sitios donde deberían verse.~~

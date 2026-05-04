@@ -6367,27 +6367,12 @@ function updateCharSub(){
 const __raza = document.getElementById('in-raza');
 if(__raza) __raza.addEventListener('input',updateCharSub);
 
-/* ─── AVATAR PHOTO HOOKS (visual feedback) ─── */
-document.querySelectorAll('[data-avatar-action]').forEach(b=>{
-  b.addEventListener('click',()=>{
-    const av = document.getElementById('avatar');
-    if(!av) return;
-    const action = b.dataset.avatarAction;
-    if(action==='remove'){
-      av.style.background='var(--surface-2)';
-      av.textContent='J';
-      av.style.color='var(--leather)';
-      av.style.fontFamily="'Cinzel',serif";
-      av.style.fontWeight='700';
-      av.style.display='grid';
-      av.style.placeItems='center';
-    } else {
-      // mock new photo: subtle gradient swatch
-      av.style.background='linear-gradient(135deg,#8a4a2a,#c87a4a)';
-      av.textContent='';
-    }
-  });
-});
+/* M-13: handler mock de foto eliminado.
+   bindPhotoButtons() en D6 ya conecta data-avatar-action a:
+   - Android: AndroidBridge.pickPhoto()
+   - Web:     <input type=file> + FileReader → applyPhoto(dataURL)
+   Mostraba "J" como inicial al quitar foto, ahora updateTopbar() pinta
+   la inicial real del nombre cuando av.dataset.photoSet no está. */
 
 /* ─────────────────────────────────────────────────────────────── */
 /* ─── DOMINIO 3 · HABILIDADES ─── */
@@ -8206,15 +8191,27 @@ function applyPhoto(dataUrl){
   if(av){
     av.style.background = `center/cover no-repeat url('${dataUrl}')`;
     av.textContent = '';
+    av.dataset.photoSet = '1';
   }
   const av2 = document.querySelector('#sheet-identidad .avatar-id, #sheet-identidad [data-avatar-large]');
-  if(av2){ av2.style.background = `center/cover no-repeat url('${dataUrl}')`; av2.textContent=''; }
+  if(av2){ av2.style.background = `center/cover no-repeat url('${dataUrl}')`; av2.textContent=''; av2.dataset.photoSet='1'; }
   document.dispatchEvent(new CustomEvent('photo-changed',{detail:{dataUrl}}));
   saveStateDebounced('photo');
+  if(typeof toast==='function') toast(I18N_msg('photoChanged'));
 }
 function removePhoto(){
   window.STATE.photo = null;
+  /* M-13: pinta inicial del nombre */
+  const av = document.getElementById('avatar');
+  if(av){
+    av.style.background = '';
+    delete av.dataset.photoSet;
+    try{ if(typeof updateTopbar==='function') updateTopbar(); }catch(e){}
+  }
+  const av2 = document.querySelector('#sheet-identidad .avatar-id, #sheet-identidad [data-avatar-large]');
+  if(av2){ av2.style.background = ''; delete av2.dataset.photoSet; }
   saveStateDebounced('photo-remove');
+  if(typeof toast==='function') toast(I18N_msg('photoRemoved'));
 }
 window.applyPhoto = applyPhoto;
 window.removePhoto = removePhoto;
