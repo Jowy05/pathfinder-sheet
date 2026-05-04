@@ -6480,8 +6480,13 @@ function applyActiveBuffs(deltas) {
   if(deltas.ac !== 0) {
     const acEl    = document.getElementById('ac-total');
     const touchEl = document.getElementById('ac-touch');
+    /* Fix P-75: el bono de CA tambien debe aplicarse a la CA Desprevenido (deflection,
+       natural armor, mejora de armadura, etc.). Solo dodge no entraria, pero el panel
+       de buffs no distingue tipo, asi que aplicamos a flat-footed igual. */
+    const flatEl  = document.getElementById('ac-flat');
     if(acEl)    acEl.value    = (parseInt(acEl.value)||0)    + deltas.ac;
     if(touchEl) touchEl.value = (parseInt(touchEl.value)||0) + deltas.ac;
+    if(flatEl)  flatEl.value  = (parseInt(flatEl.value)||0)  + deltas.ac;
   }
 
   const saveMap = {fort:'save-fort', ref:'save-ref', will:'save-will'};
