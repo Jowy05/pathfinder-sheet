@@ -137,19 +137,17 @@ Hints actualizados con texto descriptivo PF1e por modo. Botón "cure-nonlethal" 
 
 ## SECCIÓN MÁS
 
-### M-01 🟡 Compañeros: familiar — solo un slot, faltan campos
-- Solo existe 1 familiar hardcodeado. Debería poder crearse/eliminarse.
-- Faltan campos que la ficha PC sí tiene: estadísticas, tiradas de salvación, habilidades especiales, tipo de familiar con sus bonos.
+### M-01 ✅ Compañeros: familiar — multi-instancia + campos PF1e completos
+- Resuelto: `COMP_DATA.familiar` ahora es array. Botón ＋ Añadir y × Eliminar por instancia. Vista lista + editor con back. Campos: nombre, tipo (cuervo/búho/...), PG, CA, atributos completos (FUE/DES/CON/INT/SAB/CAR), TS (Fort/Ref/Vol), ataques, habilidades especiales, notas. Migración v1→v2 transparente en `applyState`.
 
-### M-02 🔴 Compañero animal: faltan stats completos
-- Faltan: tipo/raza del compañero, estadísticas completas (FUE/DES/CON/INT/SAB/CAR), bonos de nivel, trucos conocidos, ataques detallados, HP con tracker.
+### M-02 ✅ Compañero animal: stats completos
+- Resuelto: `COMP_DATA.animal` ahora multi-instancia con schema PF1e completo: nombre, raza/tipo, PG, CA, atributos (FUE/DES/CON/INT/SAB/CAR), bonos por nivel de clase animal, trucos conocidos (1 por línea), ataques detallados, notas adicionales. Misma UI lista/editor.
 
-### M-03 🔴 Eidolón: faltan stats completos
-- Más allá de las evoluciones y subtipo (ya implementado) falta: estadísticas base, tamaño, puntos de evolución disponibles/gastados, armadura natural, bonos de nivel.
+### M-03 ✅ Eidolón: stats completos
+- Resuelto: `COMP_DATA.eidolon` multi-instancia con: nombre, subtipo Unchained (selector), tamaño (Diminuto..Enorme), atributos completos, armadura natural, puntos de evolución usados/totales, evoluciones (lista), ataques, notas. Editor unificado.
 
-### M-04 🟡 Invocadas: permitir múltiples + más campos
-- Solo 1 slot estático. Debería poder añadir N criaturas invocadas.
-- Cada una con: nombre, HP (tracker), CA, ataques, duración.
+### M-04 ✅ Invocadas: múltiples + campos completos
+- Resuelto: `COMP_DATA.invocadas` ya no es slot único — array multi-instancia con ＋ Añadir y × Eliminar. Cada criatura: nombre, PG, CA, duración (rondas totales), ronda actual, ataques, notas. La lista muestra contador de rondas con icono ⏱.
 
 ### M-05 ✅ Notas de sesión: no se pueden leer
 - ~~Las notas guardadas aparecen en la lista pero no se pueden pulsar para leer el cuerpo completo.~~

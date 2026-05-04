@@ -5091,61 +5091,243 @@ function renderInit(){
   });
 }
 
-/* ─── COMPANIONS ─── */
+/* ─── COMPANIONS (M-01..M-04: multi-instancia + schema PF1e) ─── */
+/* Estructura: arrays de instancias por tipo. Cada instancia tiene id único.
+   Migración v1 (single-object) → v2 (array) en applyState. */
 const COMP_DATA = {
-  familiar: {n:'Cuervo "Tinta"',hp:'4/4',ca:14,atks:'Picotazo +5 (1d2−5)',extra:'Familiar de mago: alerta'},
-  animal: {n:'Lobo "Sombra"',hp:'18/18',ca:14,atks:'Mordisco +3 (1d6+1, derribo)',extra:'Trucos: atacar, defender, buscar, ataque furtivo'},
-  eidolon: {n:'Eidolón "Khaes"',hp:'24/24',ca:16,atks:'2 garras +5 (1d4+3)',extra:'Evoluciones',subtipo:'',evol:['Garras','Resistencia','Nadar','Brazos extra','Inteligencia +2']},
-  invocadas: {n:'Lobo terrenal',hp:'13/13',ca:14,atks:'Mordisco +3',extra:'Duración: 3 asaltos (rondas 2/3)'}
+  familiar: [],
+  animal: [],
+  eidolon: [],
+  invocadas: []
 };
-function renderComp(which='familiar'){
-  document.querySelectorAll('.comp-tab').forEach(t=>t.classList.toggle('active',t.dataset.comp===which));
-  const d = COMP_DATA[which];
-  const L = (lbl)=>`<label class="field-label" style="font:700 10px 'Cinzel',serif;letter-spacing:.07em;text-transform:uppercase;color:var(--leather);display:block;margin-bottom:3px">${lbl}</label>`;
-  const I = (field,val,ph,type='text')=>`<input class="field-input" data-comp-field="${field}" data-comp-which="${which}" type="${type}" inputmode="${type==='number'?'numeric':'text'}" value="${(val||'').toString().replace(/"/g,'&quot;')}" placeholder="${ph}" style="margin-bottom:8px">`;
-  const subtypeBlock = which==='eidolon' ? `
-    <div style="margin-bottom:8px">
-      ${L('Subtipo Unchained')}
-      <select class="field-select" data-comp-field="subtipo" data-comp-which="${which}">
-        <option value="">— Ninguno —</option>
-        ${['Agatión','Ángel','Archon','Azata','Daemon','Demonio','Diablo','Div','Inevitable','Protean','Psicopompo'].map(s=>`<option value="${s}"${d.subtipo===s?' selected':''}>${s}</option>`).join('')}
-      </select>
-    </div>` : '';
-  const evolBlock = which==='eidolon' ? `
-    <div style="margin-top:4px">
-      ${L('Evoluciones (una por línea)')}
-      <textarea class="field-input" data-comp-field="evolText" data-comp-which="${which}" rows="4" style="margin-bottom:8px">${(d.evol||[]).join('\n')}</textarea>
-    </div>` : '';
-  const c = document.getElementById('comp-content');
-  c.innerHTML = `
-    <div class="form-grid" style="padding-top:4px">
-      ${L('Nombre')}${I('n',d.n,'Nombre del compañero')}
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div>${L('PG (actual/máx)')}${I('hp',d.hp,'18/18')}</div>
-        <div>${L('CA')}${I('ca',d.ca,'14','number')}</div>
-      </div>
-      ${L('Ataques')}${I('atks',d.atks,'Mordisco +3 (1d6+1)')}
-      ${L('Notas / Trucos / Habilidades')}
-      <textarea class="field-input" data-comp-field="extra" data-comp-which="${which}" rows="3" style="margin-bottom:8px">${d.extra||''}</textarea>
-      ${subtypeBlock}
-      ${evolBlock}
-    </div>`;
-  // Bind live-save on input/change
-  c.querySelectorAll('[data-comp-field]').forEach(el=>{
-    const compHandler = ()=>{
-      const k = el.dataset.compField;
-      const w = el.dataset.compWhich;
-      if(!COMP_DATA[w]) return;
-      if(k==='evolText'){
-        COMP_DATA[w].evol = el.value.split('\n').map(s=>s.trim()).filter(Boolean);
-      } else if(k==='ca'){
-        COMP_DATA[w].ca = parseInt(el.value,10)||0;
-      } else {
-        COMP_DATA[w][k] = el.value;
+const COMP_TYPE_LABELS = {
+  familiar: 'Familiar',
+  animal: 'Compañero animal',
+  eidolon: 'Eidolón',
+  invocadas: 'Invocada'
+};
+function _compId(){
+  if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'cmp-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
+}
+const COMP_DEFAULTS = {
+  familiar: ()=>({
+    id:_compId(), n:'', tipo:'',
+    hp:'', ca:10,
+    str:8, dex:13, con:10, int:6, wis:12, cha:6,
+    fort:0, ref:0, will:0,
+    atks:'', habilidades:'', extra:''
+  }),
+  animal: ()=>({
+    id:_compId(), n:'', raza:'',
+    hp:'', ca:10,
+    str:10, dex:10, con:10, int:2, wis:12, cha:6,
+    bonosNivel:'', trucos:'',
+    atks:'', extra:''
+  }),
+  eidolon: ()=>({
+    id:_compId(), n:'', subtipo:'', tamano:'Mediano',
+    hp:'', ca:10,
+    str:10, dex:10, con:13, int:7, wis:10, cha:11,
+    armaduraNatural:0,
+    puntosEvolUsados:0, puntosEvolTotal:0,
+    evol:[], atks:'', extra:''
+  }),
+  invocadas: ()=>({
+    id:_compId(), n:'',
+    hp:'', ca:10,
+    duracionRondas:0, rondaActual:1,
+    atks:'', extra:''
+  })
+};
+/* Schema de campos por tipo. Se usa para construir el editor.
+   Tipos de fila:
+    - {label,k,placeholder,type}                       → input simple
+    - {label,k,textarea:true,rows,placeholder,special} → textarea (special='evol' = lista)
+    - {row:[{k,label,...}, ...]}                       → grid horizontal
+    - {select:{k,label,options:[...]}}                 → select */
+const COMP_FIELDS = {
+  familiar: [
+    {row:[{k:'n', label:'Nombre', placeholder:'Cuervo "Tinta"'},
+          {k:'tipo', label:'Tipo', placeholder:'Cuervo, búho, gato, rata, mochuelo...'}]},
+    {row:[{k:'hp', label:'PG (act/máx)', placeholder:'4/4'},
+          {k:'ca', label:'CA', type:'number', placeholder:'14'}]},
+    {row:[{k:'str', label:'FUE', type:'number'}, {k:'dex', label:'DES', type:'number'}, {k:'con', label:'CON', type:'number'}]},
+    {row:[{k:'int', label:'INT', type:'number'}, {k:'wis', label:'SAB', type:'number'}, {k:'cha', label:'CAR', type:'number'}]},
+    {row:[{k:'fort', label:'TS Fort', type:'number'}, {k:'ref', label:'TS Ref', type:'number'}, {k:'will', label:'TS Vol', type:'number'}]},
+    {label:'Ataques', k:'atks', textarea:true, rows:2, placeholder:'Picotazo +5 (1d2−5)'},
+    {label:'Habilidades especiales', k:'habilidades', textarea:true, rows:3, placeholder:'Alerta, comparte conjuros con el amo, vínculo empático, otorga +3 a Avistar...'},
+    {label:'Notas adicionales', k:'extra', textarea:true, rows:2}
+  ],
+  animal: [
+    {row:[{k:'n', label:'Nombre', placeholder:'Lobo "Sombra"'},
+          {k:'raza', label:'Raza/Tipo', placeholder:'Lobo, oso, caballo, halcón...'}]},
+    {row:[{k:'hp', label:'PG (act/máx)', placeholder:'18/18'},
+          {k:'ca', label:'CA', type:'number', placeholder:'14'}]},
+    {label:'Atributos', divider:true},
+    {row:[{k:'str', label:'FUE', type:'number'}, {k:'dex', label:'DES', type:'number'}, {k:'con', label:'CON', type:'number'}]},
+    {row:[{k:'int', label:'INT', type:'number'}, {k:'wis', label:'SAB', type:'number'}, {k:'cha', label:'CAR', type:'number'}]},
+    {label:'Bonos por nivel (clase animal)', k:'bonosNivel', textarea:true, rows:2, placeholder:'+2 FUE/DES, +1 BAB, +1 TS, +2 Armadura natural...'},
+    {label:'Trucos (1 por línea)', k:'trucos', textarea:true, rows:4, placeholder:'Atacar\nDefender\nBuscar\nGuardia\nFurtivo'},
+    {label:'Ataques', k:'atks', textarea:true, rows:2, placeholder:'Mordisco +3 (1d6+1, derribo)'},
+    {label:'Notas adicionales', k:'extra', textarea:true, rows:2}
+  ],
+  eidolon: [
+    {row:[{k:'n', label:'Nombre', placeholder:'Eidolón "Khaes"'},
+          {select:{k:'subtipo', label:'Subtipo Unchained', options:['','Agatión','Ángel','Archon','Azata','Daemon','Demonio','Diablo','Div','Inevitable','Protean','Psicopompo']}}]},
+    {row:[{select:{k:'tamano', label:'Tamaño', options:['Diminuto','Pequeño','Mediano','Grande','Enorme']}},
+          {k:'armaduraNatural', label:'Armadura natural', type:'number'}]},
+    {row:[{k:'hp', label:'PG (act/máx)', placeholder:'24/24'},
+          {k:'ca', label:'CA', type:'number', placeholder:'16'}]},
+    {label:'Atributos', divider:true},
+    {row:[{k:'str', label:'FUE', type:'number'}, {k:'dex', label:'DES', type:'number'}, {k:'con', label:'CON', type:'number'}]},
+    {row:[{k:'int', label:'INT', type:'number'}, {k:'wis', label:'SAB', type:'number'}, {k:'cha', label:'CAR', type:'number'}]},
+    {row:[{k:'puntosEvolUsados', label:'Puntos evol. usados', type:'number'},
+          {k:'puntosEvolTotal', label:'Puntos evol. totales', type:'number'}]},
+    {label:'Evoluciones (1 por línea)', k:'evolText', textarea:true, rows:5, special:'evol', placeholder:'Garras\nResistencia (frío)\nNadar\nBrazos extra\nInteligencia +2'},
+    {label:'Ataques', k:'atks', textarea:true, rows:2, placeholder:'2 garras +5 (1d4+3)'},
+    {label:'Notas adicionales', k:'extra', textarea:true, rows:2}
+  ],
+  invocadas: [
+    {row:[{k:'n', label:'Nombre / Criatura', placeholder:'Lobo terrenal'}]},
+    {row:[{k:'hp', label:'PG (act/máx)', placeholder:'13/13'},
+          {k:'ca', label:'CA', type:'number', placeholder:'14'}]},
+    {row:[{k:'duracionRondas', label:'Duración (rondas totales)', type:'number'},
+          {k:'rondaActual', label:'Ronda actual', type:'number'}]},
+    {label:'Ataques', k:'atks', textarea:true, rows:2, placeholder:'Mordisco +3 (1d6+1)'},
+    {label:'Notas / habilidades especiales', k:'extra', textarea:true, rows:3, placeholder:'Aura de bien, ataque furtivo, etc.'}
+  ]
+};
+
+let CURRENT_COMP_TYPE = 'familiar';
+let CURRENT_COMP_IDX = -1; // -1 = lista, ≥0 = editando esa instancia
+
+function _compEsc(v){ return (v==null?'':String(v)).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])); }
+function _compL(lbl){ return `<label class="field-label" style="font:700 10px 'Cinzel',serif;letter-spacing:.07em;text-transform:uppercase;color:var(--leather);display:block;margin-bottom:3px">${lbl}</label>`; }
+function _compInput(field, val, ph, type='text'){
+  return `<input class="field-input" data-comp-field="${field}" type="${type}" inputmode="${type==='number'?'numeric':'text'}" value="${_compEsc(val)}" placeholder="${ph||''}" style="margin-bottom:8px">`;
+}
+function _compSelect(field, val, options){
+  return `<select class="field-select" data-comp-field="${field}" style="margin-bottom:8px">${options.map(o=>`<option value="${_compEsc(o)}"${String(val||'')===String(o)?' selected':''}>${o||'— Ninguno —'}</option>`).join('')}</select>`;
+}
+function _compTextarea(field, val, rows, ph){
+  return `<textarea class="field-input" data-comp-field="${field}" rows="${rows||2}" placeholder="${ph||''}" style="margin-bottom:8px">${_compEsc(val)}</textarea>`;
+}
+function _compRowGrid(cells, d){
+  const cols = cells.length;
+  return `<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px;margin-bottom:0">
+    ${cells.map(cell=>{
+      if(cell.select){
+        const s = cell.select;
+        return `<div>${_compL(s.label)}${_compSelect(s.k, d[s.k], s.options)}</div>`;
       }
+      const v = d[cell.k];
+      return `<div>${_compL(cell.label)}${_compInput(cell.k, v, cell.placeholder, cell.type||'text')}</div>`;
+    }).join('')}
+  </div>`;
+}
+function _compFieldDOM(spec, d){
+  if(spec.divider){
+    return `<div style="font:700 10px 'Cinzel',serif;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin:8px 0 4px;border-top:1px solid var(--leather);padding-top:6px;opacity:.85">${spec.label}</div>`;
+  }
+  if(spec.row) return _compRowGrid(spec.row, d);
+  if(spec.textarea){
+    let val = d[spec.k];
+    if(spec.special==='evol' && Array.isArray(d.evol)) val = d.evol.join('\n');
+    return _compL(spec.label) + _compTextarea(spec.k, val, spec.rows||2, spec.placeholder);
+  }
+  return _compL(spec.label) + _compInput(spec.k, d[spec.k], spec.placeholder, spec.type||'text');
+}
+
+function renderComp(which='familiar', idx){
+  if(typeof which !== 'string' || !COMP_DATA[which]) which = 'familiar';
+  CURRENT_COMP_TYPE = which;
+  if(typeof idx === 'number') CURRENT_COMP_IDX = idx;
+  const list = COMP_DATA[which];
+  document.querySelectorAll('.comp-tab').forEach(t=>t.classList.toggle('active',t.dataset.comp===which));
+  const c = document.getElementById('comp-content');
+  if(!c) return;
+
+  if(CURRENT_COMP_IDX < 0 || CURRENT_COMP_IDX >= list.length){
+    /* LISTA */
+    const label = COMP_TYPE_LABELS[which]||which;
+    c.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0 10px">
+        <div style="font:600 11px 'Cinzel',serif;letter-spacing:.08em;text-transform:uppercase;color:var(--leather)">${label}${list.length?` · ${list.length}`:''}</div>
+        <button class="btn-secondary" data-comp-add style="font-size:12px;padding:6px 12px">＋ Añadir</button>
+      </div>
+      ${list.length===0
+        ? `<div style="text-align:center;padding:24px 12px;color:var(--ink-muted);font-family:'EB Garamond',serif;font-size:14px;border:1px dashed var(--leather);border-radius:8px">Sin ${label.toLowerCase()}s. Pulsa <strong>＋ Añadir</strong> para crear uno.</div>`
+        : list.map((d,i)=>`
+          <div class="eq-card" data-comp-open="${i}" style="cursor:pointer;margin-bottom:8px">
+            <button class="crud-del" data-comp-del="${i}" aria-label="Eliminar">×</button>
+            <div class="eq-name" style="font-size:14px;padding-right:24px">${_compEsc(d.n)||'(sin nombre)'}</div>
+            <div class="eq-meta" style="font-family:'EB Garamond',serif;font-size:12px;line-height:1.4">
+              ${d.tipo||d.raza||d.subtipo?`<span style="opacity:.85">${_compEsc(d.tipo||d.raza||d.subtipo)}</span> · `:''}
+              PG ${_compEsc(d.hp)||'—'} · CA ${_compEsc(d.ca)||'—'}
+              ${d.atks?`<br><span style="opacity:.75">${_compEsc(d.atks).slice(0,80)}${d.atks.length>80?'…':''}</span>`:''}
+              ${which==='invocadas' && d.duracionRondas?`<br><span style="color:var(--accent)">⏱ Ronda ${_compEsc(d.rondaActual||1)}/${_compEsc(d.duracionRondas)}</span>`:''}
+            </div>
+          </div>`).join('')}
+    `;
+    c.querySelector('[data-comp-add]')?.addEventListener('click',()=>{
+      const next = COMP_DEFAULTS[which]();
+      list.push(next);
+      CURRENT_COMP_IDX = list.length - 1;
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('comp-add');
+    });
+    c.querySelectorAll('[data-comp-open]').forEach(card=>{
+      card.addEventListener('click',(e)=>{
+        if(e.target.closest('[data-comp-del]')) return;
+        CURRENT_COMP_IDX = +card.dataset.compOpen;
+        renderComp(which);
+      });
+    });
+    c.querySelectorAll('[data-comp-del]').forEach(b=>{
+      b.addEventListener('click',(e)=>{
+        e.stopPropagation();
+        const i = +b.dataset.compDel;
+        if(!list[i]) return;
+        if(!confirm(`¿Eliminar "${list[i].n||'sin nombre'}"?`)) return;
+        list.splice(i,1);
+        CURRENT_COMP_IDX = -1;
+        renderComp(which);
+        if(typeof saveStateDebounced==='function') saveStateDebounced('comp-del');
+      });
+    });
+    return;
+  }
+
+  /* EDITOR */
+  const d = list[CURRENT_COMP_IDX];
+  const fields = COMP_FIELDS[which] || [];
+  c.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0 10px">
+      <button class="btn-secondary" data-comp-back style="font-size:12px;padding:6px 12px">← Volver</button>
+      <div style="font:600 10px 'Cinzel',serif;letter-spacing:.08em;text-transform:uppercase;color:var(--leather)">${COMP_TYPE_LABELS[which]} ${CURRENT_COMP_IDX+1}/${list.length}</div>
+    </div>
+    <div class="form-grid" style="padding-top:4px">
+      ${fields.map(spec=>_compFieldDOM(spec, d)).join('')}
+    </div>`;
+  c.querySelector('[data-comp-back]')?.addEventListener('click',()=>{
+    CURRENT_COMP_IDX = -1;
+    renderComp(which);
+  });
+  c.querySelectorAll('[data-comp-field]').forEach(el=>{
+    const handler = ()=>{
+      const k = el.dataset.compField;
+      if(k==='evolText'){
+        d.evol = el.value.split('\n').map(s=>s.trim()).filter(Boolean);
+      } else if(['ca','str','dex','con','int','wis','cha','fort','ref','will','armaduraNatural','puntosEvolUsados','puntosEvolTotal','duracionRondas','rondaActual'].includes(k)){
+        d[k] = parseInt(el.value,10)||0;
+      } else {
+        d[k] = el.value;
+      }
+      if(typeof saveStateDebounced==='function') saveStateDebounced('comp-edit');
     };
-    el.addEventListener('input', compHandler);
-    el.addEventListener('change', compHandler);
+    el.addEventListener('input', handler);
+    el.addEventListener('change', handler);
   });
 }
 
@@ -5370,8 +5552,8 @@ function bindNewSheets(){
   });
   // companions
   const compBtn = document.getElementById('more-companions');
-  if(compBtn) compBtn.addEventListener('click',()=>{ renderComp('familiar'); openSheet('sheet-companions'); });
-  document.querySelectorAll('.comp-tab').forEach(t=>t.addEventListener('click',()=>renderComp(t.dataset.comp)));
+  if(compBtn) compBtn.addEventListener('click',()=>{ CURRENT_COMP_IDX = -1; renderComp('familiar'); openSheet('sheet-companions'); });
+  document.querySelectorAll('.comp-tab').forEach(t=>t.addEventListener('click',()=>{ CURRENT_COMP_IDX = -1; renderComp(t.dataset.comp); }));
   // master mode sheet
   const masterToggle = document.getElementById('master-toggle');
   if(masterToggle) masterToggle.addEventListener('change',e=>{
@@ -8076,7 +8258,22 @@ function applyState(state){
     if(state.adjusts && typeof ADJUSTS_LIST!=='undefined'){ ADJUSTS_LIST.length=0; state.adjusts.forEach(a=>ADJUSTS_LIST.push(a)); if(typeof renderAdjusts==='function') renderAdjusts(); }
     if(state.compData && typeof COMP_DATA!=='undefined'){
       ['familiar','animal','eidolon','invocadas'].forEach(k=>{
-        if(state.compData[k]) Object.assign(COMP_DATA[k], state.compData[k]);
+        const incoming = state.compData[k];
+        if(incoming==null) return;
+        if(Array.isArray(incoming)){
+          COMP_DATA[k] = incoming.map(o=>{
+            const def = (typeof COMP_DEFAULTS!=='undefined' && COMP_DEFAULTS[k]) ? COMP_DEFAULTS[k]() : {};
+            return Object.assign(def, o, {id: o.id || def.id});
+          });
+        } else if(typeof incoming === 'object'){
+          /* Migración v1 → v2: single object → array de 1 elemento (si tiene nombre) */
+          if(incoming.n){
+            const def = (typeof COMP_DEFAULTS!=='undefined' && COMP_DEFAULTS[k]) ? COMP_DEFAULTS[k]() : {};
+            COMP_DATA[k] = [Object.assign(def, incoming, {id: def.id})];
+          } else {
+            COMP_DATA[k] = [];
+          }
+        }
       });
     }
   }catch(e){ console.warn('applyState datasets',e); }
@@ -8820,7 +9017,7 @@ function computeWarnings(){
     }
     /* Compañero animal con clase druida/explorador sin stats */
     const hasDruida = CLASSES_DATA?.some(c=>/dru[íi]da|ranger|explorador/i.test(c.name||''));
-    if(hasDruida && typeof COMP_DATA!=='undefined' && (!COMP_DATA.animal || !COMP_DATA.animal.n)){
+    if(hasDruida && typeof COMP_DATA!=='undefined' && (!Array.isArray(COMP_DATA.animal) || COMP_DATA.animal.length===0)){
       warnings.push('Druida/Explorador sin compañero animal definido.');
     }
     /* Conjuros sin preparar (solo para clases preparadoras) */
