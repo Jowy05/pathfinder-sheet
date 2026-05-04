@@ -1746,7 +1746,7 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
         <label style="display:flex;align-items:center;gap:8px;font:13px/1.2 system-ui;color:var(--ink-muted);cursor:pointer;margin-top:6px">
           <input type="checkbox"> BAB / TS Fraccionales (Unchained)
         </label>
-        <button class="btn-secondary" style="width:100%;margin-top:8px" data-toast="tirar-dg">🎲 Tirar todos los DG</button>
+        <button class="btn-secondary" style="width:100%;margin-top:8px" id="btn-roll-all-hd">🎲 Tirar todos los DG (regenerar PG totales)</button>
       </div>
 
       <div class="card">
@@ -3562,7 +3562,8 @@ document.querySelectorAll('.tab-page').forEach(page=>{
 });
 
 /* ─── HP ─── */
-const HP_MAX = 28;
+/* P-04: HP_MAX es dinámico, lo recalcula CombatEngine al cambiar clase/nivel/CON */
+let HP_MAX = 28;
 let hp = HP_MAX, hpTemp = 0, hpNonlethal = 0;
 function refreshHP(){
   // base bar
@@ -4490,7 +4491,14 @@ function renderClasses(){
     b.addEventListener('click',()=>{
       const id = +b.dataset.classDel;
       const i = CLASSES_DATA.findIndex(x=>x.id===id);
-      if(i>=0){ CLASSES_DATA.splice(i,1); renderClasses(); }
+      if(i>=0){
+        CLASSES_DATA.splice(i,1);
+        renderClasses();
+        /* P-04: notificar al resto del sistema */
+        document.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'remove',id}}));
+        window.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'remove',id}}));
+        if(typeof saveStateDebounced==='function') saveStateDebounced('class-remove');
+      }
     });
   });
 
@@ -4513,6 +4521,10 @@ function renderClasses(){
         toast('Clase: '+n);
         // Auto-add class features
         _triggerClassFeaturesFor(cl);
+        /* P-04: dispara recálculo de BAB/HP/saves/skills/conjuros */
+        document.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'name',id:classId,name:n}}));
+        window.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'name',id:classId,name:n}}));
+        if(typeof saveStateDebounced==='function') saveStateDebounced('class-name');
       });
       openSheet('sheet-class-picker');
     });
@@ -4533,21 +4545,30 @@ function renderClasses(){
         closeSheet(document.getElementById('sheet-archetype-picker'));
         toast('Arquetipo: '+n);
         _triggerClassFeaturesFor(cl);
+        /* P-04 */
+        document.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'archetype',id:classId,archetype:n}}));
+        window.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'archetype',id:classId,archetype:n}}));
+        if(typeof saveStateDebounced==='function') saveStateDebounced('archetype');
       });
-      if(search){ search.value=''; search.oninput=()=>{ const q=search.value.toLowerCase(); fillPickerTriple(list, archData.filter(([n,d])=>(n+d).toLowerCase().includes(q)), ([n,,k])=>{ cl.archetype=n; cl.archetypeKey=k||''; renderClasses(); closeSheet(document.getElementById('sheet-archetype-picker')); toast('Arquetipo: '+n); _triggerClassFeaturesFor(cl); }); }; }
+      if(search){ search.value=''; search.oninput=()=>{ const q=search.value.toLowerCase(); fillPickerTriple(list, archData.filter(([n,d])=>(n+d).toLowerCase().includes(q)), ([n,,k])=>{ cl.archetype=n; cl.archetypeKey=k||''; renderClasses(); closeSheet(document.getElementById('sheet-archetype-picker')); toast('Arquetipo: '+n); _triggerClassFeaturesFor(cl); document.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'archetype',id:classId,archetype:n}})); window.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'archetype',id:classId,archetype:n}})); }); }; }
       openSheet('sheet-archetype-picker');
     });
   });
 
-  // Level change → auto-add features
+  // Level change → auto-add features + dispara class-changed
   c.querySelectorAll('.class-level').forEach(inp=>{
     inp.addEventListener('change',()=>{
       const classId = +inp.dataset.classId;
       const cl = CLASSES_DATA.find(x=>x.id===classId);
       if(!cl) return;
       const newLvl = Math.max(1,Math.min(20,+inp.value||1));
+      const oldLvl = cl.level;
       cl.level = newLvl; inp.value = newLvl;
       _triggerClassFeaturesFor(cl);
+      /* P-04: dispara recálculo de TODO al cambiar nivel */
+      document.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'level',id:classId,oldLvl,newLvl}}));
+      window.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'level',id:classId,oldLvl,newLvl}}));
+      if(typeof saveStateDebounced==='function') saveStateDebounced('class-level');
     });
   });
 }
@@ -7998,6 +8019,92 @@ function wireSummaryAttack(){
   });
 }
 
+/* P-04: tirar todos los DG de TODAS las clases multi-clase y regenerar PG totales */
+function wireRollAllHd(){
+  const btn = document.getElementById('btn-roll-all-hd');
+  if(!btn) return;
+  btn.addEventListener('click', ()=>{
+    if(typeof CLASSES_DATA==='undefined' || !CLASSES_DATA.length){
+      if(typeof toast==='function') toast('Sin clases definidas');
+      return;
+    }
+    /* CON modifier: prefiere getAttrMod cacheado, fallback a ATTRS */
+    let conMod = 0;
+    try{
+      if(typeof window.getAttrMod==='function') conMod = window.getAttrMod('CON')||0;
+      else { const a=(typeof ATTRS!=='undefined'?ATTRS:[]).find(x=>x[0]==='CON'); if(a) conMod = a[3]||0; }
+    }catch(e){}
+    let total = 0;
+    const breakdown = [];
+    CLASSES_DATA.forEach(cl=>{
+      const lvl = +cl.level||0;
+      const dieMatch = (cl.hd||'1d8').match(/d(\d+)/i);
+      const die = dieMatch ? +dieMatch[1] : 8;
+      let sumDice = die; // nivel 1 = max
+      const rolls = [die];
+      for(let i=1;i<lvl;i++){
+        const r = Math.floor(Math.random()*die)+1;
+        rolls.push(r);
+        sumDice += r;
+      }
+      const fromCon = conMod * lvl;
+      const sub = Math.max(lvl, sumDice + fromCon); // mínimo 1 PG por nivel
+      cl.hp = sub;
+      total += sub;
+      breakdown.push(`${cl.name} ${lvl}d${die}: [${rolls.join(',')}]+(${conMod>=0?'+':''}${conMod}×${lvl}) = ${sub}`);
+    });
+    /* Re-render clases con nuevos hp */
+    if(typeof renderClasses==='function') renderClasses();
+    /* Notificar al CombatEngine para que recalcule HP_MAX y refresque la barra */
+    document.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'roll-hd', total}}));
+    window.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'roll-hd', total}}));
+    /* Llenar HP actual al máximo recién calculado (al subir nivel se asume curado) */
+    setTimeout(()=>{
+      try{
+        if(typeof HP_MAX !== 'undefined' && typeof setHP==='function'){ hp = HP_MAX; refreshHP(); }
+      }catch(e){}
+    },50);
+    if(typeof toast==='function') toast('PG regenerados: '+total);
+    /* Mostrar desglose en el sheet de dados */
+    try{
+      if(typeof openSheet==='function') openSheet('sheet-dice');
+      const die = document.getElementById('dice-die');
+      const lbl = document.getElementById('dice-lbl');
+      const formula = document.getElementById('dice-formula');
+      const header = document.getElementById('dice-header');
+      if(die){ die.textContent = total; }
+      if(header) header.textContent = 'Tirada todos los DG';
+      if(formula) formula.innerHTML = breakdown.map(l=>`<div style="font:11px monospace;color:var(--ink-muted)">${l}</div>`).join('') + `<div style="margin-top:6px"><b>Total PG</b>: ${total}</div>`;
+      if(lbl) lbl.textContent = 'Total PG · '+total;
+    }catch(e){}
+    if(typeof saveStateDebounced==='function') saveStateDebounced('roll-hd');
+  });
+}
+
+/* P-04: cuando CombatEngine emite hp-max nuevo, sustituye HP_MAX y refresca */
+function wireHpMaxFromCombat(){
+  document.addEventListener('combat-changed', e=>{
+    if(!e.detail || e.detail.field!=='hp-max') return;
+    const newMax = +e.detail.value;
+    if(!newMax || newMax<=0) return;
+    try{
+      HP_MAX = newMax;
+      if(hp > HP_MAX) hp = HP_MAX;
+      if(typeof refreshHP==='function') refreshHP();
+    }catch(e){}
+  });
+  window.addEventListener('combat-changed', e=>{
+    if(!e.detail || e.detail.field!=='hp-max') return;
+    const newMax = +e.detail.value;
+    if(!newMax || newMax<=0) return;
+    try{
+      HP_MAX = newMax;
+      if(hp > HP_MAX) hp = HP_MAX;
+      if(typeof refreshHP==='function') refreshHP();
+    }catch(e){}
+  });
+}
+
 function init6(){
   extendI18N();
   applyI18NExtras();
@@ -8007,6 +8114,8 @@ function init6(){
   bindPhotoButtons();
   wireAutosave();
   wireSummaryAttack();
+  wireRollAllHd();
+  wireHpMaxFromCombat();
 
   const stored = loadStoredState();
   if(stored){

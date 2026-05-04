@@ -21,10 +21,12 @@
 - Usar el `classes.json` y `archetypes.json` existentes en assets para poblar el selector.
 - El arquetipo debería filtrar por clase seleccionada.
 
-### P-04 🔴 Campos auto-calculables no se actualizan
-- Al cambiar clase/nivel no se recalcula: Dados de Golpe totales, DG a tirar, BAB, Tiradas de Salvación, Puntos de Habilidad disponibles, Iniciativa, etc.
-- El botón "Tirar todos los DG" no es funcional (actualmente solo es un toast).
-- Implementar `recalc()` completo similar a la ficha PC que actualice todos los campos derivados al cambiar clase o nivel.
+### P-04 ✅ Campos auto-calculables no se actualizan
+- ~~Al cambiar clase/nivel no se recalcula: Dados de Golpe totales, DG a tirar, BAB, Tiradas de Salvación, Puntos de Habilidad disponibles, Iniciativa, etc.~~
+- ~~El botón "Tirar todos los DG" no es funcional (actualmente solo es un toast).~~
+- ~~Implementar `recalc()` completo similar a la ficha PC que actualice todos los campos derivados al cambiar clase o nivel.~~
+
+**Resuelto**: cambios de nivel/clase/arquetipo ahora disparan `class-changed` (window+document). Suscritos: CombatEngine (BAB, HP, saves, init), D3 skills (puntos disponibles, recalculo total), D5 weapons (BAB+atrib en ataques), D4 spells (slots por nivel/clase). HP_MAX pasa a `let` y se sustituye desde `combat-changed` (`hp-max`). Botón "🎲 Tirar todos los DG (regenerar PG totales)" funcional: por cada clase tira `level`d`hd` (nivel 1 = max) + CON_mod×nivel, asigna a `cl.hp`, recalcula HP_MAX, pone HP actual al máximo y muestra desglose en sheet de dados.
 
 ### P-05 🟡 XP no editable
 - Los campos de XP no permiten escribir directamente.
