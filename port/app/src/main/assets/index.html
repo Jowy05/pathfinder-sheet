@@ -5056,11 +5056,48 @@ function renderNotes(){
   const c = document.getElementById('notes-saved');
   if(!c) return;
   c.innerHTML = NOTES_LIST.length===0 ? '' : `
-    <div style="font:600 11px 'Cinzel',serif;letter-spacing:.08em;text-transform:uppercase;color:var(--leather);margin-bottom:6px">Guardadas</div>
-    ${NOTES_LIST.map((n,i)=>`<div class="eq-card"><button class="crud-del" data-note-del="${i}">×</button><div class="eq-name" style="font-size:13px">${n.t}</div><div class="eq-meta" style="font-family:'EB Garamond',serif;font-size:13px">${n.body}</div></div>`).join('')}
+    <div style="font:600 11px 'Cinzel',serif;letter-spacing:.08em;text-transform:uppercase;color:var(--leather);margin-bottom:6px">Guardadas (${NOTES_LIST.length})</div>
+    ${NOTES_LIST.map((n,i)=>{
+      const preview = (n.body||'').length > 100 ? (n.body||'').slice(0,100)+'…' : (n.body||'');
+      const safePreview = preview.replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+      return `<div class="eq-card" data-note-card="${i}" style="cursor:pointer">
+        <button class="crud-del" data-note-del="${i}" aria-label="Eliminar">×</button>
+        <div class="eq-name" style="font-size:13px;padding-right:24px">${n.t||'(sin título)'}</div>
+        <div class="eq-meta" style="font-family:'EB Garamond',serif;font-size:13px;white-space:pre-wrap;line-height:1.4">${safePreview}</div>
+        ${(n.body||'').length>100?'<div style="font:10px system-ui;color:var(--accent);margin-top:4px">Tap para leer/editar completa</div>':''}
+      </div>`;
+    }).join('')}
   `;
   c.querySelectorAll('[data-note-del]').forEach(b=>{
-    b.addEventListener('click',()=>{ NOTES_LIST.splice(+b.dataset.noteDel,1); renderNotes(); });
+    b.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      NOTES_LIST.splice(+b.dataset.noteDel,1);
+      renderNotes();
+      if(typeof saveStateDebounced==='function') saveStateDebounced('note-del');
+    });
+  });
+  /* M-05: Tap en card carga la nota al editor para leer/editar */
+  c.querySelectorAll('[data-note-card]').forEach(card=>{
+    card.addEventListener('click',(e)=>{
+      if(e.target.closest('[data-note-del]')) return;
+      const i = +card.dataset.noteCard;
+      const n = NOTES_LIST[i];
+      if(!n) return;
+      const tInp = document.getElementById('note-title');
+      const bInp = document.getElementById('note-body');
+      if(tInp) tInp.value = n.t || '';
+      if(bInp) bInp.value = n.body || '';
+      /* Marca cuál se está editando */
+      const saveBtn = document.getElementById('note-save');
+      if(saveBtn){
+        saveBtn.dataset.editingIdx = i;
+        saveBtn.textContent = '💾 Sobreescribir nota';
+      }
+      if(typeof toast==='function') toast('Nota cargada para leer/editar');
+      /* scroll to top of sheet */
+      const sheet = document.getElementById('sheet-notes');
+      if(sheet) sheet.scrollTop = 0;
+    });
   });
 }
 
@@ -5213,7 +5250,15 @@ function bindNewSheets(){
     const t = document.getElementById('note-title').value.trim();
     const b = document.getElementById('note-body').value.trim();
     if(!t && !b) return;
-    NOTES_LIST.unshift({t:t||'Sin título',body:b||'(vacío)'});
+    /* M-05: si está editando una existente, sobreescribir en su sitio */
+    const editingIdx = parseInt(noteSave.dataset.editingIdx,10);
+    if(!isNaN(editingIdx) && NOTES_LIST[editingIdx]){
+      NOTES_LIST[editingIdx] = {t:t||'Sin título',body:b||'(vacío)'};
+      delete noteSave.dataset.editingIdx;
+      noteSave.textContent = '💾 Guardar nota';
+    } else {
+      NOTES_LIST.unshift({t:t||'Sin título',body:b||'(vacío)'});
+    }
     document.getElementById('note-title').value='';
     document.getElementById('note-body').value='';
     renderNotes();

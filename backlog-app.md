@@ -151,9 +151,11 @@ Hints actualizados con texto descriptivo PF1e por modo. Botón "cure-nonlethal" 
 - Solo 1 slot estático. Debería poder añadir N criaturas invocadas.
 - Cada una con: nombre, HP (tracker), CA, ataques, duración.
 
-### M-05 🟡 Notas de sesión: no se pueden leer
-- Las notas guardadas aparecen en la lista pero no se pueden pulsar para leer el cuerpo completo.
-- Al pulsar una nota, abrir un modal/sheet con el texto completo.
+### M-05 ✅ Notas de sesión: no se pueden leer
+- ~~Las notas guardadas aparecen en la lista pero no se pueden pulsar para leer el cuerpo completo.~~
+- ~~Al pulsar una nota, abrir un modal/sheet con el texto completo.~~
+
+**Resuelto**: cards de notas ahora son tap-able. El cuerpo se trunca a 100 caracteres en la preview con "…" y nota "Tap para leer/editar completa". Al hacer tap, carga título y body al editor superior, marca el botón Save como "💾 Sobreescribir nota" y `dataset.editingIdx`. Save sobreescribe la nota en su posición original (mantiene el orden) en vez de añadir una nueva. Botón × por nota para borrar individual con `stopPropagation` para no abrir la nota. Counter de cantidad en la cabecera. Autosave en delete + sobreescritura.
 
 ### M-06 🟡 Ajustes: temas incompletos y no persisten
 - Solo aparecen 2 temas en la lista (deberían ser más: pergamino claro, pergamino oscuro, cyberpunk, etc.).
