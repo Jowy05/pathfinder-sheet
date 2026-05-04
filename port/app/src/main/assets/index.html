@@ -2255,6 +2255,11 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
         <span class="more-label" data-i18n="moreDados">Dados de tirada libre</span>
         <span class="more-chev">›</span>
       </button>
+      <button class="more-row" id="more-warnings">
+        <span class="more-icon"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 9v6M12 18h.01" stroke-width="2"/></svg></span>
+        <span class="more-label">Avisos del personaje <span id="warnings-badge" style="background:var(--negative);color:white;border-radius:99px;padding:2px 8px;font:700 10px system-ui;margin-left:6px;display:none">0</span></span>
+        <span class="more-chev">›</span>
+      </button>
       <button class="more-row" id="more-settings">
         <span class="more-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2.1-1.6-2-3.4-2.5.9a7 7 0 0 0-2.1-1.2L14 3h-4l-.4 2.5A7 7 0 0 0 7.5 6.7L5 5.8 3 9.2l2.1 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2L3 14.8l2 3.4 2.5-.9a7 7 0 0 0 2.1 1.2L10 21h4l.4-2.5a7 7 0 0 0 2.1-1.2l2.5.9 2-3.4-2.1-1.6c.1-.4.1-.8.1-1.2z"/></svg></span>
         <span class="more-label" data-i18n="moreAjustes">Ajustes</span>
@@ -2536,12 +2541,8 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
     <button class="btn-primary" id="init-next" style="width:100%">▶ Siguiente turno</button>
     <div class="over-sep" style="margin:14px 0 8px"></div>
     <h4 style="font-family:'Cinzel',serif;letter-spacing:.06em;text-transform:uppercase;font-size:12px;color:var(--leather);margin:0 0 6px">Avisos de completitud</h4>
-    <ul style="margin:0;padding-left:18px;font:13px/1.5 system-ui;color:var(--ink-muted)">
-      <li>Falta seleccionar dote a nivel 3</li>
-      <li>4 puntos de habilidad sin asignar</li>
-      <li>Trasfondo sin completar</li>
-      <li>Detalles físicos vacíos</li>
-      <li>Compañero animal sin estadísticas</li>
+    <ul id="warnings-list-master" style="margin:0;padding-left:18px;font:13px/1.5 system-ui;color:var(--ink-muted)">
+      <li>Calculando…</li>
     </ul>
     <div class="over-sep" style="margin:14px 0 8px"></div>
     <h4 style="font-family:'Cinzel',serif;letter-spacing:.06em;text-transform:uppercase;font-size:12px;color:var(--leather);margin:0 0 6px">Buffs de grupo</h4>
@@ -2633,6 +2634,20 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
 </dialog>
 
 <!-- ─── DAÑO / CURACIÓN ESPECÍFICA ─── -->
+<!-- M-09: sheet de Avisos del personaje (validaciones dinámicas) -->
+<dialog class="bottom-sheet" id="sheet-warnings" aria-label="Avisos del personaje">
+  <div class="drag-handle"></div>
+  <div class="sheet-header"><div class="sheet-title">Avisos del personaje</div><button class="sheet-close" data-close>✕</button></div>
+  <div class="sheet-content">
+    <p style="margin:0 0 10px;font:13px/1.5 'EB Garamond',serif;color:var(--ink-muted)">
+      Validaciones automáticas sobre el personaje. Útiles para detectar campos vacíos o decisiones pendientes al subir nivel.
+    </p>
+    <ul id="warnings-list-player" style="margin:0;padding-left:18px;font:13px/1.5 system-ui;color:var(--ink)">
+      <li>Calculando…</li>
+    </ul>
+  </div>
+</dialog>
+
 <!-- C-03: sheet de Reposo PF1e -->
 <dialog class="bottom-sheet" id="sheet-rest" aria-label="Descansar">
   <div class="drag-handle"></div>
@@ -5243,6 +5258,9 @@ function bindNewSheets(){
   // settings
   const setBtn = document.getElementById('more-settings');
   if(setBtn) setBtn.addEventListener('click',()=>openSheet('sheet-settings'));
+  /* M-09: warnings sheet */
+  const warnBtn = document.getElementById('more-warnings');
+  if(warnBtn) warnBtn.addEventListener('click',()=>{ if(typeof renderWarnings==='function') renderWarnings(); openSheet('sheet-warnings'); });
   // notes
   const notesBtn = document.getElementById('more-notes');
   if(notesBtn) notesBtn.addEventListener('click',()=>{ renderNotes(); openSheet('sheet-notes'); });
@@ -8500,6 +8518,89 @@ function wireRollAllHd(){
   });
 }
 
+/* M-09: Avisos del personaje (validaciones dinámicas) */
+function computeWarnings(){
+  const warnings = [];
+  try{
+    /* Identidad */
+    const v = id => { const el=document.getElementById(id); return el ? el.value.trim() : ''; };
+    if(!v('in-nombre') && !v('in-name')) warnings.push('Falta nombre del personaje.');
+    if(!v('in-jugador')) warnings.push('Falta nombre del jugador.');
+    if(!v('in-historia')) warnings.push('Trasfondo / historia sin completar.');
+    /* Atributos */
+    if(typeof ATTR_STATE!=='undefined'){
+      const sumBase = ['FUE','DES','CON','INT','SAB','CAR'].reduce((s,a)=>s+(+ATTR_STATE[a]?.base||0),0);
+      if(sumBase < 60) warnings.push('Atributos base suman '+sumBase+' (esperado: 60-90 para PF1e estándar).');
+    }
+    /* Clases / nivel */
+    if(typeof CLASSES_DATA!=='undefined'){
+      if(!CLASSES_DATA.length) warnings.push('Sin clases definidas.');
+      const totalLvl = CLASSES_DATA.reduce((s,c)=>s+(+c.level||0),0);
+      if(totalLvl===0) warnings.push('Nivel total es 0.');
+      /* HP por clase */
+      CLASSES_DATA.forEach(cl=>{
+        if(!cl.hp || cl.hp===0) warnings.push('PG sin asignar para '+cl.name+' (usa "Tirar todos los DG").');
+      });
+    }
+    /* Habilidades sin asignar */
+    if(typeof window.D3_SKILLS!=='undefined' && typeof window.D3_SKILLS.points==='function'){
+      const max = window.D3_SKILLS.points();
+      let spent = 0;
+      try{
+        const all = window.D3_SKILLS.all();
+        all.forEach(s=>{ if(!s.noRanks) spent += parseInt(window.D3_SKILLS.state[s.id]?.r||0,10); });
+      }catch(e){}
+      if(max - spent > 0) warnings.push((max-spent)+' puntos de habilidad sin asignar.');
+    }
+    /* Compañero animal con clase druida/explorador sin stats */
+    const hasDruida = CLASSES_DATA?.some(c=>/dru[íi]da|ranger|explorador/i.test(c.name||''));
+    if(hasDruida && typeof COMP_DATA!=='undefined' && (!COMP_DATA.animal || !COMP_DATA.animal.n)){
+      warnings.push('Druida/Explorador sin compañero animal definido.');
+    }
+    /* Conjuros sin preparar (solo para clases preparadoras) */
+    if(typeof PathfinderSpells !== 'undefined' && PathfinderSpells.CASTING_MODE){
+      const mode = PathfinderSpells.CASTING_MODE();
+      if(mode==='prep' && typeof SPELLS_DATA!=='undefined'){
+        const prepared = SPELLS_DATA.filter(s=>s.prepared).length;
+        if(prepared===0 && SPELLS_DATA.length>0) warnings.push('Sin conjuros preparados (clase preparadora).');
+      }
+    }
+    /* Foto */
+    if(!window.STATE?.photo) warnings.push('Sin foto del personaje (opcional).');
+  }catch(e){ console.warn('computeWarnings', e); }
+  return warnings;
+}
+
+function renderWarnings(){
+  const warnings = computeWarnings();
+  /* Lista en sheet-warnings */
+  const playerList = document.getElementById('warnings-list-player');
+  if(playerList){
+    playerList.innerHTML = warnings.length
+      ? warnings.map(w=>'<li>'+w+'</li>').join('')
+      : '<li style="color:var(--positive)">✓ Ficha completa, no hay avisos.</li>';
+  }
+  /* Lista en sheet-master */
+  const masterList = document.getElementById('warnings-list-master');
+  if(masterList){
+    masterList.innerHTML = warnings.length
+      ? warnings.map(w=>'<li>'+w+'</li>').join('')
+      : '<li style="color:var(--positive)">✓ Ficha completa.</li>';
+  }
+  /* Badge */
+  const badge = document.getElementById('warnings-badge');
+  if(badge){
+    if(warnings.length){
+      badge.textContent = warnings.length;
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+}
+window.computeWarnings = computeWarnings;
+window.renderWarnings = renderWarnings;
+
 /* C-04: Notas de combate persistentes */
 window.COMBAT_NOTES = window.COMBAT_NOTES || [];
 function renderCombatNotesList(){
@@ -8901,6 +9002,14 @@ function init6(){
   try{ if(typeof renderCombatNotesList==='function') renderCombatNotesList(); }catch(e){}
   /* E-01: render inicial del peso (recompute total + categorias) */
   try{ if(typeof D5_recompute==='function') setTimeout(D5_recompute, 200); }catch(e){}
+  /* M-09: render inicial de avisos + listeners para refresh dinámico */
+  try{
+    if(typeof renderWarnings==='function'){
+      setTimeout(renderWarnings, 300);
+      ['attr-changed','class-changed','race-changed','photo-changed','state-loaded','skills-changed']
+        .forEach(ev=>document.addEventListener(ev, ()=>setTimeout(renderWarnings, 100)));
+    }
+  }catch(e){}
 
   try{ if(isAndroid()) window._androidDeliverCharacter(); }catch(e){}
 }

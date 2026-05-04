@@ -173,8 +173,20 @@ Hints actualizados con texto descriptivo PF1e por modo. Botón "cure-nonlethal" 
 - `AndroidBridge.printSheet()` imprime el WebView tal como está → se ve la pestaña "Más".
 - Antes de imprimir, cambiar a una vista de impresión (tab personaje, o mejor: generar una vista all-in-one sin botones).
 
-### M-09 🟡 Modo master: avisos de dotes/trasfondo fuera de lugar
-- Los avisos "Faltan X dotes por seleccionar" y "Trasfondo sin completar" aparecen en la sección del master cuando deberían ir en la sección del jugador (o flotantes globales).
+### M-09 ✅ Modo master: avisos de dotes/trasfondo fuera de lugar
+- ~~Los avisos "Faltan X dotes por seleccionar" y "Trasfondo sin completar" aparecen en la sección del master cuando deberían ir en la sección del jugador (o flotantes globales).~~
+
+**Resuelto**: nueva entrada en tab Más → "Avisos del personaje" (con badge rojo de cantidad) que abre `sheet-warnings`. Validaciones dinámicas (`computeWarnings`):
+- Identidad sin nombre/jugador/historia
+- Atributos base suman menos de 60
+- Clases vacías o nivel 0
+- PG sin asignar por clase (sugiere usar "Tirar todos los DG")
+- Puntos de habilidad sin gastar (lee D3_SKILLS.points)
+- Druida/Explorador sin compañero animal
+- Conjuros sin preparar (clases preparadoras)
+- Sin foto (informativo)
+
+Re-render reactivo en `attr-changed`, `class-changed`, `race-changed`, `photo-changed`, `state-loaded`, `skills-changed`. Los avisos en sheet-master ahora también son dinámicos (mismo origen). Badge rojo con cantidad solo se muestra si hay >0 avisos.
 
 ### M-10 🟡 Tracker de iniciativa: info incompleta al añadir combatiente
 - Al añadir combatiente al tracker falta: HP máximos, CA, condiciones, tipo (PC/enemigo/aliado).
