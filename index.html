@@ -10856,6 +10856,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape') closeThemeMenu();
   });
 });
+
+/* Fix T-16: atajos globales Ctrl+S (guardar) / Ctrl+O (cargar).
+   No interfiere con inputs porque solo dispara con la tecla modificadora. */
+document.addEventListener('keydown', (e) => {
+  const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
+  const mod = isMac ? e.metaKey : e.ctrlKey;
+  if (!mod) return;
+  if (e.key === 's' || e.key === 'S') {
+    e.preventDefault();
+    if (typeof exportData === 'function') exportData();
+  } else if (e.key === 'o' || e.key === 'O') {
+    e.preventDefault();
+    const inp = document.getElementById('import-file');
+    if (inp) inp.click();
+  }
+});
 </script>
 
 <button class="theme-fab" id="theme-fab" type="button" data-i18n-aria="aria.themeFab" aria-label="Cambiar tema visual" data-i18n-title="tt.themeFab" aria-haspopup="true" aria-expanded="false" title="Cambiar tema visual">
