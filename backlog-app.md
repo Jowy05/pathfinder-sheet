@@ -219,9 +219,11 @@ Card del combatiente ahora muestra:
 
 Estructura `INIT_LIST[i] = {n, v, hp, hpMax, ac, type, isPC, conds:[]}`. Persistencia ya existía via STATE.initList (X-01). Las condiciones (`r.conds`) están preparadas para edición futura — se persisten pero la UI de toggle todavía no se ha añadido.
 
-### M-11 🟡 Tracker de buffs: falta en combate
-- La sección de combate no tiene tracker de buffs activos con countdown de rounds.
-- Añadir lista de buffs con duración en rounds y botón "avanzar round" que los decremente.
+### M-11 ✅ Tracker de buffs: falta en combate
+- ~~La sección de combate no tiene tracker de buffs activos con countdown de rounds.~~
+- ~~Añadir lista de buffs con duración en rounds y botón "avanzar round" que los decremente.~~
+
+**Resuelto**: nueva card "⏱ Buffs activos" en sub-page Resumen (Combate > Resumen) que lee `BUFFS_LIST`. Cada buff muestra nombre, modificador y duración restante (rondas/asaltos pendientes, ∞ permanente, ⚠ caducado). Botón × para quitar individualmente. Botón "▶ Siguiente asalto" decrementa la cantidad de buffs medidos en asaltos/rondas y elimina los que llegan a 0. Recalcula `_BUFF_MOD_TOTALS` y CombatEngine.apply tras cada cambio. Toast con caducados o "Asalto siguiente". Hook en `renderBuffs()` también re-renderiza el resumen.
 
 ### M-12 ✅ Tracker iniciativa: botón ordenar por iniciativa
 - ~~Botón para ordenar automáticamente los combatientes de mayor a menor iniciativa.~~

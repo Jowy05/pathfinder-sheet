@@ -1959,6 +1959,14 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
         <h3 class="card-title"><span class="ornament">✦</span><span>Condiciones activas</span><span class="ornament">✦</span></h3>
         <div id="summary-conds" style="display:flex;flex-wrap:wrap;gap:6px;font:12px/1 system-ui;color:var(--ink-muted)">Ninguna condición activa</div>
       </div>
+      <!-- M-11: tracker de buffs activos en combate -->
+      <div class="card" id="summary-buffs-card">
+        <h3 class="card-title"><span class="ornament">⏱</span><span>Buffs activos</span><span class="ornament">⏱</span></h3>
+        <div id="summary-buffs-list" style="display:grid;gap:6px;font:13px/1.4 system-ui">
+          <div style="color:var(--ink-muted);font-style:italic">Sin buffs activos. Añade desde Combate &gt; Condiciones &gt; Buffs.</div>
+        </div>
+        <button class="btn-secondary" id="btn-next-round" style="width:100%;margin-top:8px">▶ Siguiente asalto (decrementa rondas)</button>
+      </div>
       <button class="btn-primary" style="width:100%;min-height:52px;font-size:15px" id="summary-attack">⚔ Atacar</button>
     </div>
 
@@ -5567,6 +5575,8 @@ function _buffRemove(i){
   if(typeof CombatEngine!=='undefined') CombatEngine.apply();
 }
 function renderBuffs(){
+  /* M-11: actualiza también el resumen de combate */
+  try{ if(typeof renderSummaryBuffs==='function') renderSummaryBuffs(); }catch(e){}
   const c = document.getElementById('buffs-list');
   if(!c) return;
   c.innerHTML = BUFFS_LIST.map((b,i)=>{
@@ -8609,6 +8619,83 @@ function wireRollAllHd(){
   });
 }
 
+/* M-11: Buff tracker en sub-page Resumen con countdown de rondas */
+function renderSummaryBuffs(){
+  const c = document.getElementById('summary-buffs-list');
+  if(!c) return;
+  const buffs = (typeof BUFFS_LIST !== 'undefined') ? BUFFS_LIST : [];
+  if(!buffs.length){
+    c.innerHTML = '<div style="color:var(--ink-muted);font-style:italic">Sin buffs activos. Añade desde Combate &gt; Condiciones &gt; Buffs.</div>';
+    return;
+  }
+  c.innerHTML = buffs.map((b,i)=>{
+    const dur = (b.dur||'').toString();
+    const qty = parseInt(b.qty,10);
+    const isRounds = /asalto|round|ronda/i.test(dur);
+    const isPerm = /permanent|hasta descansar/i.test(dur);
+    const left = (isPerm || isRounds===false) ? null : qty;
+    const durStr = isPerm
+      ? '∞ permanente'
+      : (isFinite(left) ? left+' '+(dur||'?') : (qty+' '+(dur||'?')));
+    const expired = isFinite(left) && left<=0;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:${expired?'rgba(160,40,30,0.10)':'var(--surface-2)'};border:1px solid var(--line)">
+      <div style="flex:1">
+        <div style="font:600 13px system-ui;color:var(--ink)">${b.name||'(buff)'}</div>
+        <div style="font:11px/1.3 system-ui;color:var(--ink-muted)">${b.mod||''}</div>
+      </div>
+      <span style="font:600 11px system-ui;color:${expired?'var(--negative)':'var(--accent)'};white-space:nowrap">${expired?'⚠ caducado':durStr}</span>
+      <button data-buff-rm-summary="${i}" style="background:transparent;border:0;color:var(--negative);cursor:pointer;font:700 16px system-ui;padding:0 4px" aria-label="Quitar">×</button>
+    </div>`;
+  }).join('');
+  c.querySelectorAll('[data-buff-rm-summary]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const i = +b.dataset.buffRmSummary;
+      BUFFS_LIST.splice(i,1);
+      try{ if(typeof renderBuffs==='function') renderBuffs(); }catch(e){}
+      try{ if(typeof rebuildBuffModTotals==='function') rebuildBuffModTotals(); }catch(e){}
+      try{ if(typeof CombatEngine!=='undefined') CombatEngine.apply(); }catch(e){}
+      renderSummaryBuffs();
+      if(typeof saveStateDebounced==='function') saveStateDebounced('buff-summary-rm');
+    });
+  });
+}
+
+function nextRoundDecrement(){
+  if(typeof BUFFS_LIST==='undefined') return;
+  const expired = [];
+  BUFFS_LIST.forEach((b,i)=>{
+    const dur = (b.dur||'').toString();
+    const isRounds = /asalto|round|ronda/i.test(dur);
+    const isPerm = /permanent|hasta descansar/i.test(dur);
+    if(isPerm || !isRounds) return;
+    const qty = parseInt(b.qty,10);
+    if(!isFinite(qty)) return;
+    b.qty = Math.max(0, qty - 1);
+    if(b.qty === 0) expired.push(b.name||'(buff)');
+  });
+  /* limpiar caducados */
+  for(let i=BUFFS_LIST.length-1;i>=0;i--){
+    if(BUFFS_LIST[i].qty === 0 && /asalto|round|ronda/i.test((BUFFS_LIST[i].dur||'').toString())){
+      BUFFS_LIST.splice(i,1);
+    }
+  }
+  try{ if(typeof renderBuffs==='function') renderBuffs(); }catch(e){}
+  try{ if(typeof rebuildBuffModTotals==='function') rebuildBuffModTotals(); }catch(e){}
+  try{ if(typeof CombatEngine!=='undefined') CombatEngine.apply(); }catch(e){}
+  renderSummaryBuffs();
+  if(expired.length && typeof toast==='function') toast('Caducados: '+expired.join(', '));
+  else if(typeof toast==='function') toast('Asalto siguiente');
+  if(typeof saveStateDebounced==='function') saveStateDebounced('round-decrement');
+}
+
+function wireRoundButton(){
+  const btn = document.getElementById('btn-next-round');
+  if(btn) btn.addEventListener('click', nextRoundDecrement);
+  /* Re-render buffs cuando cambian */
+  document.addEventListener('state-loaded', renderSummaryBuffs);
+  setTimeout(renderSummaryBuffs, 300);
+}
+
 /* M-06: Settings persistentes (idioma/tema/tamaño fuente/daltónico) */
 const SETTINGS_KEY = 'ficha-mobile-settings';
 function loadSettings(){
@@ -9163,6 +9250,7 @@ function init6(){
   wireXPInputs();
   wireRestPF1e();
   wireSettingsControls();
+  wireRoundButton();
 
   const stored = loadStoredState();
   if(stored){
