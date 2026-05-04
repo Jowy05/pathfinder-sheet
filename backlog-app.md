@@ -41,9 +41,11 @@
 
 **Resuelto**: cambios de nivel/clase/arquetipo ahora disparan `class-changed` (window+document). Suscritos: CombatEngine (BAB, HP, saves, init), D3 skills (puntos disponibles, recalculo total), D5 weapons (BAB+atrib en ataques), D4 spells (slots por nivel/clase). HP_MAX pasa a `let` y se sustituye desde `combat-changed` (`hp-max`). Botón "🎲 Tirar todos los DG (regenerar PG totales)" funcional: por cada clase tira `level`d`hd` (nivel 1 = max) + CON_mod×nivel, asigna a `cl.hp`, recalcula HP_MAX, pone HP actual al máximo y muestra desglose en sheet de dados.
 
-### P-05 🟡 XP no editable
-- Los campos de XP no permiten escribir directamente.
-- Deben ser inputs editables (actual y siguiente umbral).
+### P-05 ✅ XP no editable
+- ~~Los campos de XP no permiten escribir directamente.~~
+- ~~Deben ser inputs editables (actual y siguiente umbral).~~
+
+**Resuelto**: card de Experiencia ahora con tres inputs editables (`xp-current`, `xp-next`, `xp-track`). Tabla `XP_TABLE` PF1e canónica para los 3 avances (Lento/Medio/Rápido) × 20 niveles. Función `autoFillXPNext()` calcula el umbral según nivel total del personaje (suma de niveles de clase) y avance seleccionado. `refreshXPBar()` actualiza barra y porcentaje en vivo. Si XP actual >= XP next muestra mensaje "¡Subes de nivel!" en color verde. Listeners conectados a `class-changed` para auto-recalcular el umbral al subir nivel. Persistencia en `STATE.xp = {current, next, track}`.
 
 ### P-06 🔵 Idiomas conocidos: copiar lista de la ficha PC
 - La ficha PC tiene el listado completo de idiomas de PF1e.

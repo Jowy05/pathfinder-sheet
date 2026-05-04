@@ -1784,14 +1784,27 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
 
       <div class="card">
         <h3 class="card-title"><span class="ornament">✦</span><span data-i18n="cardXP">Experiencia</span><span class="ornament">✦</span></h3>
-        <div class="xp-meta">
-          <span>4500 / 6000 XP</span>
-          <span style="color:var(--accent)">75%</span>
+        <div class="field-row" style="margin-bottom:8px">
+          <div class="field"><label class="field-label">XP actual</label>
+            <input class="field-input" id="xp-current" type="number" inputmode="numeric" pattern="[0-9]*" value="0" min="0"></div>
+          <div class="field"><label class="field-label">Próximo nivel</label>
+            <input class="field-input" id="xp-next" type="number" inputmode="numeric" pattern="[0-9]*" value="2000" min="0"></div>
         </div>
-        <div class="xp-bar"><div class="xp-bar-fill" style="width:75%"></div></div>
+        <div class="xp-meta" id="xp-meta">
+          <span id="xp-meta-text">0 / 2000 XP</span>
+          <span style="color:var(--accent)" id="xp-meta-pct">0%</span>
+        </div>
+        <div class="xp-bar"><div class="xp-bar-fill" id="xp-bar-fill" style="width:0%"></div></div>
         <div class="field" style="margin-top:14px">
           <label class="field-label" data-i18n="lblAvance">Avance</label>
-          <select class="field-select"><option>Lenta</option><option selected>Media</option><option>Rápida</option></select>
+          <select class="field-select" id="xp-track">
+            <option value="slow">Lento</option>
+            <option value="medium" selected>Medio</option>
+            <option value="fast">Rápido</option>
+          </select>
+        </div>
+        <div style="font:11px/1.4 system-ui;color:var(--ink-muted);margin-top:6px">
+          Auto-rellena el umbral del siguiente nivel según el avance y nivel total del personaje.
         </div>
       </div>
     </div>
@@ -7742,6 +7755,12 @@ function snapshotState(){
       const active = p.querySelector('.subchip.active');
       if(active) s.activeSubtabs[p.dataset.tab] = active.dataset.sub;
     });
+    /* P-05: XP */
+    s.xp = {
+      current: parseInt(__v('xp-current'),10) || 0,
+      next: parseInt(__v('xp-next'),10) || 0,
+      track: __v('xp-track') || 'medium',
+    };
   }catch(e){}
   return s;
 }
@@ -7876,6 +7895,14 @@ function applyState(state){
       const setVal = (id,v)=>{ const el=document.getElementById(id); if(el && v!=null) el.value = v; };
       setVal('m-init-misc', state.combatMisc.initMisc);
       setVal('base-speed', state.combatMisc.baseSpeed);
+    }
+    /* P-05: XP */
+    if(state.xp){
+      const setVal = (id,v)=>{ const el=document.getElementById(id); if(el && v!=null) el.value = v; };
+      setVal('xp-current', state.xp.current);
+      setVal('xp-next', state.xp.next);
+      setVal('xp-track', state.xp.track);
+      try{ if(typeof refreshXPBar==='function') refreshXPBar(); }catch(e){}
     }
     /* CombatEngine recalc tras cargar inputs */
     try{ if(typeof CombatEngine !== 'undefined' && CombatEngine.apply) CombatEngine.apply(); }catch(e){}
@@ -8254,6 +8281,70 @@ function wireRollAllHd(){
   });
 }
 
+/* P-05: XP editable + auto-cálculo de umbrales según tabla PF1e */
+const XP_TABLE = {
+  slow:  [0,3000,7500,14000,23000,35000,53000,77000,115000,160000,235000,330000,475000,665000,955000,1350000,1900000,2700000,3850000,5350000],
+  medium:[0,2000,5000,9000,15000,23000,35000,51000,75000,105000,155000,220000,315000,445000,635000,890000,1300000,1800000,2550000,3600000],
+  fast:  [0,1300,3300,6000,10000,15000,23000,34000,50000,71000,105000,145000,210000,295000,425000,600000,850000,1200000,1700000,2400000]
+};
+function xpForNextLevel(currentLevel, track){
+  const tbl = XP_TABLE[track] || XP_TABLE.medium;
+  const idx = Math.max(0, Math.min(19, currentLevel));
+  return tbl[idx] || tbl[19];
+}
+function refreshXPBar(){
+  try{
+    const cur = parseInt((document.getElementById('xp-current')||{}).value,10) || 0;
+    const next = parseInt((document.getElementById('xp-next')||{}).value,10) || 1;
+    const pct = Math.max(0, Math.min(100, (cur / next) * 100));
+    const meta = document.getElementById('xp-meta-text');
+    const pctEl = document.getElementById('xp-meta-pct');
+    const fill = document.getElementById('xp-bar-fill');
+    if(meta) meta.textContent = cur.toLocaleString() + ' / ' + next.toLocaleString() + ' XP';
+    if(pctEl) pctEl.textContent = pct.toFixed(0) + '%';
+    if(fill) fill.style.width = pct + '%';
+    /* Si pasa al siguiente nivel: aviso */
+    if(cur >= next && next > 0){
+      if(pctEl) pctEl.style.color = 'var(--positive)';
+      if(pctEl && !pctEl.dataset.notified){
+        pctEl.dataset.notified = '1';
+        if(typeof toast==='function') toast('¡Subes de nivel! Sube nivel en Identidad > Clases.');
+      }
+    } else {
+      if(pctEl){ pctEl.style.color = 'var(--accent)'; delete pctEl.dataset.notified; }
+    }
+  }catch(e){}
+}
+function autoFillXPNext(){
+  const trackSel = document.getElementById('xp-track');
+  const xpNextInp = document.getElementById('xp-next');
+  if(!trackSel || !xpNextInp) return;
+  /* Nivel total del personaje desde CLASSES_DATA */
+  let totalLvl = 1;
+  try{
+    if(typeof CLASSES_DATA!=='undefined' && CLASSES_DATA.length){
+      totalLvl = CLASSES_DATA.reduce((s,c)=>s+(+c.level||0),0) || 1;
+    }
+  }catch(e){}
+  const track = trackSel.value || 'medium';
+  const next = xpForNextLevel(totalLvl, track);
+  xpNextInp.value = next;
+  refreshXPBar();
+}
+function wireXPInputs(){
+  const cur = document.getElementById('xp-current');
+  const next = document.getElementById('xp-next');
+  const track = document.getElementById('xp-track');
+  if(cur) cur.addEventListener('input', ()=>{ refreshXPBar(); if(typeof saveStateDebounced==='function') saveStateDebounced('xp'); });
+  if(next) next.addEventListener('input', ()=>{ refreshXPBar(); if(typeof saveStateDebounced==='function') saveStateDebounced('xp'); });
+  if(track) track.addEventListener('change', ()=>{ autoFillXPNext(); if(typeof saveStateDebounced==='function') saveStateDebounced('xp-track'); });
+  /* Re-cálculo cuando cambia clase/nivel */
+  document.addEventListener('class-changed', autoFillXPNext);
+  window.addEventListener('class-changed', autoFillXPNext);
+  /* Inicial */
+  setTimeout(()=>{ autoFillXPNext(); refreshXPBar(); }, 200);
+}
+
 /* C-02: CA auto-rellenada desde armadura/escudo equipados, DES y tamaño.
    Los 7 inputs de #m-ca-rows se sincronizan con los datos reales:
      - armor  ← suma ac_bonus de ARMOR_DATA con equipped=true y armor_type≠shield
@@ -8367,6 +8458,7 @@ function init6(){
   wireRollAllHd();
   wireHpMaxFromCombat();
   wireCAAutoFill();
+  wireXPInputs();
 
   const stored = loadStoredState();
   if(stored){
