@@ -66,10 +66,18 @@
 
 ## COMBATE
 
-### C-01 🟡 Daño no letal — quitar o arreglar mecánica
-- La mecánica actual (darse daño no letal uno mismo) no tiene sentido.
-- Opciones: (a) eliminarlo completamente, o (b) implementarlo correctamente: el daño no letal no mata, pero si supera tus HP máximos te deja inconsciente (en 0 hp funcional). Mostrar barra separada de daño no letal sobre la de HP.
-- **Recomendación**: eliminarlo; si en algún momento se necesita, re-añadir bien.
+### C-01 ✅ Daño no letal — quitar o arreglar mecánica
+- ~~La mecánica actual (darse daño no letal uno mismo) no tiene sentido.~~
+- ~~Opciones: (a) eliminarlo completamente, o (b) implementarlo correctamente.~~
+
+**Resuelto (opción b)**: arreglada la mecánica PF1e completa. Cambios en `applyDH`:
+- **Daño letal**: ahora consume primero PG temporales (hpTemp), luego PG actuales. Antes ignoraba hpTemp.
+- **No letal**: NO baja PG; acumula en hpNonlethal. Cuando hpNonlethal ≥ HP actuales o ≥ HP_MAX, **auto-marca condición Inconsciente** (estable, no muriendo) y dispara `rebuildBuffModTotals + CombatEngine.apply`.
+- **Curación**: ya estaba bien, restaura PG sin tocar daño no letal.
+- **Cura no letal** (NUEVO): cuarto botón en sheet-hp-edit que resta hpNonlethal (descanso 1h por nivel, magia, atención médica).
+- **PG temporales**: ya estaba bien.
+
+Hints actualizados con texto descriptivo PF1e por modo. Botón "cure-nonlethal" con color verde oliva propio.
 
 ### C-02 ✅ Defensa: auto-calcular todos los campos
 - ~~CA, Toque, Indefenso deben calcularse automáticamente según: armadura equipada + escudo + bono DES (respetando máx DES armadura) + tamaño + armadura natural + bono deflexión + misc.~~

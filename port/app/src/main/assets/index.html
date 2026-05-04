@@ -1477,6 +1477,7 @@ body.theme-dark .spell-level-h{color:#f5d8b0}
 .dh-mode button.active.dmg{background:var(--negative);color:white;border-color:var(--negative)}
 .dh-mode button.active.heal{background:var(--positive);color:white;border-color:var(--positive)}
 .dh-mode button.active.nonlethal{background:#7a4830;color:white;border-color:#7a4830}
+.dh-mode button.active.cure-nonlethal{background:#5a8c5e;color:white;border-color:#5a8c5e}
 .dh-mode button.active.temp{background:var(--accent);color:white;border-color:var(--accent)}
 .dh-amount{
   width:100%;min-height:56px;text-align:center;
@@ -2635,10 +2636,11 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
   <div class="sheet-header"><div class="sheet-title">Daño / Curación</div><button class="sheet-close" data-close>✕</button></div>
   <div class="sheet-content">
     <div class="dh-form">
-      <div class="dh-mode" id="dh-mode">
+      <div class="dh-mode" id="dh-mode" style="flex-wrap:wrap">
         <button class="active dmg" data-dh="dmg">Daño letal</button>
         <button data-dh="nonlethal">No letal</button>
         <button data-dh="heal">Curación</button>
+        <button data-dh="cure-nonlethal">Cura no letal</button>
         <button data-dh="temp">PG temp</button>
       </div>
       <input class="dh-amount" id="dh-amount" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="0" aria-label="Cantidad">
@@ -5472,11 +5474,36 @@ let DH_MODE='dmg';
 function applyDH(amount){
   if(amount<=0) return;
   if(DH_MODE==='dmg'){
-    setHP(hp - amount);
+    /* C-01: Daño letal — primero consume PG temporales, luego PG actuales */
+    let dmg = amount;
+    if(hpTemp > 0){
+      const usedTemp = Math.min(hpTemp, dmg);
+      hpTemp -= usedTemp;
+      dmg -= usedTemp;
+    }
+    if(dmg > 0) setHP(hp - dmg);
+    else refreshHP();
   } else if(DH_MODE==='heal'){
+    /* Curación — sube PG actuales sin exceder HP_MAX, no toca no letal */
     setHP(hp + amount);
   } else if(DH_MODE==='nonlethal'){
-    hpNonlethal = Math.min(HP_MAX, hpNonlethal + amount);
+    /* C-01: No letal acumula. Si hpNonlethal >= hp, queda Inconsciente.
+       Si supera HP máximo o hp ≤ 0, también. */
+    hpNonlethal = Math.max(0, hpNonlethal + amount);
+    refreshHP();
+    if(hpNonlethal >= hp || hpNonlethal >= HP_MAX){
+      const chip = document.querySelector('.cond-chip[data-cond="Inconsciente"]');
+      if(chip && !chip.classList.contains('active')){
+        chip.classList.add('active');
+        try{ updateCondBadge(); updateSummaryConds(); }catch(e){}
+        try{ if(typeof rebuildBuffModTotals==='function') rebuildBuffModTotals(); }catch(e){}
+        try{ if(typeof CombatEngine!=='undefined') CombatEngine.apply(); }catch(e){}
+        if(typeof toast==='function') toast('Inconsciente: daño no letal supera PG');
+      }
+    }
+  } else if(DH_MODE==='cure-nonlethal'){
+    /* C-01: Cura daño no letal (descanso, magia, atención médica) */
+    hpNonlethal = Math.max(0, hpNonlethal - amount);
     refreshHP();
   } else if(DH_MODE==='temp'){
     hpTemp = Math.max(0, hpTemp + amount);
@@ -5649,9 +5676,10 @@ function bindFormSheets(){
         if(x===b){ x.classList.add('active', x.dataset.dh); }
       });
       const hint = {
-        dmg:'Daño letal: reduce PG actuales hasta 0.',
-        nonlethal:'No letal: se acumula. Si supera HP máximo, queda inconsciente.',
-        heal:'Curación: restaura PG sin exceder el máximo.',
+        dmg:'Daño letal: consume primero PG temporales, luego PG actuales.',
+        nonlethal:'No letal (puños, fatiga): NO baja PG. Acumula. Cuando ≥ PG actuales o ≥ máx → Inconsciente (estable).',
+        heal:'Curación: restaura PG sin exceder el máximo. No toca daño no letal.',
+        'cure-nonlethal':'Cura daño no letal (descanso 1h por nivel, magia o atención médica).',
         temp:'PG temporales: se pierden primero al recibir daño. No suman al máximo.'
       };
       document.getElementById('dh-hint').textContent = hint[DH_MODE]||'';
@@ -5662,7 +5690,7 @@ function bindFormSheets(){
     const v = parseInt(document.getElementById('dh-amount').value,10)||0;
     applyDH(v);
     closeSheet(document.getElementById('sheet-hp-edit'));
-    toast(({dmg:'Daño aplicado',nonlethal:'No letal aplicado',heal:'Curación aplicada',temp:'PG temp añadidos'})[DH_MODE]+' (' + v + ')');
+    toast(({dmg:'Daño aplicado',nonlethal:'No letal aplicado',heal:'Curación aplicada','cure-nonlethal':'No letal curado',temp:'PG temp añadidos'})[DH_MODE]+' (' + v + ')');
   });
   // Cond detail toggle
   const cdt = document.getElementById('cond-detail-toggle');
