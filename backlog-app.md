@@ -123,10 +123,12 @@
 - Al volver a abrir el menú, la configuración vuelve al valor por defecto (no persiste).
 - El modo daltónico no aplica cambios visuales.
 
-### M-07 🔴 Exportar / Importar no funcionan
-- El botón "Guardar" / exportar no genera ni descarga el JSON del personaje.
-- Importar tampoco carga datos.
-- Probablemente el bridge nativo (`AndroidBridge.saveCharacter`) no está conectado o los datos que se pasan están vacíos.
+### M-07 ✅ Exportar / Importar no funcionan
+- ~~El botón "Guardar" / exportar no genera ni descarga el JSON del personaje.~~
+- ~~Importar tampoco carga datos.~~
+- ~~Probablemente el bridge nativo (`AndroidBridge.saveCharacter`) no está conectado o los datos que se pasan están vacíos.~~
+
+**Resuelto**: el handler **mock** (línea 5617) que mostraba "Ficha exportada (mock)" estaba registrado en bubbling phase y aunque el handler real de D6 (`wireConfirmActions`) corría primero en capture con `stopImmediatePropagation`, podía no propagarse en algunos navegadores. Eliminado el mock por completo. Ahora `confirm-go` solo tiene el handler real de D6 que llama `exportCharacter()` (Android: `AndroidBridge.saveCharacter`; web: `<a download>`) o `importCharacter()` (Android: `AndroidBridge.showCharacterPicker` + `_androidDeliverCharacter`; web: `<input type=file>` + FileReader). El nombre del archivo (`ficha-<slug>.json`) y el tamaño aproximado en bytes se calculan dinámicamente desde `STATE.identity.nombre` en el preview del sheet de confirmación.
 
 ### M-08 🟡 Imprimir: imprime la pestaña activa ("Más") en lugar de la hoja
 - `AndroidBridge.printSheet()` imprime el WebView tal como está → se ve la pestaña "Más".

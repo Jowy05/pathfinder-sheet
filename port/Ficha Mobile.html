@@ -5442,13 +5442,28 @@ function applyDH(amount){
 }
 
 /* ─── CONFIRMAR ACCIÓN (Exportar/Importar/Imprimir) ─── */
-const CONFIRM_TEXTS = {
-  exportar: {title:'Exportar ficha (JSON)', preview:'<div class="pv-title">Vista previa</div>Se descargará un archivo <b>ficha-joel-vornik.json</b> con todos los datos del personaje.<br><br>Los archivos JSON pueden importarse de vuelta para restaurar la ficha.'},
-  importar: {title:'Importar ficha', preview:'<div class="pv-title">Selecciona archivo</div>Se reemplazarán <b>todos</b> los datos actuales con los del archivo elegido.<br><br>Recomendado: exportar la ficha actual antes de continuar.'},
-  imprimir: {title:'Imprimir ficha', preview:'<div class="pv-title">Vista de impresión</div>Se generará una versión optimizada para papel A4 con:<br>• Datos básicos<br>• Atributos<br>• Combate y CA<br>• Habilidades<br>• Equipo'},
-};
+function _confirmTextsDynamic(){
+  /* M-07: nombre de archivo y bytes calculados en vivo desde STATE */
+  let fn = 'ficha.json', bytesStr = '';
+  try{
+    if(typeof snapshotState==='function'){ snapshotState(); }
+    const nombre = (window.STATE?.identity?.nombre || 'ficha').toString().trim().toLowerCase()
+      .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'') || 'ficha';
+    fn = 'ficha-'+nombre+'.json';
+    if(window.STATE){
+      const bytes = JSON.stringify(window.STATE).length;
+      bytesStr = ' (~'+(bytes<1024?bytes+' B':(bytes/1024).toFixed(1)+' KB')+')';
+    }
+  }catch(e){}
+  return {
+    exportar: {title:'Exportar ficha (JSON)', preview:'<div class="pv-title">Vista previa</div>Se descargará un archivo <b>'+fn+'</b>'+bytesStr+' con todos los datos del personaje.<br><br>Los archivos JSON pueden importarse de vuelta para restaurar la ficha.'},
+    importar: {title:'Importar ficha', preview:'<div class="pv-title">Selecciona archivo</div>Se reemplazarán <b>todos</b> los datos actuales con los del archivo elegido.<br><br>Recomendado: exportar la ficha actual antes de continuar.'},
+    imprimir: {title:'Imprimir ficha', preview:'<div class="pv-title">Vista de impresión</div>Se generará una versión optimizada para papel A4 con:<br>• Datos básicos<br>• Atributos<br>• Combate y CA<br>• Habilidades<br>• Equipo'},
+  };
+}
 function openConfirm(action){
-  const t = CONFIRM_TEXTS[action]||{title:'Confirmar',preview:'¿Estás seguro?'};
+  const TEXTS = _confirmTextsDynamic();
+  const t = TEXTS[action]||{title:'Confirmar',preview:'¿Estás seguro?'};
   document.getElementById('confirm-title').textContent = t.title;
   document.getElementById('confirm-preview').innerHTML = t.preview;
   document.getElementById('confirm-go').dataset.action = action;
@@ -5612,15 +5627,9 @@ function bindFormSheets(){
     if(chip){ chip.classList.toggle('active'); updateCondBadge(); updateSummaryConds(); }
     closeSheet(document.getElementById('sheet-cond-detail'));
   });
-  // Confirm action
-  const confirmGo = document.getElementById('confirm-go');
-  if(confirmGo) confirmGo.addEventListener('click',()=>{
-    const action = confirmGo.dataset.action;
-    closeSheet(document.getElementById('sheet-confirm'));
-    const messages = {exportar:'Ficha exportada (mock)',importar:'Importación cancelada (mock)',imprimir:'Enviado a imprimir (mock)'};
-    toast(messages[action]||'Acción confirmada');
-  });
-  // Confirm openers
+  /* M-07: el handler real de exportar/importar/imprimir vive en
+     wireConfirmActions() (Dominio 6). Aquí solo registramos los
+     openers del sheet-confirm — el handler de "Confirmar" lo pone D6. */
   document.querySelectorAll('[data-confirm]').forEach(b=>{
     b.addEventListener('click',()=>openConfirm(b.dataset.confirm));
   });
