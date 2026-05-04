@@ -54,9 +54,13 @@
 
 **Resuelto**: la card de Idiomas pasa de 6 checkboxes hardcoded a render dinámico desde `LANGUAGES` (D6) con dos secciones: **Estándar** (Común, Élfico, Enano, Gnomo, Mediano, Orco, Trasgo, Celestial, Infernal, Abisal, Dracónico) y **Exóticos** (Acuán, Auran, Ignan, Terran, Silvano, Druídico, Subcomún, Necril, Tien, Varisiano, Osiriano, Hallit, Skald, Kelish, Vudrani, Shoanti, Tengu). `renderLanguagesLists()` genera los checkboxes preservando los marcados al re-render. Botón "+ Idioma personalizado" (`addCustomLanguage`) añade al área `#lang-list-custom` con botón × para borrar individualmente. Persistencia en `STATE.langs = {std:[], exo:[], custom:[{name,checked}]}`.
 
-### P-07 🔴 Rasgos no se actualizan al cambiar clase/raza
-- Actualmente los rasgos de clase (aptitudes de clase) y raciales son estáticos (datos seed del guerrero/humano).
-- Al elegir clase y raza, los rasgos deben cargarse de los JSON correspondientes.
+### P-07 ✅ Rasgos no se actualizan al cambiar clase/raza
+- ~~Actualmente los rasgos de clase (aptitudes de clase) y raciales son estáticos (datos seed del guerrero/humano).~~
+- ~~Al elegir clase y raza, los rasgos deben cargarse de los JSON correspondientes.~~
+
+**Resuelto**:
+- Rasgos raciales: P-01 ya cubre esto (`renderRacialTraits` lee `RACES_DATA_FULL`).
+- Rasgos de clase: nueva función `renderClassTraitsCard()` que muestra rasgos para TODAS las clases multi-clase del personaje. Prioridad de fuente: 1) `DB.classes[key].features` filtradas por `level <= cl.level`; 2) `CLASSES_DATA_FULL` (D6); 3) `CLASS_FEATURES_DATA` con `auto:true` (aptitudes auto de D4). Si tiene varias clases, las separa por header `<b>Nombre (Nv X)</b>`. Listener en `class-changed` para auto-render. Init render en `init6`.
 
 ---
 
