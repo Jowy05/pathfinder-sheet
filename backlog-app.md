@@ -116,9 +116,11 @@ Hints actualizados con texto descriptivo PF1e por modo. Botón "cure-nonlethal" 
 
 **Resuelto**: ya estaba implementado por D3 (Dominio Habilidades). `calcSkillTotal(s)` (línea ~6310) calcula `rangos + atributo_mod + (3 si rangos>0 && esClase) + misc + ACP de armadura`. Listener de `input` en cada `.skill-rank` actualiza `.skill-total` en vivo. Listeners de `attr-changed`, `class-changed`, `armor-equipped` causan re-render. Counter `getSkillPointsTotal()` (PF1e: max(1, base+INT)×nivel + bono humano) muestra Disponibles/Gastados en `#sc-disp` y `#sc-spent`. Tap en fila tira `1d20+total` dinámico. Long-press abre sheet detalle con desglose.
 
-### A-02 🔴 Botón añadir conjuros no funciona
-- El botón "+" en la sección de conjuros no abre diálogo ni añade hechizos.
-- Debe abrir un buscador sobre `spells.json` (si existe) o permitir entrada manual.
+### A-02 ✅ Botón añadir conjuros no funciona
+- ~~El botón "+" en la sección de conjuros no abre diálogo ni añade hechizos.~~
+- ~~Debe abrir un buscador sobre `spells.json` (si existe) o permitir entrada manual.~~
+
+**Resuelto**: ya estaba implementado. `sheet-spell-add` con formulario (nivel, nombre, escuela, componentes) abre desde `+ Añadir conjuro` (estado vacío) y `+ Añadir conjuro Nv X` (por nivel). Handler `spell-add-save` hace push a `SPELLS_DATA` con flag `custom:true`, ajusta slot máximo del nivel si era 0, re-renderiza spells y slots, cierra sheet y muestra toast. No hay `spells.json` en el proyecto — la entrada es manual (apropiado para el alcance actual).
 
 ---
 
