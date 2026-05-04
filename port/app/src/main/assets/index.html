@@ -8100,6 +8100,83 @@ function wireRollAllHd(){
   });
 }
 
+/* C-02: CA auto-rellenada desde armadura/escudo equipados, DES y tamaño.
+   Los 7 inputs de #m-ca-rows se sincronizan con los datos reales:
+     - armor  ← suma ac_bonus de ARMOR_DATA con equipped=true y armor_type≠shield
+     - shield ← suma ac_bonus de ARMOR_DATA con equipped=true y armor_type='shield'
+     - dex    ← min(DES_mod, max_dex_min_armadura)
+     - size   ← SIZE_AC[size] (Mediano=0, Pequeño=+1, Grande=−1, etc.)
+   nat/deflect/dodge se dejan al usuario (son bonos misceláneos). */
+const SIZE_AC_MOD = {'Diminuto':+2,'Pequeño':+1,'Mediano':0,'Grande':-1,'Enorme':-2};
+
+function recomputeCAAuto(){
+  try{
+    const armorBody = (typeof ARMOR_DATA!=='undefined' ? ARMOR_DATA : [])
+      .filter(a=>a.equipped && a.armor_type!=='shield');
+    const armorShield = (typeof ARMOR_DATA!=='undefined' ? ARMOR_DATA : [])
+      .filter(a=>a.equipped && a.armor_type==='shield');
+    const armorAc = armorBody.reduce((s,a)=>s+(+a.ac_bonus||0),0);
+    const shieldAc = armorShield.reduce((s,a)=>s+(+a.ac_bonus||0),0);
+    /* Cap de DES: el menor max_dex de las armaduras equipadas */
+    let maxDexCap = 99;
+    armorBody.forEach(a=>{
+      const md = (typeof a.max_dex==='number') ? a.max_dex : parseInt(a.maxDex||'99',10);
+      if(!isNaN(md)) maxDexCap = Math.min(maxDexCap, md);
+    });
+    let dexMod = 0;
+    try{ if(typeof window.getAttrMod==='function') dexMod = window.getAttrMod('DES')||0;
+         else { const a=(typeof ATTRS!=='undefined'?ATTRS:[]).find(x=>x[0]==='DES'); if(a) dexMod = a[3]||0; } }
+    catch(e){}
+    const effDex = Math.min(dexMod, maxDexCap);
+    /* tamaño: prefiere D5_getSize (toma del select), fallback Mediano */
+    let size = 'Mediano';
+    try{ if(typeof D5_getSize==='function') size = D5_getSize() || 'Mediano'; }catch(e){}
+    const sizeMod = SIZE_AC_MOD[size] || 0;
+    /* aplicar a inputs */
+    const setCA = (k,v)=>{
+      const inp = document.querySelector('#m-ca-rows input[data-ca="'+k+'"]');
+      if(inp){
+        if(parseInt(inp.value,10) !== v){
+          inp.value = v;
+          inp.dataset.autoFilled = '1';
+        }
+      }
+    };
+    setCA('armor', armorAc);
+    setCA('shield', shieldAc);
+    setCA('dex', effDex);
+    setCA('size', sizeMod);
+    /* trigger recalc en CombatEngine */
+    if(typeof CombatEngine !== 'undefined' && CombatEngine.apply) CombatEngine.apply();
+  }catch(e){ console.warn('recomputeCAAuto', e); }
+}
+
+function wireCAAutoFill(){
+  ['armor-equipped','armor-removed','attr-changed','size-changed','class-changed'].forEach(ev=>{
+    document.addEventListener(ev, recomputeCAAuto);
+    window.addEventListener(ev, recomputeCAAuto);
+  });
+  /* Marcar visualmente los inputs auto */
+  const css = `
+    #m-ca-rows input[data-ca="armor"][data-auto-filled="1"],
+    #m-ca-rows input[data-ca="shield"][data-auto-filled="1"],
+    #m-ca-rows input[data-ca="dex"][data-auto-filled="1"],
+    #m-ca-rows input[data-ca="size"][data-auto-filled="1"]{
+      background:var(--surface-2);
+      border-style:dashed;
+      color:var(--ink-muted);
+    }
+  `;
+  if(!document.getElementById('c02-ca-auto-css')){
+    const st = document.createElement('style');
+    st.id='c02-ca-auto-css';
+    st.textContent=css;
+    document.head.appendChild(st);
+  }
+  /* Llamada inicial */
+  setTimeout(recomputeCAAuto, 200);
+}
+
 /* P-04: cuando CombatEngine emite hp-max nuevo, sustituye HP_MAX y refresca */
 function wireHpMaxFromCombat(){
   document.addEventListener('combat-changed', e=>{
@@ -8135,6 +8212,7 @@ function init6(){
   wireSummaryAttack();
   wireRollAllHd();
   wireHpMaxFromCombat();
+  wireCAAutoFill();
 
   const stored = loadStoredState();
   if(stored){

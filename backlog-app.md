@@ -52,10 +52,12 @@
 - Opciones: (a) eliminarlo completamente, o (b) implementarlo correctamente: el daño no letal no mata, pero si supera tus HP máximos te deja inconsciente (en 0 hp funcional). Mostrar barra separada de daño no letal sobre la de HP.
 - **Recomendación**: eliminarlo; si en algún momento se necesita, re-añadir bien.
 
-### C-02 🔴 Defensa: auto-calcular todos los campos
-- CA, Toque, Indefenso deben calcularse automáticamente según: armadura equipada + escudo + bono DES (respetando máx DES armadura) + tamaño + armadura natural + bono deflexión + misc.
-- Dejar campos editables solo para los bonos "extra" (armadura natural, deflexión, misc / correcciones).
-- Los campos calculados deben ser `readonly` visualmente pero con botón de override si el usuario necesita forzar un valor.
+### C-02 ✅ Defensa: auto-calcular todos los campos
+- ~~CA, Toque, Indefenso deben calcularse automáticamente según: armadura equipada + escudo + bono DES (respetando máx DES armadura) + tamaño + armadura natural + bono deflexión + misc.~~
+- ~~Dejar campos editables solo para los bonos "extra" (armadura natural, deflexión, misc / correcciones).~~
+- ~~Los campos calculados deben ser `readonly` visualmente pero con botón de override si el usuario necesita forzar un valor.~~
+
+**Resuelto**: nueva función `recomputeCAAuto()` rellena los 4 inputs auto-calculables (`armor`, `shield`, `dex`, `size`) cada vez que se emite `armor-equipped`, `armor-removed`, `attr-changed`, `size-changed` o `class-changed`. Suma `ac_bonus` de armaduras body equipadas, idem para escudos, capa DES_mod por el menor `max_dex` de las armaduras, y aplica `SIZE_AC_MOD` por tamaño. CombatEngine recalcula CA Total/Toque/Desp con los nuevos componentes. Los campos auto-rellenados se marcan visualmente con borde dashed + fondo distinto + `data-auto-filled="1"` (el usuario puede editarlos pero el siguiente evento sobreescribirá). Los slots `nat`, `deflect`, `dodge` se dejan al usuario (son misceláneos no derivables).
 
 ### C-03 🟡 Botón de reposo: cálculo correcto PF1e
 - En PF1e un descanso largo NO cura todos los HP.
