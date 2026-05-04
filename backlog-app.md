@@ -204,9 +204,20 @@ Ahora imprimiendo en Android (`AndroidBridge.printSheet`) o web (`window.print`)
 
 Re-render reactivo en `attr-changed`, `class-changed`, `race-changed`, `photo-changed`, `state-loaded`, `skills-changed`. Los avisos en sheet-master ahora también son dinámicos (mismo origen). Badge rojo con cantidad solo se muestra si hay >0 avisos.
 
-### M-10 🟡 Tracker de iniciativa: info incompleta al añadir combatiente
-- Al añadir combatiente al tracker falta: HP máximos, CA, condiciones, tipo (PC/enemigo/aliado).
-- Ver ficha PC para referencia.
+### M-10 ✅ Tracker de iniciativa: info incompleta al añadir combatiente
+- ~~Al añadir combatiente al tracker falta: HP máximos, CA, condiciones, tipo (PC/enemigo/aliado).~~
+
+**Resuelto**: formulario ampliado con dos filas:
+- Fila 1: Nombre, Init, PG, **CA** (nuevo)
+- Fila 2: Tipo (🟥 Enemigo / 🟩 Aliado / ⚔ PJ) + botón "+ Añadir"
+
+Card del combatiente ahora muestra:
+- Badge color según tipo (rojo enemigo, azul aliado, verde PJ con icono)
+- HP/HPMax con botones ± (ya existía)
+- **CA X** en pequeño junto al nombre
+- Lista de **condiciones activas** debajo del nombre (en rojo, si las hay)
+
+Estructura `INIT_LIST[i] = {n, v, hp, hpMax, ac, type, isPC, conds:[]}`. Persistencia ya existía via STATE.initList (X-01). Las condiciones (`r.conds`) están preparadas para edición futura — se persisten pero la UI de toggle todavía no se ha añadido.
 
 ### M-11 🟡 Tracker de buffs: falta en combate
 - La sección de combate no tiene tracker de buffs activos con countdown de rounds.

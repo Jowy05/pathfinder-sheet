@@ -2586,11 +2586,19 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
       <button class="btn-secondary" id="init-reset" style="font-size:11px;padding:4px 10px">↺ Nueva batalla</button>
     </div>
     <div id="init-list" style="display:grid;gap:6px;margin-bottom:8px"></div>
-    <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:6px;margin-bottom:6px">
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:6px;margin-bottom:6px">
       <input class="field-input" id="init-name" placeholder="Nombre" >
       <input class="field-input" id="init-val" type="number" inputmode="numeric" pattern="-?[0-9]*" placeholder="Init">
       <input class="field-input" id="init-hp-max" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="PG">
-      <button class="btn-secondary" id="init-add" style="padding:8px 12px">＋</button>
+      <input class="field-input" id="init-ac" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="CA">
+    </div>
+    <div style="display:grid;grid-template-columns:2fr auto;gap:6px;margin-bottom:6px">
+      <select class="field-select" id="init-type">
+        <option value="enemy">🟥 Enemigo</option>
+        <option value="ally">🟩 Aliado</option>
+        <option value="pc">⚔ PJ</option>
+      </select>
+      <button class="btn-secondary" id="init-add" style="padding:8px 16px">＋ Añadir</button>
     </div>
     <button class="btn-secondary" id="init-add-pc" style="width:100%;margin-bottom:6px">⚔ Añadir PJ (init auto)</button>
     <button class="btn-secondary" id="init-sort" style="width:100%;margin-bottom:6px">⇅ Ordenar por iniciativa</button>
@@ -5027,16 +5035,29 @@ function renderInit(){
     return;
   }
   c.innerHTML = INIT_LIST.map((r,i)=>{
-    const pcBadge = r.isPC ? `<span style="font:700 8px system-ui;background:var(--positive);color:#fff;padding:1px 5px;border-radius:99px;margin-right:4px">PJ</span>` : '';
+    /* M-10: badge según tipo */
+    const typeMap = {
+      pc:    {color:'var(--positive)', label:'PJ',   icon:'⚔'},
+      ally:  {color:'#3a7abd',         label:'Aliado',icon:'🟩'},
+      enemy: {color:'var(--negative)', label:'Enem.',icon:'🟥'}
+    };
+    const t = typeMap[r.type] || (r.isPC ? typeMap.pc : typeMap.enemy);
+    const typeBadge = `<span style="font:700 8px system-ui;background:${t.color};color:#fff;padding:1px 5px;border-radius:99px;margin-right:4px">${t.label}</span>`;
     const hpStr = r.hpMax != null
       ? `<span class="init-hp${r.hp<=0?' init-hp-dead':''}" data-init-hp="${i}">${r.hp}/${r.hpMax}</span>`
+      : '';
+    const acStr = r.ac != null
+      ? `<span style="font:600 11px system-ui;color:var(--ink-muted);margin-left:6px" title="Clase de Armadura">CA ${r.ac}</span>`
       : '';
     const hpBtns = r.hpMax != null ? `
       <button class="init-hp-btn" data-init-dmg="${i}" title="Daño">−</button>
       <button class="init-hp-btn" data-init-heal="${i}" title="Curar">+</button>` : '';
-    return `<div class="init-card ${r.active?'active':''}${r.hp!=null&&r.hp<=0?' init-dead':''}">
+    const condStr = (r.conds && r.conds.length)
+      ? `<div style="font:10px system-ui;color:var(--negative);margin-top:2px">${r.conds.join(', ')}</div>`
+      : '';
+    return `<div class="init-card ${r.active?'active':''}${r.hp!=null&&r.hp<=0?' init-dead':''}" data-init-card="${i}">
       <span class="ir-val">${r.v>=0?'+':'' }${r.v}</span>
-      <span class="ir-name">${pcBadge}${r.n}</span>
+      <span class="ir-name">${typeBadge}${r.n}${acStr}${condStr}</span>
       <span class="init-hp-wrap">${hpStr}${hpBtns}</span>
       <button class="crud-del" data-init-del="${i}" aria-label="Quitar">×</button>
     </div>`;
@@ -5353,14 +5374,19 @@ function bindNewSheets(){
     const n = document.getElementById('init-name').value.trim();
     const v = parseInt(document.getElementById('init-val').value,10)||0;
     const hpMax = parseInt(document.getElementById('init-hp-max')?.value,10)||null;
+    /* M-10: CA y tipo */
+    const ac    = parseInt(document.getElementById('init-ac')?.value,10)||null;
+    const type  = (document.getElementById('init-type')?.value)||'enemy';
     if(!n){ toast('Falta nombre'); return; }
-    INIT_LIST.push({n, v, active:false, hp: hpMax, hpMax, isPC:false});
+    INIT_LIST.push({n, v, active:false, hp: hpMax, hpMax, ac, type, isPC: type==='pc', conds:[]});
     INIT_LIST.sort((a,b)=>b.v-a.v);
     document.getElementById('init-name').value='';
     document.getElementById('init-val').value='';
     if(document.getElementById('init-hp-max')) document.getElementById('init-hp-max').value='';
+    if(document.getElementById('init-ac')) document.getElementById('init-ac').value='';
     if(!INIT_LIST.find(x=>x.active) && INIT_LIST.length) INIT_LIST[0].active=true;
     renderInit();
+    if(typeof saveStateDebounced==='function') saveStateDebounced('init-add');
   });
   const initAddPC = document.getElementById('init-add-pc');
   if(initAddPC) initAddPC.addEventListener('click',()=>{
