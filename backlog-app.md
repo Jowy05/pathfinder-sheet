@@ -21,9 +21,11 @@
 
 `applyState` también re-renderiza los rasgos al cargar el state guardado (sin re-disparar el modal de +2 libre).
 
-### P-02 🟡 Campo de deidad: escritura libre + lista
-- Actualmente la lista no permite escribir nombre personalizado.
-- Mantener el desplegable pero añadir opción "Personalizada…" que habilite input de texto libre.
+### P-02 ✅ Campo de deidad: escritura libre + lista
+- ~~Actualmente la lista no permite escribir nombre personalizado.~~
+- ~~Mantener el desplegable pero añadir opción "Personalizada…" que habilite input de texto libre.~~
+
+**Resuelto**: el picker ahora añade como primera opción "— Personalizada (escribir libre) —" que al pulsarla pone el input en `readOnly=false` y enfoca para escribir. Las opciones canónicas siguen funcionando igual (selecciona, cierra picker, deja readonly). Si el state guardado tiene una deidad que NO está en la lista, el input arranca en modo libre. Doble-click siempre abre el picker (incluso desde modo libre, por si quiere volver a la lista). `window._openDeityPicker` expuesto.
 
 ### P-03 ✅ Clases: importar catálogo completo
 - ~~La ficha PC tiene ~60 clases y ~304 arquetipos; la mobile solo tiene las básicas de seed.~~

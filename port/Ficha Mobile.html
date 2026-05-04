@@ -5098,20 +5098,53 @@ function bindNewSheets(){
     if(search){ search.value=''; search.oninput=()=>{ const q=search.value.toLowerCase(); fillPickerTriple(list, allData.filter(([n,d])=>(n+d).toLowerCase().includes(q)), addCls); }; }
     openSheet('sheet-class-picker');
   });
-  // deity picker (input field click)
+  // deity picker (input field click) — P-02: editable libre + lista
   const deityInp = document.getElementById('in-deidad');
   if(deityInp){
-    deityInp.readOnly = true;
-    deityInp.style.cursor = 'pointer';
-    deityInp.addEventListener('click',()=>{
+    /* P-02: si el input está vacío o tiene una deidad de la lista, click abre picker.
+       Si tiene texto custom (no-list), funciona como input normal. Botón flecha
+       a la derecha del input fuerza abrir el picker siempre. */
+    function isInList(name){
+      const slug = (name||'').trim().toLowerCase();
+      return DEITIES_DATA.some(d => d[0].toLowerCase()===slug);
+    }
+    function openDeityPicker(){
       const list = document.getElementById('deity-list');
-      fillPicker(list, DEITIES_DATA, ([n])=>{
-        deityInp.value = n;
-        closeSheet(document.getElementById('sheet-deity-picker'));
-        toast('Deidad: '+n);
+      const items = [['— Personalizada (escribir libre) —','Permite teclear el nombre directamente']]
+        .concat(DEITIES_DATA);
+      fillPicker(list, items, ([n])=>{
+        if(n.startsWith('— Personalizada')){
+          deityInp.readOnly = false;
+          deityInp.style.cursor = 'text';
+          deityInp.value = '';
+          closeSheet(document.getElementById('sheet-deity-picker'));
+          setTimeout(()=>deityInp.focus(), 100);
+          if(typeof toast==='function') toast('Escribe el nombre');
+        } else {
+          deityInp.value = n;
+          deityInp.readOnly = true;
+          deityInp.style.cursor = 'pointer';
+          closeSheet(document.getElementById('sheet-deity-picker'));
+          if(typeof toast==='function') toast('Deidad: '+n);
+        }
+        if(typeof saveStateDebounced==='function') saveStateDebounced('deity');
       });
       openSheet('sheet-deity-picker');
+    }
+    /* Estado inicial: si vacío o en lista → readonly+picker; si custom → editable */
+    if(!deityInp.value || isInList(deityInp.value)){
+      deityInp.readOnly = true;
+      deityInp.style.cursor = 'pointer';
+    } else {
+      deityInp.readOnly = false;
+      deityInp.style.cursor = 'text';
+    }
+    deityInp.addEventListener('click', e=>{
+      if(deityInp.readOnly){ openDeityPicker(); }
     });
+    /* Doble-click siempre abre picker, incluso en modo libre */
+    deityInp.addEventListener('dblclick', openDeityPicker);
+    window._openDeityPicker = openDeityPicker;
   }
   // global search
   const searchBtn = document.getElementById('btn-search');
