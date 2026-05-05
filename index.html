@@ -192,6 +192,8 @@
     </div>
   </div>
   <label class="inline-label"><input type="checkbox" id="fractional-bab" class="recalc"> <span id="fractional-label" data-i18n="label.fractional">BAB/Tiros Fraccionales (Unchained)</span></label>
+  <label class="inline-label"><input type="checkbox" id="epic-mode"> <span data-i18n="opt.epicMode">Modo Epic (nivel 21-30)</span></label>
+  <div style="font-size:10px;color:var(--leather-lt);margin:-2px 0 4px 22px;font-style:italic;" data-i18n="epicModeNote">El contenido oficial PF1e termina en 20. Las reglas Epic son material de comunidad.</div>
   <div class="divider"></div>
   <div class="three-col progression-summary" style="margin-bottom:6px;">
     <div class="label-row"><span data-i18n="label.totalLevel">Nivel Total</span><input type="text" id="total-level" readonly class="derived"></div>
@@ -1589,6 +1591,8 @@ const I18N = {
     'p.classes':'Clases y Progresión','col.class':'Clase','col.archetype':'Arquetipo',
     'btn.addClass':'[+] Añadir Clase',
     'label.fractional':'BAB/Tiros Fraccionales (Unchained)',
+    'opt.epicMode':'Modo Epic (nivel 21-30)',
+    'epicModeNote':'El contenido oficial PF1e termina en 20. Las reglas Epic son material de comunidad.',
     'label.totalLevel':'Nivel Total','label.hitDice':'Dados de Golpe','label.speed':'Velocidad (ft)',
     'p.hp':'Puntos de Golpe','btn.rollAllHD':'Tirar Todos los Dados de Golpe',
     'label.hp':'PG:','label.hpBonus':'Dotes / Buff HP','label.tempHP':'PG Temporales','ph.zero':'0',
@@ -2019,6 +2023,8 @@ const I18N = {
     'p.classes':'Classes & Progression','col.class':'Class','col.archetype':'Archetype',
     'btn.addClass':'[+] Add Class',
     'label.fractional':'Fractional BAB/Saves (Unchained)',
+    'opt.epicMode':'Epic Mode (level 21-30)',
+    'epicModeNote':'Official PF1e content ends at 20. Epic rules are community material.',
     'label.totalLevel':'Total Level','label.hitDice':'Hit Dice','label.speed':'Speed (ft)',
     'p.hp':'Hit Points','btn.rollAllHD':'Roll All Hit Dice',
     'label.hp':'HP:','label.hpBonus':'Feats / Buff HP','label.tempHP':'Temporary HP','ph.zero':'0',
@@ -3176,6 +3182,11 @@ function addClassRow(classKey = '', level = 1, hp = 0, isFirst = false) {
       }
       levelInput.dataset.prev = newLvl;
     });
+  }
+
+  // R-29 · Asegura que la nueva fila respete el modo Epic activo
+  if (typeof _epicModeOn !== 'undefined' && _epicModeOn && levelInput) {
+    levelInput.max = '30';
   }
 
   // Update add-button visibility
@@ -10255,6 +10266,9 @@ function exportData() {
   // P-7 · Initiative / combat tracker
   data['__combat_tracker'] = JSON.stringify(_combatState || { round:1, currentIdx:0, combatants:[] });
 
+  // R-29 · Epic mode flag (niveles 21-30)
+  try { data['__epic_mode'] = !!_epicModeOn; } catch(e) { data['__epic_mode'] = false; }
+
   const json = JSON.stringify(data, null, 2);
   // Android: ir directo al bridge nativo. El truco del <a download> falla
   // en algunos WebViews porque el <a> no está en el DOM y el evento no
@@ -10283,6 +10297,18 @@ function importData(event) {
   reader.onload = e => {
     try {
       const data = JSON.parse(e.target.result);
+
+      // R-29 · Restaurar Modo Epic ANTES de crear las filas de clase para
+      // que los nuevos inputs nazcan con max=30 y los niveles >20 no se clampeen.
+      // Si la clave no existe (saves antiguos), respetamos el estado actual.
+      try {
+        if (Object.prototype.hasOwnProperty.call(data, '__epic_mode')) {
+          const epicOn = !!data['__epic_mode'];
+          const cb = document.getElementById('epic-mode');
+          if (cb) cb.checked = epicOn;
+          applyEpicMode(epicOn);
+        }
+      } catch(_) {}
 
       // Restore dynamic class rows
       if(Array.isArray(data['__class_rows']) && data['__class_rows'].length > 0) {
@@ -11651,6 +11677,57 @@ document.addEventListener('DOMContentLoaded', () => {
   _btrUpdateCounts();
 });
 
+/* ── MODO EPIC (R-29) ────────────────────────────────────
+   Permite niveles 21-30. PF1e oficial termina en 20; las
+   reglas Epic son material de comunidad (no oficial). */
+const EPIC_MODE_KEY = 'pf1e-epic-mode';
+let _epicModeOn = false;
+
+// Selectores CSS de los inputs de NIVEL afectados.
+// Ojo: NO incluir #eid-hd (es derivado readonly del summoner level),
+// ni #resolve-max (no es un nivel de PJ, es un máximo de tracker),
+// ni #caster-level (no tenía max="20" originalmente).
+const EPIC_LEVEL_SELECTORS = [
+  'input[type="number"][id^="level"].recalc',  // niveles por clase en class-rows
+  '#comp-master-level',
+  '#familiar-master-level'
+];
+
+function _epicLevelInputs() {
+  const out = [];
+  EPIC_LEVEL_SELECTORS.forEach(sel => {
+    document.querySelectorAll(sel).forEach(el => {
+      // Filtra: #level{idx} debe coincidir con idx numérico
+      if (el.id && /^level\d+$/.test(el.id)) out.push(el);
+      else if (el.id === 'comp-master-level' || el.id === 'familiar-master-level') out.push(el);
+    });
+  });
+  return out;
+}
+
+function applyEpicMode(on) {
+  _epicModeOn = !!on;
+  try { localStorage.setItem(EPIC_MODE_KEY, on ? '1' : '0'); } catch(e) {}
+  const newMax = on ? 30 : 20;
+  let needRecalc = false;
+  _epicLevelInputs().forEach(inp => {
+    inp.max = String(newMax);
+    if (!on) {
+      const v = parseInt(inp.value) || 0;
+      if (v > 20) {
+        inp.value = '20';
+        needRecalc = true;
+      }
+    }
+  });
+  if (needRecalc) {
+    try { if (typeof recalc === 'function') recalc(); } catch(e) {}
+  }
+  // Reflejar estado en checkbox UI por si se llama desde import/load
+  const cb = document.getElementById('epic-mode');
+  if (cb && cb.checked !== _epicModeOn) cb.checked = _epicModeOn;
+}
+
 /* ── MODO MASTER + DROPDOWN FAB ─────────────────────────── */
 const MASTER_MODE_KEY = 'pf1e-master-mode';
 let _masterModeOn = false;
@@ -11918,6 +11995,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const stored = localStorage.getItem(MASTER_MODE_KEY);
     setMasterMode(stored !== null ? stored === '1' : false);
   } catch(e) { setMasterMode(false); }
+
+  // R-29 · Init Epic Mode from localStorage (default OFF) + listener
+  try {
+    const epicStored = localStorage.getItem(EPIC_MODE_KEY);
+    const on = epicStored === '1';
+    const cb = document.getElementById('epic-mode');
+    if (cb) cb.checked = on;
+    applyEpicMode(on);
+  } catch(e) { applyEpicMode(false); }
+  const epicCb = document.getElementById('epic-mode');
+  if (epicCb) epicCb.addEventListener('change', () => applyEpicMode(epicCb.checked));
 
   // FAB toggles dropdown
   const fab = document.getElementById('feedback-fab');
