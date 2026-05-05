@@ -3984,12 +3984,33 @@ function canonicalClassId(name){
   if(!name) return 'guerrero';
   const k = name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
   const map = {
+    /* Core */
     'barbaro':'barbaro','bardo':'bardo','brujo':'brujo','caballero':'cavalier','cavalier':'cavalier',
     'clerigo':'clerigo','druida':'druida','explorador':'explorador','ranger':'explorador',
     'guerrero':'guerrero','fighter':'guerrero','hechicero':'hechicero','sorcerer':'hechicero',
     'inquisidor':'inquisidor','mago':'mago','wizard':'mago','monje':'monje','monk':'monje',
-    'oraculo':'oraculo','paladin':'paladin','picaro':'picaro','rogue':'picaro',
-    'pistolero':'pistolero','samurai':'samurai','bruja':'witch','witch':'witch'
+    'oraculo':'oraculo','oracle':'oraculo',
+    'paladin':'paladin','paladin de la luz':'paladin','picaro':'picaro','rogue':'picaro',
+    'pistolero':'pistolero','gunslinger':'pistolero',
+    'samurai':'samurai','bruja':'witch','witch':'witch',
+    /* APG / UC / ACG / OA — paridad con CLASS_AUTO_FEATURES_D4 */
+    'alquimista':'alquimista','alchemist':'alquimista',
+    'magus':'magus',
+    'invocador':'invocador','convocador':'invocador','summoner':'invocador',
+    'antipaladin':'antipaladin','antipaladín':'antipaladin',
+    'ninja':'ninja',
+    'rabioso de sangre':'rabioso_de_sangre','bloodrager':'rabioso_de_sangre',
+    'peleador':'peleador','brawler':'peleador',
+    'cazador':'cazador','hunter':'cazador',
+    'investigador':'investigador','investigator':'investigador',
+    'matador':'matador','slayer':'matador',
+    'espadachin':'espadachin','swashbuckler':'espadachin',
+    'sacerdote de guerra':'sacerdote_de_guerra','warpriest':'sacerdote_de_guerra',
+    'cinetico':'cinetico','kineticist':'cinetico',
+    'escaldo':'escaldo','skald':'escaldo',
+    'chaman':'chaman','shaman':'chaman',
+    'vigilante':'vigilante',
+    'arcanista':'arcanista','arcanist':'arcanista'
   };
   return map[k] || 'guerrero';
 }
@@ -4134,6 +4155,99 @@ const CLASS_AUTO_FEATURES_D4 = {
   druida: (lvl,A)=>[
     {name:'Forma salvaje', desc:'Adopta forma animal/elemental.',
      max: Math.max(0, lvl<4 ? 0 : (lvl-2)), reset:'long', tracker:true}
+  ],
+  /* Pasada manual de clases base/avanzadas — paridad con CLASS_AUTO_FEATURES de PC */
+  alquimista: (lvl,A)=>[
+    {name:'Bombas', desc:'Bombas alquímicas. 1d6 fuego cada 2 niveles.',
+     max: lvl + (A.INT||0), reset:'long', tracker:true},
+    {name:'Mutágeno', desc:'+4 a un atributo físico, −2 mental, 10 min/nivel.',
+     max: 1, reset:'long', tracker:false}
+  ],
+  pistolero: (lvl,A)=>[
+    {name:'Arrojo (Grit)', desc:'Recuperar puntos al confirmar crítico o reducir a 0 PG.',
+     max: Math.max(1, A.SAB||1), reset:'long', tracker:true}
+  ],
+  magus: (lvl,A)=>[
+    {name:'Reserva arcana', desc:'Encantamiento temporal del arma o efectos especiales.',
+     max: Math.max(0, Math.floor(lvl/2) + (A.INT||0)), reset:'long', tracker:true}
+  ],
+  oraculo: (lvl,A)=>[
+    {name:'Revelaciones', desc:'Habilidades únicas del misterio elegido.',
+     max: Math.min(7, 1 + Math.floor((lvl-1)/2)), reset:'none', tracker:false}
+  ],
+  invocador: (lvl,A)=>[
+    {name:'Invocar monstruo', desc:'Invocar criaturas de listas summon monster (1+CAR/día).',
+     max: 3 + (A.CAR||0) + Math.floor(lvl/2), reset:'long', tracker:true},
+    {name:'Vínculo eidolón', desc:'Comparte aptitudes y atributos con el eidolón.',
+     max: 1, reset:'long', tracker:false}
+  ],
+  antipaladin: (lvl,A)=>[
+    {name:'Imposición de manos (impía)', desc:'Daña a vivos o cura no-muertos.',
+     max: Math.max(0, Math.floor(lvl/2) + (A.CAR||0)), reset:'long', tracker:true},
+    {name:'Castigo del bien', desc:'+CAR atq, +nivel daño contra bien.',
+     max: 1 + Math.floor((lvl-1)/4), reset:'long', tracker:true},
+    {name:'Toque de corrupción', desc:'Daño negativo por toque, mismo pool que castigo.',
+     max: Math.max(0, Math.floor(lvl/2) + (A.CAR||0)), reset:'long', tracker:true}
+  ],
+  ninja: (lvl,A)=>[
+    {name:'Pool de Ki', desc:'Acción rápida extra, +20 ft velocidad o ataque adicional.',
+     max: Math.max(0, Math.floor(lvl/2) + (A.CAR||0)), reset:'long', tracker:true}
+  ],
+  rabioso_de_sangre: (lvl,A)=>[
+    {name:'Rabia de sangre', desc:'Como rabia + poderes del linaje.',
+     max: Math.max(0, 4 + (A.CON||0) + 2*Math.max(0,lvl-1)), reset:'long', tracker:true}
+  ],
+  peleador: (lvl,A)=>[
+    {name:'Flexibilidad marcial', desc:'Gana temporalmente una dote de combate.',
+     max: 3 + Math.floor((lvl-1)/2), reset:'long', tracker:true},
+    {name:'Maestría descontrolada', desc:'Ataque de monje + estilos de combate.',
+     max: 1, reset:'long', tracker:false}
+  ],
+  cazador: (lvl,A)=>[
+    {name:'Vínculo de cazador', desc:'Bono de equipo o compañero animal mejorado.',
+     max: 1, reset:'long', tracker:false},
+    {name:'Empatía con animales', desc:'Tirada CAR para influir actitud animal.',
+     max: 99, reset:'none', tracker:false}
+  ],
+  investigador: (lvl,A)=>[
+    {name:'Inspiración', desc:'+1d6 a tiradas de habilidad o ataque/save (gasto pool).',
+     max: Math.max(1, Math.floor(lvl/2) + (A.INT||0)), reset:'long', tracker:true}
+  ],
+  matador: (lvl,A)=>[
+    {name:'Objetivo estudiado', desc:'+1 a atq/daño/skills contra el objetivo (escala +1/5 nv).',
+     max: 99, reset:'none', tracker:false},
+    {name:'Talento de Matador', desc:'Habilidades especiales (sneak attack, etc.).',
+     max: Math.max(0, Math.floor(lvl/2)), reset:'none', tracker:false}
+  ],
+  espadachin: (lvl,A)=>[
+    {name:'Brio (Panache)', desc:'Recupera al confirmar crítico o reducir a 0 PG. Habilita Deeds.',
+     max: Math.max(1, A.CAR||1), reset:'long', tracker:true}
+  ],
+  sacerdote_de_guerra: (lvl,A)=>[
+    {name:'Fervor', desc:'Curar/canalizar/conjurar como acción rápida.',
+     max: Math.max(0, Math.floor(lvl/2) + (A.SAB||0)), reset:'long', tracker:true},
+    {name:'Arma sagrada', desc:'Daño de arma escala como monje (1d6 + bonos por nivel).',
+     max: 1, reset:'long', tracker:false}
+  ],
+  cinetico: (lvl,A)=>[
+    {name:'Burn (acumulación)', desc:'Punto de quemadura para potenciar efectos kinéticos.',
+     max: 3 + (A.CON||0), reset:'long', tracker:true}
+  ],
+  escaldo: (lvl,A)=>[
+    {name:'Canción enfurecida', desc:'Otorga rabia/inspiración a aliados elegidos.',
+     max: 3 + (A.CAR||0), reset:'long', tracker:true}
+  ],
+  chaman: (lvl,A)=>[
+    {name:'Hexes de espíritu', desc:'Maleficios del espíritu vinculado.',
+     max: Math.max(0, Math.floor(lvl/2) + 1), reset:'none', tracker:false}
+  ],
+  vigilante: (lvl,A)=>[
+    {name:'Talentos de Vigilante', desc:'Talentos sociales y de combate del rol vigilante.',
+     max: Math.max(0, Math.floor(lvl/2)), reset:'none', tracker:false}
+  ],
+  arcanista: (lvl,A)=>[
+    {name:'Reserva arcana', desc:'Punto para potenciar conjuros (extender, empoderar, etc.).',
+     max: Math.max(1, Math.floor(lvl/2) + (A.INT||0)), reset:'long', tracker:true}
   ]
 };
 
