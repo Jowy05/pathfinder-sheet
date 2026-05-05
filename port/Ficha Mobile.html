@@ -8480,10 +8480,47 @@ function saveStateDebounced(reason){
     try{
       snapshotState();
       localStorage.setItem(STATE_KEY, JSON.stringify(window.STATE));
-    }catch(e){ console.warn('saveState fail',e); }
+    }catch(e){
+      /* Fix N-06: detectar QuotaExceededError y avisar al usuario.
+         Antes el catch era silente y el usuario seguia editando creyendo
+         que se guardaba. */
+      const isQuota = e && (e.name === 'QuotaExceededError'
+        || e.code === 22 || e.code === 1014
+        || /quota|exceeded/i.test(e.message||''));
+      if(isQuota && typeof toast === 'function'){
+        toast('⚠ Espacio agotado. Exporta la ficha y elimina la foto si pesa mucho.');
+      }
+      console.warn('saveState fail', e);
+    }
   }, SAVE_DEBOUNCE_MS);
 }
 window.saveStateDebounced = saveStateDebounced;
+
+/* Fix N-05: flush sincrono cuando el WebView se va a fondo o la pestana se cierra.
+   Sin esto, si el usuario edita y la app se pausa antes del debounce de 800ms,
+   se pierde el ultimo cambio. */
+function saveStateNow(reason){
+  try{
+    clearTimeout(__saveTimer);
+    snapshotState();
+    localStorage.setItem(STATE_KEY, JSON.stringify(window.STATE));
+  }catch(e){
+    const isQuota = e && (e.name === 'QuotaExceededError'
+      || e.code === 22 || e.code === 1014
+      || /quota|exceeded/i.test(e.message||''));
+    if(isQuota && typeof toast === 'function'){
+      toast('⚠ Espacio agotado. Exporta la ficha y elimina la foto si pesa mucho.');
+    }
+    console.warn('saveStateNow fail', e);
+  }
+}
+window.saveStateNow = saveStateNow;
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'hidden') saveStateNow('visibilitychange');
+});
+window.addEventListener('pagehide', ()=>saveStateNow('pagehide'));
+/* beforeunload no se dispara en Android WebView pero si en navegador web, sin coste. */
+window.addEventListener('beforeunload', ()=>saveStateNow('beforeunload'));
 
 function loadStoredState(){
   try{
