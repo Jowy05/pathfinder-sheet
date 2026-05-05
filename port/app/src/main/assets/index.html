@@ -1705,6 +1705,9 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
 }
 
 </style>
+<!-- Fallback DB embebido — permite al mobile funcionar bajo file:// si fetch falla por CORS.
+     Define FALLBACK_CLASSES (96), FALLBACK_ARCHETYPES (332), FALLBACK_DOMAINS, FALLBACK_RACES, etc. -->
+<script src="fallback-data.js?v=20260505-mobile"></script>
 </head>
 
 <body class="app" data-lang="es">
@@ -4667,24 +4670,28 @@ async function loadDB() {
       else failed.push(f+' ('+r.status+')');
     } catch(e) { failed.push(f+' (network)'); }
   }));
+  /* Fallback: si fetch falla (Android WebView con file:// y CORS estricto),
+     usar los FALLBACK_* embebidos en fallback-data.js. */
+  const fb = (k) => {
+    try { return (typeof window[k] !== 'undefined') ? window[k] : null; } catch(e){ return null; }
+  };
   DB = {
-    classes:          res.classes          || {},
-    archetypes:       res.archetypes        || {},
-    special_abilities:res.special_abilities || [],
-    feats:            res.feats             || [],
-    races:            res.races             || [],
-    skills:           res.skills            || [],
-    equipment:        res.equipment         || [],
-    items:            res.items             || [],
-    domains:          res.domains           || [],
-    bloodlines:       res.bloodlines        || [],
-    orders:           res.orders            || [],
-    arcane_schools:   res.arcane_schools    || [],
-    oracle_mysteries: res.oracle_mysteries  || [],
-    witch_patrons:    res.witch_patrons     || [],
-    sizes:            res.sizes             || [],
-    /* M-21: catálogo de evoluciones del eidolón (Summoner) */
-    eidolon_evolutions: res.eidolon_evolutions || {},
+    classes:          (res.classes          && Object.keys(res.classes).length)    ? res.classes          : (fb('FALLBACK_CLASSES')          || {}),
+    archetypes:       (res.archetypes       && Object.keys(res.archetypes).length) ? res.archetypes       : (fb('FALLBACK_ARCHETYPES')       || {}),
+    special_abilities:(res.special_abilities && res.special_abilities.length)      ? res.special_abilities: (fb('FALLBACK_SPECIAL_ABILITIES') || []),
+    feats:            (res.feats             && res.feats.length)                  ? res.feats            : (fb('FALLBACK_FEATS')            || []),
+    races:            (res.races             && res.races.length)                  ? res.races            : (fb('FALLBACK_RACES')            || []),
+    skills:           (res.skills            && res.skills.length)                 ? res.skills           : (fb('FALLBACK_SKILLS')           || []),
+    equipment:        (res.equipment         && res.equipment.length)              ? res.equipment        : (fb('FALLBACK_EQUIPMENT')        || []),
+    items:            (res.items             && res.items.length)                  ? res.items            : (fb('FALLBACK_ITEMS')            || []),
+    domains:          (res.domains           && res.domains.length)                ? res.domains          : (fb('FALLBACK_DOMAINS')          || []),
+    bloodlines:       (res.bloodlines        && res.bloodlines.length)             ? res.bloodlines       : (fb('FALLBACK_BLOODLINES')       || []),
+    orders:           (res.orders            && res.orders.length)                 ? res.orders           : (fb('FALLBACK_ORDERS')           || []),
+    arcane_schools:   (res.arcane_schools    && res.arcane_schools.length)         ? res.arcane_schools   : (fb('FALLBACK_ARCANE_SCHOOLS')   || []),
+    oracle_mysteries: (res.oracle_mysteries  && res.oracle_mysteries.length)       ? res.oracle_mysteries : (fb('FALLBACK_ORACLE_MYSTERIES') || []),
+    witch_patrons:    (res.witch_patrons     && res.witch_patrons.length)          ? res.witch_patrons    : (fb('FALLBACK_WITCH_PATRONS')    || []),
+    sizes:            (res.sizes             && res.sizes.length)                  ? res.sizes            : (fb('FALLBACK_SIZES')            || []),
+    eidolon_evolutions: (res.eidolon_evolutions && Object.keys(res.eidolon_evolutions).length) ? res.eidolon_evolutions : (fb('FALLBACK_EIDOLON_EVOLUTIONS') || {}),
   };
   /* P-03: telemetría de carga */
   const counts = {
