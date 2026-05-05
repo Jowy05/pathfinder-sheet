@@ -8152,10 +8152,85 @@ document.addEventListener('change', e => {
   if (e.target && (e.target.classList?.contains('recalc-eid') || e.target.id?.startsWith('level') || e.target.classList?.contains('class-select'))) {
     updateEidolonVisibility();
     recalcEidolon();
+    // Re-evaluate evolution lock states (base form / HD may have changed)
+    if (typeof populateEidolonEvolutionSelect === 'function') populateEidolonEvolutionSelect();
   }
 });
 
 // Eidolon evolutions selector
+
+// Helper: human-readable label for a base form slug
+function _eidBaseFormLabel(slug) {
+  const labels = { biped: 'Bípedo', quadruped: 'Cuadrúpedo', serpentine: 'Serpentino', aquatic: 'Acuático', avian: 'Aviano', tauric: 'Tauriforme' };
+  return labels[slug] || slug;
+}
+
+// Helper: count how many instances of a given slug are present in _eidolonSelectedEvos
+function _countEidolonEvoInstances(slug) {
+  let n = 0;
+  _eidolonSelectedEvos.forEach(uid => { if (uid.split('#')[0] === slug) n++; });
+  return n;
+}
+
+// Returns null if the evolution can be added right now, or an object
+// { code, message } describing why it is blocked. Used both by
+// addEidolonEvolution() (hard validation) and populateEidolonEvolutionSelect()
+// (visual [Bloqueada] hint).
+function _eidolonEvolutionLockReason(slug, ev) {
+  if (!ev) return null;
+  const prereqs = ev.prereqs || {};
+  // 1) Base form
+  if (prereqs.base_form) {
+    const required = Array.isArray(prereqs.base_form) ? prereqs.base_form : [prereqs.base_form];
+    const currentForm = document.getElementById('eid-base-form')?.value || '';
+    if (!required.includes(currentForm)) {
+      const formNames = required.map(_eidBaseFormLabel).join(', ');
+      return { code: 'base_form', message: `Requiere forma base: ${formNames}.` };
+    }
+  }
+  // 2) Min summoner level (compared against eid-hd, which mirrors the summoner level)
+  if (prereqs.min_summoner_level != null) {
+    const currentHd = parseInt(document.getElementById('eid-hd')?.value) || 0;
+    const min = parseInt(prereqs.min_summoner_level) || 0;
+    if (currentHd < min) {
+      return { code: 'min_level', message: `Requiere invocador de nivel ${min}+ (actual: ${currentHd}).` };
+    }
+  }
+  // 3) Required evolutions (must already be in _eidolonSelectedEvos)
+  if (Array.isArray(prereqs.requires_evolutions) && prereqs.requires_evolutions.length) {
+    const ownedSlugs = new Set();
+    _eidolonSelectedEvos.forEach(uid => ownedSlugs.add(uid.split('#')[0]));
+    // Free evolutions granted by the chosen base form also count
+    const baseForm = document.getElementById('eid-base-form')?.value || '';
+    const freeList = (EIDOLON_BASE_FORMS[baseForm]?.free) || [];
+    freeList.forEach(s => ownedSlugs.add(s));
+    const missing = prereqs.requires_evolutions.filter(s => !ownedSlugs.has(s));
+    if (missing.length) {
+      const labels = missing.map(s => {
+        const e = DB.eidolon_evolutions?.[s];
+        return e ? tData(e, 'name') : s;
+      }).join(', ');
+      return { code: 'requires', message: `Falta(n) evolución(es) requerida(s): ${labels}.` };
+    }
+  }
+  // 4) Stacking
+  const stacking = ev.stacking || 'single';
+  const count = _countEidolonEvoInstances(slug);
+  if (stacking === 'single' && count >= 1) {
+    return { code: 'single', message: 'Esta evolución solo puede comprarse una vez.' };
+  }
+  if (stacking === 'limited') {
+    const max = parseInt(ev.max_stacks);
+    if (Number.isFinite(max) && max > 0 && count >= max) {
+      return { code: 'limited_max', message: `Esta evolución ya alcanzó el máximo de ${max} compra(s).` };
+    }
+    // If max_stacks is null/unspecified, "limited" means rules-bound (per attack/skill/etc.).
+    // We do not auto-enforce that here because the granularity is per-target;
+    // the player picks the target manually and the description states the limit.
+  }
+  return null;
+}
+
 function populateEidolonEvolutionSelect() {
   const sel = document.getElementById('eid-evo-select');
   if (!sel || !DB.eidolon_evolutions) return;
@@ -8178,7 +8253,14 @@ function populateEidolonEvolutionSelect() {
     .forEach(([k, v]) => {
       const opt = document.createElement('option');
       opt.value = k;
-      opt.textContent = `[${v.cost}PE] ${tData(v,'name')}`;
+      const lock = _eidolonEvolutionLockReason(k, v);
+      if (lock) {
+        opt.textContent = `[Bloqueada] [${v.cost}PE] ${tData(v,'name')}`;
+        opt.disabled = true;
+        opt.title = lock.message;
+      } else {
+        opt.textContent = `[${v.cost}PE] ${tData(v,'name')}`;
+      }
       sel.appendChild(opt);
     });
 }
@@ -8200,15 +8282,26 @@ document.addEventListener('change', e => {
 const _eidolonSelectedEvos = new Set();
 function addEidolonEvolution() {
   const slug = document.getElementById('eid-evo-select')?.value;
-  if (!slug || !DB.eidolon_evolutions?.[slug]) { alert(t('opt.pickEvolution')); return; }
-  // Allow multiple stacks: append even if already present
+  const ev = DB.eidolon_evolutions?.[slug];
+  if (!slug || !ev) { alert(t('opt.pickEvolution')); return; }
+  // Validate prerequisites and stacking before accepting the purchase
+  const lock = _eidolonEvolutionLockReason(slug, ev);
+  if (lock) {
+    alert(`No se puede añadir "${tData(ev, 'name')}": ${lock.message}`);
+    return;
+  }
   _eidolonSelectedEvos.add(slug + '#' + Date.now());
   renderEidolonSelectedEvos();
+  // Refresh the selector so newly-locked options (e.g. single just bought) get [Bloqueada]
+  populateEidolonEvolutionSelect();
 }
 
 function removeEidolonEvolution(uid) {
   _eidolonSelectedEvos.delete(uid);
   renderEidolonSelectedEvos();
+  // Refresh the selector so options unlocked by the removal (e.g. a 'single' freed)
+  // become available again.
+  populateEidolonEvolutionSelect();
 }
 
 function renderEidolonSelectedEvos() {
