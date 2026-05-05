@@ -8868,13 +8868,17 @@ function renderSummaryBuffs(){
   }
   c.innerHTML = buffs.map((b,i)=>{
     const dur = (b.dur||'').toString();
-    const qty = parseInt(b.qty,10);
+    /* Fix C-04: unificar a b.remaining (mutable) con fallback a b.qty (legacy).
+       renderBuffs y nextRoundDecrement ahora usan el mismo campo. */
+    if(b.remaining == null) b.remaining = parseInt(b.qty,10) || 0;
+    const rem = b.remaining;
+    const tot = parseInt(b.qty,10) || rem;
     const isRounds = /asalto|round|ronda/i.test(dur);
     const isPerm = /permanent|hasta descansar/i.test(dur);
-    const left = (isPerm || isRounds===false) ? null : qty;
+    const left = (isPerm || isRounds===false) ? null : rem;
     const durStr = isPerm
       ? '∞ permanente'
-      : (isFinite(left) ? left+' '+(dur||'?') : (qty+' '+(dur||'?')));
+      : (isFinite(left) ? (left+'/'+tot+' '+(dur||'?')) : (rem+' '+(dur||'?')));
     const expired = isFinite(left) && left<=0;
     return `<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:${expired?'rgba(160,40,30,0.10)':'var(--surface-2)'};border:1px solid var(--line)">
       <div style="flex:1">
@@ -8906,14 +8910,16 @@ function nextRoundDecrement(){
     const isRounds = /asalto|round|ronda/i.test(dur);
     const isPerm = /permanent|hasta descansar/i.test(dur);
     if(isPerm || !isRounds) return;
-    const qty = parseInt(b.qty,10);
-    if(!isFinite(qty)) return;
-    b.qty = Math.max(0, qty - 1);
-    if(b.qty === 0) expired.push(b.name||'(buff)');
+    /* Fix C-04: decrementar b.remaining (mutable), no b.qty (total inmutable).
+       Migracion en linea: si remaining no existe, inicializarla desde qty. */
+    if(b.remaining == null) b.remaining = parseInt(b.qty,10) || 0;
+    if(!isFinite(b.remaining)) return;
+    b.remaining = Math.max(0, b.remaining - 1);
+    if(b.remaining === 0) expired.push(b.name||'(buff)');
   });
   /* limpiar caducados */
   for(let i=BUFFS_LIST.length-1;i>=0;i--){
-    if(BUFFS_LIST[i].qty === 0 && /asalto|round|ronda/i.test((BUFFS_LIST[i].dur||'').toString())){
+    if(BUFFS_LIST[i].remaining === 0 && /asalto|round|ronda/i.test((BUFFS_LIST[i].dur||'').toString())){
       BUFFS_LIST.splice(i,1);
     }
   }
