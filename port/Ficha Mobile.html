@@ -7673,7 +7673,11 @@ function parseMod(text){
     [/([+-]?\d+)\s*(?:ini(?:c(?:iativa)?)?|init)\b/i,'init'],
     [/([+-]?\d+)\s*(?:PG|HP)\b/i,'hp'],
   ];
-  String(text||'').split(/[,;]+/).forEach(part=>{
+  /* Fix C-16/C-18: normalizar minus Unicode (U+2212 −, U+2013 –, U+2014 —) a guion ASCII
+     antes del split. CONDITION_MODS y placeholders usaban U+2212 y la regex [+-] no lo
+     reconocia, capturando los digitos como positivos (Cegado daba +2 en vez de -2). */
+  const norm = String(text||'').replace(/[−–—]/g,'-');
+  norm.split(/[,;]+/).forEach(part=>{
     part = part.trim();
     for(const [re,k] of MAP){
       const m = part.match(re);
