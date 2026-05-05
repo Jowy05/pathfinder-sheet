@@ -7713,7 +7713,12 @@
     ],
     "prof_armor": "medium",
     "prof_shields": "none",
-    "prof_notes": "Per entry class"
+    "prof_notes": "Per entry class",
+    "prerequisites": [
+      { "type": "race", "value": "non-draconic", "text": "Cualquier raza no dracónica", "text_en": "Any non-draconic race" },
+      { "type": "skill", "skill": "knowledge_arcana", "value": 5, "text": "Saber (arcanos) 5 rangos", "text_en": "Knowledge (arcana) 5 ranks" },
+      { "type": "caster_level", "kind": "arcane", "spell_level": 1, "spontaneous": true, "text": "Lanzar conjuros arcanos sin preparación de 1er nivel", "text_en": "Cast 1st-level arcane spells without preparation" }
+    ]
   },
   "horizon_walker": {
     "category": "prestige",
@@ -7779,7 +7784,11 @@
     ],
     "prof_armor": "heavy",
     "prof_shields": "tower",
-    "prof_notes": "Per entry class"
+    "prof_notes": "Per entry class",
+    "prerequisites": [
+      { "type": "proficiency", "weapons": "martial", "text": "Competencia con todas las armas marciales", "text_en": "Proficiency with all martial weapons" },
+      { "type": "caster_level", "kind": "arcane", "spell_level": 3, "text": "Lanzar conjuros arcanos de 3er nivel", "text_en": "Cast 3rd-level arcane spells" }
+    ]
   },
   "loremaster": {
     "category": "prestige",
@@ -7813,7 +7822,13 @@
     ],
     "prof_armor": "none",
     "prof_shields": "none",
-    "prof_notes": "Per entry class; usually wizard/bard"
+    "prof_notes": "Per entry class; usually wizard/bard",
+    "prerequisites": [
+      { "type": "feat", "name": "Soltura con una Habilidad", "name_en": "Skill Focus", "subject": "Knowledge", "text": "Soltura con Habilidad (Saber)", "text_en": "Skill Focus (Knowledge)" },
+      { "type": "skill_count", "skills": ["knowledge_arcana","knowledge_dungeoneering","knowledge_engineering","knowledge_geography","knowledge_history","knowledge_local","knowledge_nature","knowledge_nobility","knowledge_planes","knowledge_religion"], "min_count": 2, "min_ranks": 7, "text": "7 rangos en 2 habilidades de Saber distintas", "text_en": "7 ranks in two different Knowledge skills" },
+      { "type": "feat_count", "categories": ["meta","creación","crafting","metamagic"], "fallback_feat": "Skill Focus", "min": 3, "text": "3 dotes de metamagia, creación de objetos o Soltura con Habilidad (Saber)", "text_en": "3 metamagic, item creation, or Skill Focus (Knowledge) feats" },
+      { "type": "spells_known_count", "kind": "divine", "min_count": 7, "min_at_level": 3, "text": "Lanzar 7 conjuros divinos, ≥3 de 3er nivel o superior", "text_en": "Able to cast 7 divine spells, including 3+ of 3rd level or higher" }
+    ]
   },
   "mammoth_rider": {
     "category": "prestige",
@@ -8089,7 +8104,13 @@
       "martial"
     ],
     "prof_armor": "light",
-    "prof_shields": "none"
+    "prof_shields": "none",
+    "prerequisites": [
+      { "type": "alignment", "value": "evil", "text": "Alineamiento maligno", "text_en": "Evil alignment" },
+      { "type": "skill", "skill": "disguise", "value": 2, "text": "Disfrazarse 2 rangos", "text_en": "Disguise 2 ranks" },
+      { "type": "skill", "skill": "stealth", "value": 5, "text": "Sigilo 5 rangos", "text_en": "Stealth 5 ranks" },
+      { "type": "special", "key": "kill_for_evil", "text": "Haber asesinado a alguien por motivos malignos", "text_en": "Must have killed someone for no other reason than to become an assassin" }
+    ]
   },
   "arcane_archer": {
     "category": "prestige",
@@ -8154,7 +8175,16 @@
     ],
     "prof_armor": "none",
     "prof_shields": "none",
-    "prof_notes": "Per entry class"
+    "prof_notes": "Per entry class",
+    "prerequisites": [
+      { "type": "alignment", "value": "non-lawful", "text": "Alineamiento no-legal", "text_en": "Non-lawful alignment" },
+      { "type": "skill", "skill": "disable_device", "value": 4, "text": "Inutilizar Mecanismo 4 rangos", "text_en": "Disable Device 4 ranks" },
+      { "type": "skill", "skill": "escape_artist", "value": 4, "text": "Escapismo 4 rangos", "text_en": "Escape Artist 4 ranks" },
+      { "type": "skill", "skill": "knowledge_arcana", "value": 4, "text": "Saber (arcanos) 4 rangos", "text_en": "Knowledge (arcana) 4 ranks" },
+      { "type": "sneak_attack", "value": 2, "text": "Ataque furtivo +2d6", "text_en": "Sneak Attack +2d6" },
+      { "type": "spell_known", "name": "mage hand", "kind": "arcane", "text": "Lanzar mage hand", "text_en": "Able to cast mage hand" },
+      { "type": "caster_level", "kind": "arcane", "spell_level": 2, "text": "Lanzar conjuros arcanos de 2º nivel", "text_en": "Cast 2nd-level arcane spells" }
+    ]
   },
   "duelist": {
     "category": "prestige",
@@ -8181,7 +8211,15 @@
       "martial"
     ],
     "prof_armor": "light",
-    "prof_shields": "none"
+    "prof_shields": "none",
+    "prerequisites": [
+      { "type": "bab", "value": 6, "text": "BAB +6", "text_en": "BAB +6" },
+      { "type": "skill", "skill": "acrobatics", "value": 2, "text": "Acrobacias 2 rangos", "text_en": "Acrobatics 2 ranks" },
+      { "type": "skill", "skill": "perform", "value": 2, "text": "Actuar (interpretar) 2 rangos", "text_en": "Perform (act) 2 ranks" },
+      { "type": "feat", "name": "Esquiva", "name_en": "Dodge", "text": "Esquiva", "text_en": "Dodge" },
+      { "type": "feat", "name": "Movilidad", "name_en": "Mobility", "text": "Movilidad", "text_en": "Mobility" },
+      { "type": "feat", "name": "Soltura con un Arma (Finesse)", "name_en": "Weapon Finesse", "text": "Soltura con un Arma (Finesse)", "text_en": "Weapon Finesse" }
+    ]
   },
   "mystic_theurge": {
     "category": "prestige",
@@ -8206,7 +8244,13 @@
     ],
     "prof_armor": "none",
     "prof_shields": "none",
-    "prof_notes": "Per entry class"
+    "prof_notes": "Per entry class",
+    "prerequisites": [
+      { "type": "skill", "skill": "knowledge_arcana", "value": 3, "text": "Saber (arcanos) 3 rangos", "text_en": "Knowledge (arcana) 3 ranks" },
+      { "type": "skill", "skill": "knowledge_religion", "value": 3, "text": "Saber (religión) 3 rangos", "text_en": "Knowledge (religion) 3 ranks" },
+      { "type": "caster_level", "kind": "divine", "spell_level": 2, "text": "Lanzar conjuros divinos de 2º nivel", "text_en": "Cast 2nd-level divine spells" },
+      { "type": "caster_level", "kind": "arcane", "spell_level": 2, "text": "Lanzar conjuros arcanos de 2º nivel", "text_en": "Cast 2nd-level arcane spells" }
+    ]
   },
   "shadowdancer": {
     "category": "prestige",
@@ -8236,7 +8280,15 @@
       "martial"
     ],
     "prof_armor": "light",
-    "prof_shields": "none"
+    "prof_shields": "none",
+    "prerequisites": [
+      { "type": "skill", "skill": "acrobatics", "value": 2, "text": "Acrobacias 2 rangos", "text_en": "Acrobatics 2 ranks" },
+      { "type": "skill", "skill": "stealth", "value": 5, "text": "Sigilo 5 rangos", "text_en": "Stealth 5 ranks" },
+      { "type": "skill", "skill": "perform", "value": 2, "text": "Actuar (danza) 2 rangos", "text_en": "Perform (dance) 2 ranks" },
+      { "type": "feat", "name": "Reflejos de Combate", "name_en": "Combat Reflexes", "text": "Reflejos de Combate", "text_en": "Combat Reflexes" },
+      { "type": "feat", "name": "Esquiva", "name_en": "Dodge", "text": "Esquiva", "text_en": "Dodge" },
+      { "type": "feat", "name": "Movilidad", "name_en": "Mobility", "text": "Movilidad", "text_en": "Mobility" }
+    ]
   },
   "pathfinder_chronicler": {
     "category": "prestige",
@@ -8281,7 +8333,12 @@
       "martial"
     ],
     "prof_armor": "light",
-    "prof_shields": "none"
+    "prof_shields": "none",
+    "prerequisites": [
+      { "type": "skill", "skill": "linguistics", "value": 5, "text": "Lingüística 5 rangos", "text_en": "Linguistics 5 ranks" },
+      { "type": "skill", "skill": "perform", "value": 5, "text": "Actuar (oratoria) 5 rangos", "text_en": "Perform (oratory) 5 ranks" },
+      { "type": "skill", "skill": "profession", "value": 5, "text": "Profesión (escriba) 5 rangos", "text_en": "Profession (scribe) 5 ranks" }
+    ]
   },
   "stalwart_defender": {
     "category": "prestige",

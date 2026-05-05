@@ -1832,6 +1832,11 @@ const I18N = {
     'feat.reqUnparsed':'No verificables automáticamente:',
     'feat.reqAllMet':'Todos los requisitos cumplidos.',
     'feat.reqCustom':'Dote personalizada: no se puede validar.',
+    'prestige.reqMissing':'Prerrequisitos no cumplidos:',
+    'prestige.reqUnparsed':'No verificables automáticamente:',
+    'prestige.reqAllMet':'Todos los prerrequisitos cumplidos.',
+    'prestige.confirmTitle':'Esta clase prestigiosa requiere:',
+    'prestige.confirmAdd':'\n\n¿Añadir igualmente?',
     'ph.featName':'Nombre de la dote','ph.featNotes':'Notas / requisitos','aria.delFeat':'Eliminar dote',
     'ft.normal':'Normal','ft.combat':'Combate','ft.meta':'Metamagia','ft.crit':'Crítico','ft.team':'Trabajo en Equipo',
     // Companion
@@ -2244,6 +2249,11 @@ const I18N = {
     'feat.reqUnparsed':'Cannot auto-verify:',
     'feat.reqAllMet':'All prerequisites met.',
     'feat.reqCustom':'Custom feat: cannot be validated.',
+    'prestige.reqMissing':'Unmet prerequisites:',
+    'prestige.reqUnparsed':'Cannot auto-verify:',
+    'prestige.reqAllMet':'All prerequisites met.',
+    'prestige.confirmTitle':'This prestige class requires:',
+    'prestige.confirmAdd':'\n\nAdd anyway?',
     'ph.featName':'Feat name','ph.featNotes':'Notes / prerequisites','aria.delFeat':'Remove feat',
     'ft.normal':'Normal','ft.combat':'Combat','ft.meta':'Metamagic','ft.crit':'Critical','ft.team':'Teamwork',
     'p.companion':'Animal Companion',
@@ -3094,12 +3104,38 @@ function addClassRow(classKey = '', level = 1, hp = 0, isFirst = false) {
     </div>`;
   container.appendChild(div);
 
+  // Track prior value for revert (R-26 prestige confirm)
+  const _classSelEl = div.querySelector('.class-select');
+  if (_classSelEl) _classSelEl.dataset.priorValue = classKey || '';
+
   // Populate archetype options for the current class
   populateArchetypeSelect(idx, classKey);
+  try { refreshPrestigePrereqChips(); } catch(_) {}
 
   // Wire class-change listener — repopulate archetypes on class change
   div.querySelector('.class-select').addEventListener('change', e => {
-    populateArchetypeSelect(idx, e.target.value);
+    const newKey = e.target.value;
+    // R-26: prestige prerequisites confirmation
+    try {
+      const cls = newKey ? (DB.classes||{})[newKey] : null;
+      if (cls && cls.category === 'prestige' && Array.isArray(cls.prerequisites) && cls.prerequisites.length) {
+        const res = checkPrestigePrerequisites(newKey);
+        if (res.missing.length) {
+          const items = res.missing.map(m => '• ' + m).join('\n');
+          const msg = t('prestige.confirmTitle') + '\n' + items + t('prestige.confirmAdd');
+          if (!window.confirm(msg)) {
+            // Revert: restore prior selection
+            const prior = e.target.dataset.priorValue || '';
+            e.target.value = prior;
+            populateArchetypeSelect(idx, prior);
+            try { refreshPrestigePrereqChips(); } catch(_) {}
+            return;
+          }
+        }
+      }
+      e.target.dataset.priorValue = newKey;
+    } catch(_) {}
+    populateArchetypeSelect(idx, newKey);
     syncClassSkills();
     // Una clase nueva pisa el override manual previo de atributo/modo
     const castSel = document.getElementById('cast-attr');
@@ -3110,6 +3146,7 @@ function addClassRow(classKey = '', level = 1, hp = 0, isFirst = false) {
     updateCastModeAuto();
     updateCasterLevelGating();
     recalc();
+    try { refreshPrestigePrereqChips(); } catch(_) {}
   });
 
   // Archetype change triggers skill sync + feature auto-add + domain enforcement + recalc
@@ -3174,6 +3211,7 @@ function refreshClassRowLabels() {
     const rmBtn = row.querySelector('.class-row-remove');
     if (rmBtn) { rmBtn.title = t('tt.removeClass'); rmBtn.setAttribute('aria-label', t('tt.removeClass')); }
   });
+  try { refreshPrestigePrereqChips(); } catch(_) {}
 }
 
 function updateAddClassBtn() {
@@ -5172,6 +5210,7 @@ function recalc() {
   updateWarnings();
   updateLangCount();
   try { refreshFeatPrereqChips(); } catch(e){}
+  try { refreshPrestigePrereqChips(); } catch(e){}
 }
 
 function updateAlignmentDisplay() {
@@ -9408,6 +9447,209 @@ function refreshFeatPrereqChips(){
   });
 }
 
+/* ──────────────────────────────────────────────────────────
+   R-26  Validación de prerrequisitos de clases prestigiosas
+   ────────────────────────────────────────────────────────── */
+const _ARCANE_CASTERS = new Set([
+  'wizard','sorcerer','bard','magus','witch','arcanist','summoner','unchained_summoner','skald','bloodrager'
+]);
+const _DIVINE_CASTERS = new Set([
+  'cleric','druid','oracle','paladin','ranger','inquisitor','warpriest','shaman','hunter'
+]);
+const _SPONTANEOUS_CASTERS = new Set([
+  'sorcerer','bard','oracle','summoner','unchained_summoner','skald','bloodrager','arcanist'
+]);
+
+// Compute which max spell level a given class can cast at level lvl (using spells_per_day table).
+function _maxSpellLevelForClass(classKey, lvl){
+  const cls = DB.classes && DB.classes[classKey];
+  if(!cls || !cls.spells_per_day || lvl < 1) return -1;
+  const row = cls.spells_per_day[Math.min(lvl, 20) - 1];
+  if(!row) return -1;
+  let best = -1;
+  for(let lv = 0; lv <= 9; lv++){
+    const v = row[lv];
+    if(v !== null && v !== undefined && v !== 0) best = lv;
+    else if(v === 0 && lv === 0) best = Math.max(best, 0);
+  }
+  return best;
+}
+
+// Build summary of caster capabilities across all active classes.
+function _getCasterSummary(){
+  const out = { arcane:{ maxLevel:-1, sponMaxLevel:-1, classes:[] },
+                divine:{ maxLevel:-1, sponMaxLevel:-1, classes:[] } };
+  if(typeof getActiveClassRows !== 'function') return out;
+  getActiveClassRows().forEach(r => {
+    const lvl = r.level;
+    const k   = r.classKey;
+    const max = _maxSpellLevelForClass(k, lvl);
+    if(max < 0) return;
+    if(_ARCANE_CASTERS.has(k)){
+      out.arcane.maxLevel = Math.max(out.arcane.maxLevel, max);
+      if(_SPONTANEOUS_CASTERS.has(k))
+        out.arcane.sponMaxLevel = Math.max(out.arcane.sponMaxLevel, max);
+      out.arcane.classes.push({ classKey:k, level:lvl, max });
+    }
+    if(_DIVINE_CASTERS.has(k)){
+      out.divine.maxLevel = Math.max(out.divine.maxLevel, max);
+      if(_SPONTANEOUS_CASTERS.has(k))
+        out.divine.sponMaxLevel = Math.max(out.divine.sponMaxLevel, max);
+      out.divine.classes.push({ classKey:k, level:lvl, max });
+    }
+  });
+  return out;
+}
+
+// Heuristic Sneak Attack dice based on rogue/ninja/slayer (and arcane trickster) levels.
+function _getSneakAttackDice(){
+  if(typeof getActiveClassRows !== 'function') return 0;
+  let rogueLike = 0, slayer = 0;
+  getActiveClassRows().forEach(r => {
+    if(['rogue','ninja','vivisectionist','arcane_trickster','unchained_rogue'].includes(r.classKey))
+      rogueLike += r.level;
+    if(r.classKey === 'slayer') slayer += r.level;
+  });
+  // Rogue: +1d6 at lvl1, +1d6 every 2 lvls (1,3,5...).  AT: +1d6 every odd lvl from lvl2.
+  let dice = 0;
+  if(rogueLike >= 1) dice = Math.ceil(rogueLike / 2);
+  // Slayer: +1d6 at lvl 3, +1d6 each 3 lvls
+  if(slayer >= 3) dice = Math.max(dice, Math.floor((slayer - 0) / 3));
+  return dice;
+}
+
+// Evaluate a single prereq object → { ok, unknown, label }
+function evalPrestigePrereqItem(it, ctx){
+  const label = (LANG === 'en' && it.text_en) ? it.text_en : (it.text || it.text_en || JSON.stringify(it));
+  switch(it.type){
+    case 'skill': {
+      const skId = it.skill;
+      const need = parseInt(it.value)||0;
+      const el = document.getElementById(`sk-${skId}-ranks`);
+      const have = el ? (parseInt(el.value)||0) : 0;
+      return { ok: have >= need, label, unknown:false, detail:`${have}/${need}` };
+    }
+    case 'bab': {
+      const need = parseInt(it.value)||0;
+      return { ok: ctx.bab >= need, label, unknown:false, detail:`+${ctx.bab}/+${need}` };
+    }
+    case 'feat': {
+      // Match feat by ES or EN name (or substring for Skill Focus + subject)
+      const n  = _normFeatTxt(it.name||'');
+      const en = _normFeatTxt(it.name_en||'');
+      let ok = false;
+      ctx.ownFeats.forEach(f => {
+        if(!f) return;
+        if(n  && (f === n  || f.includes(n)))  ok = true;
+        if(en && (f === en || f.includes(en))) ok = true;
+      });
+      return { ok, label, unknown:false };
+    }
+    case 'caster_level': {
+      // kind: arcane|divine ; spell_level: int ; spontaneous?: bool
+      const need = parseInt(it.spell_level)||0;
+      const sum  = _getCasterSummary();
+      const bag  = it.kind === 'divine' ? sum.divine : sum.arcane;
+      const haveMax = it.spontaneous ? bag.sponMaxLevel : bag.maxLevel;
+      if(haveMax < 0)
+        return { ok:false, label, unknown:false, detail: it.kind==='divine' ? 'sin lanzador divino' : 'sin lanzador arcano' };
+      return { ok: haveMax >= need, label, unknown:false, detail:`máx ${haveMax}/${need}` };
+    }
+    case 'spell_known': {
+      // We can't introspect spell lists ⇒ unknown
+      return { ok:false, label, unknown:true };
+    }
+    case 'sneak_attack': {
+      const need = parseInt(it.value)||0;
+      const have = _getSneakAttackDice();
+      return { ok: have >= need, label, unknown:false, detail:`+${have}d6/+${need}d6` };
+    }
+    case 'proficiency': {
+      // Check active classes for matching weapon proficiency entry
+      const want = (it.weapons||'').toLowerCase();
+      let ok = false;
+      (typeof getActiveClassRows === 'function' ? getActiveClassRows() : []).forEach(r => {
+        const cls = DB.classes && DB.classes[r.classKey];
+        const profs = cls && cls.prof_weapons;
+        if(Array.isArray(profs) && profs.map(p=>String(p).toLowerCase()).includes(want)) ok = true;
+      });
+      return { ok, label, unknown:false };
+    }
+    case 'alignment':
+    case 'race':
+    case 'special':
+    case 'spells_known_count':
+    case 'feat_count':
+    case 'skill_count':
+      return { ok:false, label, unknown:true };
+    default:
+      return { ok:false, label, unknown:true };
+  }
+}
+
+/** Returns {met, missing[], unknown[], status}. status: ok|warn|unknown|none */
+function checkPrestigePrerequisites(classKey){
+  const cls = DB.classes && DB.classes[classKey];
+  if(!cls || cls.category !== 'prestige' || !Array.isArray(cls.prerequisites) || !cls.prerequisites.length){
+    return { met:true, missing:[], unknown:[], status:'none' };
+  }
+  const ctx = (typeof getCharPrereqContext === 'function') ? getCharPrereqContext()
+                                                           : { bab:0, ownFeats:new Set() };
+  const missing=[], unknown=[];
+  cls.prerequisites.forEach(it => {
+    const res = evalPrestigePrereqItem(it, ctx);
+    if(res.unknown) unknown.push(res.label);
+    else if(!res.ok) missing.push(res.detail ? `${res.label} (${res.detail})` : res.label);
+  });
+  let status = 'ok';
+  if(missing.length) status = 'warn';
+  else if(unknown.length) status = 'unknown';
+  return { met: missing.length===0, missing, unknown, status };
+}
+
+// Refresh the chip displayed next to each class-select for prestige classes.
+function refreshPrestigePrereqChips(){
+  document.querySelectorAll('.class-row-dynamic').forEach(row => {
+    const sel = row.querySelector('.class-select');
+    if(!sel) return;
+    const key = sel.value;
+    let chip = row.querySelector('.prestige-req-chip');
+    const cls = key ? (DB.classes||{})[key] : null;
+    const isPrestige = !!(cls && cls.category === 'prestige' && Array.isArray(cls.prerequisites) && cls.prerequisites.length);
+    if(!isPrestige){
+      if(chip) chip.remove();
+      return;
+    }
+    if(!chip){
+      chip = document.createElement('span');
+      chip.className = 'prestige-req-chip';
+      chip.tabIndex = 0;
+      sel.parentElement && sel.parentElement.insertBefore(chip, sel);
+      chip.addEventListener('mouseenter', e => {
+        const tip = chip.dataset.tip; if(tip) _showFeatTip(chip, tip);
+      });
+      chip.addEventListener('mouseleave', _hideFeatTip);
+      chip.addEventListener('focus', e => {
+        const tip = chip.dataset.tip; if(tip) _showFeatTip(chip, tip);
+      });
+      chip.addEventListener('blur', _hideFeatTip);
+    }
+    const res = checkPrestigePrerequisites(key);
+    chip.className = 'prestige-req-chip ' +
+      (res.status === 'ok' ? 'ok' : res.status === 'warn' ? 'warn' : 'unknown');
+    chip.textContent = res.status === 'ok' ? '✓' : (res.status === 'warn' ? '⚠️' : '❓');
+    const parts = [];
+    parts.push(`<b>${tData(cls,'name')}</b>`);
+    if(res.missing.length)
+      parts.push(`<b>${t('prestige.reqMissing')}</b><ul>${res.missing.map(x=>`<li>${x}</li>`).join('')}</ul>`);
+    if(res.unknown.length)
+      parts.push(`<b>${t('prestige.reqUnparsed')}</b><ul>${res.unknown.map(x=>`<li>${x}</li>`).join('')}</ul>`);
+    if(res.status === 'ok' && !res.missing.length)
+      parts.push(t('prestige.reqAllMet'));
+    chip.dataset.tip = parts.join('');
+  });
+}
+
 /* ── NOTAS INTERACTIVAS ─────────────────────────────────── */
 const _NOTE_FIELDS = {
   campaign: { title:'note-title-campaign', textarea:'char-campaign-notes', list:'notes-list-campaign' },
@@ -10076,6 +10318,7 @@ function importData(event) {
       if(data['__tweaks_html'])     document.getElementById('campaign-tweaks-container').innerHTML = data['__tweaks_html'];
       if(data['__feats_html'])       document.getElementById('feats-container').innerHTML      = data['__feats_html'];
       try { refreshFeatPrereqChips(); } catch(e){}
+      try { refreshPrestigePrereqChips(); } catch(e){}
       try {
         const _full=document.getElementById('combat-notes');
         const _mini=document.getElementById('combat-notes-mini');

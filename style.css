@@ -3894,6 +3894,21 @@ input[type=checkbox]{
 .feat-req-tip li{margin:1px 0;}
 @media print { .feat-card .feat-req-chip{ border:none;background:transparent; } }
 
+/* ==== R-26 PRESTIGE PREREQ VALIDATOR CHIP ANCHOR 40chars+ ==== */
+.class-row-top { position:relative; }
+.class-row-top .prestige-req-chip{
+  position:absolute;left:-2px;top:50%;transform:translateY(-50%);
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:18px;height:18px;padding:0 3px;
+  border-radius:9px;font-size:10px;font-weight:700;line-height:1;
+  border:1px solid var(--leather-dk);cursor:help;user-select:none;
+  background:var(--parchment-lt);z-index:2;pointer-events:auto;
+}
+.class-row-top .prestige-req-chip.ok     { background:#d9efd9;color:#1f6b1f;border-color:#3a8a3a; }
+.class-row-top .prestige-req-chip.warn   { background:#fff3b0;color:#8a6d00;border-color:#b89c1f; }
+.class-row-top .prestige-req-chip.unknown{ background:#eee;    color:#555;   border-color:#999; }
+@media print { .class-row-top .prestige-req-chip{ border:none;background:transparent; } }
+
 /* ==== P-5 COMBAT NOTES PIN CHIP CSS ANCHOR 40chars+ ==== */
 #combat-notes-pin{
   margin-top:8px;padding:6px 8px;border:1px dashed var(--leather-dk);
