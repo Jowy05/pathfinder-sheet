@@ -301,6 +301,77 @@
   </div>
 </div>
 
+<!-- #ANCHOR:R27-MYTHIC-PANEL-V1 -->
+<div class="panel full-row" id="mythic-panel">
+  <h2 class="collapsible-header collapsed" id="mythic-header" data-i18n="p.mythic">✨ Mythic Adventures (opcional)</h2>
+  <div class="collapsible-body hidden" id="mythic-body">
+    <div style="font-size:11px;color:var(--leather-lt);margin-bottom:6px;font-style:italic;" data-i18n="mythic.intro">Capa opcional paralela a los niveles normales. Solo afecta si el DM usa Mythic Adventures (Paizo, 2013).</div>
+
+    <label class="inline-label" style="margin-bottom:6px;">
+      <input type="checkbox" id="mythic-active">
+      <span data-i18n="mythic.activate">Activar reglas míticas</span>
+    </label>
+
+    <div id="mythic-content" style="display:none;">
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:8px;">
+        <label style="font-size:12px;">
+          <span data-i18n="mythic.tier">Tier mítico</span><br>
+          <input type="number" id="mythic-tier" min="0" max="10" value="0" style="width:60px;font-size:13px;">
+        </label>
+        <label style="font-size:12px;">
+          <span data-i18n="mythic.path">Senda mítica</span><br>
+          <select id="mythic-path" style="min-width:160px;font-size:12px;">
+            <option value="" data-i18n="mythic.path.none">— ninguna —</option>
+            <option value="archmage" data-i18n="mythic.path.archmage">Archimago</option>
+            <option value="champion" data-i18n="mythic.path.champion">Campeón</option>
+            <option value="guardian" data-i18n="mythic.path.guardian">Guardián</option>
+            <option value="hierophant" data-i18n="mythic.path.hierophant">Hierofante</option>
+            <option value="marshal" data-i18n="mythic.path.marshal">Mariscal</option>
+            <option value="trickster" data-i18n="mythic.path.trickster">Embaucador</option>
+          </select>
+        </label>
+        <div style="display:flex;flex-direction:column;font-size:12px;">
+          <span data-i18n="mythic.power">Poder mítico</span>
+          <div style="display:flex;align-items:center;gap:3px;">
+            <input type="number" id="mythic-power-current" min="0" value="0" style="width:48px;text-align:center;font-weight:700;font-size:13px;">
+            <span style="font-size:13px;">/</span>
+            <input type="text" id="mythic-power-max" readonly class="derived" style="width:48px;font-size:13px;text-align:center;">
+          </div>
+          <span style="font-size:10px;color:var(--leather-lt);font-style:italic;" data-i18n="mythic.power.formula">3 + 2 × tier</span>
+        </div>
+        <div style="display:flex;flex-direction:column;font-size:12px;">
+          <span data-i18n="mythic.surgesUsed">Surges usados hoy</span>
+          <input type="number" id="mythic-surges-used" min="0" value="0" style="width:60px;text-align:center;font-size:13px;">
+        </div>
+        <div style="display:flex;flex-direction:column;font-size:12px;">
+          <span data-i18n="mythic.surgeDie">Dado de surge</span>
+          <span id="mythic-surge-die-display" style="font-weight:700;font-size:14px;font-family:var(--ff-head);color:var(--leather-dk);">—</span>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+        <button type="button" class="btn-add" id="mythic-surge-btn" data-i18n="mythic.surgeBtn" title="Tirar dado de surge y gastar 1 punto mítico">⚡ Surge</button>
+        <button type="button" class="btn-add" id="mythic-rest-btn" style="background:none;border:1px solid var(--leather-lt);color:var(--leather-dk);" data-i18n="mythic.restBtn" title="Recargar pool mítico y resetear surges del día">🌅 Recargar día</button>
+      </div>
+
+      <div id="mythic-surge-log" style="font-size:11px;color:var(--leather-dk);background:rgba(0,0,0,0.04);border:1px solid var(--parchment-dk);border-radius:3px;padding:4px 6px;margin-bottom:8px;min-height:18px;font-family:var(--ff-body);"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px;">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--leather-dk);" data-i18n="mythic.feats">Dotes míticas</label>
+          <textarea id="mythic-feats-text" rows="3" style="width:100%;font-size:12px;resize:vertical;" data-i18n-ph="mythic.feats.ph" placeholder="Una por línea: Mythic Power Attack, Mythic Toughness…"></textarea>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--leather-dk);" data-i18n="mythic.pathAbilities">Aptitudes de senda</label>
+          <textarea id="mythic-path-abilities" rows="3" style="width:100%;font-size:12px;resize:vertical;" data-i18n-ph="mythic.pathAbilities.ph" placeholder="Una por línea: Wild Arcana, Surge (1d6), Hard to Kill…"></textarea>
+        </div>
+      </div>
+
+      <div style="font-size:10px;color:var(--leather-lt);font-style:italic;margin-top:4px;" data-i18n="mythic.hardToKill">Hard to Kill (tier ≥ 1): no quedas inconsciente automáticamente con HP &lt; 0; mueres a –CON×2 (gestión manual).</div>
+    </div>
+  </div>
+</div>
+
 <div class="panel attributes-panel">
   <h2 data-i18n="p.attrs">Atributos Base</h2>
   <div class="attr-table-wrap">
@@ -2038,6 +2109,33 @@ const I18N = {
     'tt.actStd':'Acción estándar','tt.actMove':'Acción de movimiento','tt.actSwift':'Acción rápida',
     'ini.empty':'Sin combatientes. Añade uno para comenzar.',
     'm.iniResetConfirm':'¿Reiniciar el combate? Se borrarán todos los combatientes.',
+    // R-27 · Mythic Adventures
+    'p.mythic':'✨ Mythic Adventures (opcional)',
+    'mythic.intro':'Capa opcional paralela a los niveles normales. Solo afecta si el DM usa Mythic Adventures (Paizo, 2013).',
+    'mythic.activate':'Activar reglas míticas',
+    'mythic.tier':'Tier mítico',
+    'mythic.path':'Senda mítica',
+    'mythic.path.none':'— ninguna —',
+    'mythic.path.archmage':'Archimago',
+    'mythic.path.champion':'Campeón',
+    'mythic.path.guardian':'Guardián',
+    'mythic.path.hierophant':'Hierofante',
+    'mythic.path.marshal':'Mariscal',
+    'mythic.path.trickster':'Embaucador',
+    'mythic.power':'Poder mítico',
+    'mythic.power.formula':'3 + 2 × tier',
+    'mythic.surgesUsed':'Surges usados hoy',
+    'mythic.surgeDie':'Dado de surge',
+    'mythic.surgeBtn':'⚡ Surge',
+    'mythic.restBtn':'🌅 Recargar día',
+    'mythic.feats':'Dotes míticas',
+    'mythic.feats.ph':'Una por línea: Mythic Power Attack, Mythic Toughness…',
+    'mythic.pathAbilities':'Aptitudes de senda',
+    'mythic.pathAbilities.ph':'Una por línea: Wild Arcana, Surge (1d6), Hard to Kill…',
+    'mythic.hardToKill':'Hard to Kill (tier ≥ 1): no quedas inconsciente automáticamente con HP < 0; mueres a –CON×2 (gestión manual).',
+    'mythic.surge.result':'⚡ Surge: tirada {die} → {roll}. Pool: {cur}/{max}.',
+    'mythic.surge.noPower':'⚠️ Sin puntos míticos disponibles. La tirada se anula.',
+    'mythic.rest.done':'🌅 Día recargado: pool a máximo, surges reseteados.',
   },
   en: {
     'sheet.title':'Character Sheet · Pathfinder RPG',
@@ -2456,6 +2554,33 @@ const I18N = {
     'tt.actStd':'Standard action','tt.actMove':'Move action','tt.actSwift':'Swift action',
     'ini.empty':'No combatants. Add one to begin.',
     'm.iniResetConfirm':'Reset combat? All combatants will be cleared.',
+    // R-27 · Mythic Adventures
+    'p.mythic':'✨ Mythic Adventures (optional)',
+    'mythic.intro':'Optional layer parallel to normal levels. Only matters if the GM uses Mythic Adventures (Paizo, 2013).',
+    'mythic.activate':'Enable mythic rules',
+    'mythic.tier':'Mythic tier',
+    'mythic.path':'Mythic path',
+    'mythic.path.none':'— none —',
+    'mythic.path.archmage':'Archmage',
+    'mythic.path.champion':'Champion',
+    'mythic.path.guardian':'Guardian',
+    'mythic.path.hierophant':'Hierophant',
+    'mythic.path.marshal':'Marshal',
+    'mythic.path.trickster':'Trickster',
+    'mythic.power':'Mythic power',
+    'mythic.power.formula':'3 + 2 × tier',
+    'mythic.surgesUsed':'Surges used today',
+    'mythic.surgeDie':'Surge die',
+    'mythic.surgeBtn':'⚡ Surge',
+    'mythic.restBtn':'🌅 Refresh day',
+    'mythic.feats':'Mythic feats',
+    'mythic.feats.ph':'One per line: Mythic Power Attack, Mythic Toughness…',
+    'mythic.pathAbilities':'Path abilities',
+    'mythic.pathAbilities.ph':'One per line: Wild Arcana, Surge (1d6), Hard to Kill…',
+    'mythic.hardToKill':'Hard to Kill (tier ≥ 1): you do not auto-fall unconscious at HP < 0; you die at –CON×2 (manual tracking).',
+    'mythic.surge.result':'⚡ Surge: rolled {die} → {roll}. Pool: {cur}/{max}.',
+    'mythic.surge.noPower':'⚠️ No mythic power available. Roll cancelled.',
+    'mythic.rest.done':'🌅 Day refreshed: pool restored, surges reset.',
   }
 };
 let LANG = (localStorage.getItem('pf1e-lang') === 'en') ? 'en' : 'es';
@@ -5682,7 +5807,7 @@ function setupListeners() {
   document.getElementById('add-comp-attack-btn').addEventListener('click', () => addCompAttack());
   document.getElementById('add-comp-trick-btn').addEventListener('click', () => addCompTrick());
 
-  ['companion-header','eidolon-header','familiar-header','summoned-header','spells-header','feats-header','features-header','bio-header','chartraits-header','inventory-header','racial-traits-header'].forEach(id => {
+  ['companion-header','eidolon-header','familiar-header','summoned-header','spells-header','feats-header','features-header','bio-header','chartraits-header','inventory-header','racial-traits-header','mythic-header'].forEach(id => {
     const header = document.getElementById(id);
     if(!header) return;
     header.setAttribute('role','button');
@@ -11301,6 +11426,19 @@ function exportData() {
   // P-7 · Initiative / combat tracker
   data['__combat_tracker'] = JSON.stringify(_combatState || { round:1, currentIdx:0, combatants:[] });
 
+  // R-27 · Mythic Adventures: snapshot explícito (los inputs ya se
+  // serializan en el loop genérico, pero exponemos claves __mythic_*
+  // para que el JSON sea autodescriptivo y portable.)
+  try {
+    data['__mythic_active']         = !!document.getElementById('mythic-active')?.checked;
+    data['__mythic_tier']           = parseInt(document.getElementById('mythic-tier')?.value) || 0;
+    data['__mythic_path']           = document.getElementById('mythic-path')?.value || '';
+    data['__mythic_power_current']  = parseInt(document.getElementById('mythic-power-current')?.value) || 0;
+    data['__mythic_surges_used']    = parseInt(document.getElementById('mythic-surges-used')?.value) || 0;
+    data['__mythic_feats_text']     = document.getElementById('mythic-feats-text')?.value || '';
+    data['__mythic_path_abilities'] = document.getElementById('mythic-path-abilities')?.value || '';
+  } catch(e) {}
+
   // R-29 · Epic mode flag (niveles 21-30)
   try { data['__epic_mode'] = !!_epicModeOn; } catch(e) { data['__epic_mode'] = false; }
 
@@ -11655,6 +11793,25 @@ function importData(event) {
         }
         if (typeof _synthRefreshUi === 'function') _synthRefreshUi();
       } catch(_){}
+
+      // R-27 · Restaurar estado mítico desde claves explícitas (si existen)
+      try {
+        const setIf = (id, key, isCheckbox) => {
+          if (!Object.prototype.hasOwnProperty.call(data, key)) return;
+          const el = document.getElementById(id);
+          if (!el) return;
+          if (isCheckbox) el.checked = !!data[key]; else el.value = data[key];
+        };
+        setIf('mythic-active',         '__mythic_active', true);
+        setIf('mythic-tier',           '__mythic_tier');
+        setIf('mythic-path',           '__mythic_path');
+        setIf('mythic-power-current',  '__mythic_power_current');
+        setIf('mythic-surges-used',    '__mythic_surges_used');
+        setIf('mythic-feats-text',     '__mythic_feats_text');
+        setIf('mythic-path-abilities', '__mythic_path_abilities');
+        if (typeof _mythicRefreshUi === 'function') _mythicRefreshUi();
+      } catch(_){}
+
       recalc();
       // Restore per-level HP dice display (inputs created by buildHPDiceIfChanged inside recalc)
       if (data['__hp_dice_vals']) {
@@ -12767,6 +12924,146 @@ document.addEventListener('DOMContentLoaded', () => {
   if (add) add.addEventListener('click', () => btrAddBuff());
   if (clr) clr.addEventListener('click', () => btrClearExpired());
   _btrUpdateCounts();
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   R-27 · MYTHIC ADVENTURES (Paizo, 2013)
+   Capa OPCIONAL. Sólo se activa con el toggle.
+   - Tier 1-10
+   - Path 1 de 6 (Archmage/Champion/Guardian/Hierophant/Marshal/Trickster)
+   - Mythic Power pool = 3 + 2*tier por día
+   - Surge: gasta 1 punto, tira d6/d8/d10/d12 según tier
+   - Hard to Kill: helper expuesto para que cualquier auto-toggle
+     futuro de cond-unconscious lo respete (hoy no existe en la hoja)
+   ═══════════════════════════════════════════════════════════════ */
+const MYTHIC_ACTIVE_KEY = 'pf1e-mythic-active';
+
+function _mythicSurgeDie(tier) {
+  const t = parseInt(tier) || 0;
+  if (t >= 10) return 12;
+  if (t >= 7)  return 10;
+  if (t >= 4)  return 8;
+  if (t >= 1)  return 6;
+  return 0;
+}
+
+function isMythicActive() {
+  const cb = document.getElementById('mythic-active');
+  return !!(cb && cb.checked);
+}
+
+function getMythicTier() {
+  if (!isMythicActive()) return 0;
+  return Math.max(0, Math.min(10, parseInt(document.getElementById('mythic-tier')?.value) || 0));
+}
+
+/**
+ * Hard to Kill helper. Devuelve true si el PJ tiene tier mítico ≥ 1
+ * y por tanto NO debería caer inconsciente automáticamente al pasar
+ * a HP < 0. Hoy la hoja no tiene auto-toggle de cond-unconscious,
+ * así que la regla queda implementada como guard listo para usar:
+ *   if (isMythicHardToKill()) return;  // saltar auto-unconscious
+ */
+function isMythicHardToKill() {
+  return getMythicTier() >= 1;
+}
+
+function _mythicRefreshUi() {
+  const active = isMythicActive();
+  try { localStorage.setItem(MYTHIC_ACTIVE_KEY, active ? '1' : '0'); } catch(e) {}
+
+  const content = document.getElementById('mythic-content');
+  const header  = document.getElementById('mythic-header');
+  const body    = document.getElementById('mythic-body');
+  if (content) content.style.display = active ? '' : 'none';
+
+  // Si se desactiva, colapsar el panel; si se activa por primera vez, mantener estado actual.
+  if (!active && header && body) {
+    if (!header.classList.contains('collapsed')) {
+      header.classList.add('collapsed');
+      body.classList.add('hidden');
+      header.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  // Recalcular max pool y dado de surge
+  const tier   = getMythicTier();
+  const maxEl  = document.getElementById('mythic-power-max');
+  const curEl  = document.getElementById('mythic-power-current');
+  const dieEl  = document.getElementById('mythic-surge-die-display');
+  const max    = active ? (3 + 2 * tier) : 0;
+  if (maxEl) maxEl.value = max;
+  if (curEl) {
+    const cur = parseInt(curEl.value) || 0;
+    if (cur > max) curEl.value = max;
+    if (cur < 0)   curEl.value = 0;
+  }
+  if (dieEl) {
+    const d = active ? _mythicSurgeDie(tier) : 0;
+    dieEl.textContent = d > 0 ? ('1d' + d) : '—';
+  }
+}
+
+function _mythicSurge() {
+  if (!isMythicActive()) return;
+  const tier  = getMythicTier();
+  const sides = _mythicSurgeDie(tier);
+  const log   = document.getElementById('mythic-surge-log');
+  const curEl = document.getElementById('mythic-power-current');
+  const usedEl = document.getElementById('mythic-surges-used');
+  const maxEl = document.getElementById('mythic-power-max');
+
+  if (sides <= 0) {
+    if (log) log.textContent = t('mythic.surge.noPower');
+    return;
+  }
+  let cur = parseInt(curEl?.value) || 0;
+  if (cur <= 0) {
+    if (log) log.textContent = t('mythic.surge.noPower');
+    return;
+  }
+  const roll = 1 + Math.floor(Math.random() * sides);
+  cur -= 1;
+  if (curEl) curEl.value = cur;
+  if (usedEl) usedEl.value = (parseInt(usedEl.value) || 0) + 1;
+  const max = parseInt(maxEl?.value) || 0;
+  if (log) log.textContent = t('mythic.surge.result', {
+    die: '1d' + sides, roll: roll, cur: cur, max: max
+  });
+}
+
+function _mythicRestDay() {
+  if (!isMythicActive()) return;
+  const maxEl = document.getElementById('mythic-power-max');
+  const curEl = document.getElementById('mythic-power-current');
+  const usedEl = document.getElementById('mythic-surges-used');
+  if (maxEl && curEl) curEl.value = parseInt(maxEl.value) || 0;
+  if (usedEl) usedEl.value = 0;
+  const log = document.getElementById('mythic-surge-log');
+  if (log) log.textContent = t('mythic.rest.done');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Restaurar toggle desde localStorage (default OFF)
+  try {
+    const stored = localStorage.getItem(MYTHIC_ACTIVE_KEY);
+    const cb = document.getElementById('mythic-active');
+    if (cb) cb.checked = stored === '1';
+  } catch(e) {}
+
+  const cbActive = document.getElementById('mythic-active');
+  if (cbActive) cbActive.addEventListener('change', _mythicRefreshUi);
+
+  const tierEl = document.getElementById('mythic-tier');
+  if (tierEl) tierEl.addEventListener('input', _mythicRefreshUi);
+
+  const surgeBtn = document.getElementById('mythic-surge-btn');
+  if (surgeBtn) surgeBtn.addEventListener('click', _mythicSurge);
+
+  const restBtn = document.getElementById('mythic-rest-btn');
+  if (restBtn) restBtn.addEventListener('click', _mythicRestDay);
+
+  _mythicRefreshUi();
 });
 
 /* ── MODO EPIC (R-29) ────────────────────────────────────
