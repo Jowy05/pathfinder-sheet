@@ -1004,6 +1004,14 @@
       <div id="bloodline-spells-ref" style="font-size:11px;color:var(--leather-dk);"></div>
     </div>
     <div class="spell-levels" id="spell-levels-container"></div>
+    <!-- R-22 · Multi-caster: slots por clase separados (Core Rulebook pg. 30) -->
+    <div id="multi-caster-section" style="display:none;margin-top:14px;border-top:2px dashed var(--parchment-dk);padding-top:10px;">
+      <h3 class="subsection-title" style="margin:0 0 4px;display:flex;align-items:center;gap:8px;">
+        <span data-i18n="p.multiCaster">Slots por clase (Multi-caster)</span>
+        <span style="font-size:10px;color:var(--leather-lt);font-weight:normal;" data-i18n="mc.hint">Cada clase lanzadora mantiene sus slots, atributo y CD por separado (CRB pg. 30).</span>
+      </h3>
+      <div id="multi-caster-container" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
   </div>
 </div>
 
@@ -1878,6 +1886,8 @@ const I18N = {
     'tt.restLong':'Descanso largo: 8h · recupera TODO: slots, usos/día (rabia, fervor, castigo, canalizar, etc.), PG a máximo. Quita fatiga. Agotado → fatigado.',
     'm.restShortDone':'Descanso corto completado (1h).','m.restLongDone':'Descanso largo completado (8h). Todo recuperado.',
     'spell.prepHint':'Marca el conjuro cuando lo lances hoy','spell.spontHint':'Usa los contadores de Restantes para rastrear usos','spell.unlimited':'Ilimitados · no se agotan','spell.lockedPartial':'Lanzador parcial: nivel de clase insuficiente',
+    'p.multiCaster':'Slots por clase (Multi-caster)','mc.hint':'Cada clase lanzadora mantiene sus slots, atributo y CD por separado (CRB pg. 30).',
+    'mc.classLvl':'Nv. clase','mc.casterLvl':'NL','mc.attr':'Atrib.','mc.mode':'Modo','mc.modePrep':'Preparado','mc.modeSpont':'Espontáneo','mc.dc':'CD','mc.perDay':'Por Día','mc.cantrips':'Trucos','mc.remaining':'Restantes','mc.prepLabel':'Preparados','mc.knownLabel':'Conocidos',
     'spell.lvlShort':'Nv.','spell.dc':'CD:','spell.cantrips':'Trucos','spell.perDay':'Por Día','spell.remaining':'Restantes',
     'spell.prepLabel':'Preparados hoy:','spell.knownLabel':'Conocidos permanentemente:',
     'btn.addSpell':'[+] Conjuro','btn.addKnown':'[+] Conocido','btn.resetSlots':'↺ Slots Auto','ph.spellName':'Nombre del conjuro…','tt.castToday':'Lanzado hoy','aria.delSpell':'Eliminar conjuro','tt.spellAvail':'Disponible — clic para gastar',
@@ -2295,6 +2305,8 @@ const I18N = {
     'tt.restLong':'Long rest: 8h · refreshes EVERYTHING: slots, uses/day (rage, fervor, smite, channel, etc.), HP to full. Removes fatigue. Exhausted → fatigued.',
     'm.restShortDone':'Short rest complete (1h).','m.restLongDone':'Long rest complete (8h). All resources restored.',
     'spell.prepHint':'Mark the spell when cast today','spell.spontHint':'Use the Remaining counters to track uses','spell.unlimited':'Unlimited · never deplete','spell.lockedPartial':'Partial caster: class level too low',
+    'p.multiCaster':'Slots per class (Multi-caster)','mc.hint':'Each casting class keeps its own slots, attribute and DC (CRB pg. 30).',
+    'mc.classLvl':'Class lvl','mc.casterLvl':'CL','mc.attr':'Attr.','mc.mode':'Mode','mc.modePrep':'Prepared','mc.modeSpont':'Spontaneous','mc.dc':'DC','mc.perDay':'Per Day','mc.cantrips':'Cantrips','mc.remaining':'Remaining','mc.prepLabel':'Prepared','mc.knownLabel':'Known',
     'spell.lvlShort':'Lv.','spell.dc':'DC:','spell.cantrips':'Cantrips','spell.perDay':'Per Day','spell.remaining':'Remaining',
     'spell.prepLabel':'Prepared today:','spell.knownLabel':'Permanently known:',
     'btn.addSpell':'[+] Spell','btn.addKnown':'[+] Known','btn.resetSlots':'↺ Auto Slots','ph.spellName':'Spell name…','tt.castToday':'Cast today','aria.delSpell':'Remove spell','tt.spellAvail':'Available — click to spend',
@@ -2461,6 +2473,7 @@ function setLanguage(lang) {
   if (typeof buildGenericDice === 'function') buildGenericDice();
   if (typeof buildHPDice === 'function') buildHPDice();
   if (typeof buildSpellSlots === 'function') buildSpellSlots();
+  if (typeof buildMultiCasterSlots === 'function') buildMultiCasterSlots();
   if (typeof buildLanguageGrid === 'function') buildLanguageGrid();
   if (typeof populateSelectors === 'function') populateSelectors();
   if (typeof refreshClassRowLabels === 'function') refreshClassRowLabels();
@@ -2998,6 +3011,7 @@ async function init() {
   buildAttrTable();
   buildSkillTable();
   buildSpellSlots();
+  buildMultiCasterSlots();
   buildGenericDice();
   setupListeners();
   // P-14: drag & drop reordering
@@ -4819,6 +4833,327 @@ function buildSpellSlots() {
   }
 }
 
+/* ── R-22 · MULTI-CASTER: slots por clase separados ────── */
+/* Detecta clases lanzadoras activas con tabla de spells_per_day y
+   construye un bloque <details> por clase con sus propios slots,
+   atributo, modo, NL y DC. Solo se muestra si hay 2+ clases caster.
+   Si solo hay 1 (o 0), el bloque global existente sigue cubriendo. */
+function _mcCasterClassRows() {
+  if(typeof getActiveClassRows !== 'function') return [];
+  return getActiveClassRows().filter(r => {
+    const cls = (typeof DB !== 'undefined' && DB.classes) ? DB.classes[r.classKey] : null;
+    return cls && cls.spells_per_day && r.level > 0;
+  });
+}
+
+function buildMultiCasterSlots() {
+  const section   = document.getElementById('multi-caster-section');
+  const container = document.getElementById('multi-caster-container');
+  if(!section || !container) return;
+  const rows = _mcCasterClassRows();
+  if(rows.length < 2) {
+    section.style.display = 'none';
+    container.innerHTML = '';
+    return;
+  }
+  section.style.display = '';
+  // Capturar valores actuales para preservar estado al rebuild
+  const prevState = _mcCaptureState();
+  container.innerHTML = '';
+  rows.forEach(({classKey, level}) => {
+    const cls = DB.classes[classKey];
+    const className = (typeof tData==='function') ? (tData(cls,'name') || classKey) : (cls.name||classKey);
+    const det = document.createElement('details');
+    det.className = 'mc-block';
+    det.open = (prevState[classKey]?.open !== false);
+    det.style.cssText = 'border:1px solid var(--parchment-dk);border-radius:4px;padding:6px 8px;background:rgba(245,235,205,0.30);';
+    const attrAuto  = CLASS_CAST_ATTR[classKey] || 'int';
+    const modeAuto  = CLASS_CAST_MODE[classKey] || 'prepared';
+    const attrSaved = prevState[classKey]?.attr ?? attrAuto;
+    const modeSaved = prevState[classKey]?.mode ?? modeAuto;
+    const clSaved   = prevState[classKey]?.cl   ?? level;
+
+    // Cabecera
+    let html = `
+      <summary style="cursor:pointer;font-weight:bold;font-family:var(--ff-head);user-select:none;">
+        ${className} <span style="font-size:11px;color:var(--leather-lt);font-weight:normal;">— ${t('mc.classLvl')} ${level}</span>
+      </summary>
+      <div class="mc-meta" style="display:flex;flex-wrap:wrap;gap:8px;margin:6px 0;align-items:flex-end;font-size:11px;">
+        <label style="display:flex;flex-direction:column;gap:2px;">
+          <span>${t('mc.casterLvl')}</span>
+          <input type="number" id="mc-cl-${classKey}" class="recalc" value="${clSaved}" min="1" style="width:54px;">
+        </label>
+        <label style="display:flex;flex-direction:column;gap:2px;">
+          <span>${t('mc.attr')}</span>
+          <select id="mc-attr-${classKey}" class="recalc" style="font-size:11px;">
+            <option value="str"${attrSaved==='str'?' selected':''}>FUE</option>
+            <option value="dex"${attrSaved==='dex'?' selected':''}>DES</option>
+            <option value="con"${attrSaved==='con'?' selected':''}>CON</option>
+            <option value="int"${attrSaved==='int'?' selected':''}>INT</option>
+            <option value="wis"${attrSaved==='wis'?' selected':''}>SAB</option>
+            <option value="cha"${attrSaved==='cha'?' selected':''}>CAR</option>
+          </select>
+        </label>
+        <label style="display:flex;flex-direction:column;gap:2px;">
+          <span>${t('mc.mode')}</span>
+          <select id="mc-mode-${classKey}" class="recalc" style="font-size:11px;" onchange="setMcMode('${classKey}', this.value)">
+            <option value="prepared"${modeSaved==='prepared'?' selected':''}>${t('mc.modePrep')}</option>
+            <option value="spontaneous"${modeSaved==='spontaneous'?' selected':''}>${t('mc.modeSpont')}</option>
+          </select>
+        </label>
+      </div>
+      <div class="mc-levels" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px;">`;
+
+    for(let lv = 0; lv <= 9; lv++) {
+      const perdaySaved = prevState[classKey]?.perday?.[lv];
+      const leftSaved   = prevState[classKey]?.left?.[lv];
+      html += `
+        <div class="mc-level-box" style="border:1px solid var(--parchment-dk);border-radius:3px;padding:4px 6px;background:var(--parchment-lt);">
+          <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:bold;">
+            <span>${t('spell.lvlShort')}${lv} <span id="mc-bonus-${classKey}-${lv}" style="color:var(--leather-lt);font-size:10px;font-weight:normal;"></span></span>
+            <span>${t('mc.dc')} <span id="mc-dc-${classKey}-${lv}">—</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;margin:3px 0;font-size:10px;">
+            <span>${lv===0?t('mc.cantrips'):t('mc.perDay')}</span>
+            <input type="number" id="mc-perday-${classKey}-${lv}" class="recalc" value="${perdaySaved!==undefined?perdaySaved:(lv===0?4:0)}" min="0" style="width:46px;font-size:11px;">
+          </div>`;
+      if(lv > 0) {
+        html += `
+          <div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap;">
+            <span style="font-size:9px;color:var(--leather-lt);">${t('mc.remaining')}</span>
+            <div class="tracker-bubbles" id="mc-bubbles-${classKey}-${lv}" style="display:inline-flex;gap:2px;flex-wrap:wrap;"></div>
+            <input type="number" id="mc-left-${classKey}-${lv}" value="${leftSaved!==undefined?leftSaved:-1}" style="display:none;" aria-hidden="true">
+          </div>`;
+      }
+      html += `
+          <div class="mc-prepared-section${modeSaved==='prepared'?'':' mc-hidden-section'}" style="${modeSaved==='prepared'?'':'display:none;'}margin-top:3px;">
+            <div style="font-size:9px;color:var(--leather-lt);font-weight:600;">${t('mc.prepLabel')}</div>
+            <div class="spell-entries" id="mc-entries-${classKey}-${lv}"></div>
+            <button class="spell-add-btn" type="button" onclick="addMcSpellEntry('${classKey}',${lv})">${t('btn.addSpell')}</button>
+          </div>`;
+      if(lv > 0) {
+        html += `
+          <div class="mc-known-section${modeSaved==='spontaneous'?'':' mc-hidden-section'}" style="${modeSaved==='spontaneous'?'':'display:none;'}margin-top:3px;">
+            <div style="font-size:9px;color:var(--leather-lt);font-weight:600;">${t('mc.knownLabel')}</div>
+            <div class="spell-entries" id="mc-known-${classKey}-${lv}"></div>
+            <button class="spell-add-btn" type="button" onclick="addMcKnownSpell('${classKey}',${lv})">${t('btn.addKnown')}</button>
+          </div>`;
+      }
+      html += `</div>`;
+    }
+    html += `</div>`;
+    det.innerHTML = html;
+    container.appendChild(det);
+
+    // Restaurar entradas guardadas + flags userOverride en perday
+    for(let lv = 0; lv <= 9; lv++) {
+      const entHtml = prevState[classKey]?.entries?.[lv];
+      if(entHtml !== undefined) {
+        const el = document.getElementById(`mc-entries-${classKey}-${lv}`);
+        if(el) el.innerHTML = entHtml;
+      }
+      const knHtml = prevState[classKey]?.known?.[lv];
+      if(knHtml !== undefined) {
+        const el = document.getElementById(`mc-known-${classKey}-${lv}`);
+        if(el) el.innerHTML = knHtml;
+      }
+      if(prevState[classKey]?.perdayOverride?.[lv]) {
+        const pdEl = document.getElementById(`mc-perday-${classKey}-${lv}`);
+        if(pdEl) {
+          pdEl.dataset.userOverride = '1';
+          pdEl.dataset.base = pdEl.value;
+        }
+      }
+    }
+  });
+}
+
+/* Captura el estado actual del bloque multi-caster para preservar
+   inputs y entradas tras un rebuild. */
+function _mcCaptureState() {
+  const out = {};
+  document.querySelectorAll('#multi-caster-container details.mc-block').forEach(det => {
+    // Identifica la clase por el id de uno de sus inputs
+    const clEl = det.querySelector('input[id^="mc-cl-"]');
+    if(!clEl) return;
+    const classKey = clEl.id.replace('mc-cl-','');
+    const state = {
+      open: det.open,
+      cl:   parseInt(clEl.value)||1,
+      attr: document.getElementById(`mc-attr-${classKey}`)?.value || '',
+      mode: document.getElementById(`mc-mode-${classKey}`)?.value || '',
+      perday: {}, left: {}, entries: {}, known: {}
+    };
+    state.perdayOverride = {};
+    for(let lv = 0; lv <= 9; lv++) {
+      const pd = document.getElementById(`mc-perday-${classKey}-${lv}`);
+      if(pd) {
+        state.perday[lv] = pd.value;
+        if(pd.dataset.userOverride === '1') state.perdayOverride[lv] = true;
+      }
+      const lf = document.getElementById(`mc-left-${classKey}-${lv}`);
+      if(lf) state.left[lv] = lf.value;
+      const en = document.getElementById(`mc-entries-${classKey}-${lv}`);
+      if(en) state.entries[lv] = en.innerHTML;
+      const kn = document.getElementById(`mc-known-${classKey}-${lv}`);
+      if(kn) state.known[lv] = kn.innerHTML;
+    }
+    out[classKey] = state;
+  });
+  return out;
+}
+
+function setMcMode(classKey, mode) {
+  document.querySelectorAll(`#multi-caster-container details.mc-block`).forEach(det => {
+    const sel = det.querySelector(`#mc-mode-${classKey}`);
+    if(!sel) return;
+    det.querySelectorAll('.mc-prepared-section').forEach(el => el.style.display = mode==='prepared' ? '' : 'none');
+    det.querySelectorAll('.mc-known-section').forEach(el => el.style.display = mode==='spontaneous' ? '' : 'none');
+  });
+}
+
+function addMcSpellEntry(classKey, level, name='', school='—', expended=false) {
+  const cont = document.getElementById(`mc-entries-${classKey}-${level}`);
+  if(!cont) return;
+  const div = document.createElement('div');
+  const isCantrip = level === 0;
+  div.className = `spell-entry${(!isCantrip && expended) ? ' expended' : ''}`;
+  div.dataset.spellLevel = level;
+  div.draggable = true;
+  const schoolOpts = (typeof SPELL_SCHOOLS!=='undefined'?SPELL_SCHOOLS:['—']).map(s =>
+    `<option value="${s}"${s===school?' selected':''}>${(typeof _schoolLabel==='function'?_schoolLabel(s):s)}</option>`).join('');
+  const cbHTML = isCantrip
+    ? `<span class="spell-exp-placeholder" aria-hidden="true"></span>`
+    : `<input type="checkbox" class="spell-exp-cb" ${expended?'checked':''} title="${t('tt.castToday')}"
+             onchange="this.closest('.spell-entry').classList.toggle('expended',this.checked)">`;
+  div.innerHTML = (typeof _spellRowHTML==='function')
+    ? _spellRowHTML(cbHTML, name, school, schoolOpts)
+    : `${cbHTML}<input type="text" class="spell-name-inp" placeholder="${t('ph.spellName')}" value="${name}">`;
+  cont.appendChild(div);
+}
+
+function addMcKnownSpell(classKey, level, name='', school='—') {
+  const cont = document.getElementById(`mc-known-${classKey}-${level}`);
+  if(!cont) return;
+  const div = document.createElement('div');
+  div.className = 'spell-entry';
+  div.draggable = true;
+  div.dataset.spellLevel = level;
+  const schoolOpts = (typeof SPELL_SCHOOLS!=='undefined'?SPELL_SCHOOLS:['—']).map(s =>
+    `<option value="${s}"${s===school?' selected':''}>${(typeof _schoolLabel==='function'?_schoolLabel(s):s)}</option>`).join('');
+  div.innerHTML = (typeof _spellRowHTML==='function')
+    ? _spellRowHTML(`<span class="spell-exp-placeholder" aria-hidden="true"></span>`, name, school, schoolOpts)
+    : `<input type="text" class="spell-name-inp" placeholder="${t('ph.spellName')}" value="${name}">`;
+  cont.appendChild(div);
+}
+
+function updateMcSpellBubbles(classKey, lv, max) {
+  const container = document.getElementById(`mc-bubbles-${classKey}-${lv}`);
+  const leftInput = document.getElementById(`mc-left-${classKey}-${lv}`);
+  if(!container || !leftInput) return;
+  const cap = Math.min(max, 20);
+  const raw = parseInt(leftInput.value);
+  const remaining = (isNaN(raw) || raw < 0) ? max : Math.min(max, Math.max(0, raw));
+  const used = max - remaining;
+  let html = '';
+  for(let i = 0; i < cap; i++) {
+    const isUsed = i < used;
+    html += `<div class="tracker-bubble${isUsed?' used':''}"
+      onclick="toggleMcSpellBubble(this,'${classKey}',${lv})"
+      title="${isUsed ? t('tt.use.click') : t('tt.avail.click')}"></div>`;
+  }
+  if(max > 20) html += `<span style="font-size:10px;color:var(--leather-lt);margin-left:2px;">+${max-20}</span>`;
+  container.innerHTML = html;
+  leftInput.value = remaining;
+}
+
+function toggleMcSpellBubble(bubble, classKey, lv) {
+  bubble.classList.toggle('used');
+  bubble.title = bubble.classList.contains('used') ? t('tt.use.click') : t('tt.avail.click');
+  const container = document.getElementById(`mc-bubbles-${classKey}-${lv}`);
+  const leftInput = document.getElementById(`mc-left-${classKey}-${lv}`);
+  if(!container || !leftInput) return;
+  const usedCount = container.querySelectorAll('.tracker-bubble.used').length;
+  const total = container.querySelectorAll('.tracker-bubble').length;
+  leftInput.value = total - usedCount;
+}
+
+/* Re-cálculo: aplica DC, bonus slots y burbujas para cada clase
+   caster. Se llama desde calcSpells una vez recalculados los mods. */
+function calcMultiCasterSpells(mods) {
+  const section = document.getElementById('multi-caster-section');
+  if(!section || section.style.display === 'none') return;
+  const rows = _mcCasterClassRows();
+  rows.forEach(({classKey, level}) => {
+    const attrSel = document.getElementById(`mc-attr-${classKey}`);
+    const attr    = attrSel?.value || CLASS_CAST_ATTR[classKey] || 'int';
+    const castMod = mods[attr] || 0;
+    // Auto-rellena nivel de lanzador si el campo coincide con el nivel de la clase y no fue tocado
+    const clEl = document.getElementById(`mc-cl-${classKey}`);
+    // Auto-rellenar perday desde tabla si no se ha tocado manualmente
+    const cls = DB.classes[classKey];
+    const tableRow = cls?.spells_per_day?.[Math.min(level,20) - 1];
+    for(let lv = 0; lv <= 9; lv++) {
+      const dcEl = document.getElementById(`mc-dc-${classKey}-${lv}`);
+      if(dcEl) dcEl.textContent = 10 + lv + castMod;
+
+      // Bonus slots
+      let bonus = 0;
+      if(lv > 0 && castMod > 0) {
+        if(castMod >= lv)      bonus++;
+        if(castMod >= lv + 4)  bonus++;
+        if(castMod >= lv + 8)  bonus++;
+        if(castMod >= lv + 12) bonus++;
+      }
+      const bonusEl = document.getElementById(`mc-bonus-${classKey}-${lv}`);
+      if(bonusEl) bonusEl.textContent = bonus > 0 ? `+${bonus}` : '';
+
+      const perdayEl = document.getElementById(`mc-perday-${classKey}-${lv}`);
+      if(perdayEl) {
+        // Auto-fill desde tabla si no override del usuario
+        if(perdayEl.dataset.userOverride !== '1' && tableRow) {
+          const base = tableRow[lv];
+          if(base !== null && base !== undefined) {
+            perdayEl.dataset.base = String(base);
+            perdayEl.dataset.autoFilled = '1';
+          }
+        }
+        const baseVal = perdayEl.dataset.base !== undefined
+          ? parseInt(perdayEl.dataset.base)
+          : (parseInt(perdayEl.value) || 0);
+        if(perdayEl.dataset.base === undefined) perdayEl.dataset.base = perdayEl.value || '0';
+        const newTotal = baseVal + bonus;
+        if(parseInt(perdayEl.value) !== newTotal) {
+          perdayEl.value = newTotal;
+          perdayEl.setAttribute('value', newTotal);
+        }
+        if(lv > 0) updateMcSpellBubbles(classKey, lv, newTotal);
+      }
+    }
+  });
+}
+
+/* Reseteo de slots multi-caster al descansar 8h. */
+function resetMultiCasterDay() {
+  const section = document.getElementById('multi-caster-section');
+  if(!section || section.style.display === 'none') return;
+  // Quitar marca expended y resetear left=perday
+  document.querySelectorAll('#multi-caster-container .spell-entry.expended').forEach(e => {
+    e.classList.remove('expended');
+    const cb = e.querySelector('.spell-exp-cb');
+    if(cb) cb.checked = false;
+  });
+  const rows = _mcCasterClassRows();
+  rows.forEach(({classKey}) => {
+    for(let lv = 1; lv <= 9; lv++) {
+      const pd = parseInt((document.getElementById(`mc-perday-${classKey}-${lv}`)||{}).value) || 0;
+      const lf = document.getElementById(`mc-left-${classKey}-${lv}`);
+      if(lf) lf.value = pd;
+      updateMcSpellBubbles(classKey, lv, pd);
+    }
+  });
+}
+
 /* ── METAMAGIA (L-5) ────────────────────────────────────── */
 const METAMAGIC_FEATS = [
   {id:'silent',   adj:1, name:{es:'Silencioso',en:'Silent'}},
@@ -5008,6 +5343,8 @@ function newDay() {
     b.classList.remove('used');
     b.title = t('tt.spellAvail');
   });
+  // R-22 · resetear también los slots multi-caster (si visibles)
+  try { if(typeof resetMultiCasterDay === 'function') resetMultiCasterDay(); } catch(_) {}
 }
 
 /* ── EVENT LISTENERS (With robust innerHTML syncing) ────── */
@@ -5032,6 +5369,11 @@ function setupListeners() {
     if(e.target.tagName === 'TEXTAREA') e.target.innerHTML = e.target.value;
     // When user manually edits a spell-slot "por día" field, store it as the new base BEFORE recalc
     if(e.target.id && e.target.id.startsWith('sp-perday-')) {
+      e.target.dataset.base = e.target.value;
+      e.target.dataset.userOverride = '1';
+    }
+    // R-22 · misma lógica para los inputs de "Por Día" multi-caster
+    if(e.target.id && e.target.id.startsWith('mc-perday-')) {
       e.target.dataset.base = e.target.value;
       e.target.dataset.userOverride = '1';
     }
@@ -6024,6 +6366,24 @@ function autoFillSpellSlots() {
 
 function calcSpells(mods) {
   autoFillSpellSlots();
+  // R-22 · refrescar bloque multi-caster (rebuild si la lista de clases caster cambió)
+  try {
+    const cont = document.getElementById('multi-caster-container');
+    const rows = _mcCasterClassRows();
+    const wantKey = rows.map(r => `${r.classKey}:${r.level}`).sort().join('|');
+    const haveKey = cont?.dataset.casterKey || '';
+    if(rows.length >= 2) {
+      if(wantKey !== haveKey) {
+        buildMultiCasterSlots();
+        if(cont) cont.dataset.casterKey = wantKey;
+      }
+      calcMultiCasterSpells(mods);
+    } else if(haveKey) {
+      // Pasamos de >=2 a <2: ocultar
+      buildMultiCasterSlots();
+      if(cont) cont.dataset.casterKey = '';
+    }
+  } catch(_) {}
   const castAttr = document.getElementById('cast-attr').value;
   const castMod  = mods[castAttr] || 0;
   const cl = parseInt(gv('caster-level')) || 1;
@@ -10217,6 +10577,38 @@ function exportData() {
     if(kn) data[`__spell-known-${lv}`] = kn.innerHTML;
   }
 
+  // R-22 · Multi-caster: persistir slots y conjuros por clase
+  try {
+    const mcSection = document.getElementById('multi-caster-section');
+    if(mcSection && mcSection.style.display !== 'none') {
+      const mcState = {};
+      document.querySelectorAll('#multi-caster-container details.mc-block').forEach(det => {
+        const clEl = det.querySelector('input[id^="mc-cl-"]');
+        if(!clEl) return;
+        const classKey = clEl.id.replace('mc-cl-','');
+        const blk = {
+          open: det.open,
+          cl:   clEl.value,
+          attr: document.getElementById(`mc-attr-${classKey}`)?.value || '',
+          mode: document.getElementById(`mc-mode-${classKey}`)?.value || '',
+          perday: {}, left: {}, entries: {}, known: {}
+        };
+        for(let lv = 0; lv <= 9; lv++) {
+          const pd = document.getElementById(`mc-perday-${classKey}-${lv}`);
+          if(pd) blk.perday[lv] = pd.value;
+          const lf = document.getElementById(`mc-left-${classKey}-${lv}`);
+          if(lf) blk.left[lv] = lf.value;
+          const en = document.getElementById(`mc-entries-${classKey}-${lv}`);
+          if(en) blk.entries[lv] = en.innerHTML;
+          const kn2 = document.getElementById(`mc-known-${classKey}-${lv}`);
+          if(kn2) blk.known[lv] = kn2.innerHTML;
+        }
+        mcState[classKey] = blk;
+      });
+      data['__mc_state'] = JSON.stringify(mcState);
+    }
+  } catch(_) {}
+
   data['__notes_data'] = JSON.stringify(_notesData);
   data['__session_log'] = JSON.stringify(_sessionLog);
   data['__domain1'] = document.getElementById('domain-select-1')?.value || '';
@@ -10388,6 +10780,41 @@ function importData(event) {
         const kn   = document.getElementById(`spell-known-${lv}`);
         if(data[kkey] && kn) kn.innerHTML = data[kkey];
       }
+
+      // R-22 · Restaurar estado multi-caster (después de recalc para que el bloque exista)
+      try {
+        if(data['__mc_state']) {
+          const mcState = JSON.parse(data['__mc_state']);
+          // Forzar build inmediato para tener los IDs disponibles
+          if(typeof buildMultiCasterSlots === 'function') buildMultiCasterSlots();
+          Object.entries(mcState).forEach(([classKey, blk]) => {
+            const det = document.querySelector(`#multi-caster-container details.mc-block input#mc-cl-${classKey}`)?.closest('details');
+            if(det) det.open = !!blk.open;
+            const setVal = (id, v) => { const el = document.getElementById(id); if(el && v !== undefined) el.value = v; };
+            setVal(`mc-cl-${classKey}`,   blk.cl);
+            setVal(`mc-attr-${classKey}`, blk.attr);
+            setVal(`mc-mode-${classKey}`, blk.mode);
+            for(let lv = 0; lv <= 9; lv++) {
+              const pdEl = document.getElementById(`mc-perday-${classKey}-${lv}`);
+              if(pdEl && blk.perday?.[lv] !== undefined) {
+                pdEl.value = blk.perday[lv];
+                pdEl.dataset.base = blk.perday[lv];
+                pdEl.dataset.userOverride = '1';
+              }
+              setVal(`mc-left-${classKey}-${lv}`, blk.left?.[lv]);
+              if(blk.entries?.[lv] !== undefined) {
+                const en = document.getElementById(`mc-entries-${classKey}-${lv}`);
+                if(en) en.innerHTML = blk.entries[lv];
+              }
+              if(blk.known?.[lv] !== undefined) {
+                const kn2 = document.getElementById(`mc-known-${classKey}-${lv}`);
+                if(kn2) kn2.innerHTML = blk.known[lv];
+              }
+            }
+            if(blk.mode) setMcMode(classKey, blk.mode);
+          });
+        }
+      } catch(_) {}
 
       // Restore all regular inputs
       document.querySelectorAll('input, select, textarea').forEach(el => {
