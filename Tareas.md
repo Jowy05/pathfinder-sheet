@@ -1,350 +1,215 @@
 # Tareas · Ficha Pathfinder 1e
-Generado 2026-04-18. Consolida `a añadir.txt`, `porhacer.md` y auditoría de reglas vs `normas.md`.
 
-## nuevas tareas (ordenar y tal)
-- ✅ tema morado/oscuro Maniqka — HECHO (ver E-3)
-- ✅ temas royal1 y royal2 (gold/red/white y gold/red/black) — HECHO (ver E-4)
+Última actualización: 2026-05-05.
+Documentos relacionados:
+- `normas.md` — reglas oficiales PF1e con anotaciones de qué cumple la hoja.
+- `auditoria-pc.md`, `auditoria-mobile.md`, `auditoria-mobile-v2.md`, `auditoria-paridad-mobile.md`, `auditoria-extra.md` — auditorías por área.
+- `bugs.md` — bugs activos.
 
-Ordenado por **importancia × facilidad** (primero lo que más impacto da con menos trabajo).
-
-## BUGS
-
-### ✅ 2026-04-27 — Resueltos (ver bugs.md)
-- ✅ Android: foto pide cargar personaje → `AndroidBridge.pickPhoto()` directo.
-- ✅ Android: botón Guardar no funciona → `exportData` rutea al bridge sin `<a download>`.
-- ✅ Android: botón Imprimir no funciona → `AndroidBridge.printSheet()`.
-- ✅ Android: feedback colisiona con guardar → `downloadRequestMd` rutea a `saveTextFile` y este escribe fuera de `characters/`.
-- ✅ Combatientes se salen de pantalla → wrapper con scroll horizontal en `.ini-table`.
-
-### Pendientes
-(ninguno conocido)
+> Lo que aparece aquí está **sin terminar**. Lo ya hecho se ha quitado. Para ver el histórico de tareas completadas mira `git log` o el archivo `Tareas-historico.md` (si lo conservas).
 
 ---
 
-## ✅ Completado (referencia)
-- Arreglos de atributos, modificadores, ACP, salvaciones fraccionales
-- Traits de armas (alcance, mortal, ágil, derribo, desarme…) + botones de tirada
-- Picker de armas desde `equipment.json`
-- Sistema de notas guardadas (en todas las áreas de notas)
-- PG mínimo 1/nivel · CMD incluye desvío+esquiva · Sobrecarga → velocidad 0 · Buffs mismo tipo no apilan · Solo una armadura+escudo AC · Carga compañero animal corregida
-- **R-1** · Tumbado: −4 CA CaC + nota "+X vs distancia" en panel defensa
-- **R-2** · ACP ×2 a Nadar (`sk.id === 'swim' ? acpTotal * 2`)
-- **R-3** · Warning si primer HD de cada clase < máximo del dado
-- **R-4** · Arma rota crit ×2 (`broken ? 2 : parseCritMult`)
-- **R-5** · Warnings limpios + XP muestra `xp / umbralSiguienteNivel`
-- **I-1** · Toggle TWF con 3 niveles (sin dote / con dote / mejorada)
-- **I-2** · Toggle Ataque Poderoso / Puntería Mortal
-- **I-3** · Carga FUE > 29 (la fórmula exponencial ya lo maneja correctamente)
-- **I-4** · Trucos nivel 0 ilimitados (`isCantrip = level === 0` + etiqueta "Ilimitados")
-- **I-5** · `updateCastAttrAuto()` auto-setea atributo lanzador por clase
-- **I-6** · Pickers armaduras y equipo general
-- **I-8** · Daño de atributo (naranja) y drenaje permanente (rojo)
-- **I-7** · Panel defensas especiales: DR, ER ×5 tipos, inmunidades, visión especial (ya estaba)
-- **I-9** · Botón ⚂ Tirar Iniciativa
-- **I-10** · Auto-trackers completados: Bárbaro (Rabia), Druida (Forma Natural), Ninja (Ki), Alquimista (Bombas), Investigador (Inspiración), Ocultista (Foco)
-- **U-2** · "Restantes" conjuros → burbujas pulsables por nivel (salva/carga estado, reset en Nuevo Día)
-- **U-8** · Separar UI preparado/espontáneo (ya estaba implementado)
-- **I-11** · Paladín/Ranger sin slots hasta nivel de clase 4 (`PARTIAL_CASTERS`)
-- **U-1** · Historial de tiradas (últimas 20)
-- **U-3** · Slots por día automáticos desde `classes.json`
-- **U-4** · Compañero animal: tabla habilidades, ataques naturales, trucos
-- **U-5** · Pool hechizos conocidos (lanzadores espontáneos)
-- **U-6** · Campos completos por hechizo (escuela, componentes, tiempo, alcance, duración, salvación, RM, fuente, descripción)
-- **U-7** · Rasgos raciales desde `races.json` con picker
-- **E-2** · Tema Cerezo 🌸
+## 🔴 BACKLOG MOBILE — Paridad con PC
+
+Todo el trabajo R-21..R-29 está hecho en PC (commits `14043a7`/`b25bbff`/`83dacb8`/`b624a41`/`409e367`/`c51b4e9`/`27c6e78`/`5306808`/`1363510`). En mobile solo está portado **R-29 (modo Epic)**. El resto + brechas detectadas en auditoría de paridad están abajo.
+
+### FASE A — Motor de combate (impacto: cada combate de cualquier PJ)
+
+- **MA-1 · Power Attack / Deadly Aim / TWF en cards de arma** *(auditoria-paridad #motor)*
+  - Hoy `D5_computeWeaponAttack` mobile ignora estas tácticas. Las cards muestran números irreales.
+  - Aplicar la fórmula PC: `paAtkMod` y `paDmgBonus` según `is2H`/`offhand`/`ranged`, y `twfPenalty` según `twf-level`.
+
+- **MA-2 · Marca "Roto" −2 atq / −2 dmg / crit ×2** *(motor)*
+  - Mobile no tiene checkbox "broken" ni efecto de armadura/escudo rota. Aplicar reducción ½ a CA armadura/escudo.
+
+- **MA-3 · Condiciones de ataque** *(motor)*
+  - `condAtk` debe sumar penalizaciones por shaken/frightened/panicked/sickened/entangled/grappled/dazzled/prone (−4 melee, +4 vs distancia).
+
+- **MA-4 · AC condicional** *(motor)*
+  - `calcAC` mobile sin: prone (−4 melee/+4 ranged con nota visual), helpless (−4), flat-footed (recortar DEX/dodge), pinned (−4), broken-halves de armadura.
+  - Añadir `condAC` a CA Total y a CA Toque.
+
+- **MA-5 · DEX = 0 forzado por paralyzed/helpless/pinned** *(motor)*
+  - `calcAttributes` mobile no fuerza DEX 0. Añadir junto al check de paralyzed que ya existe.
+
+- **MA-6 · Encumbrance afecta velocidad + sobrecarga = 0 ft** *(motor)*
+  - `D5_calcEffSpeed` solo aplica reducción por armadura. Aplicar tabla PF1e: ligera no afecta, media/pesada cap a 20 ft, sobrecarga = 0 ft.
+
+- **MA-7 · CMD incluye deflection y dodge** *(motor, regla oficial)*
+  - `calcCMBCMD` mobile no los suma. Añadir.
+
+- **MA-8 · Edad afecta atributos** *(motor)*
+  - `calcAttributes` mobile no aplica modificadores por categoría de edad (joven/mediana/vieja/venerable).
+
+### FASE B — Motor de conjuros (impacto: todos los casters)
+
+- **MB-1 · R-22 Multi-caster: slots por clase separados** *(normas §15-bis-2)*
+  - Hoy `computeSpellSlots` mobile asume una sola clase caster. Portar la lógica de PC con `<details>` por clase.
+
+- **MB-2 · R-23 Prestige caster bumps** *(normas §15-bis-3)*
+  - Mystic Theurge / Eldritch Knight / Loremaster / Dragon Disciple / Pathfinder Savant / Holy Vindicator / Hellknight Signifer / Arcane Trickster aplican +1 NL a clase elegida. Portar `PRESTIGE_CASTER_BUMPS` y `_parsePrestigeBumpPattern`.
+
+- **MB-3 · Escuela arcana: +1 slot/nivel para wizard** *(motor + R-26 normas)*
+  - Portar el bump del slot extra de mago especialista. Marcar escuela prohibida con borde rojo.
+
+- **MB-4 · Override manual de slots** *(motor)*
+  - Mobile rellena automáticamente desde tabla; no permite que el usuario sobrescriba. Añadir flag `userOverride` por slot.
+
+- **MB-5 · Penetración mágica** *(motor)*
+  - Botón con tirada `1d20 + NL + dote`.
+
+### FASE C — Auto-features de clase (impacto: clases concretas)
+
+- **MC-1 · `REST_RESET_KEY` + `restShort()` + `restLong()`** *(auditoria-paridad #helpers)*
+  - Mobile usa `reset:'long'` inline en cada feature pero no tiene tabla central, sin soporte 'short'. Portar la tabla y los dos handlers.
+
+- **MC-2 · 13 clases sin auto-features que sí están en PC**
+  - `sorcerer` (Bloodline Power 3+CAR — falta sorcerer entero como auto-feature, ¡es core!)
+  - `ranger` (Quarry ≥11)
+  - `unchained_barbarian`, `unchained_monk`, `unchained_summoner` (los 3 con sus pools)
+  - `occultist` (Focus 3+(lvl-1)/2)
+  - `psychic` (Phrenic Pool lvl/2+INT)
+  - `mesmerist` (Touch Treatment lvl/2+CAR ≥2)
+  - `medium` (Channel Spirit)
+  - `spiritualist` (Bonded Manifestation lvl/2+CAR)
+  - `shifter` (Wild Shape Shifter)
+  - `dragon_disciple` (Breath Weapon ≥2)
+  - `shadowdancer` (Shadow Jump 40·2^(lvl−4))
+
+- **MC-3 · 14 clases con paridad parcial — alinear fórmulas**
+  - paladin: smite `1+lvl/3` (PC) vs `1+(lvl-1)/4` (mobile). Mobile tiene fórmula vieja.
+  - monk: añadir Stunning Fist (`lvl/4`) y gating ≥4.
+  - bard: cambiar a `4+CAR+2·(lvl-1)` rounds + detail por nivel.
+  - skald: `4+CAR+2·(lvl-1)`.
+  - inquisitor: añadir Bane (`lvl`).
+  - magus: añadir Spell Recall (≥4).
+  - druid: gating ≥4 con escala `(lvl-2)/2`.
+  - ninja: gating ≥2.
+  - arcanist: cambiar fórmula a `3+lvl/2`.
+  - hunter: cambiar a Animal Focus (`lvl`).
+  - shaman: añadir Wandering Spirit (≥4: 1).
+  - kineticist: cambiar burn a `lvl/2`.
+  - witch: cambiar Hex a `lvl`.
+  - oracle: cambiar Revelation a `3+CAR`.
+
+- **MC-4 · `ARCHETYPE_AUTO_FEATURES`** *(helpers)*
+  - Mobile no tiene auto-features por arquetipo (ej. champion_of_the_faith.smite). Portar el sistema.
+
+- **MC-5 · `_autoFeaturesDismissed` + `syncClassAutoFeatures` + `injectFeatureDetail`** *(helpers)*
+  - Recordar tarjetas eliminadas para no re-añadirlas. Inyectar detail plegable (bard/inquisitor/magus).
+
+- **MC-6 · `TEAMWORK_CLASSES` + `addTeamworkFeat`** *(helpers)*
+  - Sección de dotes de equipo para inquisitor/hunter/cavalier/tactician.
+
+### FASE D — Paneles avanzados sin portar
+
+- **MD-1 · R-25 Synthesist mobile** *(normas §15-bis-5)*
+  - Toggle "🔗 Fusionado" + sustituir FUE/DES/CON, BAB, max(saves), talla, velocidad. Portar de PC commit `27c6e78`.
+
+- **MD-2 · R-24 Broodmaster mobile** *(normas §15-bis-4)*
+  - Switch Eidolon 1 / Eidolon 2 con pool de PE compartido a la mitad. Portar de PC commit `c51b4e9`.
+
+- **MD-3 · R-28 Modo Gestalt mobile** *(normas §15-bis-8)*
+  - Toggle global + secondary class por fila + cálculos MAX. Portar de PC commit `1363510`.
+
+- **MD-4 · R-27 Panel Mythic mobile** *(normas §15-bis-7)*
+  - Tier (1-10), path (6 selects), pool 3+2·tier, surge 1d6→1d12, hard-to-kill helper. Portar de PC commit `5306808`.
+
+- **MD-5 · R-21 Eidolon evolutions con prereqs y stacking** *(normas §15-bis-1)*
+  - **Hecho en mobile** (commit `b96daa5`). Sin acción.
+
+- **MD-6 · R-26 Prestige prereqs validación** *(normas §15-bis-6)*
+  - `classes.json` ya tiene `prerequisites` (commit `b25bbff`). Falta evaluar y mostrar chip ⚠️/✓/❓ en mobile.
+
+### FASE E — UX y patches sin portar
+
+- **ME-1 · Picker de raza extendido** *(auditoria-paridad #UI)*
+  - Mobile usa `applyRaceFull` simple. Portar `confirmLoadRacialTraits` con any-bonus modal, traits auto-renderizados y lock de inputs `*-racial`.
+
+- **ME-2 · Picker de feats con chips de prereq** *(UX)*
+  - A-11 ya añadió picker en mobile (commit `b96daa5`) pero sin validación visual ✓/⚠️/❓. Portar `refreshFeatPrereqChips`.
+
+- **ME-3 · Damage-type chips elementales (P-6)** *(UX)*
+  - Mobile solo tiene P/S/B en `<option>`. Añadir 8 elementales (fire/cold/acid/electricity/sonic/force/negative/positive) como chips multi-select.
+
+- **ME-4 · SLAs at-will (P-9)** *(UX)*
+  - Subsección con `.sla-card` (nombre/CL/DC/desc/Tirar/×) + chat-log.
+
+- **ME-5 · Tracker iniciativa avanzado** *(UX)*
+  - Mobile parcial: `INIT_ROUND` no se persiste, no hay condiciones por combatiente, ni acciones Std/Move/Swift por turno.
+
+- **ME-6 · Burbujas de cargas en items mágicos (Q-1)** *(UX)*
+  - `toggleMagicCharges` + `rebuildMagicBubbles` para varitas, pergaminos, items con cargas.
+
+- **ME-7 · `@media print` en mobile** *(UX)*
+  - PC tiene `@media print` con expansión de collapsibles. Mobile no.
+
+- **ME-8 · `__buff_tracker` dual** *(UX)*
+  - PC tiene buff tracker nuevo + legado. Mobile solo legado.
+
+- **ME-9 · Order picker (cavalier/samurai)** *(UX)*
+  - `ORDER_PICK` declarado en mobile pero sin botón ni binding visible.
 
 ---
 
-## 🟠 IMPORTANTE + MEDIO — siguiente ciclo
+## 🟡 BUGS PENDIENTES (mobile, ver auditoria-mobile-v2.md)
 
-### ✅ N-1 · Rasgos de Personaje (Traits) + Defecto (Drawback) — HECHO
-Sección colapsable en panel de Biografía o panel de Dotes. Hasta 2 rasgos de personaje (combate, magia, fe, social, racial, campaña) + 1 defecto opcional (da un 3er rasgo). Cada entrada: nombre, tipo (chip/select), descripción. Se guarda/carga en JSON.
+> La Fase 1 mobile (commits `adb87fd`/`76b627c`/`032cc44`/`2c36b12`/`9500d99`/`663aea7`/`50265c8`) cerró 7 bugs catastróficos. Los que siguen abiertos:
 
-### ✅ N-2 · Orden de Cavalier / Samurai — HECHO
-Igual que Dominios para el clérigo: selector de Orden visible solo si la clase activa es `cavalier` o `samurai`. Muestra poderes de orden (nv 2, 8, 15) como tarjetas de aptitud auto-generadas. Campo de texto para la modificación al Desafío (Challenge). Necesita `orders.json` con los datos de cada orden. El Samurai añade además el recurso **Resolución** (Resolve, usos = nv/4 redondeado arriba).
+- **P-16/P-38 (parcial)** — `CombatEngine` mobile lee `#m-size` que no existe; `D5_getSize` fallback funciona para CA pero `calcCMBCMD` sigue dando 'medium' siempre.
+- **A-06 (parcial)** — `D3_SKILLS.state.misc` y `CUSTOM_SKILLS` solo en localStorage, no en JSON exportado.
+- **N-01** — Cambiar idioma EN↔ES NO retraduce cards dinámicas (renderClasses/renderWeapons/renderFeatsCrud/renderInit/companions).
+- **N-02** — Settings tipográficos (`fontSize`/`daltonic`) viven en localStorage `ficha-mobile-settings` separado, NO se incluyen en JSON exportado.
+- **N-03** — Importar ficha vieja sin nuevos campos: sin toast de migración. Usuario no sabe qué se completó por defecto.
 
----
+## 🟠 BUGS PENDIENTES (PC, ver auditoria-pc.md)
 
-## 🟡 ÚTIL + MEDIO — cuando haya tiempo
-
-### ✅ N-3 · Warpriest: Fervor — HECHO
-Tracker `warpriest.fervor` en `CLASS_AUTO_FEATURES`: ½ nivel + mod SAB usos/día (mín 1). Blessings pendientes para futura iteración.
-
-### ✅ N-4 · Arcanist: Arcane Reservoir — HECHO
-Tracker `arcanist.reservoir`: 3 + ½ nivel puntos. Exploits manualmente gestionables mediante el panel de aptitudes general.
-
-### ✅ N-5 · Hunter: Animal Focus — HECHO
-Tracker `hunter.animalfocus`: minutos/día = nivel. Lista de focos pendiente para iteración posterior.
-
-### ✅ N-6 · Shaman: Espíritu Errante — HECHO
-Tracker `shaman.wandering`: Espíritu Errante desde nivel 4 (1/día, cambia al descansar). Los embrujos normales del espíritu principal son "at will" y no requieren tracker. Selector completo de espíritus pendiente para iteración posterior.
-
-### ✅ N-7 · Slayer: Studied Target — HECHO
-Tracker `slayer.studiedtarget`: +1 base, +1 cada 5 niveles.
-
-### ✅ N-8 · Bloodrager: Rabia — HECHO
-Tracker `bloodrager.rage`: 4 + mod CON + 2/nivel (fórmula idéntica a Bárbaro). Linajes pendientes.
-
-### ✅ N-9 · Brawler: Martial Flexibility — HECHO
-Tracker `brawler.flexibility`: 3 + ½ nivel (mín 3) usos/día.
-
-### ✅ N-10 · Familiar: panel completo — HECHO
-Nuevo panel colapsable `familiar-panel` con:
-- Selector de tipo (12 opciones: bat, cat, hawk, lizard, monkey, owl, rat, raven, snake, toad, weasel, other)
-- Campo nombre y nivel amo
-- Cálculo automático de PG (½ amo), CA (10 + NA), Armadura Natural, INT (max 10), bonif. habilidad específico
-- Lista de aptitudes desbloqueables por nivel (Alertness/Share Spells/Empathic Link nv1, Deliver Touch nv3, Speak with Master nv5, Speak with Animals nv7, Spell Resistance nv11, Scry nv13)
-
-### ✅ N-11 · Invocaciones mejoradas — HECHO
-`addSummonedCreature` extendido con:
-- Iniciativa, velocidad, tamaño (select T/P/M/G/E)
-- Campo de ataque (ej. "+5 mordisco 1d6+3")
-- Duración actual/máx + unidad (rd/min/h) — tracker activo
-
-### ✅ N-12 · Montura (Paladín / Cavalier) — HECHO
-Checkbox "Es montura" en panel de compañero animal. Cuando está activo, muestra notas automáticas de Share Spells (nv5+), Smite Evil compartido (Paladín nv5+), RD 5/mal (nv11+), celestial (nv15+) y bonus táctico de Cavalier.
-
-### ✅ N-13 · Munición tracker — HECHO
-Campo `weapon-ammo-cur` / `weapon-ammo-max` en cada arma a distancia/composite. Se muestra/oculta automáticamente según `weapon-style`.
-
-### ✅ N-14 · Dinero — HECHO (ya existente)
-Sección `p.coins` ya incluye pc/pp/po/ppt + gemas con conversión automática a po y peso. Nota: electrum no es estándar en PF1e.
-
-### ✅ N-15 · Competencias de armas y armaduras — HECHO
-Nueva sección `p.proficiencies` en panel de inventario con checkboxes para Simples/Marciales + texto libre para Exóticas, y Ligera/Media/Pesada/Escudo/Torre. Nota de regla incluida (penalización −4 al ataque si no competente).
-
-### ✅ N-16 · Skill bonuses contextuales — HECHO
-Columna "Notas" añadida a ambas tablas de habilidades (`sk-${id}-notes`). Texto libre, no afecta al total, tooltip explicativo.
-
-### ✅ N-17 · Alineamiento 2 ejes — HECHO
-Campo `char-alignment` reemplazado por dos selects (L/N/C + G/N/E) + input readonly con código combinado (`LG`, `NG`, `N`, etc.).
-
-### ✅ N-18 · Maniobrabilidad de vuelo — HECHO
-Selector `fly-maneuverability` junto a velocidad de vuelo (Torpe −8 / Mala −4 / Media +0 / Buena +4 / Perfecta +8). Aplica bonus/penalización directamente al total de la habilidad Volar.
-
-### ✅ N-19 · Spell Penetration — HECHO
-Campos `spell-penetration` (readonly, calculado: 1d20 + NL + dotes) y `spell-pen-feat` (select: —, +2 básica, +4 mejorada) en panel de conjuros.
+- **P-19** — No existe campo "Género".
+- **P-37** — Input "BAB total" en Identidad hardcoded a +3 readonly, sin actualización desde `apply()`.
+- **P-44** — No hay botones rápidos +/− HP en panel.
+- **P-45** — Botones de descanso (corto/largo) están en sección de Conjuros, UX confusa para PJ no lanzador.
+- **P-47** — Velocidad efectiva siempre "30 ft" hardcoded; no responde a speed-base/armadura/raza.
+- **P-64** — No hay botones tirada para Fortaleza/Reflejos/Voluntad (sí los hay para iniciativa, dispel, SR).
+- **A-29 / A-34 / A-40** — Selectores de Escuela Arcana, Escuela Prohibida y Dominios prometen +1 slot/nivel pero el motor NO lo aplica todavía.
+- **T-22** — Cambiar idioma NO retraduce cards dinámicas ya creadas (buff/weapon/feat/item) en PC.
+- **T-10** — JSON exportado sin `__schema`. Sin migrate explícito.
+- **T-28** — Modo Demo (`Demo Efectos.html` + 5 archivos) huérfano, no enlazado.
+- **X-19** — `cyberpunk-mode.css` huérfano (en package.json pero ningún HTML lo carga).
+- **X-28** — Fuentes Google no funcionan en `file://`. Empaquetar WOFF2 locales.
 
 ---
 
-## 🟢 MEJORA / LARGO PLAZO
+## 🟢 LIMPIEZA (auditoria-extra.md)
 
-### ✅ L-1 · Diario de sesión y recompensas — HECHO
-Tabla en panel de Biografía: fecha, XP, oro (po), notas. Totales acumulados. Guarda/carga en JSON.
-
-### ✅ L-2 · Dominios (Clérigo) — HECHO
-Del F-3: selector de 2 dominios; poderes de dominio con tracker; slot automático de hechizo de dominio por nivel.
-
-### ✅ L-3 · Escuela Arcana (Mago) — HECHO
-Del F-4: selector de escuela + 2 prohibidas; poderes de escuela con trackers; nota slot adicional.
-
-### ✅ L-4 · Linaje de Sangre (Hechicero) — HECHO
-Del F-5: ~20 linajes; poderes, dotes de bonificación, hechizos de linaje por nivel; Bloodline Arcana.
-
-### ✅ L-5 · Metamagia — HECHO
-Del M-4: chip por hechizo para marcar metamagia aplicada; consumir slot del nivel ajustado (Empoderar +2, Acelerar +4, etc.).
-
-### ✅ L-6 · Patrono + Hechizos de Bruja / Hex tracker — HECHO
-Del F-6: patronos con hechizos; familiar; lista de hexes con DCs.
-
-### ✅ L-7 · Misterio + Revelaciones + Maldición (Oráculo) — HECHO
-Del F-7: selector de misterio; revelaciones como aptitudes auto; hechizos de misterio como referencia; campo maldición.
-
-### ✅ L-8 · Magus: Pool Arcano + Golpe de Conjuro + Combate Mágico — HECHO
-Del F-8: pool arcano (niv/2 + mod INT); mecánicas de Spellstrike y Spell Combat.
-
-### ✅ L-9 · Actuación Bárdica — HECHO
-Del F-15: tracker rondas/día (4 + mod CAR + 2/niv); lista de actuaciones por nivel.
-
-### ✅ L-10 · Inquisidor: Juicio + Perdición + Dotes de Trabajo en Equipo — HECHO
-Del F-16: trackers de Judgment y Bane usos/día; interfaz de Teamwork feats compartidos.
-
-### ✅ L-11 · Ataques de toque mágico en panel de armas — HECHO
-Del F-10: entradas de ataque de toque CaC y a distancia con su fórmula y CA de toque como objetivo.
-
-### ✅ L-12 · Zona para criaturas invocadas / no muertos — HECHO
-Petición Joel: sección colapsable para criaturas controladas (stats básicos, HP, trackers).
-
-### ✅ L-13 · Taxonomía Ex / Su / Sp en aptitudes especiales — HECHO
-Del F-12: selector Ex/Su/Sp en cada tarjeta de aptitud especial.
-
-### ✅ L-14 · Selector de Raza completo — HECHO
-Picker de raza integrado en la cabecera: selecciona y aplica rasgos raciales, velocidad base, tamaño y bonos de atributo.
+- **I-04** — Borrar `patches/patches/` duplicado byte-a-byte de `patches/`.
+- **I-06 / I-23 / I-27** — Borrar 6 archivos huérfanos del cache-bust hash abandonado: `index-1e31a0ff.html`, `fallback-data-a8e94bc7.js`, `style-53d8f154.css`, `icono-1fab3e2a.png`, `CLAUDE-563aaf3a.md`, `normas-8b479885.md`.
+- **I-07** — Re-build Electron `dist-electron/` (5 días desactualizado).
+- **I-09** — ~~Borrar `port/app/src/main/assets/index.desktop.bak.html`~~ ✅ HECHO commit `b96daa5`.
+- **I-12 / I-13** — Borrar `app/` raíz y `test/` (código muerto duplicado).
 
 ---
 
-## 🎨 ESTÉTICO / COSMÉTICO
+## 📌 NO IMPLEMENTAR AUTOMÁTICAMENTE (decisión consciente)
 
-### ✅ E-1 · Foto del personaje — HECHO
-Petición Joel: recuadro en la cabecera para imagen del personaje (upload o URL).
-
-### ✅ E-3 · Tema Maniqka (morado oscuro) — HECHO
-Tema oscuro con tonos morados/violetas.
-
-### ✅ E-4 · Temas Royal — HECHO
-Royal Blanco (oro/rojo/blanco) + Royal Negro (oro/rojo/negro). Ambos con fondo exterior completo.
-
----
-
-## 🆕 PENDIENTES 2026-04-20 (descubiertas en testing)
-
-- **DONE · Dominios de clérigo vacíos** — `tData()` no leía el formato `{es,en}` anidado de los JSON; solo buscaba `name_es`/`name_en`. Corregido con detección de objetos anidados en `tData`. Los 26 dominios ahora se muestran correctamente.
-- **DONE · Órdenes de Caballero/Samurái** — mismo bug de `tData` + añadidas 3 órdenes exclusivas de Samurái (Guerrero, Héroe, Tierra) y variante Samurái de la Llama con *Desafío Glorioso*. El selector ahora filtra por clase activa y usa optgroups si hay ambas clases. `syncOrderFeatures` repopula el selector al cambiar clase.
-- **DONE · Botones colapsables Familiar/Criaturas** — `familiar-header` y `summoned-header` no estaban en el array de `setupListeners`. Corregido.
-- **DONE · Criaturas Controladas mejoradas** — campo Duración más grande y legible, "TS" renombrado a "Sal." con tooltip, bloque FUE/DES/CON/INT/SAB/CAR, 3 slots de ataque.
-- **DONE · Familiar — atributos y checkbox Alerta** — añadido bloque FUE/DES/CON/INT/SAB/CAR manual, checkbox Alerta recolocado (ya no se solapa).
-
----
-
-## 🆕 CICLO DE MEJORAS 2026-04-20 (investigación foros + estética)
-
-### Alta prioridad (fácil + muy pedido)
-- **✅ P-1 · Tracker de buffs con duración** — HECHO. Panel `#buff-tracker-panel` con filas nombre/tipo/bonus/objetivo/duración/restante, auto-decrement por "Siguiente ronda" (rd directo, min cada 10 clics, h solo en descanso largo), expirados gris+tachado, "Limpiar expirados", persistido como `__buff_tracker`.
-- **✅ P-2 · Descanso personalizado** — HECHO. Botones "Descanso corto (1h)" y "Descanso largo (8h)" con routing `REST_RESET_KEY` por `auto-key`: corto recarga ki/panache/gravura/arcane pool/bardic/bombs/inspiration/focus/martial flex/animal focus/studied target; largo recarga TODO + slots + HP + quita fatiga. Reemplaza "Nuevo Día".
-- **✅ P-3 · Timer de condiciones** — HECHO. Panel con 27 condiciones PF1e (bleed, blinded, dazed, fatigued, frightened, grappled, nauseated, paralyzed, prone, shaken, staggered, stunned, etc.), checkbox + round counter por condición, barra de chips activos arriba, "Siguiente ronda" decrementa todas, auto-uncheck al llegar a 0. Persistido en `conditions`.
-- **✅ P-4 · Validador de prerequisitos de dotes** — HECHO. `refreshFeatPrereqChips()` parsea `prerequisites` de `feats.json` (FUE/STR 13, BAB +N, Nivel de lanzador N, Clase nivel N, rangos de habilidad, dotes previas), inyecta chip ✓/⚠️/❓ con tooltip en cada `.feat-card`, hook en `recalc()`/`addFeat`/eliminación/edición nombre/`importData`.
-- **✅ P-5 · Notas de combate rápidas** — HECHO. Mini-textarea `#combat-notes-mini` (3 filas) fijada en `#combat-panel` antes de Defensa, sync bidireccional con el `#combat-notes` canónico del panel de Atributos, botón "Abrir panel completo".
-
-### Media prioridad
-- **✅ P-6 · Daño dividido por tipo** — HECHO. Chips en cada `.weapon-card` para 11 tipos (piercing/slashing/bludgeoning/fire/cold/acid/electricity/sonic/force/negative/positive), selección múltiple, mini-chips junto a `.weapon-dmg-normal-display`, persistidos en dataset/HTML dump, restaurados en `importData`.
-- **✅ P-7 · Iniciativa + orden de turnos** — HECHO. Panel `#initiative-panel` (full-row) entre condiciones y habilidades, filas con nombre/init/DEX tiebreaker/PJ-enemigo/HP/notas, "Ordenar", "Siguiente turno" (avanza ▶, incrementa ronda), "Reiniciar", auto-añade PC desde `rollInitiative`. Persistido como `__combat_tracker`.
-- **✅ P-8 · Tracker de concentración** — HECHO. Botón "Concentración" idiomático como `checkDispel`/`checkSpellResistance`: prompt CD o daño, tira 1d20 + NL + mod del atributo de `cast-attr`, alert con resultado i18n.
-- **✅ P-9 · SLAs "a voluntad"** — HECHO. Subsección en `#features-body` con `.sla-card` (nombre/CL/DC/desc/Tirar/×) + chat-log `#sla-log` para anunciar uso, distinto del tracker de usos/día. Persistido en `__sla_atwill_html` + `__sla_log_html`.
-- **✅ P-10 · Debilidades / Vulnerabilidades** — HECHO. Bloque en panel de defensas especiales entre ER y Visión, chips `{type, note}` con badge ×2, JSON persistido en `#weaknesses-json` (autocapturado por `exportData`).
-
-### Baja prioridad
-- **✅ P-11 · Copiar /roll para Discord** — HECHO. Botón 📋 junto a ATAQUE y DAÑO en cada arma; copia al portapapeles `/roll 1d20+X` y `/roll XdY+Z` compatible con Discord. Fallback a prompt si el navegador bloquea el clipboard.
-- **✅ P-12 · Gestalt support** — HECHO. `addClassRow()` permite múltiples clases; BAB se acumula entre clases, salvaciones se suman fraccionalmente con +2 una sola vez por salvación buena, habilidades de clase se fusionan.
-- ~~**P-13 · Modificadores negativos rápidos**~~ — descartado; las condiciones con checkbox ya cubren la necesidad.
-- **✅ P-14 · Reordenar items** — HECHO. Drag & drop en armas, armaduras, aptitudes y hechizos (por nivel). Feedback visual: fantasma al arrastrar, contorno dorado en destino.
-- **✅ P-15 · Economía de acciones** — HECHO. Columna "Acc." en el tracker de combatientes con tres tokens por fila: ● Estándar, ○ Movimiento, ◆ Rápida. Clic para marcar como usada (se atenúa). Se resetean automáticamente al inicio del turno del combatiente.
-
-### Estética
-- **✅ P-16 · Dados bonitos (CSS 3D inline)** — HECHO. Upgrade de `@keyframes die-roll` a tumble 3D con `perspective(420px) rotateX/rotateY/rotateZ` (8 keyframes, 720° cada eje, aterriza al frente). Halo dorado radial con `::before` en `.die-hp-wrap`/`.die-generic-wrap` usando `:has(.rolling)`. Pulso dorado `die-result-flash` al aparecer el número final. `will-change`, `transform-style:preserve-3d` y `prefers-reduced-motion` respetados. Sin assets externos, sin JS nuevo salvo 3 líneas por dado.
-
-### Utilidad
-- **✅ P-17 · Botón de feedback (tipo HELP)** — HECHO. Botón `?` dorado en `left:18px; bottom:18px` (opuesto al 🎨). Modal tipo email con Asunto + Contenido. Guarda en `localStorage['pf1e-feedback-entries']` y descarga un `request.md` completo en cada guardado (formato `# Request / Feedback` + entradas `## [fecha] — asunto` ordenadas por fecha desc). Incluye lista de entradas previas con eliminar individual, botón "Descargar request.md" independiente, Esc para cerrar, i18n ES/EN, oculto al imprimir.
-
----
-
-## 🆕 CICLO 2026-04-21 — Mejoras identificadas en auditoría
-
-### ✅ Q-1 · Cargas de objetos mágicos (varita, pergamino, objeto con cargas) — HECHO
-Checkbox **"✦ Cargas"** en tarjeta de arma, armadura e ítem. Al marcarlo aparece fila con input de máximo y circulitos clicables (gold=disponible, vacío=gastado). Funciones: `toggleMagicCharges`, `rebuildMagicBubbles`, `toggleMagicCharge`.
-
-### ✅ Q-2 · Vista de impresión / PDF — corregir y mejorar — HECHO
-Reescrito el `@media print` en style.css: oculta `#initiative-tracker-panel`, `#warnings-panel`, filas de tirada de armas, todos los botones interactivos; expande collapsibles; inputs sin bordes sobre fondo blanco; page A4 portrait con 8mm de margen.
-
-### ✅ Q-3 · Ataques iterativos — mostrar secuencia completa (+X/+Y/+Z) — YA ESTABA
-`formatAtkProgression(wAtk, bab)` ya existía y generaba la cadena `+12/+7/+2` mostrada en `.weapon-atk-display`. TWF y Power Attack ya se aplican antes de llamarla.
-
-### ✅ Q-4 · Trackers de aptitudes de clase faltantes — HECHO
-Añadidos a `CLASS_AUTO_FEATURES`:
-- **Smite Evil** (Paladín): 1 + nv/3 usos, resetea en descanso largo.
-- **Stunning Fist** (Monje / Monje Unchained): nv/4 usos (mín 1), resetea en descanso largo.
-Channel Energy, Lay on Hands y Bardic Performance ya existían. Clérigo, bardo y antipladín sin cambios.
-
----
-
-## 🆕 CICLO 2026-05-04 — Reglas avanzadas detectadas en auditoría (ver normas.md §15-bis)
-
-> Cada `R-2X` apunta a la sección equivalente de `normas.md` con la regla oficial citada.
-
-### Alta prioridad (bugs reales que rompen reglas oficiales)
-
-- **R-21 · Eidolon evolutions: validar prereqs y stacking** *(normas §15-bis-1)*
-  - Hoy: el picker permite añadir cualquier evolución N veces sin validar `prereqs.base_form`, `prereqs.min_summoner_level`, `prereqs.requires_evolutions` ni `stacking: single|limited|unlimited`.
-  - Implementar:
-    1. En `addEidolonEvolution()` leer `prereqs` del slug; si la `eid-base-form` no coincide con `prereqs.base_form`, rechazar con toast.
-    2. Si `eid-hd < prereqs.min_summoner_level`, rechazar.
-    3. Si `prereqs.requires_evolutions` lista evos no presentes en `_eidolonSelectedEvos`, rechazar.
-    4. Contar `_eidolonSelectedEvos` por slug base; si `stacking==='single'` y ya hay 1, bloquear; si `stacking==='limited'` y count >= `max_stacks`, bloquear.
-    5. Pintar las opciones bloqueadas en `populateEidolonEvolutionSelect()` con `[Bloqueada]` prefijo + tooltip explicando por qué.
-
-- **R-22 · Multi-caster: slots por clase separados** *(normas §15-bis-2)*
-  - Hoy: `buildSpellSlots()` genera UN único bloque global Nv0–9.
-  - Implementar:
-    1. Detectar todas las clases caster activas en `getActiveClassRows()` filtrando por `cls.spells_per_day` definido.
-    2. Generar un bloque `<details>` por cada clase con su propio header, set de slots Nv0–9, atributo lanzador, DC y conjuros conocidos/preparados.
-    3. Persistir cada set por separado en `__spell_slots_<classKey>` y `__spells_known_<classKey>` para round-trip.
-    4. Mantener compat con fichas viejas (fallback al bloque global si solo hay 1 clase caster).
-
-- **R-23 · Mystic Theurge / Eldritch Knight / etc.: progression doble +1 NL** *(normas §15-bis-3)*
-  - Hoy: `caster-level` es input manual; los slots no se bumpean.
-  - Implementar:
-    1. Crear constante `PRESTIGE_CASTER_BUMPS` con cada prestige y su patrón (ej. `mystic_theurge: { arcane:'+1/lvl', divine:'+1/lvl' }`, `eldritch_knight: { arcane:'+1/lvl from level 2' }`, `loremaster: { caster_chosen:'+1/lvl except 1,4,7,10' }`).
-    2. En `buildSpellSlots()` y `calcCasterLevel()`, añadir el bump correspondiente al CL efectivo y al `spells_per_day`.
-    3. Para Loremaster (elige clase a bumpear), abrir picker al añadir el primer nivel.
-  - Depende de R-22 (necesita slots por clase para saber a cuál se aplica el bump).
-
-- **R-24 · Broodmaster: dos eidolones simultáneos** *(normas §15-bis-4)*
-  - Hoy: solo un panel; al activar broodmaster solo se halve EP.
-  - Implementar:
-    1. Cuando `archetype === 'broodmaster'`, duplicar el panel `#eidolon-panel` en `#eidolon-panel-2`.
-    2. Cada panel tiene su propio `_eidolonSelectedEvos`, `eid-name`, `eid-base-form`, etc.
-    3. Compartir el pool de EP: muestra `EP usados (eidolon 1) + EP usados (eidolon 2)` ≤ EP totales (mitad del normal).
-    4. Cada eidolon tiene HD = nivel del invocador, una talla menor que un eidolon normal.
-    5. Persistir `__broodmaster_eidolon_2` aparte para no romper compat con fichas pre-broodmaster.
-
-- **R-25 · Synthesist: fusión de stats físicos** *(normas §15-bis-5)*
-  - Hoy: solo nota descriptiva, ningún cálculo.
-  - Implementar:
-    1. Cuando `archetype === 'synthesist'` y un toggle "Fusionado" está activo, en `calcAttributes()` reemplazar FUE/DES/CON por las del eidolon (`eid-str`/`eid-dex`/`eid-con`).
-    2. Mantener INT/SAB/CAR del invocador.
-    3. BAB pasa a usar el del eidolon (`eid-bab` ya calculado).
-    4. PG: añadir bloque "PG eidolon" como overlay azul antes de PG normales (al estilo de PG temporales). Daño consume eidolon-PG primero.
-    5. Salvaciones: tomar el max(invocador, eidolon) de cada save base + atributo según stats fusionados.
-    6. Talla y velocidad pasan a las del eidolon.
-    7. Toggle visible solo si archetype === synthesist.
-
-- **R-26 · Clases prestigiosas: validación de prerrequisitos** *(normas §15-bis-6)*
-  - Hoy: `classes.json` no tiene `prerequisites` para prestige; el picker permite Arcane Trickster nivel 1.
-  - Implementar:
-    1. Añadir campo `prerequisites` a cada entrada prestige de `classes.json` (formato similar a feats.json: `{type:'skill', name:'stealth', value:5}`, `{type:'feat', name:'Dodge'}`, `{type:'caster_level', kind:'arcane', value:2}`, `{type:'sneak_attack', value:'+2d6'}`, `{type:'bab', value:6}`).
-    2. En `populateArchetypeSelect`/picker de clase, evaluar prerequisites contra el PJ actual (`refreshFeatPrereqChips` ya tiene el parser).
-    3. Mostrar chip ⚠️/✓/❓ junto al nombre de la clase prestige en el picker.
-    4. Si el usuario añade igualmente, mostrar warning y permitir override (algunos DMs son flexibles).
-
-### Media prioridad (sistemas opcionales que algunas mesas usan)
-
-- **R-27 · Mythic Adventures: niveles míticos paralelos** *(normas §15-bis-7)*
-  - Implementar:
-    1. Panel `#mythic-panel` (full-row, colapsable) entre identidad y atributos.
-    2. Campos: `mythic-tier` (1-10), `mythic-path` (select: Archmage/Champion/Guardian/Hierophant/Marshal/Trickster), pool `mythic-power` (max=3+2*tier), tracker de surges usados.
-    3. Botón "⚡ Surge" que tira `1d6` (escala con tier hasta 1d12) y resta 1 punto mítico.
-    4. Listado de Mythic Feats elegidos.
-    5. Override de "Hard to Kill": si tiene mythic tier ≥ 1 y HP < 0, no aplica auto-unconscious hasta -CON×2.
-    6. Crear `mythic_paths.json` con features por tier por path.
-
-- **R-28 · Modo Gestalt** *(normas §15-bis-8)*
-  - Hoy: P-12 implementó multiclase pero NO Gestalt puro (suma niveles en lugar de fusionar al máximo por nivel).
-  - Implementar:
-    1. Toggle global "🧬 Modo Gestalt" en settings. Al activarlo, cada `class-row` muestra DOS selects de clase (clase A / clase B).
-    2. Para cada nivel, las stats se calculan tomando MAX(claseA, claseB) en BAB, HD, cada save base.
-    3. Skill points = suma de las dos clases.
-    4. Class skills = unión.
-    5. Class features = unión (si dos pidieran competencia con mismo objeto, se ignora duplicado).
-    6. Persistir `__gestalt: true` y `gestalt_secondary_class_<idx>` por fila.
-
-- **R-29 · Epic / niveles 21-30** *(normas §15-bis-9)*
-  - Hoy: `<input id="level{idx}" max="20">`.
-  - Implementar:
-    1. Toggle "Modo Epic" en settings que cambia max a 30.
-    2. Tablas extrapoladas para spells_per_day (slots de 10º nivel, 11º…) — el jugador escribe a mano si su DM las tiene.
-    3. Aviso: "Modo Epic: el contenido oficial PF1e termina en 20. Las reglas Epic son material de comunidad."
-
-### Notas
-
-- R-21 a R-26 son bugs reales que rompen reglas oficiales — alta prioridad si en partida se juegan summoners, multiclasers o prestige.
-- R-27 a R-29 son **opcionales por diseño** — solo afectan si el DM las usa.
-
----
-
-## 📌 NO IMPLEMENTAR AUTOMÁTICAMENTE (demasiado complejo o fuera de alcance)
-
-- **Retroactividad de INT/CON:** recalcular puntos de habilidad y PG al subir INT/CON en niveles pasados. Requiere historial por nivel; el usuario debe hacerlo a mano.
+- **Retroactividad de INT/CON:** recalcular puntos de habilidad y PG al subir INT/CON en niveles pasados. Requiere historial por nivel; el usuario lo hace a mano.
 - **Slots corporales de objetos mágicos:** restricción de 1 objeto por slot. Sin datos de slot por objeto; el usuario gestiona.
 - **Tirada de confirmación de crítico:** integrada en el flujo de combate — el usuario tira aparte.
 - **Exclusión de daño de precisión/elemental en críticos:** requiere que el usuario marque qué dados no se multiplican.
 - **Concentración integrada con CD contextual:** demasiadas situaciones; el usuario calcula la CD.
-- ~~**Eidolón del Summoner:** sistema tan complejo como una segunda ficha entera.~~ → reabierto en R-21/R-24/R-25 (regla por regla, no implementación monolítica).
+
+---
+
+## 📊 Métricas
+
+- **Pendiente mobile**: 8 motor combate + 5 motor conjuros + 6 auto-features + 5 paneles + 9 UX = **33 items, ~22h**.
+- **Pendiente PC**: 11 bugs menores + ~7 patches/decisiones de producto.
+- **Limpieza**: 8 acciones rápidas (1-2h).
+
+## 🎯 Recomendación de orden
+
+1. **Limpieza** (1-2h sin riesgo).
+2. **Fase A motor combate mobile** (3-4h, alto impacto).
+3. **Fase B motor conjuros mobile** (3h).
+4. **Fase C auto-features mobile** (4h).
+5. Resto a discreción.
