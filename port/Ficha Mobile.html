@@ -5605,17 +5605,18 @@ function bindNewSheets(){
     // Roll d20 + init bonus
     const roll = Math.floor(Math.random()*20)+1;
     const total = roll + initVal;
-    // Get current HP
-    let hpCur = null, hpMax = null;
-    try{
-      const hpEl = document.getElementById('pg-current'); hpCur = parseInt(hpEl?.textContent||hpEl?.value,10)||null;
-      const hpMEl = document.getElementById('pg-max');    hpMax = parseInt(hpMEl?.textContent||hpMEl?.value,10)||null;
-    }catch(e){}
-    INIT_LIST.push({n:nombre, v:total, active:false, hp:hpCur??hpMax, hpMax, isPC:true, initBonus:initVal, roll});
+    /* Fix C-31: usar las variables globales hp y HP_MAX en lugar de IDs
+       inexistentes (#pg-current y #pg-max no existen en el HTML mobile).
+       Antes hpCur/hpMax quedaban siempre null y el PJ entraba al tracker
+       sin botones de daño/curar. */
+    const hpMax = (typeof HP_MAX === 'number' && HP_MAX > 0) ? HP_MAX : null;
+    const hpCur = (typeof hp === 'number') ? hp : hpMax;
+    INIT_LIST.push({n:nombre, v:total, active:false, hp:hpCur, hpMax, isPC:true, initBonus:initVal, roll, conds:[]});
     INIT_LIST.sort((a,b)=>b.v-a.v);
     if(!INIT_LIST.find(x=>x.active)) INIT_LIST[0].active=true;
     toast(`${nombre}: 🎲${roll}${initVal>=0?'+':''}${initVal} = ${total}`);
     renderInit();
+    if(typeof saveStateDebounced==='function') saveStateDebounced('init-add-pc');
   });
   const initNext = document.getElementById('init-next');
   if(initNext) initNext.addEventListener('click',()=>{
