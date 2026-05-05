@@ -1198,6 +1198,18 @@
 <div class="panel full-row eidolon-panel" id="eidolon-panel" style="display:none;">
   <h2 class="collapsible-header collapsed" id="eidolon-header" data-i18n="p.eidolon">Eidolón</h2>
   <div class="collapsible-body hidden" id="eidolon-body">
+    <!-- R-24 · Broodmaster: selector de eidolón activo (sólo visible si arquetipo Broodmaster) -->
+    <div id="brood-bar" style="display:none;margin-bottom:8px;padding:6px 8px;background:rgba(140,60,160,0.10);border:1px dashed #8c3ca0;border-radius:3px;font-size:11px;">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span style="font-weight:bold;color:#8c3ca0;" data-i18n="brood.label">Broodmaster — Editando:</span>
+        <select id="brood-active">
+          <option value="1" data-i18n="brood.eid1">Eidolón 1</option>
+          <option value="2" data-i18n="brood.eid2">Eidolón 2</option>
+        </select>
+        <span style="color:var(--leather-lt);" data-i18n="brood.note">Cada cría comparte el pool de PE (½) y es una talla menor que un eidolón normal. Evos, nombre, forma y FCB son independientes.</span>
+      </div>
+      <div id="brood-ep-summary" style="margin-top:4px;color:var(--leather-lt);"></div>
+    </div>
     <div class="companion-grid">
       <div>
         <div class="label-row" style="margin-bottom:6px;"><span data-i18n="label.eidName">Nombre del Eidolón</span><input type="text" id="eid-name" placeholder="Ej. Vorthag" data-i18n-ph="ph.eidName"></div>
@@ -1964,6 +1976,7 @@ const I18N = {
     'console.noArch':'archetypes.json no disponible, sin arquetipos.','console.noData':'No se pudieron cargar los archivos de datos, usando datos embebidos.',
     'opt.lvAbbr':'Nv.','fallback.className':'clase','m.copyCmd':'Copia este comando:','opt.searchPlaceholder':'Buscar…','label.compTemplate':'Plantilla','opt.pickTemplate':'— Selecciona animal —',
     'p.eidolon':'Eidolón','label.eidName':'Nombre del Eidolón','label.eidBaseForm':'Forma Base','opt.pickBaseForm':'— Selecciona —','eid.biped':'Bípedo','eid.quadruped':'Cuadrúpedo','eid.serpentine':'Serpentino','eid.aquatic':'Acuático','eid.avian':'Aviano','eid.tauric':'Tauriforme','label.eidSubtype':'Subtipo / Linaje','label.eidAlign':'Alineamiento','label.eidSize':'Tamaño','p.eidAttrs':'Atributos','p.eidStats':'Estadísticas Calculadas','p.eidNotes':'Notas','label.skillPoints':'Puntos Hab.','label.eidNatAC':'CA Nat.','label.eidMaxAtk':'Atq. Máx','label.eidEP':'EP','ph.eidName':'Ej. Vorthag','p.eidEvolutions':'Evolutions','eid.epUsed':'PE usados','opt.allCosts':'— Coste —','opt.pickEvolution':'Selecciona una evolution…','btn.addEvolution':'Añadir Evolution','p.eidSelectedEvos':'Evolutions Seleccionadas','p.eidFreeEvos':'Evolutions Gratis (por forma base)','opt.allDcs':'— DC —','opt.tricksPackage':'Paquete','opt.pickTrick':'Selecciona un truco…','btn.addTrickFromList':'Añadir desde lista','btn.addCustomTrick':'[+] Personalizado','label.eidUcSubtype':'Subtipo Unchained','opt.pickUcSubtype':'— Selecciona —','p.eidUcFeatures':'Habilidades de Subtipo (Unchained)','eid.ucFeaturesNote':'Habilidades fijas que el eidolón gana automáticamente al alcanzar el HD correspondiente, según el subtipo elegido.','label.eidElementalChoice':'Elemento (Elemental)','elem.air':'Aire','elem.earth':'Tierra','elem.fire':'Fuego','elem.water':'Agua','p.eidClassFeatures':'Class Features (Bonos de Clase Favorecida)','eid.fcbNote':'Bonos acumulados al elegir +1 PG / +1 rango habilidad como bonificación de clase favorecida en cada nivel de Convocador (Half-elf y Humano). Suma manual.','fcb.eidHP':'Bonus Eidolon Hit Point','fcb.eidSkill':'Bonus Eidolon Skill Rank','fcb.hp':'Bonus Hit Point (invocador)','fcb.skill':'Bonus Skill Rank (invocador)',
+    'brood.label':'Broodmaster — Editando:','brood.eid1':'Eidolón 1','brood.eid2':'Eidolón 2','brood.note':'Cada cría comparte el pool de PE (½) y es una talla menor que un eidolón normal. Evos, nombre, forma y FCB son independientes.','brood.epSummary':'PE totales: {total} · E1: {a} · E2: {b} · Disponible: {free}',
     'dmg.critX':'×CRIT','dmg.dmg':'DMG',
     'attrName.str':'Fuerza','attrName.dex':'Destreza','attrName.con':'Constitución','attrName.int':'Inteligencia','attrName.wis':'Sabiduría','attrName.cha':'Carisma',
     // P-1 · Buff Tracker
@@ -2380,6 +2393,7 @@ const I18N = {
     'console.noArch':'archetypes.json unavailable, no archetypes.','console.noData':'Could not load data files, using embedded data.',
     'opt.lvAbbr':'Lv.','fallback.className':'class','m.copyCmd':'Copy this command:','opt.searchPlaceholder':'Search…','label.compTemplate':'Template','opt.pickTemplate':'— Select animal —',
     'p.eidolon':'Eidolon','label.eidName':'Eidolon Name','label.eidBaseForm':'Base Form','opt.pickBaseForm':'— Select —','eid.biped':'Biped','eid.quadruped':'Quadruped','eid.serpentine':'Serpentine','eid.aquatic':'Aquatic','eid.avian':'Avian','eid.tauric':'Tauric','label.eidSubtype':'Subtype / Lineage','label.eidAlign':'Alignment','label.eidSize':'Size','p.eidAttrs':'Attributes','p.eidStats':'Computed Stats','p.eidNotes':'Notes','label.skillPoints':'Skill Pts','label.eidNatAC':'Nat. AC','label.eidMaxAtk':'Max Atk','label.eidEP':'EP','ph.eidName':'e.g. Vorthag','p.eidEvolutions':'Evolutions','eid.epUsed':'EP used','opt.allCosts':'— Cost —','opt.pickEvolution':'Pick an evolution…','btn.addEvolution':'Add Evolution','p.eidSelectedEvos':'Selected Evolutions','p.eidFreeEvos':'Free Evolutions (per base form)','opt.allDcs':'— DC —','opt.tricksPackage':'Package','opt.pickTrick':'Pick a trick…','btn.addTrickFromList':'Add from list','btn.addCustomTrick':'[+] Custom','label.eidUcSubtype':'Unchained Subtype','opt.pickUcSubtype':'— Select —','p.eidUcFeatures':'Subtype Features (Unchained)','eid.ucFeaturesNote':'Fixed features the eidolon gains automatically upon reaching the matching HD, according to the chosen subtype.','label.eidElementalChoice':'Element (Elemental)','elem.air':'Air','elem.earth':'Earth','elem.fire':'Fire','elem.water':'Water','p.eidClassFeatures':'Class Features (Favored Class Bonuses)','eid.fcbNote':'Bonuses accumulated by picking +1 HP / +1 skill rank as the favored class bonus at each Summoner level (Half-elf and Human). Manual sum.','fcb.eidHP':'Bonus Eidolon Hit Point','fcb.eidSkill':'Bonus Eidolon Skill Rank','fcb.hp':'Bonus Hit Point (summoner)','fcb.skill':'Bonus Skill Rank (summoner)',
+    'brood.label':'Broodmaster — Editing:','brood.eid1':'Eidolon 1','brood.eid2':'Eidolon 2','brood.note':'Each brood eidolon shares the EP pool (½) and is one size smaller than a normal eidolon. Evos, name, form and FCB are independent.','brood.epSummary':'Total EP: {total} · E1: {a} · E2: {b} · Available: {free}',
     'dmg.critX':'×CRIT','dmg.dmg':'DMG',
     'attrName.str':'Strength','attrName.dex':'Dexterity','attrName.con':'Constitution','attrName.int':'Intelligence','attrName.wis':'Wisdom','attrName.cha':'Charisma',
     // P-1 · Buff Tracker
@@ -8644,6 +8658,8 @@ function updateEidolonVisibility() {
   const panel = document.getElementById('eidolon-panel');
   if (!panel) return;
   panel.style.display = getSummonerLevel() > 0 ? 'block' : 'none';
+  // R-24 · refrescar la barra Brood (mostrar/ocultar selector según arquetipo).
+  if (typeof _broodRefreshUi === 'function') _broodRefreshUi();
 }
 
 function recalcEidolon() {
@@ -8984,6 +9000,220 @@ function renderEidolonSelectedEvos() {
   const totalEl = document.getElementById('eid-ep-total');
   if (usedEl) usedEl.textContent = used;
   if (totalEl) totalEl.textContent = document.getElementById('eid-ep')?.value || 0;
+
+  // R-24 · Broodmaster: refrescar resumen del pool compartido cada vez que
+  // cambian las evos del eidolón activo (suma del activo + snapshot del otro).
+  if (typeof _broodUpdateEpSummary === 'function') _broodUpdateEpSummary();
+}
+
+// ============================================================
+// R-24 · Broodmaster — dos eidolones simultáneos
+// Estrategia: el panel #eidolon-panel es único; con un selector
+// "Eidolón 1 / Eidolón 2" hacemos swap del estado completo
+// (todos los inputs eid-*, el Set _eidolonSelectedEvos y los FCB)
+// y mostramos un resumen del pool de PE compartido.
+// Ambos eidolones usan el mismo pool floor(ep/2) y son una talla
+// menor que un eidolón normal.
+// ============================================================
+
+// Lista de IDs de input/select que conforman el "estado" de un eidolón.
+// Cualquier id eid-* con valor editable por el usuario debe estar aquí.
+const _BROOD_FIELDS = [
+  'eid-name','eid-base-form','eid-subtype','eid-uc-subtype','eid-elemental-choice',
+  'eid-align','eid-size',
+  'eid-str','eid-dex','eid-con','eid-int','eid-wis','eid-cha',
+  'eid-hp','eid-ac','eid-notes',
+  'eid-fcb-eid-hp','eid-fcb-eid-skill','eid-fcb-hp','eid-fcb-skill'
+];
+
+// Snapshots por eidolón. Estructura: { fields:{id:value}, evos:[uid…] }
+const _BROOD_STATE = { 1: null, 2: null };
+let _BROOD_ACTIVE = 1;
+// Flag para evitar bucles cuando el swap dispara 'change' que vuelve a recalc.
+let _broodSwapping = false;
+
+function _isBroodmaster() {
+  const a = (typeof getSummonerArchetype === 'function') ? getSummonerArchetype() : null;
+  if (!a) return false;
+  // Acepta ambos slugs documentados (chained y unchained).
+  return a === 'broodmaster' || a === 'broodmaster_unchained';
+}
+
+// Captura el estado del panel a un objeto serializable.
+function _broodSnapshotFromPanel() {
+  const fields = {};
+  _BROOD_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) fields[id] = el.value;
+  });
+  return { fields, evos: Array.from(_eidolonSelectedEvos) };
+}
+
+// Defaults para un eidolón Broodmaster recién creado. Se aplican siempre
+// como base antes de hacer overlay del snapshot — así una plantilla mínima
+// del 2º eidolón no contamina el panel con los datos del 1º.
+const _BROOD_DEFAULTS = {
+  'eid-name':'', 'eid-base-form':'', 'eid-subtype':'', 'eid-uc-subtype':'',
+  'eid-elemental-choice':'', 'eid-align':'', 'eid-size':'small',
+  'eid-str':'10','eid-dex':'10','eid-con':'10','eid-int':'7','eid-wis':'10','eid-cha':'11',
+  'eid-hp':'','eid-ac':'','eid-notes':'',
+  'eid-fcb-eid-hp':'0','eid-fcb-eid-skill':'0','eid-fcb-hp':'0','eid-fcb-skill':'0'
+};
+
+// Vuelca un snapshot al panel. SIEMPRE aplica defaults primero y luego
+// el overlay del snapshot (si existe), así no se filtran datos del otro
+// eidolón cuando el snapshot es parcial.
+function _broodApplySnapshotToPanel(snap) {
+  _broodSwapping = true;
+  try {
+    // 1) Limpieza/base: aplicar defaults a todos los campos.
+    _BROOD_FIELDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && _BROOD_DEFAULTS[id] !== undefined) el.value = _BROOD_DEFAULTS[id];
+    });
+    // 2) Overlay del snapshot (si lo hay y trae fields).
+    if (snap && snap.fields) {
+      _BROOD_FIELDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const v = snap.fields[id];
+        if (v != null) el.value = v;
+      });
+    }
+    // 3) Evos: siempre limpiar y aplicar las del snapshot.
+    _eidolonSelectedEvos.clear();
+    if (snap && Array.isArray(snap.evos)) snap.evos.forEach(uid => _eidolonSelectedEvos.add(uid));
+  } finally {
+    _broodSwapping = false;
+  }
+}
+
+// Suma el coste de PE de un array de evos.
+function _broodEpUsedFor(evos) {
+  if (!evos || !DB.eidolon_evolutions) return 0;
+  let used = 0;
+  evos.forEach(uid => {
+    const slug = String(uid).split('#')[0];
+    const ev = DB.eidolon_evolutions[slug];
+    if (ev) used += ev.cost || 0;
+  });
+  return used;
+}
+
+// Refresca el banner "PE totales · E1 · E2 · Disponible".
+function _broodUpdateEpSummary() {
+  const bar = document.getElementById('brood-bar');
+  const out = document.getElementById('brood-ep-summary');
+  if (!bar || !out) return;
+  if (!_isBroodmaster()) { bar.style.display = 'none'; return; }
+  bar.style.display = '';
+  const total = parseInt(document.getElementById('eid-ep')?.value) || 0;
+  // El eidolón activo: usar el Set en vivo. El otro: snapshot guardado (o 0).
+  const activeUsed = _broodEpUsedFor(Array.from(_eidolonSelectedEvos));
+  const other = _BROOD_ACTIVE === 1 ? 2 : 1;
+  const otherSnap = _BROOD_STATE[other];
+  const otherUsed = otherSnap ? _broodEpUsedFor(otherSnap.evos || []) : 0;
+  const a = _BROOD_ACTIVE === 1 ? activeUsed : otherUsed;
+  const b = _BROOD_ACTIVE === 1 ? otherUsed : activeUsed;
+  const free = Math.max(0, total - a - b);
+  const tpl = (typeof t === 'function') ? t('brood.epSummary') : 'PE totales: {total} · E1: {a} · E2: {b} · Disponible: {free}';
+  out.textContent = tpl
+    .replace('{total}', total).replace('{a}', a).replace('{b}', b).replace('{free}', free);
+}
+
+// Cambia de eidolón activo: guarda el actual, carga el destino.
+function _broodSwitchTo(target) {
+  target = parseInt(target) || 1;
+  if (target !== 1 && target !== 2) target = 1;
+  if (target === _BROOD_ACTIVE) return;
+  // Guardar el estado actual.
+  _BROOD_STATE[_BROOD_ACTIVE] = _broodSnapshotFromPanel();
+  _BROOD_ACTIVE = target;
+  // Cargar el del destino (o vacío si nunca se ha tocado).
+  _broodApplySnapshotToPanel(_BROOD_STATE[target]);
+  // Refrescar derivados.
+  try {
+    if (typeof recalcEidolon === 'function') recalcEidolon();
+    if (typeof renderEidolonSelectedEvos === 'function') renderEidolonSelectedEvos();
+    if (typeof renderEidolonFreeEvos === 'function') renderEidolonFreeEvos();
+    if (typeof renderEidolonUcFeatures === 'function') renderEidolonUcFeatures();
+    if (typeof populateEidolonEvolutionSelect === 'function') populateEidolonEvolutionSelect();
+  } catch(e) {}
+}
+
+// Listener del selector. Está fuera del bloque .recalc-eid intencionadamente
+// para no disparar recalc dos veces (recalc se ejecuta dentro del swap).
+document.addEventListener('change', e => {
+  if (e.target && e.target.id === 'brood-active' && !_broodSwapping) {
+    _broodSwitchTo(e.target.value);
+  }
+});
+
+// Llamar tras cambios estructurales (clase/arquetipo, idioma, init):
+// muestra/oculta la barra y, si se acaba de activar Broodmaster por
+// primera vez, fija talla "small" (una talla menor que medium) en el
+// eidolón actual sólo si todavía está en su valor por defecto.
+let _broodLastIsBrood = false;
+function _broodRefreshUi() {
+  const bar = document.getElementById('brood-bar');
+  if (!bar) return;
+  const isBrood = _isBroodmaster();
+  bar.style.display = isBrood ? '' : 'none';
+  if (isBrood && !_broodLastIsBrood) {
+    // Activación inicial: garantizar que ambos eidolones empiezan small.
+    const sizeEl = document.getElementById('eid-size');
+    if (sizeEl && (sizeEl.value === 'medium' || sizeEl.value === '')) {
+      sizeEl.value = 'small';
+    }
+    if (_BROOD_STATE[2] == null) {
+      // Plantilla mínima del segundo eidolón.
+      _BROOD_STATE[2] = {
+        fields: { 'eid-size':'small' },
+        evos: []
+      };
+    }
+  }
+  _broodLastIsBrood = isBrood;
+  _broodUpdateEpSummary();
+}
+
+// Hook: cuando cambia clase/nivel/arquetipo, refrescar barra Brood.
+document.addEventListener('change', e => {
+  if (!e.target) return;
+  if (e.target.classList?.contains('class-select')
+      || e.target.id?.startsWith('archetype')
+      || e.target.id?.startsWith('level')
+      || e.target.id?.startsWith('class')) {
+    _broodRefreshUi();
+  }
+});
+
+// Serializar ambos eidolones para export.
+function _broodSerialize() {
+  // El activo está en el panel; el otro en _BROOD_STATE[other].
+  const live = _broodSnapshotFromPanel();
+  const out = { active: _BROOD_ACTIVE };
+  out[_BROOD_ACTIVE] = live;
+  const other = _BROOD_ACTIVE === 1 ? 2 : 1;
+  out[other] = _BROOD_STATE[other] || null;
+  return out;
+}
+
+// Restaurar desde export. Si no hay datos, deja todo intacto.
+function _broodRestore(payload) {
+  if (!payload || typeof payload !== 'object') {
+    // Compat fichas pre-Broodmaster: no hacer nada.
+    return;
+  }
+  const active = (payload.active === 2) ? 2 : 1;
+  _BROOD_STATE[1] = payload[1] || null;
+  _BROOD_STATE[2] = payload[2] || null;
+  _BROOD_ACTIVE = active;
+  // Volcar el activo al panel; el otro queda en memoria.
+  _broodApplySnapshotToPanel(_BROOD_STATE[active]);
+  const sel = document.getElementById('brood-active');
+  if (sel) sel.value = String(active);
+  _broodRefreshUi();
 }
 
 // === Animal Companion templates ===
@@ -10880,6 +11110,11 @@ function exportData() {
   // Eidolon: selected evolutions list (slug#timestamp format preserves multi-selection)
   try { data['__eid_evolutions'] = JSON.stringify([..._eidolonSelectedEvos]); } catch(e) { data['__eid_evolutions'] = '[]'; }
 
+  // R-24 · Broodmaster: snapshot de ambos eidolones (sólo si la función existe).
+  try {
+    if (typeof _broodSerialize === 'function') data['__brood_state'] = JSON.stringify(_broodSerialize());
+  } catch(e) {}
+
   // HP dice individual roll values (cosmetic but useful for players tracking per-level rolls)
   const _hpDiceVals = {};
   _hpDiceState.forEach((_, i) => {
@@ -11212,6 +11447,16 @@ function importData(event) {
             _eidolonSelectedEvos.clear();
             arr.forEach(uid => _eidolonSelectedEvos.add(uid));
           }
+        } catch(e) {}
+      }
+      // R-24 · Broodmaster: restaurar ambos eidolones. Si existe payload,
+      // sobrescribe el panel con el eidolón activo guardado; si no existe,
+      // se mantiene el comportamiento legacy (el _eid_evolutions ya cargado
+      // representa al eidolón único de fichas pre-Broodmaster).
+      if (data['__brood_state']) {
+        try {
+          const payload = JSON.parse(data['__brood_state']);
+          if (typeof _broodRestore === 'function') _broodRestore(payload);
         } catch(e) {}
       }
       try { updateEidolonVisibility(); recalcEidolon(); renderEidolonSelectedEvos(); } catch(e) {}
