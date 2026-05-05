@@ -3259,6 +3259,178 @@ function getActiveClassRows() {
   }).filter(r => r.classKey && r.level > 0);
 }
 
+/* ── R-23 · PRESTIGE CASTER BUMPS ──────────────────────────
+   Algunas clases prestigiosas BUMPEAN el caster level y los slots
+   de una clase lanzadora previa (CRB pg. 374, normas §15-bis-3).
+   Esta tabla codifica el patrón por prestige y por "kind"
+   (arcane / divine / etc.). Cada valor es una cadena con el
+   patrón parseado por _parsePrestigeBumpPattern():
+     '+1/lvl'                       → +1 a TODOS los niveles
+     '+1/lvl from level N'          → +1 a niveles >= N
+     '+1/lvl except a,b,c'          → +1 salvo en niveles a,b,c
+     '+1/lvl from level N except a,b' → combinación
+*/
+const PRESTIGE_CASTER_BUMPS = {
+  mystic_theurge:      { arcane:  '+1/lvl', divine: '+1/lvl' },
+  eldritch_knight:     { arcane:  '+1/lvl from level 2' },
+  arcane_trickster:    { arcane:  '+1/lvl from level 2' },
+  loremaster:          { caster_chosen: '+1/lvl except 1,4,7,10' },
+  dragon_disciple:     { arcane:  '+1/lvl from level 2 except 3,7' },
+  pathfinder_savant:   { arcane:  '+1/lvl from level 2' },
+  holy_vindicator:     { divine:  '+1/lvl from level 2 except 3,5,7,9' },
+  hellknight_signifer: { arcane:  '+1/lvl from level 2' },
+};
+
+/* Cuenta cuántos niveles del prestige (1..currentLevel) reciben +1
+   según el patrón. Devuelve el bump efectivo (entero >= 0). */
+function _parsePrestigeBumpPattern(pattern, prestigeLvl) {
+  if(!pattern || prestigeLvl <= 0) return 0;
+  const m = String(pattern).match(/^\+(\d+)\/lvl(?:\s+from\s+level\s+(\d+))?(?:\s+except\s+([\d,\s]+))?$/i);
+  if(!m) return 0;
+  const perLvl  = parseInt(m[1]) || 0;
+  const fromLvl = m[2] ? (parseInt(m[2]) || 1) : 1;
+  const except  = m[3]
+    ? new Set(m[3].split(',').map(x => parseInt(x.trim())).filter(n => !isNaN(n)))
+    : new Set();
+  let bump = 0;
+  for(let l = fromLvl; l <= prestigeLvl; l++) {
+    if(!except.has(l)) bump += perLvl;
+  }
+  return bump;
+}
+
+/* Devuelve 'arcane' | 'divine' | null para una clase del PG.
+   Heurística: clases listadas explícitamente; el resto se infiere
+   del campo CLASS_CAST_ATTR/CLASS_CAST_MODE como fallback. */
+const _ARCANE_CLASSES = new Set([
+  'wizard','sorcerer','bard','arcanist','witch','magus','summoner',
+  'unchained_summoner','bloodrager','skald'
+]);
+const _DIVINE_CLASSES = new Set([
+  'cleric','druid','oracle','paladin','ranger','antipaladin','inquisitor',
+  'warpriest','shaman','hunter','adept'
+]);
+function _classSpellKind(classKey) {
+  if(_ARCANE_CLASSES.has(classKey)) return 'arcane';
+  if(_DIVINE_CLASSES.has(classKey)) return 'divine';
+  return null;
+}
+
+/* Devuelve la primera fila activa cuya clase es del tipo deseado y
+   tiene tabla `spells_per_day`. Para Arcane Trickster el spec pide
+   "casting arcano de 2º nivel+": filtramos por nivel suficiente. */
+function _firstCasterRowOfKind(rows, kind, opts={}) {
+  const minSpellLevel = opts.minSpellLevel || 0;
+  return rows.find(r => {
+    if(_classSpellKind(r.classKey) !== kind) return false;
+    const cls = (typeof DB !== 'undefined' && DB.classes) ? DB.classes[r.classKey] : null;
+    if(!cls || !cls.spells_per_day) return false;
+    if(minSpellLevel > 0) {
+      const tableRow = cls.spells_per_day[Math.min(r.level, 20) - 1];
+      if(!tableRow) return false;
+      if(tableRow[minSpellLevel] === null || tableRow[minSpellLevel] === undefined) return false;
+    }
+    return true;
+  }) || null;
+}
+
+/* Calcula los bumps de cada clase prestige activa y los reparte
+   entre las clases lanzadoras objetivo. Devuelve:
+     { <targetClassKey>: { clBump:Number, sources:[{prestige, bump}] } }
+   Sólo se incluyen clases que realmente reciben un bump > 0. */
+function calcPrestigeCasterBumps() {
+  const out = {};
+  if(typeof DB === 'undefined' || !DB.classes) return out;
+  const rows = (typeof getActiveClassRows === 'function') ? getActiveClassRows() : [];
+  if(!rows.length) return out;
+
+  const add = (targetKey, bump, prestigeKey) => {
+    if(!targetKey || bump <= 0) return;
+    if(!out[targetKey]) out[targetKey] = { clBump: 0, sources: [] };
+    out[targetKey].clBump += bump;
+    out[targetKey].sources.push({ prestige: prestigeKey, bump });
+  };
+
+  rows.forEach(r => {
+    const patterns = PRESTIGE_CASTER_BUMPS[r.classKey];
+    if(!patterns) return;
+    const cls = DB.classes[r.classKey];
+    if(!cls || cls.category !== 'prestige') return;
+
+    Object.entries(patterns).forEach(([kind, pat]) => {
+      const bump = _parsePrestigeBumpPattern(pat, r.level);
+      if(bump <= 0) return;
+
+      let target = null;
+      if(kind === 'arcane' || kind === 'divine') {
+        // Arcane Trickster requiere arcano de 2º nivel+.
+        const opts = (r.classKey === 'arcane_trickster' && kind === 'arcane')
+          ? { minSpellLevel: 2 } : {};
+        target = _firstCasterRowOfKind(rows, kind, opts);
+      } else if(kind === 'arcane_spontaneous') {
+        target = rows.find(x => _classSpellKind(x.classKey) === 'arcane'
+          && CLASS_CAST_MODE[x.classKey] === 'spontaneous'
+          && DB.classes[x.classKey]?.spells_per_day) || null;
+      } else if(kind === 'caster_chosen') {
+        // Loremaster: fallback = primera divina; si no hay, primera arcana.
+        target = _firstCasterRowOfKind(rows, 'divine')
+              || _firstCasterRowOfKind(rows, 'arcane');
+      }
+      if(target) add(target.classKey, bump, r.classKey);
+    });
+  });
+  return out;
+}
+
+/* Etiqueta UI traducible para una fuente de bump. */
+function _prestigeBumpLabel(prestigeKey) {
+  const cls = (typeof DB !== 'undefined' && DB.classes) ? DB.classes[prestigeKey] : null;
+  if(!cls) return prestigeKey;
+  return (typeof tData === 'function') ? (tData(cls,'name') || cls.name || prestigeKey) : (cls.name || prestigeKey);
+}
+
+/* Compone el texto "+N de Mystic Theurge / +M de Eldritch Knight" en
+   ESPAÑOL/inglés a partir del array de fuentes. */
+function _formatPrestigeBumpSources(sources) {
+  if(!sources || !sources.length) return '';
+  return sources.map(s => `+${s.bump} de ${_prestigeBumpLabel(s.prestige)}`).join(', ');
+}
+
+/* Inserta/actualiza el hint pequeño bajo el input #caster-level del
+   bloque global. Si bumpInfo es null, lo elimina. */
+function _renderGlobalCasterBumpHint(bumpInfo) {
+  const input = document.getElementById('caster-level');
+  if(!input) return;
+  const parent = input.parentNode;
+  if(!parent) return;
+  let hint = parent.querySelector('.prestige-cl-bump-hint');
+  if(!bumpInfo) { if(hint) hint.remove(); return; }
+  if(!hint) {
+    hint = document.createElement('div');
+    hint.className = 'prestige-cl-bump-hint';
+    hint.style.cssText = 'font-size:10px;color:var(--leather-lt);font-style:italic;margin-top:2px;line-height:1.2;';
+    parent.appendChild(hint);
+  }
+  hint.textContent = _formatPrestigeBumpSources(bumpInfo.sources);
+}
+
+/* Inserta/actualiza el hint en cada bloque mc-block (multi-caster). */
+function _renderMcCasterBumpHint(classKey, bumpInfo) {
+  const input = document.getElementById(`mc-cl-${classKey}`);
+  if(!input) return;
+  const label = input.closest('label');
+  if(!label) return;
+  let hint = label.querySelector('.prestige-cl-bump-hint');
+  if(!bumpInfo) { if(hint) hint.remove(); return; }
+  if(!hint) {
+    hint = document.createElement('div');
+    hint.className = 'prestige-cl-bump-hint';
+    hint.style.cssText = 'font-size:9px;color:var(--leather-lt);font-style:italic;margin-top:2px;line-height:1.2;';
+    label.appendChild(hint);
+  }
+  hint.textContent = _formatPrestigeBumpSources(bumpInfo.sources);
+}
+
 /* ── LANGUAGE CHECKBOX GRID ─────────────────────────────── */
 const PATHFINDER_LANGUAGES_ES = [
   'Común','Élfico','Enano','Gnomo','Mediano','Semielfo','Semiorco',
@@ -5084,15 +5256,34 @@ function calcMultiCasterSpells(mods) {
   const section = document.getElementById('multi-caster-section');
   if(!section || section.style.display === 'none') return;
   const rows = _mcCasterClassRows();
+  // R-23 · Bumps de prestige por clase target
+  let prestigeBumps = {};
+  try { prestigeBumps = calcPrestigeCasterBumps(); } catch(_) {}
   rows.forEach(({classKey, level}) => {
     const attrSel = document.getElementById(`mc-attr-${classKey}`);
     const attr    = attrSel?.value || CLASS_CAST_ATTR[classKey] || 'int';
     const castMod = mods[attr] || 0;
     // Auto-rellena nivel de lanzador si el campo coincide con el nivel de la clase y no fue tocado
     const clEl = document.getElementById(`mc-cl-${classKey}`);
+    // R-23 · Aplica el bump al CL mostrado y al nivel de lookup en tabla
+    const bumpInfo = prestigeBumps[classKey] || null;
+    const clBump = bumpInfo ? bumpInfo.clBump : 0;
+    if(clEl) {
+      const cur = parseInt(clEl.value) || 0;
+      const target = level + clBump;
+      if(cur === level || cur === target || clEl.dataset.autoFilled === '1') {
+        if(cur !== target) {
+          clEl.value = target;
+          clEl.setAttribute('value', target);
+        }
+        clEl.dataset.autoFilled = '1';
+      }
+    }
+    _renderMcCasterBumpHint(classKey, bumpInfo);
     // Auto-rellenar perday desde tabla si no se ha tocado manualmente
     const cls = DB.classes[classKey];
-    const tableRow = cls?.spells_per_day?.[Math.min(level,20) - 1];
+    const lookupLvl = Math.min(level + clBump, 20);
+    const tableRow = cls?.spells_per_day?.[lookupLvl - 1];
     for(let lv = 0; lv <= 9; lv++) {
       const dcEl = document.getElementById(`mc-dc-${classKey}-${lv}`);
       if(dcEl) dcEl.textContent = 10 + lv + castMod;
@@ -6348,8 +6539,15 @@ function autoFillSpellSlots() {
     }
   });
   if(!bestClass || bestLevel < 1) return;
+  // R-23 · Aplica bumps de prestige al nivel efectivo de la clase
+  // dominante para la lectura de la tabla `spells_per_day`.
+  let effectiveLevel = bestLevel;
+  try {
+    const bumps = calcPrestigeCasterBumps();
+    if(bumps[bestClass]) effectiveLevel += bumps[bestClass].clBump;
+  } catch(_) {}
   const table = DB.classes[bestClass].spells_per_day;
-  const row = table[Math.min(bestLevel, 20) - 1];
+  const row = table[Math.min(effectiveLevel, 20) - 1];
   if(!row) return;
   for(let lv = 0; lv <= 9; lv++) {
     const base = row[lv];
@@ -6386,7 +6584,42 @@ function calcSpells(mods) {
   } catch(_) {}
   const castAttr = document.getElementById('cast-attr').value;
   const castMod  = mods[castAttr] || 0;
-  const cl = parseInt(gv('caster-level')) || 1;
+  let cl = parseInt(gv('caster-level')) || 1;
+
+  // R-23 · Suma el bump de prestige al CL del bloque global si la
+  // clase lanzadora dominante recibe bumps. Mostramos hint debajo.
+  let _globalBumpInfo = null;
+  try {
+    const dom = (typeof getDominantCasterClass === 'function') ? getDominantCasterClass() : null;
+    if(dom) {
+      const bumps = calcPrestigeCasterBumps();
+      const info = bumps[dom.classKey];
+      if(info && info.clBump > 0) {
+        _globalBumpInfo = { domClass: dom.classKey, ...info };
+        const clEl = document.getElementById('caster-level');
+        if(clEl) {
+          // Auto-fill solo si el valor actual coincide con el nivel
+          // base de la clase dominante (entonces no es override manual)
+          // o con el resultado bumpeado. Si el usuario escribió otra
+          // cosa a mano, respetamos su valor.
+          const cur = parseInt(clEl.value) || 0;
+          const target = dom.level + info.clBump;
+          if(cur === dom.level || cur === target || clEl.dataset.autoFilled === '1') {
+            if(cur !== target) {
+              clEl.value = target;
+              clEl.setAttribute('value', target);
+            }
+            clEl.dataset.autoFilled = '1';
+            cl = target;
+          } else {
+            cl = cur || cl;
+          }
+        }
+      }
+    }
+  } catch(_) {}
+  // Render hint UI cerca del input cast-level.
+  _renderGlobalCasterBumpHint(_globalBumpInfo);
 
   sv('concentration', (cl + castMod) >= 0 ? `+${cl+castMod}` : `${cl+castMod}`);
 
