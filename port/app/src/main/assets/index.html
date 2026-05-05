@@ -2032,16 +2032,40 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
         </div>
       </div>
 
+      <!-- #ANCHOR:P10-MOBILE-WEAKNESSES-V1 -->
       <div class="card">
-        <h3 class="card-title"><span class="ornament">❦</span><span>Debilidades (×2 daño)</span><span class="ornament">❦</span></h3>
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;font:11px/1.2 system-ui;text-align:center">
-          <label style="display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink-muted)"><span aria-hidden="true" style="font-size:18px">🔥</span><input type="checkbox" aria-label="Vulnerable a fuego"></label>
-          <label style="display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink-muted)"><span aria-hidden="true" style="font-size:18px">❄</span><input type="checkbox" aria-label="Vulnerable a frío"></label>
-          <label style="display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink-muted)"><span aria-hidden="true" style="font-size:18px">⚡</span><input type="checkbox" aria-label="Vulnerable a electricidad"></label>
-          <label style="display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink-muted)"><span aria-hidden="true" style="font-size:18px">☠</span><input type="checkbox" aria-label="Vulnerable a ácido"></label>
-          <label style="display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink-muted)"><span aria-hidden="true" style="font-size:18px">💠</span><input type="checkbox" aria-label="Vulnerable sónico"></label>
+        <h3 class="card-title"><span class="ornament">❦</span><span data-i18n="cardWeaknesses">Debilidades</span><span class="ornament">❦</span></h3>
+        <div id="weaknesses-list" class="wk-list" aria-live="polite"></div>
+        <div class="wk-add-row" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;align-items:center">
+          <select id="wk-type-new" class="wk-type-sel field-input" style="flex:1 1 110px;min-width:110px;font-size:12px;padding:6px">
+            <option value="fire"        data-i18n="dtype.fire">Fuego</option>
+            <option value="cold"        data-i18n="dtype.cold">Frío</option>
+            <option value="acid"        data-i18n="dtype.acid">Ácido</option>
+            <option value="electricity" data-i18n="dtype.electricity">Eléctrico</option>
+            <option value="sonic"       data-i18n="dtype.sonic">Sónico</option>
+            <option value="force"       data-i18n="dtype.force">Fuerza</option>
+            <option value="negative"    data-i18n="dtype.negative">Negativo</option>
+            <option value="positive"    data-i18n="dtype.positive">Positivo</option>
+            <option value="piercing"    data-i18n="dtype.piercing">Perforante</option>
+            <option value="slashing"    data-i18n="dtype.slashing">Cortante</option>
+            <option value="bludgeoning" data-i18n="dtype.bludgeoning">Contundente</option>
+            <option value="silver"      data-i18n="wk.silver">Plata</option>
+            <option value="coldiron"    data-i18n="wk.coldiron">Hierro frío</option>
+            <option value="wood"        data-i18n="wk.wood">Madera</option>
+            <option value="sun"         data-i18n="wk.sun">Luz solar</option>
+            <option value="holy"        data-i18n="wk.holy">Sagrado</option>
+            <option value="custom"      data-i18n="wk.custom">Personalizado</option>
+          </select>
+          <input type="number" id="wk-mult-new" class="field-input" min="2" step="1" value="2"
+                 aria-label="Multiplicador" title="Multiplicador" style="width:54px;font-size:12px;padding:6px;text-align:center">
+          <input type="text" id="wk-note-new" class="field-input wk-note-inp" maxlength="80"
+                 data-i18n-ph="wk.ph.note" placeholder="Nota (opcional)…" style="flex:2 1 140px;min-width:120px;font-size:12px;padding:6px">
+          <button type="button" class="btn-secondary wk-add-btn" id="wk-add-btn" onclick="addWeakness()"
+                  data-i18n="btn.addWeakness" style="font-size:12px;padding:6px 10px;min-height:36px">+ Añadir</button>
         </div>
+        <input type="hidden" id="weaknesses-json" value="[]">
       </div>
+      <!-- #ANCHOR:/P10-MOBILE-WEAKNESSES-V1 -->
     </div>
 
     <div class="sub-page" data-sub="ofensiva" hidden>
@@ -2686,27 +2710,45 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
   </div>
 </dialog>
 
-<!-- ─── AÑADIR DOTE (formulario) ─── -->
+<!-- ─── AÑADIR DOTE (selector modo + formulario) — A-11 ─── -->
 <dialog class="bottom-sheet" id="sheet-feat-add" aria-label="Añadir dote">
   <div class="drag-handle"></div>
-  <div class="sheet-header"><div class="sheet-title">Añadir dote</div><button class="sheet-close" data-close>✕</button></div>
+  <div class="sheet-header"><div class="sheet-title" data-i18n="featAddTitle">Añadir dote</div><button class="sheet-close" data-close>✕</button></div>
   <div class="sheet-content">
-    <div class="form-grid">
-      <div class="field"><label class="field-label">Nombre</label><input class="field-input" id="feat-name" placeholder="Crítico mejorado, Soltura con arma…"></div>
-      <div class="field"><label class="field-label">Tipo</label>
+    <!-- A-11: selector de modo (catálogo vs personalizada) -->
+    <div id="feat-mode-choice" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <button class="btn-primary" id="feat-mode-catalog" data-i18n="featModeCatalog">📚 Buscar en catálogo</button>
+      <button class="btn-secondary" id="feat-mode-custom" data-i18n="featModeCustom">+ Crear personalizada</button>
+    </div>
+    <div class="form-grid" id="feat-custom-form" hidden>
+      <div class="field"><label class="field-label" data-i18n="lblNombre">Nombre</label><input class="field-input" id="feat-name" placeholder="Crítico mejorado, Soltura con arma…"></div>
+      <div class="field"><label class="field-label" data-i18n="featLblType">Tipo</label>
         <select class="field-select" id="feat-type">
-          <option value="combat">Combate</option>
-          <option value="general">General</option>
-          <option value="item">Objeto</option>
+          <option value="combat" data-i18n="featTypeCombat">Combate</option>
+          <option value="general" data-i18n="featTypeGeneral">General</option>
+          <option value="item" data-i18n="featTypeItem">Objeto</option>
         </select>
       </div>
-      <div class="field"><label class="field-label">Prerequisitos</label><input class="field-input" id="feat-prereq" placeholder="BAB +1, FUE 13…"></div>
-      <div class="field"><label class="field-label">Descripción</label><textarea class="field-input" id="feat-desc" placeholder="Beneficio mecánico de la dote…"></textarea></div>
+      <div class="field"><label class="field-label" data-i18n="featLblPrereq">Prerequisitos</label><input class="field-input" id="feat-prereq" placeholder="BAB +1, FUE 13…"></div>
+      <div class="field"><label class="field-label" data-i18n="featLblDesc">Descripción</label><textarea class="field-input" id="feat-desc" placeholder="Beneficio mecánico de la dote…"></textarea></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <button class="btn-secondary" data-close>Cancelar</button>
-        <button class="btn-primary" id="feat-save">Añadir dote</button>
+        <button class="btn-secondary" data-close data-i18n="btnCancelar">Cancelar</button>
+        <button class="btn-primary" id="feat-save" data-i18n="featBtnSaveCustom">Añadir dote</button>
       </div>
     </div>
+  </div>
+</dialog>
+
+<!-- A-11: PICKER DESDE CATÁLOGO feats.json -->
+<dialog class="bottom-sheet" id="sheet-feat-pick" aria-label="Catálogo de dotes">
+  <div class="drag-handle"></div>
+  <div class="sheet-header"><div class="sheet-title" data-i18n="featPickTitle">Catálogo de dotes</div><button class="sheet-close" data-close>✕</button></div>
+  <div class="sheet-content">
+    <div class="field" style="margin-bottom:8px">
+      <input class="field-input" id="feat-pick-search" data-i18n-ph="featPickSearchPh" placeholder="Buscar por nombre…">
+    </div>
+    <div id="feat-pick-meta" style="font:11px/1.4 system-ui;color:var(--ink-muted);margin-bottom:6px"></div>
+    <div id="feat-pick-list" class="picker-list" style="max-height:60vh;overflow:auto"></div>
   </div>
 </dialog>
 
@@ -3252,6 +3294,16 @@ const I18N = {
     btnCambiarFoto:'Cambiar foto',btnQuitarFoto:'Quitar foto',lblClase:'Clase',lblNivel:'Nivel',lblXP:'Experiencia',
     'opt.epicMode':'Modo Epic (nivel 21-30)',
     'epicModeNote':'El contenido oficial PF1e termina en 20. Las reglas Epic son material de comunidad.',
+    /* A-11: dotes — selector modo + picker catálogo */
+    featAddTitle:'Añadir dote',
+    featModeCatalog:'📚 Buscar en catálogo',
+    featModeCustom:'+ Crear personalizada',
+    featPickTitle:'Catálogo de dotes',
+    featPickSearchPh:'Buscar por nombre…',
+    featLblType:'Tipo',featLblPrereq:'Prerequisitos',featLblDesc:'Descripción',
+    featTypeCombat:'Combate',featTypeGeneral:'General',featTypeItem:'Objeto',
+    featBtnSaveCustom:'Añadir dote',btnCancelar:'Cancelar',
+    featCatalogNotLoaded:'Catálogo no cargado',
   },
   en:{
     charSub:'Fighter · Level 3 · Human',
@@ -3284,6 +3336,16 @@ const I18N = {
     btnCambiarFoto:'Change photo',btnQuitarFoto:'Remove photo',lblClase:'Class',lblNivel:'Level',lblXP:'Experience',
     'opt.epicMode':'Epic Mode (level 21-30)',
     'epicModeNote':'Official PF1e content ends at 20. Epic rules are community material.',
+    /* A-11: feats — mode chooser + catalog picker */
+    featAddTitle:'Add feat',
+    featModeCatalog:'📚 Browse catalog',
+    featModeCustom:'+ Create custom',
+    featPickTitle:'Feat catalog',
+    featPickSearchPh:'Search by name…',
+    featLblType:'Type',featLblPrereq:'Prerequisites',featLblDesc:'Description',
+    featTypeCombat:'Combat',featTypeGeneral:'General',featTypeItem:'Item',
+    featBtnSaveCustom:'Add feat',btnCancelar:'Cancel',
+    featCatalogNotLoaded:'Catalog not loaded',
   }
 };
 
@@ -4481,7 +4543,7 @@ const RACES_DATA = [
 let DB = {};
 
 async function loadDB() {
-  const files = ['classes','archetypes','special_abilities','feats','races','skills','equipment','items','domains','bloodlines','orders','arcane_schools','oracle_mysteries','witch_patrons','sizes'];
+  const files = ['classes','archetypes','special_abilities','feats','races','skills','equipment','items','domains','bloodlines','orders','arcane_schools','oracle_mysteries','witch_patrons','sizes','eidolon_evolutions'];
   const res = {};
   const failed = [];
   await Promise.all(files.map(async f => {
@@ -4507,6 +4569,8 @@ async function loadDB() {
     oracle_mysteries: res.oracle_mysteries  || [],
     witch_patrons:    res.witch_patrons     || [],
     sizes:            res.sizes             || [],
+    /* M-21: catálogo de evoluciones del eidolón (Summoner) */
+    eidolon_evolutions: res.eidolon_evolutions || {},
   };
   /* P-03: telemetría de carga */
   const counts = {
@@ -5150,6 +5214,8 @@ const COMP_DEFAULTS = {
   }),
   eidolon: ()=>({
     id:_compId(), n:'', subtipo:'', elementoElemental:'', tamano:'Mediano',
+    /* M-21: forma base estructurada (slug) para validar prereqs de evoluciones */
+    baseForm:'',
     hp:'', ca:10,
     str:10, dex:10, con:13, int:7, wis:10, cha:11,
     armaduraNatural:0,
@@ -5215,7 +5281,11 @@ const COMP_FIELDS = {
           {k:'fcbEidolonSkill', label:'Bonus Eidolon Skill Rank', type:'number'}]},
     {row:[{k:'fcbHP', label:'Bonus HP (invocador)', type:'number'},
           {k:'fcbSkill', label:'Bonus Skill Rank (invocador)', type:'number'}]},
+    /* M-21: forma base del eidolón (Unchained) — usada para validar prereqs de evoluciones */
+    {special:'baseForm'},
     {label:'Evoluciones (1 por línea)', k:'evolText', textarea:true, rows:5, special:'evol', placeholder:'Garras\nResistencia (frío)\nNadar\nBrazos extra\nInteligencia +2'},
+    /* M-21: selector estructurado para añadir evoluciones validando prereqs y stacking */
+    {special:'evolPicker'},
     {label:'Ataques', k:'atks', textarea:true, rows:2, placeholder:'2 garras +5 (1d4+3)'},
     {label:'Notas adicionales', k:'extra', textarea:true, rows:2}
   ],
@@ -5262,12 +5332,136 @@ function _compFieldDOM(spec, d){
     return `<div style="font:700 10px 'Cinzel',serif;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin:8px 0 4px;border-top:1px solid var(--leather);padding-top:6px;opacity:.85">${spec.label}</div>`;
   }
   if(spec.row) return _compRowGrid(spec.row, d);
+  /* M-21: forma base del eidolón (slug → etiqueta legible) */
+  if(spec.special==='baseForm'){
+    const slugs = ['','biped','quadruped','serpentine','aquatic','avian','tauric'];
+    const cur = d.baseForm || '';
+    const opts = slugs.map(s=>`<option value="${s}"${s===cur?' selected':''}>${s? _eidBaseFormLabelMobile(s) : '— Ninguna —'}</option>`).join('');
+    return _compL('Forma base (Unchained)') +
+      `<select class="field-select" data-comp-field="baseForm" style="margin-bottom:8px">${opts}</select>`;
+  }
+  /* M-21: selector estructurado de evoluciones con validación de prereqs/stacking */
+  if(spec.special==='evolPicker'){
+    return _eidEvolPickerDOM(d);
+  }
   if(spec.textarea){
     let val = d[spec.k];
     if(spec.special==='evol' && Array.isArray(d.evol)) val = d.evol.join('\n');
     return _compL(spec.label) + _compTextarea(spec.k, val, spec.rows||2, spec.placeholder);
   }
   return _compL(spec.label) + _compInput(spec.k, d[spec.k], spec.placeholder, spec.type||'text');
+}
+
+/* ────────────────────────────────────────────────────────────────
+   M-21 · Validación de evoluciones del eidolón (Summoner Unchained)
+   Espejo simplificado de las helpers de PC (commit 14043a7):
+   _eidolonEvolutionLockReason / _countEidolonEvoInstances /
+   _eidBaseFormLabel. Trabaja sobre el eidolón activo (d), persiste
+   las entradas en d.evol[] como texto "[slug] Nombre legible (Npts)"
+   para que el textarea legacy siga funcionando.
+   ──────────────────────────────────────────────────────────────── */
+function _eidBaseFormLabelMobile(slug){
+  const labels = {biped:'Bípedo', quadruped:'Cuadrúpedo', serpentine:'Serpentino', aquatic:'Acuático', avian:'Aviano', tauric:'Tauriforme'};
+  return labels[slug] || slug;
+}
+/* Devuelve el nivel total del invocador a partir de CLASSES_DATA */
+function _eidGetSummonerHd(){
+  if(typeof CLASSES_DATA === 'undefined' || !Array.isArray(CLASSES_DATA)) return 0;
+  let hd = 0;
+  CLASSES_DATA.forEach(cl=>{
+    const n = String(cl.name||'').toLowerCase().trim();
+    const k = String(cl.classKey||'').toLowerCase().trim();
+    if(n==='invocador' || n==='summoner' || k==='summoner' || k==='invocador'){
+      hd += parseInt(cl.level,10) || 0;
+    }
+  });
+  return hd;
+}
+/* Cada entrada en d.evol se serializa como "[slug] Nombre (Npts)" o texto libre */
+function _eidParseEvolSlug(line){
+  if(typeof line !== 'string') return '';
+  const m = line.match(/^\s*\[([a-z_][a-z0-9_]*)\]/i);
+  return m ? m[1].toLowerCase() : '';
+}
+function _eidCountEvoInstances(slug, evolArr){
+  if(!Array.isArray(evolArr) || !slug) return 0;
+  let n = 0;
+  evolArr.forEach(line=>{ if(_eidParseEvolSlug(line) === slug) n++; });
+  return n;
+}
+function _eidEvolutionLockReason(slug, ev, d){
+  if(!ev) return null;
+  const prereqs = ev.prereqs || {};
+  /* 1) Forma base */
+  if(prereqs.base_form){
+    const required = Array.isArray(prereqs.base_form) ? prereqs.base_form : [prereqs.base_form];
+    const cur = d.baseForm || '';
+    if(!required.includes(cur)){
+      const names = required.map(_eidBaseFormLabelMobile).join(', ');
+      return {code:'base_form', message:`Requiere forma base: ${names}.`};
+    }
+  }
+  /* 2) Nivel mínimo de invocador */
+  if(prereqs.min_summoner_level != null){
+    const min = parseInt(prereqs.min_summoner_level,10) || 0;
+    const cur = _eidGetSummonerHd();
+    if(cur < min){
+      return {code:'min_level', message:`Requiere invocador de nivel ${min}+ (actual: ${cur}).`};
+    }
+  }
+  /* 3) Evoluciones requeridas (deben existir ya en d.evol[] como [slug]) */
+  if(Array.isArray(prereqs.requires_evolutions) && prereqs.requires_evolutions.length){
+    const owned = new Set();
+    (Array.isArray(d.evol)?d.evol:[]).forEach(line=>{
+      const s = _eidParseEvolSlug(line);
+      if(s) owned.add(s);
+    });
+    const missing = prereqs.requires_evolutions.filter(s=>!owned.has(s));
+    if(missing.length){
+      const labels = missing.map(s=>{
+        const e = (DB.eidolon_evolutions||{})[s];
+        return e ? (e.name_es||e.name_en||s) : s;
+      }).join(', ');
+      return {code:'requires', message:`Falta(n) evolución(es) requerida(s): ${labels}.`};
+    }
+  }
+  /* 4) Stacking */
+  const stacking = ev.stacking || 'single';
+  const count = _eidCountEvoInstances(slug, d.evol);
+  if(stacking === 'single' && count >= 1){
+    return {code:'single', message:'Esta evolución solo puede comprarse una vez.'};
+  }
+  if(stacking === 'limited'){
+    const max = parseInt(ev.max_stacks,10);
+    if(Number.isFinite(max) && max > 0 && count >= max){
+      return {code:'limited_max', message:`Esta evolución ya alcanzó el máximo de ${max} compra(s).`};
+    }
+    /* Si max_stacks es null, "limited" suele ser por-ataque/habilidad y se confía en el jugador. */
+  }
+  return null;
+}
+function _eidEvolPickerDOM(d){
+  const db = (typeof DB!=='undefined' && DB && DB.eidolon_evolutions) ? DB.eidolon_evolutions : {};
+  const entries = Object.entries(db);
+  if(!entries.length){
+    return `<div style="font:600 11px 'Cinzel',serif;color:var(--ink-muted);margin:6px 0;padding:6px 8px;border:1px dashed var(--leather);border-radius:6px">Catálogo de evoluciones no cargado.</div>`;
+  }
+  entries.sort((a,b)=>(a[1].cost||0)-(b[1].cost||0) || String(a[1].name_es||a[0]).localeCompare(String(b[1].name_es||b[0]),'es'));
+  const opts = ['<option value="">— Selecciona evolución —</option>'].concat(
+    entries.map(([k,v])=>{
+      const lock = _eidEvolutionLockReason(k, v, d);
+      const name = v.name_es || v.name_en || k;
+      const lbl = lock ? `[Bloqueada] [${v.cost}PE] ${name}` : `[${v.cost}PE] ${name}`;
+      const title = lock ? ` title="${(lock.message||'').replace(/"/g,'&quot;')}"` : '';
+      return `<option value="${k}"${lock?' disabled':''}${title}>${lbl}</option>`;
+    })
+  ).join('');
+  return `
+    <div style="margin:6px 0 8px;padding:8px;border:1px solid var(--leather);border-radius:6px;background:rgba(200,160,60,0.05)">
+      ${_compL('Añadir evolución (validada)')}
+      <select class="field-select" data-eid-evo-select style="margin-bottom:6px">${opts}</select>
+      <button type="button" class="btn-secondary" data-eid-evo-add style="font-size:12px;padding:6px 12px;width:100%">＋ Añadir evolución</button>
+    </div>`;
 }
 
 function renderComp(which='familiar', idx){
@@ -5355,11 +5549,49 @@ function renderComp(which='familiar', idx){
       } else {
         d[k] = el.value;
       }
+      /* M-21: si cambia la forma base, refrescar el picker para recalcular locks */
+      if(k==='baseForm' && which==='eidolon'){
+        renderComp(which);
+        return;
+      }
       if(typeof saveStateDebounced==='function') saveStateDebounced('comp-edit');
     };
     el.addEventListener('input', handler);
     el.addEventListener('change', handler);
   });
+  /* M-21 · Eidolon evolution picker: validar prereqs/stacking y añadir a d.evol[] */
+  if(which==='eidolon'){
+    const addBtn = c.querySelector('[data-eid-evo-add]');
+    if(addBtn){
+      addBtn.addEventListener('click', ()=>{
+        const sel = c.querySelector('[data-eid-evo-select]');
+        const slug = sel ? sel.value : '';
+        if(!slug){
+          if(typeof toast==='function') toast('Selecciona una evolución');
+          return;
+        }
+        const ev = (DB && DB.eidolon_evolutions) ? DB.eidolon_evolutions[slug] : null;
+        if(!ev){
+          if(typeof toast==='function') toast('Evolución desconocida');
+          return;
+        }
+        const lock = _eidEvolutionLockReason(slug, ev, d);
+        if(lock){
+          if(typeof toast==='function') toast(lock.message);
+          return;
+        }
+        const name = ev.name_es || ev.name_en || slug;
+        const cost = ev.cost || 0;
+        if(!Array.isArray(d.evol)) d.evol = [];
+        d.evol.push(`[${slug}] ${name} (${cost}pt${cost===1?'':'s'})`);
+        /* Actualiza también el contador de puntos usados (mejor UX) */
+        d.puntosEvolUsados = (parseInt(d.puntosEvolUsados,10)||0) + cost;
+        if(typeof toast==='function') toast(`Añadida: ${name}`);
+        if(typeof saveStateDebounced==='function') saveStateDebounced('eid-evo-add');
+        renderComp(which);
+      });
+    }
+  }
 }
 
 /* ─── SAVED NOTES ─── */
@@ -6056,7 +6288,34 @@ function bindFormSheets(){
     toast('Ajuste añadido');
   });
   const featAddBtn = document.getElementById('feat-add');
-  if(featAddBtn) featAddBtn.addEventListener('click',()=>openSheet('sheet-feat-add'));
+  /* A-11: al abrir el sheet, resetear elección de modo y estado del botón catálogo */
+  function _featResetMode(){
+    const choice = document.getElementById('feat-mode-choice');
+    const form = document.getElementById('feat-custom-form');
+    if(choice) choice.hidden = false;
+    if(form) form.hidden = true;
+    const cat = document.getElementById('feat-mode-catalog');
+    if(cat){
+      const ok = !!(window.DB && Array.isArray(DB.feats) && DB.feats.length);
+      cat.disabled = !ok;
+      cat.style.opacity = ok ? '1' : '.55';
+      cat.title = ok ? '' : (document.documentElement.dataset.lang==='en' ? 'Catalog not loaded' : 'Catálogo no cargado');
+    }
+  }
+  if(featAddBtn) featAddBtn.addEventListener('click',()=>{ _featResetMode(); openSheet('sheet-feat-add'); });
+  const featModeCatalog = document.getElementById('feat-mode-catalog');
+  const featModeCustom  = document.getElementById('feat-mode-custom');
+  if(featModeCustom) featModeCustom.addEventListener('click',()=>{
+    const choice = document.getElementById('feat-mode-choice');
+    const form = document.getElementById('feat-custom-form');
+    if(choice) choice.hidden = true;
+    if(form) form.hidden = false;
+  });
+  if(featModeCatalog) featModeCatalog.addEventListener('click',()=>{
+    if(featModeCatalog.disabled) return;
+    closeSheet(document.getElementById('sheet-feat-add'));
+    openFeatPickerMobile();
+  });
   const featSave = document.getElementById('feat-save');
   if(featSave) featSave.addEventListener('click',()=>{
     const n = document.getElementById('feat-name').value.trim();
@@ -6067,9 +6326,99 @@ function bindFormSheets(){
     FEATS.push({n,t,prereq:p,d:d||'(sin descripción)'});
     ['feat-name','feat-prereq','feat-desc'].forEach(id=>document.getElementById(id).value='');
     renderFeatsCrud();
+    if(typeof saveStateDebounced==='function') saveStateDebounced('feat-add-custom');
     closeSheet(document.getElementById('sheet-feat-add'));
     toast('Dote añadida');
   });
+
+  /* A-11: PICKER DE DOTES desde feats.json — búsqueda y tap-to-add */
+  function _featTypeMap(t){
+    /* feats.json usa cbt/crit/meta/team/normal — mobile usa combat/general/item */
+    if(t==='cbt' || t==='crit' || t==='team') return 'combat';
+    if(t==='item') return 'item';
+    return 'general';
+  }
+  function _featTData(f, key){
+    const lang = document.documentElement.dataset.lang || 'es';
+    if(lang==='en'){ return f[key+'_en'] || f[key] || ''; }
+    return f[key] || f[key+'_en'] || '';
+  }
+  function _featTypeLabel(t){
+    const lang = document.documentElement.dataset.lang || 'es';
+    const m = _featTypeMap(t);
+    if(lang==='en') return m==='combat'?'Combat':(m==='item'?'Item':'General');
+    return m==='combat'?'Combate':(m==='item'?'Objeto':'General');
+  }
+  function _featNormalize(s){
+    return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  }
+  function buildFeatPickerListMobile(filter){
+    const list = document.getElementById('feat-pick-list');
+    const meta = document.getElementById('feat-pick-meta');
+    if(!list) return;
+    const feats = (window.DB && Array.isArray(DB.feats)) ? DB.feats : [];
+    const q = _featNormalize(filter||'');
+    const lang = document.documentElement.dataset.lang || 'es';
+    const filtered = feats.filter(f=>{
+      if(!q) return true;
+      return _featNormalize(_featTData(f,'name')).includes(q)
+          || _featNormalize(f.name_en||'').includes(q)
+          || _featNormalize(f.name||'').includes(q);
+    }).sort((a,b)=> _featTData(a,'name').localeCompare(_featTData(b,'name'), lang));
+    if(meta){
+      meta.textContent = (lang==='en' ? 'Showing ' : 'Mostrando ') + filtered.length + ' / ' + feats.length;
+    }
+    if(!filtered.length){
+      list.innerHTML = '<div class="empty-state">'+(lang==='en'?'No feats found':'Sin resultados')+'</div>';
+      return;
+    }
+    /* Limitar a 200 para rendimiento; el usuario puede afinar la búsqueda */
+    const slice = filtered.slice(0,200);
+    list.innerHTML = slice.map((f,i)=>{
+      const name = _featTData(f,'name');
+      const prereq = _featTData(f,'prerequisites');
+      const tlbl = _featTypeLabel(f.type);
+      const mapped = _featTypeMap(f.type);
+      return `<button class="picker-row" data-feat-idx="${i}" style="display:block;width:100%;text-align:left;padding:10px;margin-bottom:6px;border:1px solid var(--line);border-radius:8px;background:var(--surface)">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+          <div style="font-weight:700;font-family:'Cinzel',serif;flex:1">${name||'?'}</div>
+          <span class="feat-tag tag-${mapped}">${tlbl}</span>
+        </div>
+        ${prereq?`<div style="font:11px/1.3 system-ui;color:var(--ink-muted)">${(lang==='en'?'Req: ':'Prereq: ')}${prereq}</div>`:''}
+      </button>`;
+    }).join('');
+    list.querySelectorAll('[data-feat-idx]').forEach(b=>{
+      b.addEventListener('click',()=>{
+        const f = slice[+b.dataset.featIdx];
+        if(!f) return;
+        const name = _featTData(f,'name');
+        const prereq = _featTData(f,'prerequisites');
+        const desc = _featTData(f,'description');
+        const t = _featTypeMap(f.type);
+        FEATS.push({n:name, t, prereq:prereq||'', d:desc||'(sin descripción)'});
+        renderFeatsCrud();
+        if(typeof saveStateDebounced==='function') saveStateDebounced('feat-add-catalog');
+        closeSheet(document.getElementById('sheet-feat-pick'));
+        toast((lang==='en'?'Feat added: ':'Dote añadida: ')+name);
+      });
+    });
+  }
+  function openFeatPickerMobile(){
+    const search = document.getElementById('feat-pick-search');
+    if(search) search.value = '';
+    buildFeatPickerListMobile('');
+    openSheet('sheet-feat-pick');
+    if(search){ try{ setTimeout(()=>search.focus(),120); }catch(e){} }
+  }
+  window.openFeatPickerMobile = openFeatPickerMobile;
+  const featPickSearch = document.getElementById('feat-pick-search');
+  if(featPickSearch){
+    let _featSearchTO=null;
+    featPickSearch.addEventListener('input',()=>{
+      clearTimeout(_featSearchTO);
+      _featSearchTO = setTimeout(()=>buildFeatPickerListMobile(featPickSearch.value), 120);
+    });
+  }
   // HP edit
   const hpEdit = document.getElementById('hp-edit');
   const hpEdit2 = document.getElementById('hp-edit-2');
@@ -8274,6 +8623,12 @@ function snapshotState(){
     };
     /* C-04: notas de combate */
     s.combatNotes = (typeof COMBAT_NOTES!=='undefined') ? COMBAT_NOTES.map(n=>({...n})) : [];
+    /* #ANCHOR:P10-SNAPSHOT-WEAKNESSES-V1 — Lista de vulnerabilidades */
+    try{
+      if(Array.isArray(window._WEAKNESSES_LIST)){
+        s.weaknesses = JSON.stringify(window._WEAKNESSES_LIST);
+      }
+    }catch(e){ /* ignore */ }
     /* P-06: idiomas marcados (estándar + exóticos + custom) */
     s.langs = {
       std: [...document.querySelectorAll('#lang-list-std label[data-lang]')]
@@ -8486,6 +8841,21 @@ function applyState(state){
         }
       }, 150);
     }
+    /* #ANCHOR:P10-APPLY-WEAKNESSES-V1 — Restaurar lista de vulnerabilidades */
+    try{
+      const raw = state.weaknesses;
+      if(raw != null){
+        const parsed = (typeof raw === 'string') ? JSON.parse(raw||'[]') : raw;
+        if(Array.isArray(parsed)){
+          window._WEAKNESSES_LIST = parsed.map(w=>({
+            type: String(w&&w.type||'custom'),
+            note: String(w&&w.note||''),
+            multiplier: (Number(w&&w.multiplier)>=2 ? Number(w.multiplier) : 2),
+          }));
+          if(typeof window.renderWeaknesses === 'function') window.renderWeaknesses();
+        }
+      }
+    }catch(e){ console.warn('applyState weaknesses', e); }
     /* CombatEngine recalc tras cargar inputs */
     try{ if(typeof CombatEngine !== 'undefined' && CombatEngine.apply) CombatEngine.apply(); }catch(e){}
     /* Subtabs activas (diferido para que el render exista) */
@@ -9672,5 +10042,175 @@ if(document.readyState==='complete' || document.readyState==='interactive'){
 })();
 /* ─── /DOMINIO 6 · DATOS Y PERSISTENCIA ─── */
 </script>
+
+<!-- #ANCHOR:P10-MOBILE-WEAKNESSES-JS-V1 — Vulnerabilidades como chips dinámicos -->
+<style>
+  #weaknesses-list.wk-list{display:flex;flex-wrap:wrap;gap:6px;min-height:24px}
+  #weaknesses-list:empty::before{
+    content:attr(data-empty);color:var(--ink-muted,#888);font:11px/1.4 system-ui;font-style:italic;
+  }
+  #weaknesses-list .wk-chip{
+    display:inline-flex;align-items:center;gap:4px;
+    padding:3px 6px;border:1px solid var(--leather-dk,#7a4a1f);
+    border-radius:10px;background:rgba(180,40,40,0.08);
+    font:11px/1.2 system-ui;color:var(--ink,#222);max-width:100%;
+  }
+  #weaknesses-list .wk-x2{
+    display:inline-block;padding:1px 5px;border-radius:8px;
+    background:#b22222;color:#fff;font-weight:700;font-size:10px;letter-spacing:.3px;
+  }
+  #weaknesses-list .wk-label{font-weight:600}
+  #weaknesses-list .wk-note{
+    color:var(--ink-muted,#666);font-style:italic;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;
+  }
+  #weaknesses-list .wk-del{
+    margin-left:2px;border:0;background:transparent;color:var(--ink-muted,#666);
+    font-size:14px;line-height:1;padding:0 2px;cursor:pointer;
+  }
+  #weaknesses-list .wk-del:hover{color:#b22222}
+</style>
+<script>
+(function(){
+  'use strict';
+  if(!Array.isArray(window._WEAKNESSES_LIST)) window._WEAKNESSES_LIST = [];
+
+  function escHtml(s){
+    return String(s==null?'':s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  function tWk(key, fb){
+    try{
+      if(typeof window.I18N_msg === 'function'){
+        const v = window.I18N_msg(key);
+        if(v && v !== key) return v;
+      }
+    }catch(e){}
+    return fb!=null ? fb : key;
+  }
+
+  const DTYPES = ['piercing','slashing','bludgeoning','fire','cold','acid',
+                  'electricity','sonic','force','negative','positive'];
+  const FB_ES = {
+    'dtype.fire':'Fuego','dtype.cold':'Frío','dtype.acid':'Ácido',
+    'dtype.electricity':'Eléctrico','dtype.sonic':'Sónico','dtype.force':'Fuerza',
+    'dtype.negative':'Negativo','dtype.positive':'Positivo',
+    'dtype.piercing':'Perforante','dtype.slashing':'Cortante','dtype.bludgeoning':'Contundente',
+    'wk.silver':'Plata','wk.coldiron':'Hierro frío','wk.wood':'Madera',
+    'wk.sun':'Luz solar','wk.holy':'Sagrado','wk.custom':'Personalizado',
+    'wk.ph.note':'Nota (opcional)…','btn.addWeakness':'+ Añadir',
+    'aria.delete':'Eliminar','wk.empty':'Sin vulnerabilidades',
+    'cardWeaknesses':'Debilidades',
+  };
+
+  function wkLabel(typeId){
+    if(DTYPES.indexOf(typeId) >= 0) return tWk('dtype.'+typeId, FB_ES['dtype.'+typeId]);
+    const k = 'wk.'+typeId;
+    if(Object.prototype.hasOwnProperty.call(FB_ES,k)) return tWk(k, FB_ES[k]);
+    return typeId;
+  }
+
+  function registerI18N(){
+    try{
+      if(typeof I18N === 'undefined') return;
+      const es = {
+        'cardWeaknesses':'Debilidades',
+        'btn.addWeakness':'+ Añadir',
+        'wk.silver':'Plata','wk.coldiron':'Hierro frío','wk.wood':'Madera',
+        'wk.sun':'Luz solar','wk.holy':'Sagrado','wk.custom':'Personalizado',
+        'wk.ph.note':'Nota (opcional)…','wk.empty':'Sin vulnerabilidades',
+        'dtype.fire':'Fuego','dtype.cold':'Frío','dtype.acid':'Ácido',
+        'dtype.electricity':'Eléctrico','dtype.sonic':'Sónico','dtype.force':'Fuerza',
+        'dtype.negative':'Negativo','dtype.positive':'Positivo',
+        'dtype.piercing':'Perforante','dtype.slashing':'Cortante','dtype.bludgeoning':'Contundente',
+        'aria.delete':'Eliminar',
+      };
+      const en = {
+        'cardWeaknesses':'Weaknesses',
+        'btn.addWeakness':'+ Add',
+        'wk.silver':'Silver','wk.coldiron':'Cold iron','wk.wood':'Wood',
+        'wk.sun':'Sunlight','wk.holy':'Holy','wk.custom':'Custom',
+        'wk.ph.note':'Note (optional)…','wk.empty':'No vulnerabilities',
+        'dtype.fire':'Fire','dtype.cold':'Cold','dtype.acid':'Acid',
+        'dtype.electricity':'Electricity','dtype.sonic':'Sonic','dtype.force':'Force',
+        'dtype.negative':'Negative','dtype.positive':'Positive',
+        'dtype.piercing':'Piercing','dtype.slashing':'Slashing','dtype.bludgeoning':'Bludgeoning',
+        'aria.delete':'Delete',
+      };
+      if(I18N.es) Object.keys(es).forEach(k=>{ if(!I18N.es[k]) I18N.es[k] = es[k]; });
+      if(I18N.en) Object.keys(en).forEach(k=>{ if(!I18N.en[k]) I18N.en[k] = en[k]; });
+    }catch(e){}
+  }
+  registerI18N();
+
+  function renderWeaknesses(){
+    const box = document.getElementById('weaknesses-list');
+    const hid = document.getElementById('weaknesses-json');
+    if(!box) return;
+    box.setAttribute('data-empty', tWk('wk.empty', FB_ES['wk.empty']));
+    const list = window._WEAKNESSES_LIST || [];
+    box.innerHTML = list.map((w,i)=>{
+      const label = wkLabel(w.type);
+      const mult  = (Number(w.multiplier)>=2 ? Number(w.multiplier) : 2);
+      const note  = w.note ? '<span class="wk-note" title="'+escHtml(w.note)+'">'+escHtml(w.note)+'</span>' : '';
+      const del   = tWk('aria.delete', FB_ES['aria.delete']);
+      return '<span class="wk-chip" data-type="'+escHtml(w.type)+'">'
+           +   '<span class="wk-x2">×'+mult+'</span>'
+           +   '<span class="wk-label">'+escHtml(label)+'</span>'
+           +   note
+           +   '<button type="button" class="wk-del" onclick="removeWeakness('+i+')" '
+           +     'title="'+escHtml(del)+'" aria-label="'+escHtml(del)+'">×</button>'
+           + '</span>';
+    }).join('');
+    if(hid) hid.value = JSON.stringify(list);
+  }
+
+  function addWeakness(type, note, multiplier){
+    const typeEl = document.getElementById('wk-type-new');
+    const noteEl = document.getElementById('wk-note-new');
+    const multEl = document.getElementById('wk-mult-new');
+    if(type == null) type = typeEl ? typeEl.value : '';
+    if(note == null) note = noteEl ? (noteEl.value||'').trim() : '';
+    if(multiplier == null){
+      const v = multEl ? parseInt(multEl.value,10) : 2;
+      multiplier = (isFinite(v) && v>=2) ? v : 2;
+    } else {
+      const v = parseInt(multiplier,10);
+      multiplier = (isFinite(v) && v>=2) ? v : 2;
+    }
+    if(!type) return;
+    if(!Array.isArray(window._WEAKNESSES_LIST)) window._WEAKNESSES_LIST = [];
+    window._WEAKNESSES_LIST.push({ type:String(type), note:String(note||''), multiplier:multiplier });
+    if(noteEl) noteEl.value = '';
+    if(multEl) multEl.value = '2';
+    renderWeaknesses();
+    try{ if(typeof window.saveStateDebounced === 'function') window.saveStateDebounced('weaknesses'); }catch(e){}
+  }
+
+  function removeWeakness(idx){
+    if(!Array.isArray(window._WEAKNESSES_LIST)) return;
+    if(idx<0 || idx>=window._WEAKNESSES_LIST.length) return;
+    window._WEAKNESSES_LIST.splice(idx,1);
+    renderWeaknesses();
+    try{ if(typeof window.saveStateDebounced === 'function') window.saveStateDebounced('weaknesses'); }catch(e){}
+  }
+
+  window.renderWeaknesses = renderWeaknesses;
+  window.addWeakness = addWeakness;
+  window.removeWeakness = removeWeakness;
+
+  function tryRender(){ try{ renderWeaknesses(); }catch(e){} }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', tryRender);
+  } else {
+    tryRender();
+  }
+  document.addEventListener('language-changed', tryRender);
+  document.addEventListener('state-loaded', tryRender);
+})();
+</script>
+<!-- #ANCHOR:/P10-MOBILE-WEAKNESSES-JS-V1 -->
 </body>
 </html>
