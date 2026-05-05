@@ -2555,6 +2555,11 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
     <label style="display:flex;align-items:center;gap:10px;margin:10px 0">
       <input type="checkbox" id="settings-daltonic"> <span>Modo daltónico (alto contraste, texto en negrita, sin rojos críticos)</span>
     </label>
+    <!-- R-29 · Modo Epic (niveles 21-30) -->
+    <label style="display:flex;align-items:center;gap:10px;margin:10px 0 2px">
+      <input type="checkbox" id="settings-epic"> <span data-i18n="opt.epicMode">Modo Epic (nivel 21-30)</span>
+    </label>
+    <div style="font-size:11px;color:var(--ink-muted);margin:0 0 8px 26px;font-style:italic;line-height:1.4" data-i18n="epicModeNote">El contenido oficial PF1e termina en 20. Las reglas Epic son material de comunidad.</div>
     <button class="btn-secondary" data-toast="datos-limpios" style="width:100%;margin-top:8px">Limpiar todos los datos</button>
     <div style="text-align:center;margin-top:12px;color:var(--ink-muted);font:11px system-ui">Versión 1.0 · build 2024.11</div>
   </div>
@@ -3245,6 +3250,8 @@ const I18N = {
     moreCompaneros:'Compañeros',moreMaster:'Modo Máster',moreNotas:'Notas de sesión',moreDados:'Dados de tirada libre',moreAjustes:'Ajustes',
     moreExportar:'Exportar ficha (JSON)',moreImportar:'Importar ficha',moreImprimir:'Imprimir',
     btnCambiarFoto:'Cambiar foto',btnQuitarFoto:'Quitar foto',lblClase:'Clase',lblNivel:'Nivel',lblXP:'Experiencia',
+    'opt.epicMode':'Modo Epic (nivel 21-30)',
+    'epicModeNote':'El contenido oficial PF1e termina en 20. Las reglas Epic son material de comunidad.',
   },
   en:{
     charSub:'Fighter · Level 3 · Human',
@@ -3275,6 +3282,8 @@ const I18N = {
     moreCompaneros:'Companions',moreMaster:'Master Mode',moreNotas:'Session notes',moreDados:'Free dice roll',moreAjustes:'Settings',
     moreExportar:'Export sheet (JSON)',moreImportar:'Import sheet',moreImprimir:'Print',
     btnCambiarFoto:'Change photo',btnQuitarFoto:'Remove photo',lblClase:'Class',lblNivel:'Level',lblXP:'Experience',
+    'opt.epicMode':'Epic Mode (level 21-30)',
+    'epicModeNote':'Official PF1e content ends at 20. Epic rules are community material.',
   }
 };
 
@@ -4614,6 +4623,8 @@ let activeFilter = 'todas';
 function renderClasses(){
   const c = document.getElementById('classes-list');
   if(!c) return;
+  /* R-29 · max del input de nivel: 30 si Modo Epic activo, 20 si no */
+  const _epicMax = (typeof _epicModeOn!=='undefined' && _epicModeOn) ? 30 : 20;
   c.innerHTML = CLASSES_DATA.map(cl=>`
     <div class="class-card" data-id="${cl.id}">
       ${CLASSES_DATA.length>1?`<button class="crud-del" data-class-del="${cl.id}" aria-label="Eliminar clase">×</button>`:''}
@@ -4622,7 +4633,7 @@ function renderClasses(){
         <div class="field"><label class="field-label">Arquetipo</label><input class="field-input arch-name" value="${cl.archetype||'—'}" data-class-id="${cl.id}" readonly style="cursor:pointer"></div>
       </div>
       <div class="field-row">
-        <div class="field"><label class="field-label">Nivel</label><input class="field-input class-level" type="number" inputmode="numeric" pattern="[0-9]*" value="${cl.level}" data-class-id="${cl.id}"></div>
+        <div class="field"><label class="field-label">Nivel</label><input class="field-input class-level" type="number" inputmode="numeric" pattern="[0-9]*" min="1" max="${_epicMax}" value="${cl.level}" data-class-id="${cl.id}"></div>
         <div class="field"><label class="field-label">PG total</label><input class="field-input" type="number" inputmode="numeric" pattern="[0-9]*" value="${cl.hp}" data-class-id="${cl.id}"></div>
         <div class="field"><label class="field-label">DG</label><input class="field-input" value="${cl.hd}"></div>
       </div>
@@ -4704,7 +4715,9 @@ function renderClasses(){
       const classId = +inp.dataset.classId;
       const cl = CLASSES_DATA.find(x=>x.id===classId);
       if(!cl) return;
-      const newLvl = Math.max(1,Math.min(20,+inp.value||1));
+      /* R-29 · cap superior: 30 si Modo Epic activo, 20 si no */
+      const _capLvl = (typeof _epicModeOn!=='undefined' && _epicModeOn) ? 30 : 20;
+      const newLvl = Math.max(1,Math.min(_capLvl,+inp.value||1));
       const oldLvl = cl.level;
       cl.level = newLvl; inp.value = newLvl;
       _triggerClassFeaturesFor(cl);
@@ -8212,6 +8225,8 @@ function snapshotState(){
   s.notes = (document.getElementById('note-body')||{}).value || s.notes || '';
   s.theme = document.documentElement.dataset.theme || null;
   s.lang  = document.documentElement.dataset.lang || null;
+  /* R-29 · Modo Epic (niveles 21-30) — flag persistente en JSON exportado */
+  try{ s.epicMode = (typeof _epicModeOn!=='undefined') ? !!_epicModeOn : false; }catch(e){ s.epicMode = false; }
   // Internal state variables
   try{
     s.schoolPick    = (typeof SCHOOL_PICK    !== 'undefined') ? SCHOOL_PICK    : '';
@@ -8290,8 +8305,25 @@ function applyState(state){
   try{ updateTopbar(); }catch(e){}
   if(state.theme){ document.documentElement.dataset.theme = state.theme; try{applyDarkClass();}catch(e){} }
   if(state.lang && typeof applyLang==='function'){ try{applyLang(state.lang);}catch(e){} }
+  /* R-29 · Restaurar Modo Epic ANTES de re-renderizar clases para que
+     los nuevos inputs nazcan con max=30 y los niveles >20 no se clampeen.
+     Si la clave no existe (saves antiguos), respetamos el estado actual.
+     Tambien sincronizamos el setting persistido en localStorage. */
   try{
-    if(state.classes && typeof CLASSES_DATA!=='undefined'){ CLASSES_DATA.length=0; state.classes.forEach(c=>CLASSES_DATA.push(c)); if(typeof renderClasses==='function') renderClasses(); }
+    if(Object.prototype.hasOwnProperty.call(state,'epicMode')){
+      const epicOn = !!state.epicMode;
+      _epicModeOn = epicOn;
+      const cb = document.getElementById('settings-epic');
+      if(cb) cb.checked = epicOn;
+      try{
+        const cur = (typeof loadSettings==='function') ? loadSettings() : {};
+        cur.epicMode = epicOn;
+        if(typeof saveSettings==='function') saveSettings(cur);
+      }catch(_){}
+    }
+  }catch(_){}
+  try{
+    if(state.classes && typeof CLASSES_DATA!=='undefined'){ CLASSES_DATA.length=0; state.classes.forEach(c=>CLASSES_DATA.push(c)); if(typeof renderClasses==='function') renderClasses(); if(typeof applyEpicMode==='function') applyEpicMode(_epicModeOn); }
     if(state.weapons && typeof WEAPONS_DATA!=='undefined'){ WEAPONS_DATA.length=0; state.weapons.forEach(w=>WEAPONS_DATA.push(w)); if(typeof renderWeapons==='function') renderWeapons(); }
     if(state.armor   && typeof ARMOR_DATA!=='undefined'){ ARMOR_DATA.length=0;   state.armor.forEach(a=>ARMOR_DATA.push(a));   if(typeof renderArmor==='function') renderArmor(); }
     if(state.feats   && typeof FEATS!=='undefined'){ FEATS.length=0;             state.feats.forEach(f=>FEATS.push(f));        if(typeof renderFeatsCrud==='function') renderFeatsCrud(); }
@@ -8984,10 +9016,10 @@ function loadSettings(){
     const raw = localStorage.getItem(SETTINGS_KEY);
     if(raw){
       const s = JSON.parse(raw);
-      return Object.assign({lang:'es', theme:null, fontSize:'normal', daltonic:false}, s);
+      return Object.assign({lang:'es', theme:null, fontSize:'normal', daltonic:false, epicMode:false}, s);
     }
   }catch(e){}
-  return {lang:'es', theme:null, fontSize:'normal', daltonic:false};
+  return {lang:'es', theme:null, fontSize:'normal', daltonic:false, epicMode:false};
 }
 function saveSettings(s){
   try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }catch(e){}
@@ -9023,6 +9055,48 @@ function applyDaltonic(on){
     st.remove();
   }
 }
+/* R-29 · MODO EPIC (niveles 21-30) ──────────────────────────
+   Permite elevar el max de los inputs de NIVEL hasta 30 cuando
+   el toggle esta activo. PF1e oficial termina en nivel 20; las
+   reglas Epic son material de comunidad (no oficial).
+   En mobile el unico input afectado es .class-level (renderizado
+   por renderClasses). Mobile no tiene comp-master-level ni
+   familiar-master-level (los companions guardan stats finales,
+   no derivan del nivel). */
+let _epicModeOn = false;
+function _epicLevelInputs(){
+  return Array.from(document.querySelectorAll('input.class-level[type="number"]'));
+}
+function applyEpicMode(on){
+  _epicModeOn = !!on;
+  const newMax = on ? '30' : '20';
+  let needRecalc = false;
+  _epicLevelInputs().forEach(inp=>{
+    inp.max = newMax;
+    if(!on){
+      const v = parseInt(inp.value,10) || 0;
+      if(v > 20){
+        inp.value = '20';
+        const classId = +inp.dataset.classId;
+        const cl = (typeof CLASSES_DATA!=='undefined') ? CLASSES_DATA.find(x=>x.id===classId) : null;
+        if(cl){ cl.level = 20; }
+        needRecalc = true;
+      }
+    }
+  });
+  if(needRecalc){
+    try{ if(typeof renderClasses==='function') renderClasses(); }catch(e){}
+    try{ if(typeof recalc==='function') recalc(); }catch(e){}
+    /* P-04: dispara recalculo en el resto del sistema */
+    try{ document.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'epic-clamp'}})); }catch(e){}
+    try{ window.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'epic-clamp'}})); }catch(e){}
+    try{ if(typeof saveStateDebounced==='function') saveStateDebounced('epic-clamp'); }catch(e){}
+  }
+  /* Reflejar en checkbox UI por si applyEpicMode se llama desde import/load */
+  const cb = document.getElementById('settings-epic');
+  if(cb && cb.checked !== _epicModeOn) cb.checked = _epicModeOn;
+}
+
 function populateThemeDropdown(){
   const sel = document.getElementById('settings-theme');
   if(!sel) return;
@@ -9040,13 +9114,19 @@ function wireSettingsControls(){
   const themeSel = document.getElementById('settings-theme');
   const fsSel = document.getElementById('settings-fontsize');
   const dalChk = document.getElementById('settings-daltonic');
+  const epicChk = document.getElementById('settings-epic');
   if(langSel) langSel.value = cur.lang || 'es';
   if(themeSel) themeSel.value = cur.theme || (document.documentElement.dataset.theme||'pergamino');
   if(fsSel)   fsSel.value = cur.fontSize || 'normal';
   if(dalChk)  dalChk.checked = !!cur.daltonic;
+  if(epicChk) epicChk.checked = !!cur.epicMode;
   /* Aplicar settings actuales */
   applyFontSize(cur.fontSize||'normal');
   applyDaltonic(!!cur.daltonic);
+  /* R-29 · Aplicar modo Epic actual (default false). Se llama tras
+     renderClasses() inicial gracias al orden de init6 → wireSettingsControls
+     se invoca despues de la primera renderClasses. */
+  applyEpicMode(!!cur.epicMode);
   /* Listeners */
   langSel && langSel.addEventListener('change',()=>{
     cur.lang = langSel.value;
@@ -9070,6 +9150,12 @@ function wireSettingsControls(){
     cur.daltonic = dalChk.checked;
     saveSettings(cur);
     applyDaltonic(cur.daltonic);
+  });
+  /* R-29 · listener Modo Epic */
+  epicChk && epicChk.addEventListener('change',()=>{
+    cur.epicMode = epicChk.checked;
+    saveSettings(cur);
+    applyEpicMode(cur.epicMode);
   });
 }
 
