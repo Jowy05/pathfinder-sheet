@@ -194,6 +194,8 @@
   <label class="inline-label"><input type="checkbox" id="fractional-bab" class="recalc"> <span id="fractional-label" data-i18n="label.fractional">BAB/Tiros Fraccionales (Unchained)</span></label>
   <label class="inline-label"><input type="checkbox" id="epic-mode"> <span data-i18n="opt.epicMode">Modo Epic (nivel 21-30)</span></label>
   <div style="font-size:10px;color:var(--leather-lt);margin:-2px 0 4px 22px;font-style:italic;" data-i18n="epicModeNote">El contenido oficial PF1e termina en 20. Las reglas Epic son material de comunidad.</div>
+  <label class="inline-label"><input type="checkbox" id="gestalt-mode"> <span data-i18n="opt.gestaltMode">Modo Gestalt (cada nivel = dos clases simultáneas)</span></label>
+  <div style="font-size:10px;color:var(--leather-lt);margin:-2px 0 4px 22px;font-style:italic;" data-i18n="gestaltModeNote">Cada fila de clase combina dos clases a la vez: HD/BAB/Salvaciones toman el MAX, los puntos de habilidad se SUMAN, las habilidades de clase se UNEN. Variante de comunidad (3.5e SRD).</div>
   <div class="divider"></div>
   <div class="three-col progression-summary" style="margin-bottom:6px;">
     <div class="label-row"><span data-i18n="label.totalLevel">Nivel Total</span><input type="text" id="total-level" readonly class="derived"></div>
@@ -1708,6 +1710,10 @@ const I18N = {
     'label.fractional':'BAB/Tiros Fraccionales (Unchained)',
     'opt.epicMode':'Modo Epic (nivel 21-30)',
     'epicModeNote':'El contenido oficial PF1e termina en 20. Las reglas Epic son material de comunidad.',
+    'opt.gestaltMode':'Modo Gestalt (cada nivel = dos clases simultáneas)',
+    'gestaltModeNote':'Cada fila de clase combina dos clases a la vez: HD/BAB/Salvaciones toman el MAX, los puntos de habilidad se SUMAN, las habilidades de clase se UNEN. Variante de comunidad (3.5e SRD).',
+    'opt.gestaltSecondary':'Clase secundaria (Gestalt)',
+    'opt.gestaltPickB':'— Clase B (opcional) —',
     'label.totalLevel':'Nivel Total','label.hitDice':'Dados de Golpe','label.speed':'Velocidad (ft)',
     'p.hp':'Puntos de Golpe','btn.rollAllHD':'Tirar Todos los Dados de Golpe',
     'label.hp':'PG:','label.hpBonus':'Dotes / Buff HP','label.tempHP':'PG Temporales','ph.zero':'0',
@@ -2171,6 +2177,10 @@ const I18N = {
     'label.fractional':'Fractional BAB/Saves (Unchained)',
     'opt.epicMode':'Epic Mode (level 21-30)',
     'epicModeNote':'Official PF1e content ends at 20. Epic rules are community material.',
+    'opt.gestaltMode':'Gestalt Mode (each level = two simultaneous classes)',
+    'gestaltModeNote':'Each class row combines two classes at once: HD/BAB/Saves take the MAX, skill points are SUMMED, class skills are MERGED. Community variant (3.5e SRD).',
+    'opt.gestaltSecondary':'Secondary class (Gestalt)',
+    'opt.gestaltPickB':'— Class B (optional) —',
     'label.totalLevel':'Total Level','label.hitDice':'Hit Dice','label.speed':'Speed (ft)',
     'p.hp':'Hit Points','btn.rollAllHD':'Roll All Hit Dice',
     'label.hp':'HP:','label.hpBonus':'Feats / Buff HP','label.tempHP':'Temporary HP','ph.zero':'0',
@@ -2731,10 +2741,18 @@ function buildHPDice() {
   _hpDiceState = [];
   const frag = document.createDocumentFragment();
 
-  for(const {idx, classKey, archetypeKey, level} of getActiveClassRows()) {
+  for(const {idx, classKey, archetypeKey, level, secondaryKey} of getActiveClassRows()) {
     const arch    = archetypeKey ? (DB.archetypes||{})[archetypeKey] : null;
-    const faces     = arch?.hit_die || DB.classes[classKey]?.hit_die || 8;
-    const className = tData(DB.classes[classKey], 'name') || classKey;
+    let faces     = arch?.hit_die || DB.classes[classKey]?.hit_die || 8;
+    // R-28 · Gestalt: HD = max(d_a, d_b)
+    if (secondaryKey && DB.classes[secondaryKey]) {
+      const facesB = DB.classes[secondaryKey].hit_die || 8;
+      if (facesB > faces) faces = facesB;
+    }
+    const classNameA = tData(DB.classes[classKey], 'name') || classKey;
+    const className  = (secondaryKey && DB.classes[secondaryKey])
+      ? `${classNameA} / ${tData(DB.classes[secondaryKey], 'name') || secondaryKey}`
+      : classNameA;
 
     const labelEl = document.createElement('div');
     labelEl.className = 'dice-class-label';
@@ -3270,9 +3288,17 @@ function addClassRow(classKey = '', level = 1, hp = 0, isFirst = false) {
   const div = document.createElement('div');
   div.className = 'class-row-dynamic';
   div.dataset.rowIdx = idx;
+  // R-28 · Gestalt: el select secundario se renderiza siempre pero se
+  // muestra/oculta segun el toggle global (display:none). Cuando esta oculto
+  // su value se ignora en todos los calculos.
+  const _gestaltShow = (typeof _gestaltModeOn !== 'undefined' && _gestaltModeOn);
   div.innerHTML = `
     <div class="class-row-top">
       <select id="class${idx}" class="recalc class-select">${getClassOptHTML(classKey)}</select>
+      <select id="class-b${idx}" class="recalc class-select-secondary" title="${t('opt.gestaltSecondary')}" style="${_gestaltShow ? '' : 'display:none;'}">
+        <option value="">${t('opt.gestaltPickB')}</option>
+        ${Object.entries(DB.classes).map(([k,c]) => `<option value="${k}">${tData(c,'name')}</option>`).join('')}
+      </select>
       <select id="archetype${idx}" class="archetype-select recalc">
         <option value="">${t('opt.baseClass')}</option>
       </select>
@@ -3346,6 +3372,15 @@ function addClassRow(classKey = '', level = 1, hp = 0, isFirst = false) {
     recalc();
   });
 
+  // R-28 · Gestalt secondary class listener
+  const _secSel = div.querySelector('.class-select-secondary');
+  if (_secSel) {
+    _secSel.addEventListener('change', () => {
+      try { syncClassSkills(); } catch(_) {}
+      try { recalc(); } catch(_) {}
+    });
+  }
+
   // Level-up listener — auto-add unlocked abilities
   const levelInput = div.querySelector('input[type="number"][id^="level"]');
   if (levelInput) {
@@ -3411,8 +3446,11 @@ function updateAddClassBtn() {
   if(btn) btn.style.display = count >= MAX_CLASS_ROWS ? 'none' : '';
 }
 
-/** Returns array of active {idx, classKey, archetypeKey, level} */
+/** Returns array of active {idx, classKey, archetypeKey, level, secondaryKey}.
+ *  R-28 · `secondaryKey` solo es no-vacío cuando Modo Gestalt está activo
+ *  Y la fila tiene una clase B seleccionada. Cuando OFF se devuelve siempre ''. */
 function getActiveClassRows() {
+  const gestaltOn = (typeof _gestaltModeOn !== 'undefined' && _gestaltModeOn);
   return Array.from(document.querySelectorAll('.class-row-dynamic')).map(row => {
     const idx = row.dataset.rowIdx;
     return {
@@ -3420,6 +3458,7 @@ function getActiveClassRows() {
       classKey:     document.getElementById(`class${idx}`)?.value || '',
       archetypeKey: document.getElementById(`archetype${idx}`)?.value || '',
       level:        parseInt(document.getElementById(`level${idx}`)?.value) || 0,
+      secondaryKey: gestaltOn ? (document.getElementById(`class-b${idx}`)?.value || '') : '',
     };
   }).filter(r => r.classKey && r.level > 0);
 }
@@ -5944,11 +5983,13 @@ function updateAlignmentDisplay() {
 function calcSkillPoints(mods) {
   let totalAvailable = 0, totalSpent = 0;
   const intMod = mods['int'] || 0;
-  for(const {classKey, archetypeKey, level} of getActiveClassRows()) {
+  for(const {classKey, archetypeKey, level, secondaryKey} of getActiveClassRows()) {
     if(DB.classes[classKey]) {
       const archSP = archetypeKey ? (DB.archetypes||{})[archetypeKey]?.skill_points : null;
       const sp = archSP != null ? archSP : DB.classes[classKey].skill_points;
-      totalAvailable += Math.max(1, sp + intMod) * level;
+      // R-28 · Gestalt: skill points de A + B se SUMAN antes de aplicar INT y mín 1.
+      const spB = (secondaryKey && DB.classes[secondaryKey]) ? (DB.classes[secondaryKey].skill_points || 0) : 0;
+      totalAvailable += Math.max(1, sp + spB + intMod) * level;
     }
   }
   DB.skills.forEach(sk => { totalSpent += parseInt(gv(`sk-${sk.id}-ranks`)) || 0; });
@@ -6032,16 +6073,28 @@ function calcClassProgression() {
   let totalLevel=0, totalHD=0;
   let goodFort=false, goodRef=false, goodWill=false;
 
-  for(const {classKey, archetypeKey, level} of getActiveClassRows()) {
+  for(const {classKey, archetypeKey, level, secondaryKey} of getActiveClassRows()) {
     const cls = DB.classes[classKey];
     if(!cls) continue;
     totalLevel += level;
     totalHD    += level;
     const arch = archetypeKey ? (DB.archetypes||{})[archetypeKey] : null;
-    const effBab   = (arch?.bab)        || cls.bab_progression;
-    const effFort  = (arch?.saves?.fort) || cls.saves.fort;
-    const effRef   = (arch?.saves?.ref)  || cls.saves.ref;
-    const effWill  = (arch?.saves?.will) || cls.saves.will;
+    let effBab   = (arch?.bab)        || cls.bab_progression;
+    let effFort  = (arch?.saves?.fort) || cls.saves.fort;
+    let effRef   = (arch?.saves?.ref)  || cls.saves.ref;
+    let effWill  = (arch?.saves?.will) || cls.saves.will;
+    // R-28 · Gestalt: si hay clase B, BAB toma la mejor progresión y cada save
+    // es 'good' si CUALQUIERA de las dos clases lo tiene 'good' (= max base).
+    if (secondaryKey && DB.classes[secondaryKey]) {
+      const b = DB.classes[secondaryKey];
+      const aRate = effBab==='full'?1:effBab==='medium'?0.75:0.5;
+      const bBab  = b.bab_progression;
+      const bRate = bBab==='full'?1:bBab==='medium'?0.75:0.5;
+      if (bRate > aRate) effBab = bBab;
+      if (b.saves.fort === 'good') effFort = 'good';
+      if (b.saves.ref  === 'good') effRef  = 'good';
+      if (b.saves.will === 'good') effWill = 'good';
+    }
 
     if(frac) {
       const babRate = effBab==='full'?1:effBab==='medium'?0.75:0.5;
@@ -6619,7 +6672,7 @@ function calcSaves(mods, baseFort, baseRef, baseWill) {
 /* ── SKILLS ─────────────────────────────────────────────── */
 function syncClassSkills() {
   const classSkillSet = new Set();
-  getActiveClassRows().forEach(({classKey, archetypeKey}) => {
+  getActiveClassRows().forEach(({classKey, archetypeKey, secondaryKey}) => {
     const cls = DB.classes[classKey];
     const arch = archetypeKey ? (DB.archetypes || {})[archetypeKey] : null;
     let skills = [...(cls?.class_skills || [])];
@@ -6632,6 +6685,10 @@ function syncClassSkills() {
       }
     }
     skills.forEach(s => classSkillSet.add(s));
+    // R-28 · Gestalt: añadir UNION con la clase B (sin arquetipo, va cruda).
+    if (secondaryKey && DB.classes[secondaryKey]) {
+      (DB.classes[secondaryKey].class_skills || []).forEach(s => classSkillSet.add(s));
+    }
   });
   DB.skills.forEach(sk => {
     const cb = document.getElementById(`sk-${sk.id}-cs`);
@@ -11301,6 +11358,8 @@ function exportData() {
       archetypeKey: document.getElementById(`archetype${idx}`)?.value || '',
       level:        parseInt(document.getElementById(`level${idx}`)?.value) || 0,
       hp:           parseInt(document.getElementById(`hp_per_level${idx}`)?.value) || 0,
+      // R-28 · Gestalt: persistir clase secundaria (vacío si no se usa).
+      secondaryKey: document.getElementById(`class-b${idx}`)?.value || '',
     };
   });
 
@@ -11442,6 +11501,9 @@ function exportData() {
   // R-29 · Epic mode flag (niveles 21-30)
   try { data['__epic_mode'] = !!_epicModeOn; } catch(e) { data['__epic_mode'] = false; }
 
+  // R-28 · Gestalt mode flag (cada nivel = 2 clases simultáneas)
+  try { data['__gestalt_mode'] = !!_gestaltModeOn; } catch(e) { data['__gestalt_mode'] = false; }
+
   // R-25 · Synthesist fused toggle (visible sólo si arquetipo Synthesist)
   try { data['__synth_fused'] = !!document.getElementById('synth-fused')?.checked; } catch(e) { data['__synth_fused'] = false; }
 
@@ -11486,6 +11548,17 @@ function importData(event) {
         }
       } catch(_) {}
 
+      // R-28 · Restaurar Modo Gestalt ANTES de crear las filas para que el
+      // select secundario nazca visible si corresponde.
+      try {
+        if (Object.prototype.hasOwnProperty.call(data, '__gestalt_mode')) {
+          const gOn = !!data['__gestalt_mode'];
+          const cb = document.getElementById('gestalt-mode');
+          if (cb) cb.checked = gOn;
+          applyGestaltMode(gOn);
+        }
+      } catch(_) {}
+
       // Restore dynamic class rows
       if(Array.isArray(data['__class_rows']) && data['__class_rows'].length > 0) {
         const container = document.getElementById('class-rows-container');
@@ -11496,6 +11569,11 @@ function importData(event) {
           if(row.archetypeKey) {
             const sel = document.getElementById(`archetype${_classRowCount}`);
             if(sel) sel.value = row.archetypeKey;
+          }
+          // R-28 · Restaurar clase secundaria Gestalt si existe.
+          if (row.secondaryKey) {
+            const secSel = document.getElementById(`class-b${_classRowCount}`);
+            if (secSel) secSel.value = row.secondaryKey;
           }
         });
       }
@@ -13117,6 +13195,100 @@ function applyEpicMode(on) {
   if (cb && cb.checked !== _epicModeOn) cb.checked = _epicModeOn;
 }
 
+/* ── MODO GESTALT (R-28) ────────────────────────────────────
+   Variante de comunidad (3.5e SRD): cada nivel cuenta como dos
+   clases simultáneas. Para cada `class-row`, un select secundario
+   (oculto cuando OFF) define la "clase B". Cuando Gestalt está ON:
+     · HD = max(d_a, d_b)
+     · BAB = mejor progresión (full > medium > slow)
+     · Saves = max base por save
+     · Skill points = SUMA (sp_a + sp_b) + INT por nivel
+     · Class skills = UNIÓN de ambos sets
+   Si la clase B está vacía, comportamiento normal en esa fila. */
+const GESTALT_MODE_KEY = 'pf1e-gestalt-mode';
+let _gestaltModeOn = false;
+
+function isGestaltOn() { return !!_gestaltModeOn; }
+
+// Actualiza la visibilidad de TODOS los selects secundarios según el toggle.
+function _refreshGestaltVisibility() {
+  document.querySelectorAll('.class-row-dynamic').forEach(row => {
+    const sec = row.querySelector('.class-select-secondary');
+    if (sec) sec.style.display = _gestaltModeOn ? '' : 'none';
+  });
+}
+
+function applyGestaltMode(on) {
+  _gestaltModeOn = !!on;
+  try { localStorage.setItem(GESTALT_MODE_KEY, on ? '1' : '0'); } catch(e) {}
+  const cb = document.getElementById('gestalt-mode');
+  if (cb && cb.checked !== _gestaltModeOn) cb.checked = _gestaltModeOn;
+  _refreshGestaltVisibility();
+  try { if (typeof syncClassSkills === 'function') syncClassSkills(); } catch(e) {}
+  try { if (typeof recalc === 'function') recalc(); } catch(e) {}
+}
+
+// Devuelve la classKey secundaria de una `.class-row-dynamic` (vacío si no hay).
+// Devuelve "" cuando Gestalt está OFF, garantizando que la lógica normal no
+// se vea afectada por valores residuales del select secundario.
+function _gestaltSecondaryKey(row) {
+  if (!_gestaltModeOn || !row) return '';
+  const sec = row.querySelector('.class-select-secondary');
+  return (sec && sec.value) ? sec.value : '';
+}
+
+// Score numérico para comparar BAB progressions: full > medium > slow.
+function _babRate(prog) {
+  if (prog === 'full') return 1;
+  if (prog === 'medium') return 0.75;
+  return 0.5;
+}
+
+// Devuelve la clase combinada efectiva (datos crudos) para una fila bajo
+// reglas Gestalt, mezclando classKey + secondaryKey. Si secondaryKey es
+// vacío o Gestalt OFF, devuelve la clase primaria sin tocar.
+function getGestaltEffectiveClass(classKey, archetypeKey, secondaryKey) {
+  const a = (DB.classes||{})[classKey];
+  if (!a) return null;
+  if (!_gestaltModeOn || !secondaryKey) return null; // null = "sin combinar"
+  const b = (DB.classes||{})[secondaryKey];
+  if (!b) return null;
+  const arch = archetypeKey ? (DB.archetypes||{})[archetypeKey] : null;
+  // Aplicamos arquetipo SOLO sobre la clase A (su clase nativa). La clase B va cruda.
+  const aBab   = (arch?.bab) || a.bab_progression;
+  const aFort  = (arch?.saves?.fort) || a.saves.fort;
+  const aRef   = (arch?.saves?.ref)  || a.saves.ref;
+  const aWill  = (arch?.saves?.will) || a.saves.will;
+  const aSP    = (arch?.skill_points != null) ? arch.skill_points : a.skill_points;
+  const aHD    = arch?.hit_die || a.hit_die || 8;
+  const bBab   = b.bab_progression;
+  const bFort  = b.saves.fort;
+  const bRef   = b.saves.ref;
+  const bWill  = b.saves.will;
+  const bSP    = b.skill_points;
+  const bHD    = b.hit_die || 8;
+  // BAB: el de mayor rate.
+  const bestBab = (_babRate(aBab) >= _babRate(bBab)) ? aBab : bBab;
+  // Saves: tomar 'good' si CUALQUIERA es good (max base por save).
+  const bestSave = (s1, s2) => (s1 === 'good' || s2 === 'good') ? 'good' : 'bad';
+  return {
+    bab_progression: bestBab,
+    saves: {
+      fort: bestSave(aFort, bFort),
+      ref:  bestSave(aRef,  bRef),
+      will: bestSave(aWill, bWill),
+    },
+    skill_points: (aSP|0) + (bSP|0),
+    hit_die: Math.max(aHD, bHD),
+    class_skills_merged: (() => {
+      const set = new Set();
+      (a.class_skills || []).forEach(s => set.add(s));
+      (b.class_skills || []).forEach(s => set.add(s));
+      return Array.from(set);
+    })(),
+  };
+}
+
 /* ── MODO MASTER + DROPDOWN FAB ─────────────────────────── */
 const MASTER_MODE_KEY = 'pf1e-master-mode';
 let _masterModeOn = false;
@@ -13393,6 +13565,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cb) cb.checked = on;
     applyEpicMode(on);
   } catch(e) { applyEpicMode(false); }
+
+  // R-28 · Init Gestalt Mode from localStorage (default OFF) + listener
+  try {
+    const gStored = localStorage.getItem(GESTALT_MODE_KEY);
+    const on = gStored === '1';
+    const cb = document.getElementById('gestalt-mode');
+    if (cb) cb.checked = on;
+    applyGestaltMode(on);
+  } catch(e) { applyGestaltMode(false); }
+  const gestaltCb = document.getElementById('gestalt-mode');
+  if (gestaltCb) gestaltCb.addEventListener('change', () => applyGestaltMode(gestaltCb.checked));
 
   // R-25 · Init Synthesist fused toggle from localStorage (default OFF).
   try {
