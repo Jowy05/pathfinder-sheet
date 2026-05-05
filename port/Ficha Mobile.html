@@ -8955,6 +8955,11 @@ function applyFontSize(size){
   document.body.style.fontSize = '';
 }
 function applyDaltonic(on){
+  /* Fix M-07: aplicar la clase a documentElement (=html) para que :root.daltonic-mode
+     funcione. El selector previo body.daltonic-mode :root es invalido porque :root
+     siempre es el ancestro de body, nunca descendiente, y las variables CSS no se
+     aplicaban. */
+  document.documentElement.classList.toggle('daltonic-mode', !!on);
   document.body.classList.toggle('daltonic-mode', !!on);
   let st = document.getElementById('css-daltonic');
   if(on){
@@ -8962,14 +8967,17 @@ function applyDaltonic(on){
       st = document.createElement('style');
       st.id = 'css-daltonic';
       st.textContent = `
+        :root.daltonic-mode{ --accent:#0066cc; --negative:#aa0000; --positive:#0a6b00; }
         body.daltonic-mode{ font-weight:600 !important; }
-        body.daltonic-mode :root{ --accent:#0066cc; --negative:#aa0000; --positive:#0a6b00; }
         body.daltonic-mode *{ text-shadow:none !important; }
         body.daltonic-mode .stat-tile-value, body.daltonic-mode .save-row .total{ font-weight:900 !important; }
         body.daltonic-mode .cond-chip.active{ outline:3px dashed var(--accent); outline-offset:-3px; }
       `;
       document.head.appendChild(st);
     }
+  } else if(st){
+    /* Eliminar el bloque de estilo cuando se apaga (evita queue de estilos huerfanos). */
+    st.remove();
   }
 }
 function populateThemeDropdown(){
