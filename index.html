@@ -217,6 +217,13 @@
     </div>
     <span class="hp-temp-note" data-i18n="hint.hpBonus">Bonus manual · solo informativo</span>
   </div>
+  <div class="hp-temp-row" id="synth-eid-hp-row" style="display:none;background:rgba(60,140,200,0.08);border-left:3px solid #3c8cc8;padding-left:6px;">
+    <div class="hp-temp-main">
+      <label style="color:#1f6090;font-weight:bold;" data-i18n="label.synthEidHp">🔗 PG Eidolón (Synthesist)</label>
+      <span id="synth-eid-hp-display" style="font-weight:700;font-size:13px;color:#1f6090;">0 / 0</span>
+    </div>
+    <span class="hp-temp-note" data-i18n="hint.synthEidHp">Daño al invocador fusionado consume PG del eidolón primero</span>
+  </div>
   <div class="hp-temp-row">
     <div class="hp-temp-main">
       <label data-i18n="label.tempHP">PG Temporales</label>
@@ -1198,6 +1205,23 @@
 <div class="panel full-row eidolon-panel" id="eidolon-panel" style="display:none;">
   <h2 class="collapsible-header collapsed" id="eidolon-header" data-i18n="p.eidolon">Eidolón</h2>
   <div class="collapsible-body hidden" id="eidolon-body">
+    <!-- R-25 · Synthesist: barra de fusión (visible sólo si arquetipo Synthesist) -->
+    <div id="synth-bar" style="display:none;margin-bottom:8px;padding:6px 8px;background:rgba(60,140,200,0.10);border:1px dashed #3c8cc8;border-radius:3px;font-size:11px;">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:bold;color:#1f6090;">
+          <input type="checkbox" id="synth-fused"> <span data-i18n="synth.fusedLabel">🔗 Fusionado con eidolón</span>
+        </label>
+        <span style="color:var(--leather-lt);" data-i18n="synth.note">Mientras esté fusionado: FUE/DES/CON del eidolón, BAB del eidolón, talla y velocidad del eidolón, salvaciones max(invocador, eidolón). INT/SAB/CAR del invocador.</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:4px;flex-wrap:wrap;">
+        <span style="color:#1f6090;font-weight:bold;" data-i18n="synth.eidHpLabel">PG eidolón (manual):</span>
+        <input type="number" id="synth-eid-hp-current" value="0" min="0" style="width:55px;text-align:center;" placeholder="actual">
+        <span>/</span>
+        <input type="number" id="synth-eid-hp-max" value="0" min="0" style="width:55px;text-align:center;" placeholder="máx">
+        <span style="color:var(--leather-lt);font-style:italic;" data-i18n="synth.eidHpHint">Aplicar daño al eidolón antes que al invocador (gestión manual).</span>
+      </div>
+    </div>
+
     <!-- R-24 · Broodmaster: selector de eidolón activo (sólo visible si arquetipo Broodmaster) -->
     <div id="brood-bar" style="display:none;margin-bottom:8px;padding:6px 8px;background:rgba(140,60,160,0.10);border:1px dashed #8c3ca0;border-radius:3px;font-size:11px;">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -1977,6 +2001,7 @@ const I18N = {
     'opt.lvAbbr':'Nv.','fallback.className':'clase','m.copyCmd':'Copia este comando:','opt.searchPlaceholder':'Buscar…','label.compTemplate':'Plantilla','opt.pickTemplate':'— Selecciona animal —',
     'p.eidolon':'Eidolón','label.eidName':'Nombre del Eidolón','label.eidBaseForm':'Forma Base','opt.pickBaseForm':'— Selecciona —','eid.biped':'Bípedo','eid.quadruped':'Cuadrúpedo','eid.serpentine':'Serpentino','eid.aquatic':'Acuático','eid.avian':'Aviano','eid.tauric':'Tauriforme','label.eidSubtype':'Subtipo / Linaje','label.eidAlign':'Alineamiento','label.eidSize':'Tamaño','p.eidAttrs':'Atributos','p.eidStats':'Estadísticas Calculadas','p.eidNotes':'Notas','label.skillPoints':'Puntos Hab.','label.eidNatAC':'CA Nat.','label.eidMaxAtk':'Atq. Máx','label.eidEP':'EP','ph.eidName':'Ej. Vorthag','p.eidEvolutions':'Evolutions','eid.epUsed':'PE usados','opt.allCosts':'— Coste —','opt.pickEvolution':'Selecciona una evolution…','btn.addEvolution':'Añadir Evolution','p.eidSelectedEvos':'Evolutions Seleccionadas','p.eidFreeEvos':'Evolutions Gratis (por forma base)','opt.allDcs':'— DC —','opt.tricksPackage':'Paquete','opt.pickTrick':'Selecciona un truco…','btn.addTrickFromList':'Añadir desde lista','btn.addCustomTrick':'[+] Personalizado','label.eidUcSubtype':'Subtipo Unchained','opt.pickUcSubtype':'— Selecciona —','p.eidUcFeatures':'Habilidades de Subtipo (Unchained)','eid.ucFeaturesNote':'Habilidades fijas que el eidolón gana automáticamente al alcanzar el HD correspondiente, según el subtipo elegido.','label.eidElementalChoice':'Elemento (Elemental)','elem.air':'Aire','elem.earth':'Tierra','elem.fire':'Fuego','elem.water':'Agua','p.eidClassFeatures':'Class Features (Bonos de Clase Favorecida)','eid.fcbNote':'Bonos acumulados al elegir +1 PG / +1 rango habilidad como bonificación de clase favorecida en cada nivel de Convocador (Half-elf y Humano). Suma manual.','fcb.eidHP':'Bonus Eidolon Hit Point','fcb.eidSkill':'Bonus Eidolon Skill Rank','fcb.hp':'Bonus Hit Point (invocador)','fcb.skill':'Bonus Skill Rank (invocador)',
     'brood.label':'Broodmaster — Editando:','brood.eid1':'Eidolón 1','brood.eid2':'Eidolón 2','brood.note':'Cada cría comparte el pool de PE (½) y es una talla menor que un eidolón normal. Evos, nombre, forma y FCB son independientes.','brood.epSummary':'PE totales: {total} · E1: {a} · E2: {b} · Disponible: {free}',
+    'synth.fusedLabel':'🔗 Fusionado con eidolón','synth.note':'Mientras esté fusionado: FUE/DES/CON del eidolón, BAB del eidolón, talla y velocidad del eidolón, salvaciones max(invocador, eidolón). INT/SAB/CAR del invocador.','synth.eidHpLabel':'PG eidolón (manual):','synth.eidHpHint':'Aplicar daño al eidolón antes que al invocador (gestión manual).','synth.tooltipEidolon':'(Eidolón)','synth.fusedBadge':'🔗 Fusionado','label.synthEidHp':'🔗 PG Eidolón (Synthesist)','hint.synthEidHp':'Daño al invocador fusionado consume PG del eidolón primero',
     'dmg.critX':'×CRIT','dmg.dmg':'DMG',
     'attrName.str':'Fuerza','attrName.dex':'Destreza','attrName.con':'Constitución','attrName.int':'Inteligencia','attrName.wis':'Sabiduría','attrName.cha':'Carisma',
     // P-1 · Buff Tracker
@@ -2394,6 +2419,7 @@ const I18N = {
     'opt.lvAbbr':'Lv.','fallback.className':'class','m.copyCmd':'Copy this command:','opt.searchPlaceholder':'Search…','label.compTemplate':'Template','opt.pickTemplate':'— Select animal —',
     'p.eidolon':'Eidolon','label.eidName':'Eidolon Name','label.eidBaseForm':'Base Form','opt.pickBaseForm':'— Select —','eid.biped':'Biped','eid.quadruped':'Quadruped','eid.serpentine':'Serpentine','eid.aquatic':'Aquatic','eid.avian':'Avian','eid.tauric':'Tauric','label.eidSubtype':'Subtype / Lineage','label.eidAlign':'Alignment','label.eidSize':'Size','p.eidAttrs':'Attributes','p.eidStats':'Computed Stats','p.eidNotes':'Notes','label.skillPoints':'Skill Pts','label.eidNatAC':'Nat. AC','label.eidMaxAtk':'Max Atk','label.eidEP':'EP','ph.eidName':'e.g. Vorthag','p.eidEvolutions':'Evolutions','eid.epUsed':'EP used','opt.allCosts':'— Cost —','opt.pickEvolution':'Pick an evolution…','btn.addEvolution':'Add Evolution','p.eidSelectedEvos':'Selected Evolutions','p.eidFreeEvos':'Free Evolutions (per base form)','opt.allDcs':'— DC —','opt.tricksPackage':'Package','opt.pickTrick':'Pick a trick…','btn.addTrickFromList':'Add from list','btn.addCustomTrick':'[+] Custom','label.eidUcSubtype':'Unchained Subtype','opt.pickUcSubtype':'— Select —','p.eidUcFeatures':'Subtype Features (Unchained)','eid.ucFeaturesNote':'Fixed features the eidolon gains automatically upon reaching the matching HD, according to the chosen subtype.','label.eidElementalChoice':'Element (Elemental)','elem.air':'Air','elem.earth':'Earth','elem.fire':'Fire','elem.water':'Water','p.eidClassFeatures':'Class Features (Favored Class Bonuses)','eid.fcbNote':'Bonuses accumulated by picking +1 HP / +1 skill rank as the favored class bonus at each Summoner level (Half-elf and Human). Manual sum.','fcb.eidHP':'Bonus Eidolon Hit Point','fcb.eidSkill':'Bonus Eidolon Skill Rank','fcb.hp':'Bonus Hit Point (summoner)','fcb.skill':'Bonus Skill Rank (summoner)',
     'brood.label':'Broodmaster — Editing:','brood.eid1':'Eidolon 1','brood.eid2':'Eidolon 2','brood.note':'Each brood eidolon shares the EP pool (½) and is one size smaller than a normal eidolon. Evos, name, form and FCB are independent.','brood.epSummary':'Total EP: {total} · E1: {a} · E2: {b} · Available: {free}',
+    'synth.fusedLabel':'🔗 Fused with eidolon','synth.note':'While fused: STR/DEX/CON from eidolon, BAB from eidolon, eidolon size and speed, saves max(summoner, eidolon). INT/WIS/CHA from summoner.','synth.eidHpLabel':'Eidolon HP (manual):','synth.eidHpHint':'Apply damage to the eidolon before the summoner (manual tracking).','synth.tooltipEidolon':'(Eidolon)','synth.fusedBadge':'🔗 Fused','label.synthEidHp':'🔗 Eidolon HP (Synthesist)','hint.synthEidHp':'Damage to the fused summoner consumes eidolon HP first',
     'dmg.critX':'×CRIT','dmg.dmg':'DMG',
     'attrName.str':'Strength','attrName.dex':'Dexterity','attrName.con':'Constitution','attrName.int':'Intelligence','attrName.wis':'Wisdom','attrName.cha':'Charisma',
     // P-1 · Buff Tracker
@@ -5735,6 +5761,11 @@ function recalc() {
 
   buildHPDiceIfChanged();       // rebuild HP dice only when class/level changes
   updateProfSummary();
+  // R-25 · Refrescar UI Synthesist (visibilidad barra, talla/velocidad)
+  // ANTES de calcAttributes para que la sustitución de stats use los valores
+  // correctos del eidolón.
+  if (typeof _synthRefreshUi === 'function') _synthRefreshUi();
+  if (typeof _synthApplySizeAndSpeed === 'function') _synthApplySizeAndSpeed();
   const buffDeltas = gatherBuffDeltas();
   const mods = calcAttributes(buffDeltas);
   const {bab, baseFort, baseRef, baseWill, totalLevel, totalHD} = calcClassProgression();
@@ -5825,6 +5856,9 @@ function calcAttributes(buffDeltas = {}) {
     || document.getElementById('cond-pinned').checked;
 
   const mods = {};
+  // R-25 · Synthesist fusionado: stats físicos del eidolón sustituyen al invocador.
+  const synthFused = (typeof _isSynthFused === 'function') ? _isSynthFused() : false;
+  const eidPhys = synthFused ? _getEidolonPhysicalRaw() : null;
   ATTRS.forEach(a => {
     const base     = parseInt(gv(`${a}-base`)) || 0;
     const racial   = parseInt(gv(`${a}-racial`)) || 0;
@@ -5832,11 +5866,19 @@ function calcAttributes(buffDeltas = {}) {
     const inherent = parseInt(gv(`${a}-inherent`)) || 0;
     const misc2    = parseInt(gv(`${a}-misc2`)) || 0;
     const temp     = parseInt(gv(`${a}-temp`)) || 0;
-    
+
     const drain   = Math.max(0, parseInt(gv(`${a}-drain`)) || 0);
     const dmg     = Math.max(0, parseInt(gv(`${a}-dmg`))   || 0);
 
     let total = base + racial + enhance + inherent + misc2 + temp + ageMods[a] + (buffDeltas[a] || 0) - drain;
+
+    // R-25 · Si fusionado, FUE/DES/CON pasan a ser las del eidolón (drain/dmg
+    // siguen aplicando al combinado pero los buffs/edad/condiciones afectan
+    // ahora al cuerpo fusionado igual que afectarían al invocador). INT/SAB/CAR
+    // se mantienen del invocador.
+    if (synthFused && eidPhys && (a === 'str' || a === 'dex' || a === 'con')) {
+      total = eidPhys[a] + temp + ageMods[a] + (buffDeltas[a] || 0) - drain;
+    }
 
     if(a==='str') total += condStr;
     if(a==='dex') total += condDex;
@@ -5901,7 +5943,22 @@ function calcClassProgression() {
     if(goodWill) baseWill += 2;
   }
 
-  const bab = Math.floor(babAcc);
+  let bab = Math.floor(babAcc);
+
+  // R-25 · Synthesist fusionado: el invocador usa BAB y saves base del eidolón
+  // (max para los saves). El eidolón ya tiene su BAB calculado (HD×3/4) en
+  // #eid-bab y sus saves base en #eid-fort/#eid-ref/#eid-will.
+  if (typeof _isSynthFused === 'function' && _isSynthFused()) {
+    const eidBab = parseInt(document.getElementById('eid-bab')?.value) || 0;
+    const eidFort = parseInt(document.getElementById('eid-fort')?.value) || 0;
+    const eidRef  = parseInt(document.getElementById('eid-ref')?.value)  || 0;
+    const eidWill = parseInt(document.getElementById('eid-will')?.value) || 0;
+    bab = eidBab; // sustituye, no suma (regla APG pg. 142)
+    baseFort = Math.max(baseFort, eidFort);
+    baseRef  = Math.max(baseRef,  eidRef);
+    baseWill = Math.max(baseWill, eidWill);
+  }
+
   sv('bab-total', bab >= 0 ? `+${bab}` : `${bab}`);
 
   // XP Threshold calculation
@@ -8654,6 +8711,106 @@ function getSummonerClassKey() {
   return cls;
 }
 
+/* ── R-25 · SYNTHESIST: detección + estado de fusión ─────── */
+function _isSynthesist() {
+  const arch = getSummonerArchetype();
+  return arch === 'synthesist' || arch === 'synthesist_unchained';
+}
+
+// Devuelve true sólo si es Synthesist Y el toggle "Fusionado" está activo.
+function _isSynthFused() {
+  if (!_isSynthesist()) return false;
+  const cb = document.getElementById('synth-fused');
+  return !!(cb && cb.checked);
+}
+
+const SYNTH_FUSED_KEY = 'pf1e-synth-fused';
+
+function _synthRefreshUi() {
+  const bar = document.getElementById('synth-bar');
+  const isSynth = _isSynthesist();
+  if (bar) bar.style.display = isSynth ? '' : 'none';
+  // Si deja de ser Synthesist, forzar desactivar fusión para no contaminar cálculos.
+  if (!isSynth) {
+    const cb = document.getElementById('synth-fused');
+    if (cb && cb.checked) cb.checked = false;
+  }
+  _synthApplyVisuals();
+}
+
+// Aplica clases visuales/tooltips a las cards de FUE/DES/CON cuando fusionado.
+function _synthApplyVisuals() {
+  const fused = _isSynthFused();
+  ['str','dex','con'].forEach(a => {
+    const totEl = document.getElementById(`${a}-total`);
+    const modEl = document.getElementById(`${a}-mod`);
+    const card = totEl ? totEl.closest('tr, .attr-card, .label-row') : null;
+    [totEl, modEl, card].forEach(el => {
+      if (!el) return;
+      el.classList.toggle('synth-fused-attr', fused);
+      if (fused) el.setAttribute('title', (typeof t === 'function' ? t('synth.tooltipEidolon') : '(Eidolón)'));
+      else if (el.getAttribute('title') === '(Eidolón)' || el.getAttribute('title') === '(Eidolon)') el.removeAttribute('title');
+    });
+  });
+  // Indicador en panel de PG.
+  const synthRow = document.getElementById('synth-eid-hp-row');
+  if (synthRow) synthRow.style.display = fused ? '' : 'none';
+  _synthUpdateEidHpDisplay();
+}
+
+function _synthUpdateEidHpDisplay() {
+  const cur = parseInt(document.getElementById('synth-eid-hp-current')?.value) || 0;
+  const max = parseInt(document.getElementById('synth-eid-hp-max')?.value) || 0;
+  const disp = document.getElementById('synth-eid-hp-display');
+  if (disp) disp.textContent = `${cur} / ${max}`;
+}
+
+// R-25 · Aplica/restaura overrides de talla y velocidad cuando se fusiona.
+// Conserva los valores originales del invocador en data-attrs para poder
+// volver al estado previo cuando se separa.
+let _SYNTH_LAST_FUSED = false;
+function _synthApplySizeAndSpeed() {
+  const fused = _isSynthFused();
+  const sizeEl = document.getElementById('char-size');
+  const speedEl = document.getElementById('base-speed');
+  // Transición a fusionado: guardar valores actuales del invocador.
+  if (fused && !_SYNTH_LAST_FUSED) {
+    if (sizeEl && sizeEl.dataset.synthBackup === undefined) sizeEl.dataset.synthBackup = sizeEl.value || '';
+    if (speedEl && speedEl.dataset.synthBackup === undefined) speedEl.dataset.synthBackup = speedEl.value || '';
+  }
+  // Transición a separado: restaurar valores del invocador y limpiar backups.
+  if (!fused && _SYNTH_LAST_FUSED) {
+    if (sizeEl && sizeEl.dataset.synthBackup !== undefined) {
+      sizeEl.value = sizeEl.dataset.synthBackup;
+      delete sizeEl.dataset.synthBackup;
+    }
+    if (speedEl && speedEl.dataset.synthBackup !== undefined) {
+      speedEl.value = speedEl.dataset.synthBackup;
+      delete speedEl.dataset.synthBackup;
+    }
+  }
+  // Si fusionado, sobrescribir con datos del eidolón.
+  if (fused) {
+    const eidSize = document.getElementById('eid-size')?.value;
+    if (eidSize && sizeEl) sizeEl.value = eidSize;
+    // Velocidad del eidolón: no hay un único campo eid-speed; algunas fichas usan
+    // notas. Si existe, se usa; si no, se mantiene la del invocador (fallback).
+    const eidSpeedEl = document.getElementById('eid-speed');
+    const eidSpeed = eidSpeedEl ? (parseInt(eidSpeedEl.value) || 0) : 0;
+    if (speedEl && eidSpeed > 0) speedEl.value = eidSpeed;
+  }
+  _SYNTH_LAST_FUSED = fused;
+}
+
+// Devuelve los puntos físicos del eidolón listos para sustituir base+racial+...
+// (totales en bruto, sin restar drain/dmg). El consumidor los usa como pretotal.
+function _getEidolonPhysicalRaw() {
+  const str = parseInt(document.getElementById('eid-str')?.value) || 10;
+  const dex = parseInt(document.getElementById('eid-dex')?.value) || 10;
+  const con = parseInt(document.getElementById('eid-con')?.value) || 10;
+  return { str, dex, con };
+}
+
 function updateEidolonVisibility() {
   const panel = document.getElementById('eidolon-panel');
   if (!panel) return;
@@ -8813,6 +8970,24 @@ document.addEventListener('change', e => {
     recalcEidolon();
     // Re-evaluate evolution lock states (base form / HD may have changed)
     if (typeof populateEidolonEvolutionSelect === 'function') populateEidolonEvolutionSelect();
+  }
+});
+
+// R-25 · Listeners Synthesist: toggle de fusión y PG eidolón manual.
+document.addEventListener('change', e => {
+  if (!e.target) return;
+  if (e.target.id === 'synth-fused') {
+    try { localStorage.setItem(SYNTH_FUSED_KEY, e.target.checked ? '1' : '0'); } catch(_){}
+    if (typeof recalc === 'function') recalc();
+  } else if (e.target.id?.startsWith('archetype')) {
+    // Si cambia el arquetipo, refrescar barra Synthesist (puede ocultarse).
+    _synthRefreshUi();
+  }
+});
+document.addEventListener('input', e => {
+  if (!e.target) return;
+  if (e.target.id === 'synth-eid-hp-current' || e.target.id === 'synth-eid-hp-max') {
+    _synthUpdateEidHpDisplay();
   }
 });
 
@@ -11129,6 +11304,9 @@ function exportData() {
   // R-29 · Epic mode flag (niveles 21-30)
   try { data['__epic_mode'] = !!_epicModeOn; } catch(e) { data['__epic_mode'] = false; }
 
+  // R-25 · Synthesist fused toggle (visible sólo si arquetipo Synthesist)
+  try { data['__synth_fused'] = !!document.getElementById('synth-fused')?.checked; } catch(e) { data['__synth_fused'] = false; }
+
   const json = JSON.stringify(data, null, 2);
   // Android: ir directo al bridge nativo. El truco del <a download> falla
   // en algunos WebViews porque el <a> no está en el DOM y el evento no
@@ -11468,6 +11646,15 @@ function importData(event) {
       }
       // P-1 · Buff Tracker state
       try { btrRestore(data['__buff_tracker']); } catch(e) { btrRestore(null); }
+      // R-25 · Restaurar toggle Synthesist fusionado (si la ficha lo trae).
+      try {
+        if (data['__synth_fused'] !== undefined) {
+          const cb = document.getElementById('synth-fused');
+          if (cb) cb.checked = !!data['__synth_fused'];
+          try { localStorage.setItem(SYNTH_FUSED_KEY, data['__synth_fused'] ? '1' : '0'); } catch(_){}
+        }
+        if (typeof _synthRefreshUi === 'function') _synthRefreshUi();
+      } catch(_){}
       recalc();
       // Restore per-level HP dice display (inputs created by buildHPDiceIfChanged inside recalc)
       if (data['__hp_dice_vals']) {
@@ -12909,6 +13096,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cb) cb.checked = on;
     applyEpicMode(on);
   } catch(e) { applyEpicMode(false); }
+
+  // R-25 · Init Synthesist fused toggle from localStorage (default OFF).
+  try {
+    const synthStored = localStorage.getItem(SYNTH_FUSED_KEY);
+    const cb = document.getElementById('synth-fused');
+    if (cb) cb.checked = synthStored === '1';
+  } catch(e) {}
+  if (typeof _synthRefreshUi === 'function') _synthRefreshUi();
   const epicCb = document.getElementById('epic-mode');
   if (epicCb) epicCb.addEventListener('change', () => applyEpicMode(epicCb.checked));
 
