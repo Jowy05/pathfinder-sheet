@@ -6732,7 +6732,25 @@ function updateCharSub(){
   sub.textContent = `${clase} · ${niv} · ${raza}`;
 }
 const __raza = document.getElementById('in-raza');
-if(__raza) __raza.addEventListener('input',updateCharSub);
+if(__raza){
+  __raza.addEventListener('input',updateCharSub);
+  /* Fix P-04: si el usuario teclea una raza conocida (en lugar de usar el picker),
+     aplicar applyRaceFull al perder foco/cambio. El picker setea value via JS y NO
+     dispara change, asi que no hay doble ejecucion. */
+  __raza.addEventListener('change', ()=>{
+    const v = __raza.value.trim();
+    if(!v) return;
+    /* Solo dispara si la raza esta en RACES_DATA o RACES_DATA_FULL */
+    let known = false;
+    try{
+      if(typeof RACES_DATA !== 'undefined' && RACES_DATA.some(r=>r[0]===v || r.name===v)) known = true;
+      if(!known && typeof RACES_DATA_FULL !== 'undefined' && RACES_DATA_FULL.some(r=>r.name===v)) known = true;
+    }catch(e){}
+    if(known && typeof applyRaceFull === 'function'){
+      try{ applyRaceFull(v); }catch(e){ console.warn('applyRaceFull on type:', e); }
+    }
+  });
+}
 
 /* M-13: handler mock de foto eliminado.
    bindPhotoButtons() en D6 ya conecta data-avatar-action a:
