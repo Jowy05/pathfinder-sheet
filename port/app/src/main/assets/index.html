@@ -5537,12 +5537,193 @@ function _showLevelUpBanner(text){
     banner = document.createElement('div');
     banner.id = 'levelup-banner';
     banner.style.cssText = 'position:fixed;top:64px;left:8px;right:8px;background:linear-gradient(135deg,var(--accent),var(--positive));color:white;padding:10px 14px;border-radius:10px;z-index:9999;font:600 12px system-ui;line-height:1.4;box-shadow:0 4px 16px rgba(0,0,0,0.3);cursor:pointer;animation:fadeIn 200ms';
-    banner.addEventListener('click', ()=>banner.remove());
     document.body.appendChild(banner);
   }
-  banner.innerHTML = `<div style="font:700 13px 'Cinzel',serif;margin-bottom:4px">⬆ Subiste de nivel</div><div>${text}</div><div style="font:10px system-ui;opacity:0.8;margin-top:4px">Tap para cerrar</div>`;
+  banner.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <span style="font:700 14px 'Cinzel',serif;flex:1">⬆ Subiste de nivel</span>
+      <button data-lub-close style="background:transparent;border:0;color:white;font-size:18px;cursor:pointer;padding:0 4px">✕</button>
+    </div>
+    <div style="margin-bottom:8px">${text}</div>
+    <button data-lub-open style="width:100%;background:rgba(255,255,255,0.2);border:1px solid white;color:white;padding:6px;border-radius:6px;font:600 11px system-ui;cursor:pointer">🧙 Abrir asistente paso a paso</button>`;
+  banner.querySelector('[data-lub-close]')?.addEventListener('click',(e)=>{ e.stopPropagation(); banner.remove(); });
+  banner.querySelector('[data-lub-open]')?.addEventListener('click',(e)=>{
+    e.stopPropagation();
+    /* UX-12 Fase G: abrir asistente con la última subida (la primera clase con cambio reciente) */
+    const cl = (CLASSES_DATA||[])[0];
+    if(cl && typeof _openLevelUpAssistant === 'function'){
+      const newLvl = parseInt(cl.level,10) || 1;
+      _openLevelUpAssistant(cl, Math.max(1, newLvl-1), newLvl);
+      banner.remove();
+    }
+  });
   clearTimeout(banner.__timer);
-  banner.__timer = setTimeout(()=>banner.remove(), 12000);
+  banner.__timer = setTimeout(()=>banner.remove(), 15000);
+}
+
+/* UX-12 Fase G: asistente paso a paso "Subir nivel".
+   4 pasos: HP, habilidades, dote (si toca), conjuros (si caster). */
+const _LVLUP_STATE = { step: 1, totalSteps: 4, classRow: null, oldLvl: 0, newLvl: 0, hpMode: '', hpRolled: 0, skillPointsToAssign: 0 };
+function _openLevelUpAssistant(cl, oldLvl, newLvl){
+  if(!cl){ cl = (CLASSES_DATA||[])[0]; oldLvl = cl ? Math.max(1, (cl.level||1)-1) : 0; newLvl = cl ? (cl.level||1) : 0; }
+  _LVLUP_STATE.classRow = cl;
+  _LVLUP_STATE.oldLvl = oldLvl;
+  _LVLUP_STATE.newLvl = newLvl;
+  _LVLUP_STATE.step = 1;
+  _LVLUP_STATE.hpMode = '';
+  _LVLUP_STATE.hpRolled = 0;
+  const dbCls = DB?.classes?.[cl?.classKey];
+  const intMod = (typeof ATTRS!=='undefined') ? (ATTRS.find(r=>r[0]==='INT')?.[3] || 0) : 0;
+  _LVLUP_STATE.skillPointsToAssign = Math.max(1, (dbCls?.skill_points || 2) + intMod);
+  let dlg = document.getElementById('sheet-levelup-assist');
+  if(!dlg){
+    dlg = document.createElement('dialog');
+    dlg.className = 'bottom-sheet';
+    dlg.id = 'sheet-levelup-assist';
+    dlg.setAttribute('aria-label','Asistente subir nivel');
+    dlg.innerHTML = `
+      <div class="drag-handle"></div>
+      <div class="sheet-header">
+        <div class="sheet-title">⬆ Asistente subir nivel</div>
+        <button class="sheet-close" data-close>✕</button>
+      </div>
+      <div class="sheet-content">
+        <div id="lvlup-progress" style="display:flex;align-items:center;gap:6px;margin-bottom:12px"></div>
+        <div id="lvlup-content" style="min-height:200px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;border-top:1px solid var(--line);padding-top:12px">
+          <button class="btn-secondary" id="lvlup-prev">← Atrás</button>
+          <button class="btn-primary" id="lvlup-next">Siguiente →</button>
+        </div>
+      </div>`;
+    document.body.appendChild(dlg);
+    dlg.addEventListener('click',(e)=>{ if(e.target.matches('[data-close]')) dlg.close(); });
+    document.getElementById('lvlup-prev').addEventListener('click',()=>_lvlupGoTo(_LVLUP_STATE.step-1));
+    document.getElementById('lvlup-next').addEventListener('click',()=>{
+      if(_LVLUP_STATE.step >= _LVLUP_STATE.totalSteps){ _lvlupApply(); dlg.close(); return; }
+      _lvlupGoTo(_LVLUP_STATE.step+1);
+    });
+  }
+  _lvlupGoTo(1);
+  if(typeof openSheet === 'function') openSheet('sheet-levelup-assist');
+  else dlg.showModal();
+}
+function _lvlupGoTo(step){
+  step = Math.max(1, Math.min(_LVLUP_STATE.totalSteps, step));
+  _LVLUP_STATE.step = step;
+  const prog = document.getElementById('lvlup-progress');
+  if(prog){
+    prog.innerHTML = '';
+    for(let i=1; i<=_LVLUP_STATE.totalSteps; i++){
+      const d = document.createElement('div');
+      d.style.cssText = `flex:1;height:4px;background:${i<=step?'var(--accent)':'var(--surface-2)'};border-radius:99px`;
+      prog.appendChild(d);
+    }
+  }
+  const c = document.getElementById('lvlup-content');
+  if(!c) return;
+  const cl = _LVLUP_STATE.classRow;
+  const next = document.getElementById('lvlup-next');
+  if(next) next.textContent = (step === _LVLUP_STATE.totalSteps) ? '✓ Aplicar' : 'Siguiente →';
+  if(step === 1){
+    const hd = (cl?.hd || '1d8').replace(/^\d*d/,'d');
+    const dieFaces = parseInt(hd.replace('d',''),10) || 8;
+    const conMod = (typeof ATTRS!=='undefined') ? (ATTRS.find(r=>r[0]==='CON')?.[3] || 0) : 0;
+    const avg = Math.ceil((dieFaces+1)/2);
+    c.innerHTML = `
+      <h3 style="font:700 16px 'Cinzel',serif;margin-top:0">🎲 PG del Nv ${_LVLUP_STATE.newLvl}</h3>
+      <p style="font:13px/1.5 'EB Garamond',serif">Tu clase ${cl?.name||'?'} usa <b>1${hd}</b>. Modificador CON: <b>${conMod>=0?'+':''}${conMod}</b>.</p>
+      <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-top:12px">
+        <button class="btn-secondary lvlup-hp-mode" data-hp-mode="roll">🎲 Tirar 1${hd} <span id="lvlup-hp-roll-result" style="font-weight:700;color:var(--accent);margin-left:8px"></span></button>
+        <button class="btn-secondary lvlup-hp-mode" data-hp-mode="avg">📊 Promedio (${avg+conMod})</button>
+        <button class="btn-secondary lvlup-hp-mode" data-hp-mode="max">⭐ Máximo (${dieFaces+conMod})</button>
+      </div>
+      <div id="lvlup-hp-feedback" style="margin-top:12px;font:600 13px system-ui;color:var(--positive);text-align:center;min-height:18px"></div>`;
+    c.querySelectorAll('.lvlup-hp-mode').forEach(b=>b.addEventListener('click',()=>{
+      const m = b.dataset.hpMode;
+      _LVLUP_STATE.hpMode = m;
+      let v = 0;
+      if(m === 'roll'){ v = Math.floor(Math.random()*dieFaces) + 1; const out = document.getElementById('lvlup-hp-roll-result'); if(out) out.textContent = `→ ${v}`; }
+      else if(m === 'avg'){ v = avg; }
+      else if(m === 'max'){ v = dieFaces; }
+      _LVLUP_STATE.hpRolled = Math.max(1, v + conMod);
+      const fb = document.getElementById('lvlup-hp-feedback');
+      if(fb) fb.textContent = `+${_LVLUP_STATE.hpRolled} PG máx (mín 1)`;
+    }));
+  } else if(step === 2){
+    const sp = _LVLUP_STATE.skillPointsToAssign;
+    c.innerHTML = `
+      <h3 style="font:700 16px 'Cinzel',serif;margin-top:0">📚 Puntos de habilidad</h3>
+      <p style="font:13px/1.5 'EB Garamond',serif">Tienes <b style="color:var(--accent)">${sp}</b> puntos nuevos para asignar.</p>
+      <p style="font:12px/1.4 system-ui;color:var(--ink-muted)">Ve a <b>Aptitudes › Habilidades</b> para asignarlos. Recuerda: máximo de rangos por habilidad = nivel del personaje.</p>
+      <button class="btn-secondary" id="lvlup-go-skills" style="margin-top:12px;width:100%">Ir a Habilidades →</button>`;
+    document.getElementById('lvlup-go-skills')?.addEventListener('click',()=>{
+      try{
+        if(typeof setTab==='function') setTab('aptitudes');
+        const chip = document.querySelector('.tab-page[data-tab="aptitudes"] .subchip[data-sub="habilidades"]');
+        if(chip) chip.click();
+      }catch(_){}
+      const dlg = document.getElementById('sheet-levelup-assist');
+      if(dlg) dlg.close();
+      if(typeof toast==='function') toast(`Tienes ${sp} puntos para asignar`);
+    });
+  } else if(step === 3){
+    const givesFeat = (_LVLUP_STATE.newLvl % 2 === 1);
+    const isFighter = ['guerrero','fighter'].includes((cl?.classKey||'').toLowerCase());
+    const fighterBonus = isFighter && (_LVLUP_STATE.newLvl % 2 === 0);
+    const items = [];
+    if(givesFeat) items.push('🎖 Dote estándar (nivel impar)');
+    if(fighterBonus) items.push('⚔ Dote bonus de Guerrero (nivel par)');
+    if(!items.length){
+      c.innerHTML = `<h3 style="font:700 16px 'Cinzel',serif;margin-top:0">🎖 Dote</h3>
+        <p style="font:13px/1.5 'EB Garamond',serif">No te toca dote nueva en este nivel.</p>
+        <p style="font:12px/1.4 system-ui;color:var(--ink-muted)">Próxima dote estándar al siguiente nivel impar.</p>`;
+    } else {
+      c.innerHTML = `<h3 style="font:700 16px 'Cinzel',serif;margin-top:0">🎖 Dote nueva</h3>
+        <ul style="font:13px/1.6 'EB Garamond',serif;padding-left:20px">${items.map(i=>`<li>${i}</li>`).join('')}</ul>
+        <button class="btn-primary" id="lvlup-go-feats" style="margin-top:12px;width:100%">Abrir catálogo de dotes →</button>`;
+      document.getElementById('lvlup-go-feats')?.addEventListener('click',()=>{
+        try{
+          if(typeof setTab==='function') setTab('aptitudes');
+          const chip = document.querySelector('.tab-page[data-tab="aptitudes"] .subchip[data-sub="dotes"]');
+          if(chip) chip.click();
+          if(typeof openFeatPickerMobile==='function') setTimeout(openFeatPickerMobile, 200);
+        }catch(_){}
+        const dlg = document.getElementById('sheet-levelup-assist');
+        if(dlg) dlg.close();
+      });
+    }
+  } else if(step === 4){
+    const cid = canonicalClassId(cl?.name);
+    const info = (typeof PF1E_CASTER_INFO !== 'undefined') ? PF1E_CASTER_INFO[cid] : null;
+    const isCaster = info && info.mode && info.mode !== 'none';
+    if(!isCaster){
+      c.innerHTML = `<h3 style="font:700 16px 'Cinzel',serif;margin-top:0">📜 Conjuros</h3>
+        <p style="font:13px/1.5 'EB Garamond',serif">${cl?.name||'Tu clase'} no lanza conjuros. Pulsa <b>Aplicar</b> para terminar.</p>`;
+    } else {
+      c.innerHTML = `<h3 style="font:700 16px 'Cinzel',serif;margin-top:0">📜 Conjuros</h3>
+        <p style="font:13px/1.5 'EB Garamond',serif">Tus slots se actualizan automáticamente al aplicar el nivel. ${info.mode === 'spont' ? 'Como lanzador espontáneo, también puedes aprender nuevos conjuros conocidos.' : 'Como lanzador preparado, decide mañana qué preparar.'}</p>
+        <button class="btn-secondary" id="lvlup-go-spells" style="margin-top:12px;width:100%">Ir a Conjuros →</button>`;
+      document.getElementById('lvlup-go-spells')?.addEventListener('click',()=>{
+        try{
+          if(typeof setTab==='function') setTab('aptitudes');
+          const chip = document.querySelector('.tab-page[data-tab="aptitudes"] .subchip[data-sub="conjuros"]');
+          if(chip) chip.click();
+        }catch(_){}
+        const dlg = document.getElementById('sheet-levelup-assist');
+        if(dlg) dlg.close();
+      });
+    }
+  }
+  const prev = document.getElementById('lvlup-prev');
+  if(prev) prev.disabled = step === 1;
+}
+function _lvlupApply(){
+  if(_LVLUP_STATE.hpRolled > 0 && typeof HP_MAX !== 'undefined'){
+    HP_MAX = HP_MAX + _LVLUP_STATE.hpRolled;
+    if(typeof refreshHP === 'function') refreshHP();
+    if(typeof toast === 'function') toast(`✓ +${_LVLUP_STATE.hpRolled} PG máx`);
+    if(typeof saveStateDebounced === 'function') saveStateDebounced('lvlup-apply');
+  } else if(typeof toast === 'function') toast('Nivel aplicado');
 }
 
 // fillPicker variant that supports 3-element tuples [name, desc, key]
@@ -5981,19 +6162,23 @@ function renderInit(){
     b.addEventListener('click',()=>{ INIT_LIST.splice(+b.dataset.initDel,1); renderInit(); });
   });
   c.querySelectorAll('[data-init-dmg]').forEach(b=>{
-    b.addEventListener('click',()=>{
-      const v = prompt('Daño:'); if(!v) return;
+    b.addEventListener('click', async ()=>{
       const r = INIT_LIST[+b.dataset.initDmg]; if(!r) return;
+      const v = await appPrompt(`Daño a ${r.n}:`, '', {title:'Aplicar daño', type:'number', placeholder:'Cantidad'});
+      if(v === null || v === '') return;
       r.hp = Math.max(-99, r.hp - (parseInt(v,10)||0));
       renderInit();
+      if(typeof saveStateDebounced==='function') saveStateDebounced('init-dmg');
     });
   });
   c.querySelectorAll('[data-init-heal]').forEach(b=>{
-    b.addEventListener('click',()=>{
-      const v = prompt('Curar:'); if(!v) return;
+    b.addEventListener('click', async ()=>{
       const r = INIT_LIST[+b.dataset.initHeal]; if(!r) return;
+      const v = await appPrompt(`Curar a ${r.n}:`, '', {title:'Curar', type:'number', placeholder:'Cantidad'});
+      if(v === null || v === '') return;
       r.hp = Math.min(r.hpMax, r.hp + (parseInt(v,10)||0));
       renderInit();
+      if(typeof saveStateDebounced==='function') saveStateDebounced('init-heal');
     });
   });
   /* ME-5 Fase E: tokens de acción por combatiente */
@@ -6007,12 +6192,12 @@ function renderInit(){
       if(typeof saveStateDebounced==='function') saveStateDebounced('init-action');
     });
   });
-  /* ME-5 Fase E: gestor de condiciones por combatiente — prompt con lista */
+  /* ME-5 Fase E + UX-14 Fase G: gestor de condiciones por combatiente con modal in-app */
   c.querySelectorAll('.init-cond-btn').forEach(b=>{
-    b.addEventListener('click',()=>{
+    b.addEventListener('click', async ()=>{
       const r = INIT_LIST[+b.dataset.initCond]; if(!r) return;
       const cur = (r.conds||[]).join(', ');
-      const v = prompt('Condiciones (separadas por coma) — ej: aturdido, asustado, enredado:', cur);
+      const v = await appPrompt('Condiciones (separadas por coma):', cur, {title:`Condiciones de ${r.n}`, placeholder:'aturdido, asustado, enredado'});
       if(v === null) return;
       r.conds = v.split(',').map(s=>s.trim()).filter(Boolean);
       renderInit();
@@ -6617,16 +6802,17 @@ function bindNewSheets(){
     const list = document.getElementById('class-list');
     const search = document.getElementById('class-search');
     const allData = getClassPickerData();
-    const addCls = ([n,,k])=>{
+    const addCls = async ([n,,k])=>{
       const dbCls = k && DB.classes?.[k];
-      /* MD-5 Fase D: si es prestige, validar prerequisites */
+      /* MD-5 Fase D + UX-14 Fase G: validación con modal in-app async */
       if(dbCls && dbCls.category === 'prestige' && Array.isArray(dbCls.prerequisites) && dbCls.prerequisites.length){
         const check = checkPrestigePrerequisitesMobile(k);
         if(!check.met){
           const missing = check.missing.length ? '• ' + check.missing.join('\n• ') : '';
-          const unknown = check.unknown.length ? '\n\nNo verificables (revisa manualmente):\n• ' + check.unknown.join('\n• ') : '';
+          const unknown = check.unknown.length ? '\n\nNo verificables:\n• ' + check.unknown.join('\n• ') : '';
           const msg = 'Esta clase prestigiosa requiere:\n\n' + missing + unknown + '\n\n¿Añadir igualmente?';
-          if(!confirm(msg)) return;
+          const ok = await appConfirm(msg, {title:'Prereqs no cumplidos', okText:'Añadir igualmente', cancelText:'Cancelar'});
+          if(!ok) return;
         }
       }
       const hd = dbCls ? `1d${dbCls.hit_die||8}` : '1d8';
@@ -6791,11 +6977,14 @@ function bindNewSheets(){
     renderInit();
   });
   const initReset = document.getElementById('init-reset');
-  if(initReset) initReset.addEventListener('click',()=>{
-    if(!confirm('¿Resetear el tracker de iniciativa?')) return;
+  if(initReset) initReset.addEventListener('click', async ()=>{
+    /* UX-14 Fase G: modal in-app */
+    const ok = await appConfirm('Borra todos los combatientes y vuelve al asalto 1.', {title:'¿Resetear tracker?', okText:'Resetear', cancelText:'Cancelar', danger:true});
+    if(!ok) return;
     INIT_LIST.length = 0;
     INIT_ROUND = 1;
     renderInit();
+    if(typeof saveStateDebounced==='function') saveStateDebounced('init-reset');
   });
   /* M-12: ordenar combatientes por iniciativa descendente */
   const initSort = document.getElementById('init-sort');
@@ -10664,6 +10853,116 @@ function wireSummaryAttack(){
   });
 }
 
+/* UX-14 Fase G: modal in-app para sustituir confirm()/prompt() en flujos
+   sensibles (Android WebView puede bloquear esos diálogos nativos).
+   Devuelve Promise<boolean> (confirm) o Promise<string|null> (prompt). */
+function appConfirm(message, opts){
+  opts = opts || {};
+  return new Promise((resolve)=>{
+    let dlg = document.getElementById('sheet-app-confirm');
+    if(!dlg){
+      dlg = document.createElement('dialog');
+      dlg.className = 'bottom-sheet';
+      dlg.id = 'sheet-app-confirm';
+      dlg.setAttribute('aria-label','Confirmación');
+      dlg.innerHTML = `
+        <div class="drag-handle"></div>
+        <div class="sheet-header">
+          <div class="sheet-title" id="ac-title">Confirmar</div>
+          <button class="sheet-close" data-close>✕</button>
+        </div>
+        <div class="sheet-content">
+          <div id="ac-body" style="font:13px/1.5 'EB Garamond',serif;white-space:pre-wrap;margin-bottom:16px"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <button class="btn-secondary" id="ac-cancel">Cancelar</button>
+            <button class="btn-primary" id="ac-ok">Aceptar</button>
+          </div>
+        </div>`;
+      document.body.appendChild(dlg);
+    }
+    const okBtn = document.getElementById('ac-ok');
+    const cnBtn = document.getElementById('ac-cancel');
+    const title = document.getElementById('ac-title');
+    const body  = document.getElementById('ac-body');
+    if(title) title.textContent = opts.title || 'Confirmar';
+    if(body)  body.textContent  = message || '';
+    if(okBtn) okBtn.textContent = opts.okText || 'Aceptar';
+    if(cnBtn) cnBtn.textContent = opts.cancelText || 'Cancelar';
+    if(opts.danger && okBtn){
+      okBtn.style.background = 'var(--negative)';
+      okBtn.style.borderColor = 'var(--negative)';
+    } else if(okBtn){
+      okBtn.style.background = '';
+      okBtn.style.borderColor = '';
+    }
+    const cleanup = (val)=>{
+      okBtn.onclick = null;
+      cnBtn.onclick = null;
+      dlg.close();
+      resolve(val);
+    };
+    okBtn.onclick = ()=>cleanup(true);
+    cnBtn.onclick = ()=>cleanup(false);
+    dlg.addEventListener('click',(e)=>{ if(e.target.matches('[data-close]')) cleanup(false); }, {once:true});
+    if(typeof openSheet === 'function') openSheet('sheet-app-confirm');
+    else dlg.showModal();
+  });
+}
+function appPrompt(message, defaultValue, opts){
+  opts = opts || {};
+  return new Promise((resolve)=>{
+    let dlg = document.getElementById('sheet-app-prompt');
+    if(!dlg){
+      dlg = document.createElement('dialog');
+      dlg.className = 'bottom-sheet';
+      dlg.id = 'sheet-app-prompt';
+      dlg.setAttribute('aria-label','Entrada');
+      dlg.innerHTML = `
+        <div class="drag-handle"></div>
+        <div class="sheet-header">
+          <div class="sheet-title" id="ap-title">Entrada</div>
+          <button class="sheet-close" data-close>✕</button>
+        </div>
+        <div class="sheet-content">
+          <div id="ap-body" style="font:13px/1.5 'EB Garamond',serif;margin-bottom:10px"></div>
+          <input type="text" class="field-input" id="ap-input" style="width:100%;margin-bottom:12px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <button class="btn-secondary" id="ap-cancel">Cancelar</button>
+            <button class="btn-primary" id="ap-ok">Aceptar</button>
+          </div>
+        </div>`;
+      document.body.appendChild(dlg);
+    }
+    const okBtn = document.getElementById('ap-ok');
+    const cnBtn = document.getElementById('ap-cancel');
+    const inp   = document.getElementById('ap-input');
+    const title = document.getElementById('ap-title');
+    const body  = document.getElementById('ap-body');
+    if(title) title.textContent = opts.title || 'Entrada';
+    if(body)  body.textContent  = message || '';
+    if(inp){
+      inp.value = defaultValue || '';
+      inp.type = opts.type || 'text';
+      inp.placeholder = opts.placeholder || '';
+      if(opts.type === 'number') inp.inputMode = 'numeric';
+    }
+    const cleanup = (val)=>{
+      okBtn.onclick = null;
+      cnBtn.onclick = null;
+      dlg.close();
+      resolve(val);
+    };
+    okBtn.onclick = ()=>cleanup(inp ? inp.value : '');
+    cnBtn.onclick = ()=>cleanup(null);
+    dlg.addEventListener('click',(e)=>{ if(e.target.matches('[data-close]')) cleanup(null); }, {once:true});
+    if(typeof openSheet === 'function') openSheet('sheet-app-prompt');
+    else dlg.showModal();
+    setTimeout(()=>{ try{ inp?.focus(); inp?.select(); }catch(_){} }, 100);
+  });
+}
+window.appConfirm = appConfirm;
+window.appPrompt = appPrompt;
+
 /* UX-09 Fase G: Wizard de creación de personaje paso a paso.
    6 pasos: nombre+jugador, raza, clase, atributos, equipo, confirmación. */
 const _WIZ_STATE = {
@@ -11579,11 +11878,12 @@ function renderSLAs(){
 }
 function wireSLAs(){
   const addBtn = document.getElementById('sla-add-btn');
-  if(addBtn) addBtn.addEventListener('click',()=>{
-    const n = prompt('Nombre del SLA (ej. Luz diurna, Oscuridad…):');
+  if(addBtn) addBtn.addEventListener('click', async ()=>{
+    /* UX-14 Fase G: 3 prompts encadenados con modal in-app */
+    const n = await appPrompt('Nombre del SLA:', '', {title:'Nuevo SLA', placeholder:'Ej. Luz diurna, Oscuridad…'});
     if(!n) return;
-    const cl = prompt('Nivel de lanzador (CL) — dejar vacío si no aplica:', '');
-    const dc = prompt('CD del conjuro — dejar vacío si no aplica:', '');
+    const cl = await appPrompt('Nivel de lanzador (CL):', '', {title:`SLA: ${n}`, placeholder:'Ej. nivel del personaje', type:'number'});
+    const dc = await appPrompt('CD del conjuro:', '', {title:`SLA: ${n}`, placeholder:'Ej. 14 — vacío si no aplica', type:'number'});
     SLA_LIST.push({n, cl: cl||'', dc: dc||'', desc: ''});
     renderSLAs();
     if(typeof saveStateDebounced==='function') saveStateDebounced('sla-add');
@@ -12568,5 +12868,51 @@ if(document.readyState==='complete' || document.readyState==='interactive'){
 })();
 </script>
 <!-- #ANCHOR:/P10-MOBILE-WEAKNESSES-JS-V1 -->
+
+<!-- ─── Bridge con el modo máster (iframe hijo) ───
+     Cuando el modo máster está incrustado y manda {type:'mst-request-pjs'},
+     respondemos con {type:'mst-pjs', pjs:[blob]} leído del DOM + STATE.
+     El blob lo consume el modo máster en pjFromSheetToToken().
+-->
+<script>
+(function(){
+  function num(s, def){
+    if(s == null) return def;
+    const m = String(s).match(/-?\d+/);
+    return m ? parseInt(m[0], 10) : def;
+  }
+  function readActivePJ(){
+    const $ = id => document.getElementById(id);
+    const txt = el => el ? (el.textContent || el.value || '') : '';
+    const id = (window.STATE && window.STATE.identity) || {};
+    const name = (txt($('in-nombre')) || id.nombre || 'PJ').trim() || 'PJ';
+    return {
+      name,
+      photo: (window.STATE && window.STATE.photo) || null,
+      hp:    num(txt($('pg-current')), null),
+      hpMax: num(txt($('pg-max')),     null),
+      ac:    num(txt($('m-ca-total')) || txt($('m-ca-total-r')), null),
+      ini:   0,
+      iniMod: num(txt($('m-init-val')) || txt($('m-init-r')), 0),
+      fort: num(txt($('m-save-fort-r')), 0),
+      ref:  num(txt($('m-save-ref-r')),  0),
+      will: num(txt($('m-save-will-r')), 0),
+      per:  0,
+      spd:  num(txt($('speed-base')) || txt($('speed-eff')), 30),
+    };
+  }
+  window.addEventListener('message', function(e){
+    const d = e && e.data;
+    if(!d || d.type !== 'mst-request-pjs') return;
+    let blob = null;
+    try { blob = readActivePJ(); } catch(_){}
+    const pjs = blob ? [blob] : [];
+    try {
+      e.source && e.source.postMessage({ type: 'mst-pjs', pjs }, '*');
+    } catch(_){}
+  });
+})();
+</script>
+
 </body>
 </html>
