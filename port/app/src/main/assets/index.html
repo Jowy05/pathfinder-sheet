@@ -1721,8 +1721,15 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
   <div class="topbar-center">
     <div class="char-name" id="topbar-char-name">—</div>
     <div class="char-sub" id="topbar-char-sub">—</div>
+    <!-- UX-08 Fase F: barra de XP siempre visible -->
+    <div id="topbar-xp-wrap" style="display:none;margin-top:3px;height:5px;background:var(--surface-2);border-radius:99px;overflow:hidden;position:relative">
+      <div id="topbar-xp-fill" style="height:100%;background:linear-gradient(90deg,var(--accent),var(--positive));width:0%;transition:width 200ms ease-out"></div>
+      <div id="topbar-xp-text" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:600 8px system-ui;color:var(--ink);text-shadow:0 0 2px var(--surface)">XP 0/0</div>
+    </div>
   </div>
   <div class="topbar-actions">
+    <!-- UX-03 Fase F: indicador "Guardado" tipo Google Docs -->
+    <span id="save-indicator" style="font:600 10px system-ui;color:var(--ink-muted);padding:0 6px;align-self:center;opacity:0;transition:opacity 200ms" aria-live="polite">Guardado</span>
     <button class="icon-btn" id="btn-lang" aria-label="Cambiar idioma">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
       <span class="lang-tag" id="lang-tag">ES</span>
@@ -2137,6 +2144,10 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
             <input type="checkbox" id="combat-fight-defensively" class="combat-tactical"> <span style="flex:1">Asalto Enérgico</span>
             <span style="font:11px/1 system-ui;color:var(--ink-muted)">+1 atq · −2 CA (BAB ≥1)</span>
           </label>
+          <label style="display:flex;align-items:center;gap:10px;padding:8px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--surface-2)">
+            <input type="checkbox" id="combat-flanking" class="combat-tactical"> <span style="flex:1">Flanqueando</span>
+            <span style="font:11px/1 system-ui;color:var(--ink-muted)">+2 atq CaC al objetivo flanqueado</span>
+          </label>
         </div>
       </div>
 
@@ -2516,6 +2527,12 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
       <button class="over-row" data-confirm="imprimir">
         <span class="more-icon"><svg viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 18H4v-6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6h-2M6 14h12v7H6z"/></svg></span>
         <span class="over-info"><span class="over-label" data-i18n="ovPrint">Imprimir</span><span class="over-desc" data-i18n="ovPrintD">Versión para imprimir</span></span>
+      </button>
+      <div class="over-sep"></div>
+      <!-- UX-01 Fase F: Botón "Empezar de cero / Nueva ficha" -->
+      <button class="over-row" id="ov-new-character" style="color:var(--negative)">
+        <span class="more-icon">📋</span>
+        <span class="over-info"><span class="over-label">Nueva ficha (limpiar todo)</span><span class="over-desc">Borra el PJ actual y empieza desde cero</span></span>
       </button>
       <div class="over-sep"></div>
       <label class="over-row" style="cursor:pointer">
@@ -5380,8 +5397,58 @@ function renderClasses(){
       document.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'level',id:classId,oldLvl,newLvl}}));
       window.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'level',id:classId,oldLvl,newLvl}}));
       if(typeof saveStateDebounced==='function') saveStateDebounced('class-level');
+      /* UX-05/06/07 Fase F: avisos al subir de nivel */
+      if(newLvl > oldLvl){
+        _showLevelUpReminders(cl, oldLvl, newLvl);
+      }
     });
   });
+}
+
+/* UX-05/06/07 Fase F: avisos contextuales al subir nivel */
+function _showLevelUpReminders(cl, oldLvl, newLvl){
+  const lines = [];
+  /* UX-05: dado de PG */
+  const hd = (cl.hd||'').replace(/^\d*d/,'d') || 'd8';
+  const dieFaces = parseInt(hd.replace('d',''),10) || 8;
+  const conRow = (typeof ATTRS!=='undefined') ? ATTRS.find(r=>r[0]==='CON') : null;
+  const conMod = conRow ? (parseInt(conRow[3],10) || 0) : 0;
+  const avg = Math.ceil((dieFaces+1)/2) + conMod;
+  lines.push(`🎲 Nuevo PG: tirar 1${hd} + CON (${conMod>=0?'+':''}${conMod}) — promedio ${avg}`);
+  /* UX-06: skill points nuevos */
+  let skillPts = 0;
+  try{
+    if(typeof window.D3_SKILLS !== 'undefined' && typeof window.D3_SKILLS.points === 'function'){
+      const intMod = (typeof ATTRS!=='undefined') ? (ATTRS.find(r=>r[0]==='INT')?.[3] || 0) : 0;
+      /* Estimación: skill_points base de la clase (de DB.classes) + INT */
+      const dbCls = DB?.classes?.[cl.classKey];
+      const sp = (dbCls?.skill_points || 2) + intMod;
+      skillPts = Math.max(1, sp);
+    }
+  }catch(_){}
+  if(skillPts > 0) lines.push(`📚 Puntos de habilidad nuevos: ~${skillPts}`);
+  /* UX-07: dote nueva. Cada nivel impar (PJ general) y niveles 2/4/6... (Guerrero bonus) */
+  const givesFeat = (newLvl % 2 === 1); /* niveles impares dan dote estándar */
+  const isFighter = ['guerrero','fighter'].includes((cl.classKey||'').toLowerCase());
+  const fighterBonus = isFighter && (newLvl % 2 === 0); /* niveles pares para Guerrero */
+  if(givesFeat) lines.push(`🎖 Te toca dote estándar (nivel ${newLvl} impar)`);
+  if(fighterBonus) lines.push(`⚔ Dote bonus de Guerrero (nivel ${newLvl} par)`);
+  /* Mostrar como banner persistente en topbar (auto-dismiss en 12s) */
+  _showLevelUpBanner(lines.join(' · '));
+}
+
+function _showLevelUpBanner(text){
+  let banner = document.getElementById('levelup-banner');
+  if(!banner){
+    banner = document.createElement('div');
+    banner.id = 'levelup-banner';
+    banner.style.cssText = 'position:fixed;top:64px;left:8px;right:8px;background:linear-gradient(135deg,var(--accent),var(--positive));color:white;padding:10px 14px;border-radius:10px;z-index:9999;font:600 12px system-ui;line-height:1.4;box-shadow:0 4px 16px rgba(0,0,0,0.3);cursor:pointer;animation:fadeIn 200ms';
+    banner.addEventListener('click', ()=>banner.remove());
+    document.body.appendChild(banner);
+  }
+  banner.innerHTML = `<div style="font:700 13px 'Cinzel',serif;margin-bottom:4px">⬆ Subiste de nivel</div><div>${text}</div><div style="font:10px system-ui;opacity:0.8;margin-top:4px">Tap para cerrar</div>`;
+  clearTimeout(banner.__timer);
+  banner.__timer = setTimeout(()=>banner.remove(), 12000);
 }
 
 // fillPicker variant that supports 3-element tuples [name, desc, key]
@@ -7913,6 +7980,18 @@ if(__raza){
       try{ applyRaceFull(v); }catch(e){ console.warn('applyRaceFull on type:', e); }
     }
   });
+  /* UX-02 Fase F: clic en el input vacío o doble clic abre el picker.
+     Si tiene valor, permite editar normalmente. */
+  __raza.addEventListener('focus', ()=>{
+    if(!__raza.value.trim()){
+      const btn = document.getElementById('btn-raza-picker');
+      if(btn){ btn.click(); __raza.blur(); }
+    }
+  });
+  __raza.addEventListener('dblclick', ()=>{
+    const btn = document.getElementById('btn-raza-picker');
+    if(btn) btn.click();
+  });
 }
 
 /* M-13: handler mock de foto eliminado.
@@ -8548,7 +8627,13 @@ function D5_getCombatTacticals(w, isMelee, isRanged, isOffhand, is2H){
   /* Prone: -4 a CaC, sin penalización a ranged */
   const proneOn = !!document.getElementById('cond-prone')?.checked;
   const pronePenalty = (proneOn && isMelee) ? -4 : 0;
-  return { paAtk, paDmg, twfPenalty, brokenAtk, brokenDmg, condAtk, pronePenalty };
+  /* UX-04 Fase F: Flanqueando = +2 atq CaC al objetivo flanqueado */
+  const flankOn = !!document.getElementById('combat-flanking')?.checked;
+  const flankBonus = (flankOn && isMelee) ? 2 : 0;
+  return {
+    paAtk: paAtk + flankBonus,
+    paDmg, twfPenalty, brokenAtk, brokenDmg, condAtk, pronePenalty
+  };
 }
 
 function D5_getIterativeAttacks(w){
@@ -9968,11 +10053,24 @@ function applyState(state){
 
 let __saveTimer = null;
 function saveStateDebounced(reason){
+  /* UX-03 Fase F: indicador "Guardando…" / "Guardado" tipo Google Docs */
+  const ind = document.getElementById('save-indicator');
+  if(ind){
+    ind.textContent = 'Guardando…';
+    ind.style.color = 'var(--ink-muted)';
+    ind.style.opacity = '1';
+  }
   clearTimeout(__saveTimer);
   __saveTimer = setTimeout(()=>{
     try{
       snapshotState();
       localStorage.setItem(STATE_KEY, JSON.stringify(window.STATE));
+      if(ind){
+        ind.textContent = '✓ Guardado';
+        ind.style.color = 'var(--positive)';
+        ind.style.opacity = '1';
+        setTimeout(()=>{ if(ind) ind.style.opacity = '0'; }, 1800);
+      }
     }catch(e){
       /* Fix N-06: detectar QuotaExceededError y avisar al usuario.
          Antes el catch era silente y el usuario seguia editando creyendo
@@ -9982,6 +10080,11 @@ function saveStateDebounced(reason){
         || /quota|exceeded/i.test(e.message||''));
       if(isQuota && typeof toast === 'function'){
         toast('⚠ Espacio agotado. Exporta la ficha y elimina la foto si pesa mucho.');
+      }
+      if(ind){
+        ind.textContent = '⚠ Error al guardar';
+        ind.style.color = 'var(--negative)';
+        ind.style.opacity = '1';
       }
       console.warn('saveState fail', e);
     }
@@ -10270,6 +10373,18 @@ function wireSettingsClear(){
       setTimeout(()=>location.reload(), 600);
     }
   }, true);
+  /* UX-01 Fase F: Botón "Nueva ficha" en menú overflow */
+  const newBtn = document.getElementById('ov-new-character');
+  if(newBtn) newBtn.addEventListener('click', function(ev){
+    ev.stopImmediatePropagation();
+    const msg = '¿Empezar una ficha desde cero?\n\nSe borrará TODO el personaje actual:\n• Nombre, raza, clases, atributos\n• Habilidades, dotes, conjuros\n• Armas, armadura, inventario\n• Buffs, condiciones, notas\n\nLa configuración (tema, idioma) se conserva.\n\n💾 Recomendado: Exporta antes la ficha actual si quieres conservarla.';
+    if(confirm(msg)){
+      try{ localStorage.removeItem(STATE_KEY); }catch(e){}
+      window.STATE = blankState();
+      if(typeof toast==='function') toast('Ficha nueva creada. Empieza por elegir raza y clase.');
+      setTimeout(()=>location.reload(), 800);
+    }
+  });
 }
 
 function wireAutosave(){
@@ -11328,6 +11443,15 @@ function refreshXPBar(){
     if(meta) meta.textContent = cur.toLocaleString() + ' / ' + next.toLocaleString() + ' XP';
     if(pctEl) pctEl.textContent = pct.toFixed(0) + '%';
     if(fill) fill.style.width = pct + '%';
+    /* UX-08 Fase F: replicar barra en topbar */
+    const tbWrap = document.getElementById('topbar-xp-wrap');
+    const tbFill = document.getElementById('topbar-xp-fill');
+    const tbText = document.getElementById('topbar-xp-text');
+    if(tbWrap){
+      tbWrap.style.display = (cur > 0 || next > 1) ? '' : 'none';
+      if(tbFill) tbFill.style.width = pct + '%';
+      if(tbText) tbText.textContent = `XP ${cur.toLocaleString()}/${next.toLocaleString()} · ${pct.toFixed(0)}%`;
+    }
     /* Si pasa al siguiente nivel: aviso */
     if(cur >= next && next > 0){
       if(pctEl) pctEl.style.color = 'var(--positive)';
