@@ -103,6 +103,13 @@ class MainActivity : AppCompatActivity() {
             domStorageEnabled        = true
             allowFileAccess          = true
             allowContentAccess       = true
+            // 2026-05-06: necesarios para que Babel-standalone (Modo Máster)
+            // pueda fetch() los .jsx locales bajo file://. Sin esto la SPA
+            // se queda en el splash porque XHR de archivos hermanos falla.
+            @Suppress("DEPRECATION")
+            allowFileAccessFromFileURLs     = true
+            @Suppress("DEPRECATION")
+            allowUniversalAccessFromFileURLs = true
             setSupportZoom(true)
             builtInZoomControls      = true
             displayZoomControls      = false
