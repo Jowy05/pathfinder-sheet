@@ -1158,6 +1158,12 @@ body.theme-dark .sheet-title{color:#f5d8b0}
 
 /* ─── PICKER LISTS ─── */
 .picker-list{display:grid;gap:6px;max-height:60vh;overflow-y:auto}
+.chip-cat{
+  padding:6px 12px;border-radius:14px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink-muted);
+  font:600 12px/1 system-ui;cursor:pointer;white-space:nowrap;
+}
+.chip-cat.is-active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .picker-row{
   display:flex;align-items:flex-start;gap:10px;padding:10px 12px;
   background:var(--surface);border:1px solid var(--line);border-radius:10px;
@@ -1721,6 +1727,8 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
   <div class="topbar-center">
     <div class="char-name" id="topbar-char-name">—</div>
     <div class="char-sub" id="topbar-char-sub">—</div>
+    <!-- UX-29 Fase I: indicadores de estado activo (Synthesist fusionado / Mythic / Gestalt / Epic) -->
+    <div id="topbar-flags" style="display:none;flex-wrap:wrap;gap:3px;margin-top:2px"></div>
     <!-- UX-08 Fase F: barra de XP siempre visible -->
     <div id="topbar-xp-wrap" style="display:none;margin-top:3px;height:5px;background:var(--surface-2);border-radius:99px;overflow:hidden;position:relative">
       <div id="topbar-xp-fill" style="height:100%;background:linear-gradient(90deg,var(--accent),var(--positive));width:0%;transition:width 200ms ease-out"></div>
@@ -2624,7 +2632,15 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
   <div class="drag-handle"></div>
   <div class="sheet-header"><div class="sheet-title">Elegir clase</div><button class="sheet-close" data-close>✕</button></div>
   <div class="sheet-content">
-    <input class="field-input" id="class-search" placeholder="Buscar clase…" style="margin-bottom:10px">
+    <input class="field-input" id="class-search" placeholder="Buscar clase…" style="margin-bottom:8px">
+    <div id="class-cat-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+      <button type="button" class="chip-cat is-active" data-cat="all" data-i18n="catAll">Todas</button>
+      <button type="button" class="chip-cat" data-cat="base" data-i18n="catBase">Base</button>
+      <button type="button" class="chip-cat" data-cat="prestige" data-i18n="catPrestige">Prestigio</button>
+      <button type="button" class="chip-cat" data-cat="unchained" data-i18n="catUnchained">Unchained</button>
+      <button type="button" class="chip-cat" data-cat="npc" data-i18n="catNpc">NPC</button>
+      <button type="button" class="chip-cat" data-cat="special" data-i18n="catSpecial">Especial</button>
+    </div>
     <div id="class-list" class="picker-list"></div>
   </div>
 </dialog>
@@ -3627,6 +3643,63 @@ const I18N = {
     featCatalogNotLoaded:'Catalog not loaded',
   }
 };
+
+/* UX-24 Fase I: helper i18n para strings emitidos desde JS.
+   Uso: t('keyId') devuelve la versión es/en según data-lang del <html>.
+   Si la key no existe en el idioma activo, cae en es; si tampoco existe,
+   devuelve la key (útil para detectar faltantes). */
+function t(key){
+  try{
+    const lang = (document.documentElement.dataset.lang === 'en') ? 'en' : 'es';
+    const dict = (I18N && I18N[lang]) ? I18N[lang] : (I18N ? I18N.es : {});
+    if(dict && Object.prototype.hasOwnProperty.call(dict, key)) return dict[key];
+    if(lang !== 'es' && I18N && I18N.es && Object.prototype.hasOwnProperty.call(I18N.es, key)) return I18N.es[key];
+  }catch(_){}
+  return key;
+}
+/* UX-24 Fase I: extender I18N con strings JS que se emiten desde tooltips,
+   modales, toasts y badges añadidos en Fases A-I. */
+(function _extendI18N(){
+  if(!I18N || !I18N.es || !I18N.en) return;
+  const ES = {
+    pairBadge:'Pareja', activeCaster:'ACTIVA', noCasters:'sin slots', noCasterData:'— sin datos —',
+    flagSynth:'🦠 Sintetista', flagMythicTier:'⭐ Mítico T', flagGestalt:'🧬 Gestalt',
+    flagEpic:'🔥 Epic', flagBrood:'🐍 Brood ',
+    catAll:'Todas', catBase:'Base', catPrestige:'Prestigio', catUnchained:'Unchained', catNpc:'NPC', catSpecial:'Especial',
+    classAdded:'Clase añadida: ', classRemoved:'Clase eliminada',
+    multicasterHint:'Cada clase mantiene sus propios slots y conjuros aparte. Cambia para ver los del otro caster.',
+    multicasterTitle:'Multi-caster · Vista de:',
+    backupRestored:'Backup restaurado', backupSaveErr:'No se pudo guardar backup',
+    undoEmpty:'No hay nada que deshacer', undoOk:'Deshecho: ',
+    saving:'Guardando…', saved:'✓ Guardado', saveErr:'❌ Error al guardar',
+    levelUpBanner:'¡Subiste de nivel!', levelUpAssistant:'Asistente de subida',
+    spellsCatalogTitle:'Catálogo de conjuros nivel ',
+    buffsCatalogTitle:'Catálogo de buffs',
+    attrGenTitle:'Generador de atributos', attrGenStandard:'Array estándar',
+    attrGenPointBuy:'Compra por puntos', attrGenRoll:'Tirar 4d6 (7 tiradas, dropear menor)',
+    confirmCancel:'Cancelar', confirmOk:'Aceptar',
+  };
+  const EN = {
+    pairBadge:'Pair', activeCaster:'ACTIVE', noCasters:'no slots', noCasterData:'— no data —',
+    flagSynth:'🦠 Synthesist', flagMythicTier:'⭐ Mythic T', flagGestalt:'🧬 Gestalt',
+    flagEpic:'🔥 Epic', flagBrood:'🐍 Brood ',
+    catAll:'All', catBase:'Base', catPrestige:'Prestige', catUnchained:'Unchained', catNpc:'NPC', catSpecial:'Special',
+    classAdded:'Class added: ', classRemoved:'Class removed',
+    multicasterHint:'Each class keeps its own slots and spells separate. Switch to see the other caster.',
+    multicasterTitle:'Multi-caster · Viewing:',
+    backupRestored:'Backup restored', backupSaveErr:'Failed to save backup',
+    undoEmpty:'Nothing to undo', undoOk:'Undone: ',
+    saving:'Saving…', saved:'✓ Saved', saveErr:'❌ Save failed',
+    levelUpBanner:'Level up!', levelUpAssistant:'Level-up assistant',
+    spellsCatalogTitle:'Spell catalog level ',
+    buffsCatalogTitle:'Buff catalog',
+    attrGenTitle:'Attribute generator', attrGenStandard:'Standard array',
+    attrGenPointBuy:'Point buy', attrGenRoll:'Roll 4d6 (7 rolls, drop lowest)',
+    confirmCancel:'Cancel', confirmOk:'OK',
+  };
+  Object.keys(ES).forEach(k=>{ if(!(k in I18N.es)) I18N.es[k] = ES[k]; });
+  Object.keys(EN).forEach(k=>{ if(!(k in I18N.en)) I18N.en[k] = EN[k]; });
+})();
 
 const CONDS_EN = {
   'Sangrando':'Bleeding','Cegado':'Blinded','Confundido':'Confused','Acobardado':'Cowering','Aturdido':'Stunned',
@@ -4950,6 +5023,55 @@ function _refreshMulticasterUI(){
       if(typeof saveStateDebounced === 'function') saveStateDebounced('multicaster-switch');
     });
   }
+  /* UX-27 Fase I: render de resumen paralelo de ambos casters
+     (clicar una columna activa esa clase en el panel principal) */
+  let parallel = document.getElementById('multicaster-parallel');
+  if(!parallel){
+    parallel = document.createElement('div');
+    parallel.id = 'multicaster-parallel';
+    parallel.style.cssText = 'display:grid;gap:8px;margin-top:8px;grid-template-columns:1fr 1fr';
+    bar.appendChild(parallel);
+  }
+  parallel.style.gridTemplateColumns = `repeat(${Math.min(casters.length,2)},1fr)`;
+  parallel.innerHTML = casters.map(r=>{
+    const lvl = parseInt(r.cls.level,10) || 0;
+    const isActive = (r.idx === _ACTIVE_CASTER_INDEX);
+    const cid = r.classId;
+    let slotsHtml = '';
+    if(isActive){
+      slotsHtml = (SLOT_STATE||[]).map((s,i)=>{
+        const used = s.used||0, max = s.max||0;
+        if(max===0 && i>0) return '';
+        return `<span style="background:rgba(168,85,247,0.10);color:var(--ink);padding:2px 6px;border-radius:6px;font:600 10px system-ui">${i}: ${max-used}/${max}</span>`;
+      }).filter(Boolean).join(' ');
+    }else{
+      const saved = _MULTICASTER_STATE[cid];
+      if(saved && saved.slots){
+        slotsHtml = saved.slots.map((s,i)=>{
+          const used = s.used||0, max = s.max||0;
+          if(max===0 && i>0) return '';
+          return `<span style="background:rgba(168,85,247,0.05);color:var(--ink-muted);padding:2px 6px;border-radius:6px;font:600 10px system-ui">${i}: ${max-used}/${max}</span>`;
+        }).filter(Boolean).join(' ');
+      }else{
+        slotsHtml = `<span style="font:10px system-ui;color:var(--ink-muted)">${t('noCasterData')}</span>`;
+      }
+    }
+    return `<button type="button" data-mc-idx="${r.idx}" style="text-align:left;padding:8px;border-radius:8px;border:${isActive?'2px solid var(--accent)':'1px solid var(--line)'};background:${isActive?'var(--accent-soft, rgba(168,85,247,0.10))':'var(--surface)'};cursor:pointer;display:flex;flex-direction:column;gap:4px">
+      <div style="font:600 11px 'Cinzel',serif;color:${isActive?'var(--accent)':'var(--ink)'};letter-spacing:.05em">${r.cls.name||''} <span style="font:10px system-ui;color:var(--ink-muted)">${t('lblNivel')} ${lvl}</span> ${isActive?`<span style="float:right;font:600 9px system-ui">▶ ${t('activeCaster')}</span>`:''}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:3px">${slotsHtml || `<span style="font:10px system-ui;color:var(--ink-muted)">${t('noCasters')}</span>`}</div>
+    </button>`;
+  }).join('');
+  parallel.querySelectorAll('[data-mc-idx]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const newIdx = parseInt(btn.dataset.mcIdx,10);
+      if(isNaN(newIdx) || newIdx === _ACTIVE_CASTER_INDEX) return;
+      _saveActiveCasterState();
+      _ACTIVE_CASTER_INDEX = newIdx;
+      sel.value = String(newIdx);
+      rebuildSpellSystem();
+      if(typeof saveStateDebounced === 'function') saveStateDebounced('multicaster-switch');
+    });
+  });
 }
 
 function rebuildSpellSystem(){
@@ -5426,8 +5548,22 @@ function renderClasses(){
   if(!c) return;
   /* R-29 · max del input de nivel: 30 si Modo Epic activo, 20 si no */
   const _epicMax = (typeof _epicModeOn!=='undefined' && _epicModeOn) ? 30 : 20;
-  c.innerHTML = CLASSES_DATA.map(cl=>`
-    <div class="class-card" data-id="${cl.id}">
+  /* UX-26 Fase I: en Gestalt, etiquetar las clases por pares (Pareja 1 = primeras 2,
+     Pareja 2 = siguientes 2, etc.). Si el número es impar la última queda suelta. */
+  const gestaltOn = (typeof _isGestaltOn === 'function') ? _isGestaltOn() : false;
+  c.innerHTML = CLASSES_DATA.map((cl,idx)=>{
+    let pairBadge = '';
+    if(gestaltOn){
+      const pairNum = Math.floor(idx/2)+1;
+      const pairSlot = (idx%2===0)?'A':'B';
+      const pairColor = (idx%2===0)?'#a855f7':'#7c3aed';
+      pairBadge = `<div style="display:flex;align-items:center;gap:6px;margin:-2px 0 6px 0;font:600 11px/1 system-ui;color:${pairColor}">
+        <span style="background:rgba(168,85,247,0.15);color:${pairColor};padding:3px 7px;border-radius:8px">🧬 ${t('pairBadge')} ${pairNum} · ${pairSlot}</span>
+      </div>`;
+    }
+    return `
+    <div class="class-card${gestaltOn?' gestalt-pair':''}" data-id="${cl.id}" data-pair="${gestaltOn?Math.floor(idx/2):''}">
+      ${pairBadge}
       ${CLASSES_DATA.length>1?`<button class="crud-del" data-class-del="${cl.id}" aria-label="Eliminar clase">×</button>`:''}
       <div class="field-row">
         <div class="field"><label class="field-label">Clase</label><input class="field-input class-name" value="${cl.name}" data-class-id="${cl.id}" readonly style="cursor:pointer"></div>
@@ -5439,7 +5575,8 @@ function renderClasses(){
         <div class="field"><label class="field-label">DG</label><input class="field-input" value="${cl.hd}"></div>
       </div>
       <button class="btn-secondary" data-roll="${cl.level}d${cl.hd.split('d')[1]}" style="width:100%;margin-top:6px">🎲 Tirar todos los DG (${cl.level}${cl.hd.replace(/^\d+/,'')})</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   // Delete buttons
   c.querySelectorAll('[data-class-del]').forEach(b=>{
@@ -6877,8 +7014,37 @@ function bindNewSheets(){
       window.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'add',id:newId,name:n}}));
       if(typeof saveStateDebounced==='function') saveStateDebounced('class-add');
     };
-    fillPickerTriple(list, allData, addCls);
-    if(search){ search.value=''; search.oninput=()=>{ const q=search.value.toLowerCase(); fillPickerTriple(list, allData.filter(([n,d])=>(n+d).toLowerCase().includes(q)), addCls); }; }
+    /* UX-25 Fase I: filtros por categoría (chips) */
+    let _classCatFilter = 'all';
+    let _classQuery = '';
+    function _applyClassFilters(){
+      const q = _classQuery.toLowerCase();
+      const filtered = allData.filter(([n,d,k])=>{
+        if(_classCatFilter !== 'all'){
+          const cat = (DB.classes?.[k]?.category || 'base').toLowerCase();
+          if(cat !== _classCatFilter) return false;
+        }
+        if(q && !(n+(d||'')).toLowerCase().includes(q)) return false;
+        return true;
+      });
+      fillPickerTriple(list, filtered, addCls);
+    }
+    _applyClassFilters();
+    if(search){ search.value=''; _classQuery=''; search.oninput=()=>{ _classQuery=search.value; _applyClassFilters(); }; }
+    const chips = document.querySelectorAll('#class-cat-chips .chip-cat');
+    chips.forEach(ch=>{
+      ch.onclick = ()=>{
+        chips.forEach(c=>c.classList.remove('is-active'));
+        ch.classList.add('is-active');
+        _classCatFilter = ch.dataset.cat || 'all';
+        _applyClassFilters();
+      };
+    });
+    /* reset chip activo al abrir */
+    chips.forEach(c=>c.classList.remove('is-active'));
+    const allChip = document.querySelector('#class-cat-chips .chip-cat[data-cat="all"]');
+    if(allChip) allChip.classList.add('is-active');
+    _classCatFilter = 'all';
     openSheet('sheet-class-picker');
   });
   // deity picker (input field click) — P-02: editable libre + lista
@@ -11101,6 +11267,50 @@ function appPrompt(message, defaultValue, opts){
 window.appConfirm = appConfirm;
 window.appPrompt = appPrompt;
 
+/* UX-29 Fase I: indicadores de estado activo en topbar.
+   Renderiza chips para Synthesist fusionado, Mythic activo, Gestalt, Epic. */
+function renderTopbarFlags(){
+  const c = document.getElementById('topbar-flags');
+  if(!c) return;
+  const flags = [];
+  const lang = (document.documentElement.dataset.lang === 'en') ? 'en' : 'es';
+  try{
+    if(typeof _SYNTH_FUSED !== 'undefined' && _SYNTH_FUSED){
+      flags.push({label: lang==='en'?'⛓ Synthesist':'⛓ Sintetista', color:'var(--accent)', bg:'var(--accent-soft)'});
+    }
+    if(typeof _MYTHIC_STATE !== 'undefined' && _MYTHIC_STATE.active){
+      const tier = parseInt(_MYTHIC_STATE.tier,10) || 0;
+      flags.push({label:`✨ ${lang==='en'?'Mythic':'Mítico'} T${tier}`, color:'var(--positive)', bg:'var(--surface-2)'});
+    }
+    if(typeof _GESTALT_MODE !== 'undefined' && _GESTALT_MODE){
+      flags.push({label:'🧬 Gestalt', color:'#a855f7', bg:'rgba(168,85,247,0.12)'});
+    }
+    if(typeof _epicModeOn !== 'undefined' && _epicModeOn){
+      flags.push({label:'⭐ Epic', color:'#f59e0b', bg:'rgba(245,158,11,0.12)'});
+    }
+    if(typeof _isBroodmasterActive === 'function' && _isBroodmasterActive()){
+      const slot = (typeof _BROOD_ACTIVE_MOBILE !== 'undefined' ? _BROOD_ACTIVE_MOBILE : 0) + 1;
+      flags.push({label:`🐲 Brood E${slot}`, color:'#9333ea', bg:'rgba(147,51,234,0.12)'});
+    }
+  }catch(_){}
+  if(!flags.length){
+    c.style.display = 'none';
+    c.innerHTML = '';
+    return;
+  }
+  c.style.display = 'flex';
+  c.innerHTML = flags.map(f =>
+    `<span style="font:700 9px system-ui;letter-spacing:.05em;padding:2px 6px;border-radius:99px;border:1px solid ${f.color};background:${f.bg};color:${f.color}">${f.label}</span>`
+  ).join('');
+}
+window.renderTopbarFlags = renderTopbarFlags;
+/* Re-render en eventos relevantes */
+document.addEventListener('class-changed', renderTopbarFlags);
+document.addEventListener('state-loaded', renderTopbarFlags);
+/* Hook a synth/brood/gestalt/mythic toggles para refrescar al instante.
+   Hookeado vía MutationObserver sobre flags relevantes (más simple: poll tras cada interacción) */
+setInterval(()=>{ try{ renderTopbarFlags(); }catch(_){} }, 1500);
+
 /* UX-17 Fase H: catálogo de conjuros PF1e core (MVP — 60 conjuros comunes).
    Cada entrada: {n, lvl:{class:level}, school, comp, range, dur, save, sr, desc}.
    El picker filtra por clase y nivel del PJ. */
@@ -12462,7 +12672,11 @@ function wireSummonerArchetypes(){
   /* Refresca barras al abrir el sheet de companions y al cambiar clase */
   const compBtn = document.getElementById('more-companions');
   if(compBtn) compBtn.addEventListener('click', ()=>{ _refreshSynthBar(); _refreshBroodBar(); });
-  document.addEventListener('class-changed', ()=>{ _refreshSynthBar(); _refreshBroodBar(); });
+  document.addEventListener('class-changed', ()=>{
+    _refreshSynthBar(); _refreshBroodBar();
+    /* UX-29 también refresca topbar flags al cambiar archetype */
+    if(typeof renderTopbarFlags === 'function') renderTopbarFlags();
+  });
 }
 
 /* M-06: Settings persistentes (idioma/tema/tamaño fuente/daltónico) */
@@ -13426,6 +13640,42 @@ if(document.readyState==='complete' || document.readyState==='interactive'){
       return;
     }
   });
+
+  let lastSentHp = null;
+  let dbg = null;
+  function broadcastHp(){
+    const $ = id => document.getElementById(id);
+    const cur = $('pg-current');
+    const max = $('pg-max');
+    if(!cur) return;
+    const txt = el => el ? (el.textContent || el.value || '') : '';
+    const hp = parseInt(txt(cur), 10);
+    if(!Number.isFinite(hp)) return;
+    if(lastSentHp === hp) return;
+    lastSentHp = hp;
+    const hpMax = parseInt(txt(max), 10);
+    const name = (((window.STATE||{}).identity)||{}).nombre || (txt($('in-nombre'))) || '';
+    const payload = { type: 'mst-sheet-update', name, hp, hpMax: Number.isFinite(hpMax) ? hpMax : undefined };
+    try {
+      document.querySelectorAll('iframe').forEach(f => {
+        try { f.contentWindow && f.contentWindow.postMessage(payload, '*'); } catch(_){}
+      });
+    } catch(_){}
+  }
+  function scheduleBroadcast(){
+    if(dbg) clearTimeout(dbg);
+    dbg = setTimeout(broadcastHp, 200);
+  }
+  function attach(){
+    const cur = document.getElementById('pg-current');
+    if(!cur) return false;
+    cur.addEventListener('input', scheduleBroadcast);
+    cur.addEventListener('change', scheduleBroadcast);
+    return true;
+  }
+  if(!attach()){
+    document.addEventListener('DOMContentLoaded', attach);
+  }
 })();
 </script>
 
