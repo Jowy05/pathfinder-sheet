@@ -2239,9 +2239,29 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
     </div>
 
     <div class="sub-page" data-sub="conjuros" hidden>
+      <!-- MB-1 Fase B: Selector de clase activa cuando hay multi-caster (oculto si <2) -->
+      <div id="multicaster-bar" style="display:none;margin-bottom:10px;padding:8px 10px;background:var(--surface-2);border:1px dashed var(--leather);border-radius:8px">
+        <label style="font:600 11px 'Cinzel',serif;letter-spacing:.07em;text-transform:uppercase;color:var(--leather);display:block;margin-bottom:4px">Multi-caster · Vista de:</label>
+        <select id="multicaster-select" class="field-select" style="width:100%"></select>
+        <div style="font:10px system-ui;color:var(--ink-muted);margin-top:4px;line-height:1.3">Cada clase mantiene sus propios slots y conjuros aparte. Cambia para ver los del otro caster.</div>
+      </div>
       <button class="btn-secondary" id="rest-8h" style="width:100%;margin-bottom:10px">🌙 Descansar 8h · Restaurar slots</button>
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:6px" id="slot-grid"></div>
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px" id="slot-grid-2"></div>
+      <!-- MB-5 Fase B: Penetración mágica (1d20 + NL + dote) -->
+      <div class="card" style="margin-bottom:10px;padding:10px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font:600 11px 'Cinzel',serif;letter-spacing:.07em;text-transform:uppercase;color:var(--leather)">Penetración Mágica</span>
+          <select id="spell-pen-feat" style="font:600 11px system-ui;padding:4px 6px;border-radius:6px;background:var(--surface);color:var(--ink);border:1px solid var(--line)">
+            <option value="0">— sin dote</option>
+            <option value="2">Penet. Mágica (+2)</option>
+            <option value="4">Penet. Mágica Mejorada (+4)</option>
+          </select>
+          <button class="btn-secondary" id="btn-spell-penetration" style="font:600 11px system-ui;padding:6px 12px">⚡ Tirar</button>
+          <span id="spell-pen-result" style="font:600 12px system-ui;color:var(--accent);margin-left:auto"></span>
+        </div>
+        <div style="font:10px system-ui;color:var(--ink-muted);margin-top:4px;line-height:1.3">Tirada vs RM enemigo: 1d20 + NL + dote.</div>
+      </div>
       <div id="spell-dc-bar"></div>
       <div class="spell-filter" id="spell-filter">
         <button class="active" data-sf="todos">Todos</button>
@@ -4091,12 +4111,76 @@ function getAttrModD4(abbr){
   return row ? row[3] : 0;
 }
 
+/* MB-2 Fase B: prestige caster bumps mobile.
+   Patrón: por cada clase prestige activa que casteea (mystic_theurge, eldritch_knight,
+   arcane_trickster, loremaster, dragon_disciple, holy_vindicator), suma niveles
+   efectivos a la clase target (arcana o divina). Heurística simple: si hay
+   alguna prestige activa, devuelve el bump aplicable a classId. */
+const _PRESTIGE_BUMPS_MOBILE = {
+  /* Cada entrada: {kind: 'arcane'|'divine'|'caster_chosen', pattern: '+1/lvl[ from level N][ except a,b,c]'} */
+  mystic_theurge:    [{kind:'arcane',  pattern:'+1/lvl'}, {kind:'divine', pattern:'+1/lvl'}],
+  eldritch_knight:   [{kind:'arcane',  pattern:'+1/lvl from level 2'}],
+  arcane_trickster:  [{kind:'arcane',  pattern:'+1/lvl from level 2'}],
+  loremaster:        [{kind:'caster_chosen', pattern:'+1/lvl except 1,4,7,10'}],
+  dragon_disciple:   [{kind:'arcane',  pattern:'+1/lvl from level 2 except 3,7'}],
+  holy_vindicator:   [{kind:'divine',  pattern:'+1/lvl from level 2 except 3,5,7,9'}],
+  hellknight_signifer:[{kind:'arcane', pattern:'+1/lvl from level 2'}],
+  pathfinder_savant: [{kind:'arcane',  pattern:'+1/lvl from level 2'}]
+};
+const _ARCANE_CASTERS_MOBILE = new Set(['mago','hechicero','bardo','brujo','witch','magus','arcanista','invocador']);
+const _DIVINE_CASTERS_MOBILE = new Set(['clerigo','druida','oraculo','inquisidor','paladin','explorador','sacerdote_de_guerra','chaman']);
+
+function _parsePrestigeBumpMobile(pattern, prestigeLvl){
+  if(!pattern) return 0;
+  const m = pattern.match(/^\+(\d+)\/lvl(?:\s+from\s+level\s+(\d+))?(?:\s+except\s+([\d,\s]+))?$/);
+  if(!m) return 0;
+  const inc = parseInt(m[1],10) || 1;
+  const fromLvl = m[2] ? parseInt(m[2],10) : 1;
+  const except = m[3] ? m[3].split(',').map(s=>parseInt(s.trim(),10)).filter(n=>!isNaN(n)) : [];
+  let bump = 0;
+  for(let l = fromLvl; l <= prestigeLvl; l++){
+    if(except.indexOf(l) === -1) bump += inc;
+  }
+  return bump;
+}
+
+function _getPrestigeBumpForMobile(classId){
+  let kind = null;
+  if(_ARCANE_CASTERS_MOBILE.has(classId)) kind = 'arcane';
+  else if(_DIVINE_CASTERS_MOBILE.has(classId)) kind = 'divine';
+  else return 0;
+  let total = 0;
+  try{
+    (CLASSES_DATA||[]).forEach(cl=>{
+      const cid = canonicalClassId(cl.name);
+      const bumps = _PRESTIGE_BUMPS_MOBILE[cid];
+      if(!bumps) return;
+      const lvl = parseInt(cl.level,10) || 0;
+      if(lvl < 1) return;
+      bumps.forEach(b=>{
+        if(b.kind === kind || b.kind === 'caster_chosen'){
+          total += _parsePrestigeBumpMobile(b.pattern, lvl);
+        }
+      });
+    });
+  }catch(e){}
+  return total;
+}
+
+/* MB-3 Fase B: escuela arcana → +1 slot por nivel (1-9) si wizard tiene escuela elegida. */
+function _getSchoolBumpForMobile(classId){
+  if(classId !== 'mago') return 0;
+  return (typeof SCHOOL_PICK === 'string' && SCHOOL_PICK) ? 1 : 0;
+}
+
 function computeSpellSlots(classId, classLevel, attrMod){
   const out = [0,0,0,0,0,0,0,0,0,0];
   const tbl = SLOT_TABLES[classId];
   if(!tbl) return out;
-  const lvl = Math.max(1, Math.min(20, classLevel|0));
-  const base = tbl[lvl-1];
+  /* MB-2: bump prestige aplicable */
+  const prestigeBump = _getPrestigeBumpForMobile(classId);
+  const effLvl = Math.max(1, Math.min(20, (classLevel|0) + prestigeBump));
+  const base = tbl[effLvl-1];
   const info = PF1E_CASTER_INFO[classId] || {};
   for(let s=0; s<10; s++){
     let n = base[s]|0;
@@ -4110,6 +4194,13 @@ function computeSpellSlots(classId, classLevel, attrMod){
   if(info.domain){
     for(let s=1; s<=(info.maxLvl||0); s++){
       if(out[s]>0) out[s] += 1;
+    }
+  }
+  /* MB-3: +1 slot/nivel a wizard con escuela elegida (no afecta cantrips lvl 0) */
+  const schoolBump = _getSchoolBumpForMobile(classId);
+  if(schoolBump > 0){
+    for(let s=1; s<=(info.maxLvl||9); s++){
+      if(out[s]>0) out[s] += schoolBump;
     }
   }
   return out;
@@ -4388,8 +4479,94 @@ let DOMAIN_PICKS = ['',''];
 let SCHOOL_PICK = '', BLOODLINE_PICK = '', MYSTERY_PICK = '', PATRON_PICK = '', ORDER_PICK = '';
 let SAMURAI_RESOLVE = {max:0, used:0};
 
+/* MB-1 Fase B: índice de clase caster activa (para multi-caster).
+   CLASSES_DATA puede tener varias clases; _ACTIVE_CASTER_INDEX apunta a la
+   que se está mostrando en el panel de conjuros. Defaults a la primera caster. */
+let _ACTIVE_CASTER_INDEX = 0;
+/* Estado por clase para no mezclar slots/conjuros al hacer swap */
+const _MULTICASTER_STATE = {};
+
+function _getCasterClassRows(){
+  return (CLASSES_DATA||[]).map((cl, idx)=>{
+    const cid = canonicalClassId(cl.name);
+    const info = PF1E_CASTER_INFO[cid] || {mode:'none'};
+    return {idx, cls: cl, classId: cid, info};
+  }).filter(r => r.info.mode && r.info.mode !== 'none');
+}
+
+function _saveActiveCasterState(){
+  if(!CURRENT_CLASS_ID || CURRENT_CLASS_ID === 'guerrero') return;
+  _MULTICASTER_STATE[CURRENT_CLASS_ID] = {
+    slots: SLOT_STATE.map(s => ({max:s.max, used:s.used, userOverride:!!s.userOverride})),
+    spells: SPELLS_DATA.map(s => ({...s}))
+  };
+}
+
+function _loadCasterState(classId){
+  const saved = _MULTICASTER_STATE[classId];
+  if(saved){
+    saved.slots.forEach((s,i)=>{
+      if(SLOT_STATE[i]){
+        SLOT_STATE[i].max = s.max;
+        SLOT_STATE[i].used = s.used;
+        SLOT_STATE[i].userOverride = s.userOverride;
+      }
+    });
+    SPELLS_DATA.length = 0;
+    saved.spells.forEach(s=>SPELLS_DATA.push(s));
+    return true;
+  }
+  return false;
+}
+
+function _refreshMulticasterUI(){
+  const bar = document.getElementById('multicaster-bar');
+  const sel = document.getElementById('multicaster-select');
+  if(!bar || !sel) return;
+  const casters = _getCasterClassRows();
+  if(casters.length < 2){
+    bar.style.display = 'none';
+    return;
+  }
+  bar.style.display = '';
+  /* Repoblar opciones */
+  sel.innerHTML = casters.map(r => {
+    const lvl = parseInt(r.cls.level,10) || 0;
+    const label = (r.cls.name||'') + ' Nv ' + lvl;
+    return `<option value="${r.idx}"${r.idx === _ACTIVE_CASTER_INDEX ? ' selected':''}>${label}</option>`;
+  }).join('');
+  if(!sel.dataset.bound){
+    sel.dataset.bound = '1';
+    sel.addEventListener('change', ()=>{
+      const newIdx = parseInt(sel.value,10);
+      if(isNaN(newIdx) || newIdx === _ACTIVE_CASTER_INDEX) return;
+      _saveActiveCasterState();
+      _ACTIVE_CASTER_INDEX = newIdx;
+      rebuildSpellSystem();
+      if(typeof saveStateDebounced === 'function') saveStateDebounced('multicaster-switch');
+    });
+  }
+}
+
 function rebuildSpellSystem(){
-  const cls = (CLASSES_DATA[0]||{name:'Guerrero',level:1});
+  /* MB-1: usar _ACTIVE_CASTER_INDEX si CLASSES_DATA tiene >1 caster.
+     Si apunta fuera de rango o a no-caster, buscar la primera clase caster. */
+  let cls = CLASSES_DATA[_ACTIVE_CASTER_INDEX];
+  if(!cls){ _ACTIVE_CASTER_INDEX = 0; cls = CLASSES_DATA[0]; }
+  if(cls){
+    const tentativeId = canonicalClassId(cls.name);
+    const tentativeInfo = PF1E_CASTER_INFO[tentativeId] || {mode:'none'};
+    if(tentativeInfo.mode === 'none'){
+      /* Buscar primera caster activa */
+      const firstCasterIdx = (CLASSES_DATA||[]).findIndex(c => {
+        const cid = canonicalClassId(c.name);
+        const cInfo = PF1E_CASTER_INFO[cid] || {mode:'none'};
+        return cInfo.mode && cInfo.mode !== 'none';
+      });
+      if(firstCasterIdx >= 0){ _ACTIVE_CASTER_INDEX = firstCasterIdx; cls = CLASSES_DATA[firstCasterIdx]; }
+    }
+  }
+  if(!cls) cls = {name:'Guerrero',level:1};
   CURRENT_CLASS_ID = canonicalClassId(cls.name);
   const info = PF1E_CASTER_INFO[CURRENT_CLASS_ID] || {mode:'none'};
   CASTING_MODE = info.mode;
@@ -4403,12 +4580,18 @@ function rebuildSpellSystem(){
   }
   const attrMod = getAttrModD4(info.attr);
   const slots = computeSpellSlots(CURRENT_CLASS_ID, cls.level||1, attrMod);
+  /* MB-1: si hay estado guardado para esta clase, restaurarlo antes de aplicar slots calculados */
+  const restored = _loadCasterState(CURRENT_CLASS_ID);
   for(let i=0;i<10;i++){
     SLOTS_PER_LVL[i] = slots[i];
-    SLOT_STATE[i].max = slots[i];
-    if(SLOT_STATE[i].used > slots[i]) SLOT_STATE[i].used = slots[i];
+    /* MB-4 Fase B: respetar override manual (slot.userOverride === true).
+       Sólo se machaca el max si el usuario no ha puesto un valor manual. */
+    if(SLOT_STATE[i].userOverride !== true){
+      SLOT_STATE[i].max = slots[i];
+    }
+    if(SLOT_STATE[i].used > SLOT_STATE[i].max) SLOT_STATE[i].used = SLOT_STATE[i].max;
   }
-  if(SPELLS_DATA.length===0){
+  if(!restored && SPELLS_DATA.length===0){
     const list = SPELLS_DB[CURRENT_CLASS_ID]||[];
     list.forEach((sp,i)=>SPELLS_DATA.push({
       id: 5000+i, name: sp.n, lvl: sp.l, school: sp.s, comp: sp.c,
@@ -4418,6 +4601,8 @@ function rebuildSpellSystem(){
   if(typeof renderSlots==='function') renderSlots();
   if(typeof renderSpells==='function') renderSpells();
   if(typeof renderSpellDC==='function') renderSpellDC();
+  /* MB-1: refrescar selector multi-caster al cambiar clases activas */
+  if(typeof _refreshMulticasterUI === 'function') _refreshMulticasterUI();
   document.dispatchEvent(new CustomEvent('spells-changed',{detail:{classId:CURRENT_CLASS_ID,spellLvl:-1}}));
 }
 
@@ -5153,8 +5338,25 @@ function renderSlots(){
     b.addEventListener('click',()=>{
       const i=+b.dataset.slotU;
       if(SLOT_STATE[i].used>0) SLOT_STATE[i].used--;
-      else if(SLOT_STATE[i].max<99) SLOT_STATE[i].max++;
+      else if(SLOT_STATE[i].max<99){
+        SLOT_STATE[i].max++;
+        /* MB-4 Fase B: subir max manualmente activa override */
+        SLOT_STATE[i].userOverride = true;
+      }
       renderSlots(); renderSpells();
+    });
+  });
+  /* MB-4 Fase B: doble clic en tile resetea override y pide recálculo */
+  document.querySelectorAll('.slot-tile').forEach((tile, idx)=>{
+    tile.addEventListener('dblclick', ()=>{
+      /* idx 0..4 es g1, 5..9 g2 — pero ambos comparten el index del tile */
+      const allTiles = document.querySelectorAll('.slot-tile');
+      const i = Array.from(allTiles).indexOf(tile);
+      if(i >= 0 && SLOT_STATE[i] && SLOT_STATE[i].userOverride){
+        SLOT_STATE[i].userOverride = false;
+        if(typeof rebuildSpellSystem==='function') rebuildSpellSystem();
+        if(typeof toast==='function') toast('Slot Nv '+i+': override resetado');
+      }
     });
   });
 }
@@ -6655,7 +6857,7 @@ function bindFormSheets(){
   // Rest 8h
   const rest = document.getElementById('rest-8h');
   if(rest) rest.addEventListener('click',()=>{
-    SLOT_STATE.forEach(s=>s.used=0);
+    SLOT_STATE.forEach(s=>{ s.used=0; });
     SPELLS_DATA.forEach(s=>s.cast=false);
     renderSlots(); renderSpells();
     toast('8h descansadas. Slots restaurados.');
@@ -6667,6 +6869,25 @@ function bindFormSheets(){
       document.querySelectorAll('#spell-filter button').forEach(x=>x.classList.toggle('active',x===b));
       renderSpells();
     });
+  });
+  /* MB-5 Fase B: penetración mágica (1d20 + NL + dote) */
+  const penBtn = document.getElementById('btn-spell-penetration');
+  if(penBtn) penBtn.addEventListener('click',()=>{
+    const cls = (CLASSES_DATA[0]||{name:'',level:0});
+    const classId = canonicalClassId(cls.name);
+    const baseLvl = parseInt(cls.level,10) || 0;
+    /* Suma bumps de prestige al NL */
+    const prestigeBump = (typeof _getPrestigeBumpForMobile === 'function') ? _getPrestigeBumpForMobile(classId) : 0;
+    const cl = baseLvl + prestigeBump;
+    const featBonus = parseInt(document.getElementById('spell-pen-feat')?.value, 10) || 0;
+    const roll = Math.floor(Math.random()*20) + 1;
+    const total = roll + cl + featBonus;
+    const out = document.getElementById('spell-pen-result');
+    if(out){
+      const sign = (cl + featBonus) >= 0 ? '+' : '';
+      out.textContent = `1d20${sign}${cl + featBonus} = ${total} (1d20[${roll}] + NL ${cl}${featBonus?` + dote ${featBonus}`:''})`;
+    }
+    if(typeof toast === 'function') toast(`Penetración: ${total}`);
   });
 }
 
