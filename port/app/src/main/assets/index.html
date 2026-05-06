@@ -1845,7 +1845,17 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
         <div class="field-row">
           <div class="field"><label class="field-label" data-i18n="lblPeso">Peso</label><input class="field-input" type="number" value="78"></div>
           <div class="field"><label class="field-label" data-i18n="lblTamano">Tamaño</label>
-            <select class="field-select"><option>Diminuto</option><option>Pequeño</option><option selected>Mediano</option><option>Grande</option></select>
+            <select class="field-select" id="m-size">
+              <option value="fine">Minúsculo</option>
+              <option value="diminutive">Diminuto</option>
+              <option value="tiny">Menudo</option>
+              <option value="small">Pequeño</option>
+              <option value="medium" selected>Mediano</option>
+              <option value="large">Grande</option>
+              <option value="huge">Enorme</option>
+              <option value="gargantuan">Gargantuesco</option>
+              <option value="colossal">Colosal</option>
+            </select>
           </div>
         </div>
         <div class="field">
@@ -9180,9 +9190,25 @@ function D5_getFUE(){
   const a = ATTRS.find(x=>x[0]==='FUE'); return a ? a[2] : 10;
 }
 function D5_getSize(){
+  /* P-16/P-38 fix: prioriza #m-size con value="medium|large|...", fallback al
+     legacy walk de selects con texto español. Devuelve siempre un nombre español
+     en D5_SIZE (consumidores como _calculatePeso esperan ese formato). */
+  const sizeNamesEs = {fine:'Diminuto', diminutive:'Diminuto', tiny:'Diminuto', small:'Pequeño', medium:'Mediano', large:'Grande', huge:'Enorme', gargantuan:'Enorme', colossal:'Enorme'};
+  const ms = document.getElementById('m-size');
+  if(ms && ms.value){
+    if(sizeNamesEs[ms.value]) return sizeNamesEs[ms.value];
+    if(D5_SIZE[ms.value]) return ms.value;
+  }
   const all = document.querySelectorAll('.sub-page[data-sub="fisico"] select, .sub-page[data-sub="identidad"] select');
   for(const s of all){ for(const o of s.options){ if(D5_SIZE[o.text]) return s.value || o.text; } }
   return 'Mediano';
+}
+/* P-16/P-38 helper: clave SIZE_CMB ('medium','small',...) directo del DOM. */
+function D5_getSizeKey(){
+  const ms = document.getElementById('m-size');
+  if(ms && ms.value) return ms.value;
+  const sizeMapEs = {'Diminuto':'tiny','Pequeño':'small','Pequeno':'small','Mediano':'medium','Grande':'large','Enorme':'huge','Gargantuesco':'gargantuan','Colosal':'colossal'};
+  return sizeMapEs[D5_getSize()] || 'medium';
 }
 function D5_getRawBAB(){
   let bab = 0;
@@ -9641,7 +9667,11 @@ function D5_bindExternalEvents(){
     if(!e.detail || e.detail.abbr==='FUE' || e.detail.abbr==='DES') D5_refreshWeaponRolls();
   });
   document.addEventListener('class-changed',()=>D5_refreshWeaponRolls());
-  document.addEventListener('size-changed',()=>{ D5_renderWeight(); D5_refreshWeaponRolls(); });
+  document.addEventListener('size-changed',()=>{
+    D5_renderWeight(); D5_refreshWeaponRolls();
+    /* P-16/P-38: el tamaño afecta CA/CMD/Init/ataque — recalcular motor entero */
+    if(typeof CombatEngine !== 'undefined' && CombatEngine.apply) CombatEngine.apply();
+  });
 
   document.querySelectorAll('.sub-page[data-sub="fisico"] select, .sub-page[data-sub="identidad"] select').forEach(sel=>{
     for(const o of sel.options){
@@ -10008,15 +10038,9 @@ const CombatEngine = (function(){
   }
 
   function calcCMBCMD(mods, bab){
-    /* MA-7: leer tamano via D5_getSize() (con fallback a #m-size si existiese) */
-    let sizeKey;
-    const mSizeEl = document.getElementById('m-size');
-    if(mSizeEl && mSizeEl.value) sizeKey = mSizeEl.value;
-    else if(typeof D5_getSize === 'function'){
-      const size = D5_getSize();
-      const sizeMap = {'Diminuto':'tiny','Pequeño':'small','Pequeno':'small','Mediano':'medium','Grande':'large','Enorme':'huge','Gargantuesco':'gargantuan','Colosal':'colossal'};
-      sizeKey = sizeMap[size] || 'medium';
-    } else sizeKey = 'medium';
+    /* P-16/P-38 fix: usar D5_getSizeKey() que prioriza #m-size con value
+       ('small','medium','large',...) y cae a mapeo español si no existe. */
+    const sizeKey = (typeof D5_getSizeKey === 'function') ? D5_getSizeKey() : 'medium';
     const sCMB = SIZE_CMB[sizeKey] || 0;
     const cond = _computeCondMods();
     /* CMB: bab + STR + size + cond_atk (mismo que ataque genérico) */
@@ -10420,6 +10444,29 @@ function snapshotState(){
       custom: [...document.querySelectorAll('#lang-list-custom label[data-lang]')]
         .map(l=>({name:l.dataset.lang, checked:!!l.querySelector('input')?.checked}))
     };
+    /* A-06 fix: D3_SKILLS.state (rangos + misc por habilidad) y CUSTOM_SKILLS
+       no estaban en el JSON exportado. Persistir ambos para que la ficha
+       reflej fielmente lo que el usuario tiene en pantalla. */
+    if(window.D3_SKILLS && window.D3_SKILLS.state){
+      const sk = {};
+      Object.keys(window.D3_SKILLS.state).forEach(id=>{
+        const st = window.D3_SKILLS.state[id] || {};
+        sk[id] = { r: parseInt(st.r,10)||0, misc: parseInt(st.misc,10)||0 };
+      });
+      s.skillsD3 = sk;
+    }
+    try{
+      const raw = localStorage.getItem('ficha-custom-skills');
+      s.customSkills = raw ? JSON.parse(raw) : [];
+    }catch(_){ s.customSkills = []; }
+    /* N-02 fix: settings tipográficos (fontSize, daltonic) viven aparte en
+       SETTINGS_KEY y no se incluían en el JSON. Embeber el snapshot completo
+       para que importar reproduzca tamaño de letra y modo daltónico. */
+    try{
+      if(typeof loadSettings === 'function'){
+        s.uiSettings = loadSettings();
+      }
+    }catch(_){}
   }catch(e){}
   return s;
 }
@@ -10524,6 +10571,36 @@ function applyState(state){
       }
     });
   }
+  /* A-06 fix: restaurar custom skills + rangos/misc de D3_SKILLS */
+  try{
+    if(Array.isArray(state.customSkills)){
+      localStorage.setItem('ficha-custom-skills', JSON.stringify(state.customSkills));
+    }
+    if(state.skillsD3 && window.D3_SKILLS && window.D3_SKILLS.state){
+      Object.keys(state.skillsD3).forEach(id=>{
+        const incoming = state.skillsD3[id];
+        if(!window.D3_SKILLS.state[id]) window.D3_SKILLS.state[id] = {r:0, misc:0};
+        window.D3_SKILLS.state[id].r    = parseInt(incoming.r,10)||0;
+        window.D3_SKILLS.state[id].misc = parseInt(incoming.misc,10)||0;
+      });
+      if(typeof window.D3_SKILLS.recalc === 'function') window.D3_SKILLS.recalc();
+    }
+  }catch(_){}
+  /* N-02 fix: aplicar settings tipográficos importados */
+  try{
+    if(state.uiSettings && typeof saveSettings === 'function'){
+      const cur = (typeof loadSettings==='function') ? loadSettings() : {};
+      const merged = Object.assign(cur, state.uiSettings);
+      saveSettings(merged);
+      if(typeof applyFontSize === 'function' && merged.fontSize) applyFontSize(merged.fontSize);
+      const fsSel = document.getElementById('settings-fontsize');
+      if(fsSel && merged.fontSize) fsSel.value = merged.fontSize;
+      const daltCb = document.getElementById('settings-daltonic');
+      if(daltCb) daltCb.checked = !!merged.daltonic;
+      if(merged.daltonic) document.documentElement.classList.add('daltonic-mode');
+      else document.documentElement.classList.remove('daltonic-mode');
+    }
+  }catch(_){}
   if(state.attrs){
     document.querySelectorAll('.attr-card').forEach(card=>{
       const ab = (card.querySelector('.attr-abbr')||{}).textContent;
@@ -10855,26 +10932,41 @@ function _migrateV0toV1(obj){
 function _migrateV1toV2(obj){
   /* v2: añade campos para Mythic, Synthesist, Broodmaster, Gestalt, SLA, weaknesses.
      No es breaking — solo asegura defaults. Sin warnings. */
-  if(!('mythic' in obj)) obj.mythic = null;
-  if(!('synthFused' in obj)) obj.synthFused = false;
-  if(!('broodActive' in obj)) obj.broodActive = 0;
-  if(!('gestaltMode' in obj)) obj.gestaltMode = false;
-  if(!('slaList' in obj)) obj.slaList = [];
-  if(!('weaknesses' in obj)) obj.weaknesses = '';
-  if(!('epicMode' in obj)) obj.epicMode = false;
-  if(!('initRound' in obj)) obj.initRound = 1;
+  const defaults = {
+    mythic:null, synthFused:false, broodActive:0, gestaltMode:false,
+    slaList:[], weaknesses:'', epicMode:false, initRound:1
+  };
+  const filled = [];
+  Object.keys(defaults).forEach(k=>{
+    if(!(k in obj)){ obj[k] = defaults[k]; filled.push(k); }
+  });
+  obj._migratedFields = (obj._migratedFields||[]).concat(filled);
   return obj;
 }
 function migrateState(obj){
   if(!obj) return null;
   let schema = (typeof obj.__schema === 'number') ? obj.__schema : (obj.v|0 || 0);
   let migrated = false;
+  const fromVer = schema;
   if(schema < 1){ obj = _migrateV0toV1(obj); schema = 1; migrated = true; }
   if(schema < 2){ obj = _migrateV1toV2(obj); schema = 2; migrated = true; }
   obj.__schema = STATE_SCHEMA_VERSION;
-  obj.v = STATE_SCHEMA_VERSION; /* compat con v= legacy */
+  obj.v = STATE_SCHEMA_VERSION;
+  /* N-03 fix: toast detallado con la lista de campos rellenados por defecto.
+     Si la lista es larga, mostrar solo el conteo. */
   if(migrated && typeof toast === 'function'){
-    setTimeout(()=>toast(`✓ Ficha migrada a v${STATE_SCHEMA_VERSION}`), 800);
+    const filled = Array.isArray(obj._migratedFields) ? obj._migratedFields.filter((v,i,a)=>a.indexOf(v)===i) : [];
+    const lang = (document.documentElement.dataset.lang === 'en') ? 'en' : 'es';
+    const head = (lang==='en')
+      ? `✓ Sheet migrated v${fromVer}→v${STATE_SCHEMA_VERSION}`
+      : `✓ Ficha migrada v${fromVer}→v${STATE_SCHEMA_VERSION}`;
+    let body = '';
+    if(filled.length){
+      const tail = (lang==='en') ? ` (${filled.length} new fields filled)` : ` (${filled.length} campos completados)`;
+      body = filled.length<=4 ? ` · ${filled.join(', ')}` : tail;
+    }
+    setTimeout(()=>toast(head + body, 4500), 800);
+    delete obj._migratedFields;
   }
   return obj;
 }
@@ -11066,6 +11158,27 @@ function hookLanguage(){
     saveStateDebounced('lang');
   };
 }
+/* N-01 fix: re-renderizar todas las tarjetas dinámicas en cambio de idioma.
+   Las funciones render* emiten HTML con strings traducibles via t() y otras
+   fuentes de datos; al re-llamarlas se reflejan los nuevos textos. */
+document.addEventListener('language-changed', ()=>{
+  const safeRun = fn => { try{ if(typeof fn === 'function') fn(); }catch(e){ console.warn('lang re-render',e); } };
+  safeRun(window.renderClasses);
+  safeRun(window.renderWeapons);
+  safeRun(window.renderArmor);
+  safeRun(window.renderFeatsCrud);
+  safeRun(window.renderBuffs);
+  safeRun(window.renderAdjusts);
+  safeRun(window.renderInit);
+  safeRun(window.renderSpells);
+  safeRun(window.renderSLAs);
+  safeRun(window.renderClassFeatures);
+  safeRun(window.renderTopbarFlags);
+  /* re-aplicar sub_options/topbar/multicaster que dependen de idioma */
+  safeRun(window._refreshMulticasterUI);
+  /* habilidades — D3_SKILLS.recalc cuelga del lookup window por seguridad */
+  try{ if(window.D3_SKILLS && typeof window.D3_SKILLS.recalc === 'function') window.D3_SKILLS.recalc(); }catch(_){}
+});
 
 function wireConfirmActions(){
   const confirmGo = document.getElementById('confirm-go');
