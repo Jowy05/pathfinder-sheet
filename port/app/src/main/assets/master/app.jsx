@@ -2825,18 +2825,26 @@ function MasterApp({
               {initPos === 'float' && <InitFloat />}
             </React.Fragment>
           )}
-          {/* Floating fab toolbar — solo visible en mapa */}
+          {/* Floating fab toolbar — strip vertical pegado al borde derecho.
+              2026-05-06: layout cambiado de fila horizontal abajo a columna
+              vertical desde debajo de init-strip hasta justo encima del drawer.
+              top:0 alinea con la zona del mapa (justo bajo la init-strip que
+              ocupa unos 38px); bottom dinámico evita tapar el drawer; con
+              overflow-y:auto en .mst-fab-row, hace scroll si la lista no cabe. */}
           {bottomTab === 'map' && drawerHeight !== 'full' && (
             <div
               className="mst-fab-row"
               style={{
-                right: 12,
-                // Pegado al borde superior del drawer (o al bottom-nav si no hay token)
+                right: 0,
+                top: 0,
+                /* Pegado al borde superior del drawer (o al bottom-nav si no hay token).
+                   El bottom debe dejar espacio para el bottom-nav (56px) + safe-area
+                   + altura del drawer según su estado. */
                 bottom: !selectedToken
-                  ? 'calc(56px + env(safe-area-inset-bottom) + 12px)'
+                  ? 'calc(56px + env(safe-area-inset-bottom) + 8px)'
                   : drawerHeight === 'peek'
-                    ? 'calc(56px + env(safe-area-inset-bottom) + 64px + 12px)'
-                    : 'calc(56px + env(safe-area-inset-bottom) + 230px + 12px)',
+                    ? 'calc(56px + env(safe-area-inset-bottom) + 64px + 8px)'
+                    : 'calc(56px + env(safe-area-inset-bottom) + 230px + 8px)',
                 transition: 'bottom var(--t-mid) cubic-bezier(.2,.9,.3,1.2)'
               }}
             >

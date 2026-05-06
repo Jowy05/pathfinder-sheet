@@ -949,11 +949,30 @@
 .mst-hp-stepper .pos { color: var(--positive); }
 
 /* ---- Floating action bar (variant) ---- */
+/* 2026-05-06: convertido a columna vertical en el lado derecho del mapa.
+   Antes era una fila horizontal en la parte inferior — comía espacio del
+   mapa y tapaba tokens. Ahora va pegado al borde derecho desde justo debajo
+   de la init-strip hasta el borde superior del drawer, con scroll vertical
+   propio si los botones no caben. */
 .mst-fab-row {
   position: absolute;
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 6px;
   z-index: 3;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.mst-fab-row::-webkit-scrollbar { display: none; }
+/* En el strip vertical, captions largas (PLANTILLAS, NIEBLA) se permiten en 2 líneas. */
+.mst-fab-row .mst-btn-caption {
+  white-space: normal;
+  text-align: center;
+  max-width: 64px;
+  line-height: 1.05;
 }
 .mst-fab {
   width: 48px; height: 48px;
