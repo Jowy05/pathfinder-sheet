@@ -2117,20 +2117,25 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
         <h3 class="card-title"><span class="ornament">❦</span><span>Tácticas activas</span><span class="ornament">❦</span></h3>
         <div style="display:grid;gap:8px">
           <label style="display:flex;align-items:center;gap:10px;padding:8px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--surface-2)">
-            <input type="checkbox"> <span style="flex:1">Ataque Poderoso</span>
-            <span style="font:11px/1 system-ui;color:var(--ink-muted)">−BAB atq · +2×BAB daño</span>
+            <input type="checkbox" id="combat-power-attack" class="combat-tactical"> <span style="flex:1">Ataque Poderoso</span>
+            <span style="font:11px/1 system-ui;color:var(--ink-muted)">−⌊BAB/4⌋ atq · +×2/×3/×1 daño</span>
           </label>
           <label style="display:flex;align-items:center;gap:10px;padding:8px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--surface-2)">
-            <input type="checkbox"> <span style="flex:1">Puntería Mortal</span>
-            <span style="font:11px/1 system-ui;color:var(--ink-muted)">−BAB atq dist · +2×BAB</span>
+            <input type="checkbox" id="combat-deadly-aim" class="combat-tactical"> <span style="flex:1">Puntería Mortal</span>
+            <span style="font:11px/1 system-ui;color:var(--ink-muted)">−⌊BAB/4⌋ atq dist · +×2 daño</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)">
+            <span style="flex:1">Combate Dos Armas</span>
+            <select id="combat-twf" class="combat-tactical" style="font:600 11px system-ui;padding:4px 6px;border-radius:6px;background:var(--surface);color:var(--ink);border:1px solid var(--line)">
+              <option value="off" selected>—</option>
+              <option value="std">Sin dote (−4/−8)</option>
+              <option value="itwf">Con dote (−2/−2)</option>
+              <option value="gtwf">Mejorada (−2/−2)</option>
+            </select>
           </label>
           <label style="display:flex;align-items:center;gap:10px;padding:8px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--surface-2)">
-            <input type="checkbox"> <span style="flex:1">Combate con Dos Armas</span>
-            <span style="font:11px/1 system-ui;color:var(--ink-muted)">−2 / −2 a ambas</span>
-          </label>
-          <label style="display:flex;align-items:center;gap:10px;padding:8px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--surface-2)">
-            <input type="checkbox"> <span style="flex:1">Asalto Enérgico</span>
-            <span style="font:11px/1 system-ui;color:var(--ink-muted)">−CA · +atq</span>
+            <input type="checkbox" id="combat-fight-defensively" class="combat-tactical"> <span style="flex:1">Asalto Enérgico</span>
+            <span style="font:11px/1 system-ui;color:var(--ink-muted)">+1 atq · −2 CA (BAB ≥1)</span>
           </label>
         </div>
       </div>
@@ -4957,6 +4962,9 @@ function renderWeapons(){
         </label>
         <input type="number" inputmode="numeric" class="field-input weap-misc-inp" data-weap-id="${w.id}" value="${w.misc||0}" style="width:60px;text-align:center;padding:4px 6px" aria-label="Bono de ataque por dotes" title="Suma al ataque cuando 'activo' está marcado">
         ${(w.miscOn!==false && (w.misc||0)!==0) ? `<span style="font:700 11px system-ui;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:99px">${w.misc>0?'+':''}${w.misc}</span>` : ''}
+        <label style="display:flex;align-items:center;gap:4px;font:600 10px system-ui;color:var(--crimson);cursor:pointer;margin-left:auto" title="Arma rota: −2 atq, −2 daño, crítico ×2">
+          <input type="checkbox" class="weap-broken" data-weap-id="${w.id}" ${w.broken?'checked':''}>Roto
+        </label>
       </div>
       <div class="weap-actions">
         ${atkBtns}
@@ -4984,6 +4992,17 @@ function renderWeapons(){
     chk.addEventListener('change',()=>{
       const wep = WEAPONS_DATA.find(x=>x.id===+chk.dataset.weapId);
       if(wep){ wep.miscOn = chk.checked; if(typeof D5_refreshWeaponRolls==='function') D5_refreshWeaponRolls(); }
+    });
+  });
+  /* MA-2 Fase A: checkbox 'Roto' por arma */
+  c.querySelectorAll('.weap-broken').forEach(chk=>{
+    chk.addEventListener('change',()=>{
+      const wep = WEAPONS_DATA.find(x=>x.id===+chk.dataset.weapId);
+      if(wep){
+        wep.broken = chk.checked;
+        if(typeof D5_refreshWeaponRolls==='function') D5_refreshWeaponRolls();
+        if(typeof saveStateDebounced==='function') saveStateDebounced('weap-broken');
+      }
     });
   });
 }
@@ -7835,16 +7854,58 @@ function D5_getRawBAB(){
 function D5_getBAB(){
   return D5_getRawBAB() + (_BUFF_MOD_TOTALS?.atk||0);
 }
+/* MA-1/MA-2/MA-3 Fase A: deltas tácticos compartidos con calc/iter/dmg.
+   Lee toggles globales: #combat-power-attack, #combat-deadly-aim, #combat-twf
+   (data-twf="off"|"std"|"itwf"|"gtwf"). */
+function D5_getCombatTacticals(w, isMelee, isRanged, isOffhand, is2H){
+  /* Power Attack (CaC) y Deadly Aim (a distancia) */
+  const paOn = !!document.getElementById('combat-power-attack')?.checked;
+  const daOn = !!document.getElementById('combat-deadly-aim')?.checked;
+  const bab  = D5_getRawBAB();
+  const paPenalty = -(1 + Math.floor(bab/4));
+  let paAtk = 0, paDmg = 0;
+  if(paOn && isMelee){
+    paAtk = paPenalty;
+    paDmg = Math.abs(paPenalty) * (is2H ? 3 : (isOffhand ? 1 : 2));
+  } else if(daOn && isRanged){
+    paAtk = paPenalty;
+    paDmg = Math.abs(paPenalty) * 2;
+  }
+  /* TWF: -2/-2 con dote, -2/-6 mejorada (estricto solo ataque mano principal),
+     -4/-8 sin dote. Se aplica solo a NO-ranged. */
+  const twfLvl = document.getElementById('combat-twf')?.value || 'off';
+  let twfMain = 0, twfOff = 0;
+  if(twfLvl === 'std'){ twfMain = -4; twfOff = -8; }
+  else if(twfLvl === 'itwf'){ twfMain = -2; twfOff = -2; }
+  else if(twfLvl === 'gtwf'){ twfMain = -2; twfOff = -2; }
+  const twfPenalty = (twfLvl !== 'off' && !isRanged) ? (isOffhand ? twfOff : twfMain) : 0;
+  /* Broken: -2 atq + -2 daño */
+  const brokenAtk = w.broken ? -2 : 0;
+  const brokenDmg = w.broken ? -2 : 0;
+  /* condAtk: leído del estado global (rellenado en CombatEngine.calcConditionsAuto-style) */
+  const condAtk = (typeof _COND_ATK !== 'undefined') ? _COND_ATK : 0;
+  /* Prone: -4 a CaC, sin penalización a ranged */
+  const proneOn = !!document.getElementById('cond-prone')?.checked;
+  const pronePenalty = (proneOn && isMelee) ? -4 : 0;
+  return { paAtk, paDmg, twfPenalty, brokenAtk, brokenDmg, condAtk, pronePenalty };
+}
+
 function D5_getIterativeAttacks(w){
   const rawBab = D5_getRawBAB();
   const buffAtk = _BUFF_MOD_TOTALS?.atk||0;
   const size = D5_getSize ? D5_getSize() : 'Mediano';
   const sizeAtk = (D5_SIZE?.[size]||{atk:0}).atk||0;
-  const attr = (w.style==='ranged'||w.style==='finesse') ? 'DES' : 'FUE';
+  const isRanged  = (w.style==='ranged');
+  const isOffhand = (w.style==='offhand');
+  const isMelee   = !isRanged;
+  const is2H      = (w.hands===2);
+  const attr = (isRanged || w.style==='finesse') ? 'DES' : 'FUE';
   const mod = D5_getMod(attr);
   const enh  = parseInt(w.enh,10)||0;
   const misc = (w.miscOn===false ? 0 : (parseInt(w.misc,10)||0));
-  const extras = mod + enh + misc + sizeAtk + buffAtk;
+  const t = D5_getCombatTacticals(w, isMelee, isRanged, isOffhand, is2H);
+  const extras = mod + enh + misc + sizeAtk + buffAtk
+               + t.paAtk + t.twfPenalty + t.brokenAtk + t.condAtk + t.pronePenalty;
   const fmt = n=>(n>=0?'+':'')+n;
   const attacks = [fmt(rawBab + extras)];
   if(rawBab >= 6)  attacks.push(fmt(rawBab - 5  + extras));
@@ -7920,23 +7981,34 @@ function D5_computeWeaponAttack(w){
   const bab = D5_getBAB();
   const size = D5_getSize();
   const sizeAtk = (D5_SIZE[size]||{atk:0}).atk;
+  const isRanged  = (w.style==='ranged');
+  const isOffhand = (w.style==='offhand');
+  const isMelee   = !isRanged;
+  const is2H      = (w.hands===2);
   let attr = 'FUE';
   if(w.style==='ranged') attr = 'DES';
   else if(w.style==='finesse') attr = 'DES';
   const mod  = D5_getMod(attr);
   const enh  = parseInt(w.enh,10)||0;
   const misc = (w.miscOn===false ? 0 : (parseInt(w.misc,10)||0));
-  return bab + mod + enh + misc + sizeAtk;
+  const t = D5_getCombatTacticals(w, isMelee, isRanged, isOffhand, is2H);
+  return bab + mod + enh + misc + sizeAtk + t.paAtk + t.twfPenalty + t.brokenAtk + t.condAtk + t.pronePenalty;
 }
 function D5_computeWeaponDamage(w){
   const enh = parseInt(w.enh,10)||0;
+  const isRanged  = (w.style==='ranged');
+  const isOffhand = (w.style==='offhand');
+  const isMelee   = !isRanged;
+  const is2H      = (w.hands===2);
   let strBonus = 0;
-  if(w.style!=='ranged'){
+  if(!isRanged){
     const fueMod = D5_getMod('FUE');
-    const mult = (w.hands===2) ? 1.5 : (w.hands===0.5 ? 0.5 : 1);
+    const mult = is2H ? 1.5 : (w.hands===0.5 || isOffhand ? 0.5 : 1);
     strBonus = Math.floor(fueMod * mult);
   }
-  const bonus = strBonus + enh;
+  const t = D5_getCombatTacticals(w, isMelee, isRanged, isOffhand, is2H);
+  const buffDmg = (_BUFF_MOD_TOTALS?.dmg) || 0;
+  const bonus = strBonus + enh + t.paDmg + t.brokenDmg + buffDmg;
   const sign = bonus>=0 ? '+' : '';
   return `${w.damage_die}${bonus!==0 ? sign+bonus : ''}`;
 }
@@ -7945,7 +8017,9 @@ function D5_refreshWeaponRolls(){
     w.iterativeAtks = D5_getIterativeAttacks(w);
     w.atk = w.iterativeAtks[0];
     w.dmg = D5_computeWeaponDamage(w);
-    w.crit = `${w.crit_threat===20?'20':w.crit_threat+'-20'}/×${w.crit_mult||2}`;
+    /* MA-2 Fase A: arma rota fuerza crítico ×2 (PF1e CRB) */
+    const critMult = w.broken ? 2 : (w.crit_mult||2);
+    w.crit = `${w.crit_threat===20?'20':w.crit_threat+'-20'}/×${critMult}`;
   });
   if(typeof renderWeapons==='function') renderWeapons();
   if(typeof rebindRolls==='function') rebindRolls();
@@ -8058,13 +8132,37 @@ function D5_calcEffSpeed(){
     else if(a.armor_type==='medium' && heaviest!=='heavy') heaviest = 'medium';
   });
   let eff = base;
-  let note = '';
+  const notes = [];
   if(heaviest === 'medium' || heaviest === 'heavy') {
     // PF1e: speed × 2/3, round down to nearest 5 ft
     eff = Math.floor(base * 2 / 3 / 5) * 5;
-    note = ` (${heaviest==='heavy'?'pesada':'media'})`;
+    notes.push(heaviest==='heavy'?'pesada':'media');
   }
-  effEl.value = eff + ' ft' + note;
+  /* MA-6 Fase A: encumbrance por carga afecta velocidad (regla PF1e CRB pg.171).
+     - Ligera: sin reducción.
+     - Media: speed × 2/3 (cap 20 ft típico para base 30).
+     - Pesada: speed × 2/3 (igual que media; en PF1e el cap depende de la talla).
+     - Sobrecarga: 0 ft, no se puede mover (regla oficial). */
+  let loadState = '';
+  try{
+    if(typeof D5_computeTotalWeight === 'function' && typeof computeMaxLoad === 'function' && typeof D5_computeLoadState === 'function'){
+      const total = D5_computeTotalWeight();
+      /* ATTRS = [[abbr, name, total, mod], ...] — usar índice 2 (puntuación total) */
+      const fueRow = (typeof ATTRS!=='undefined') ? ATTRS.find(x=>x[0]==='FUE') : null;
+      const fue = fueRow ? (parseInt(fueRow[2],10)||10) : 10;
+      const size = (typeof D5_getSize === 'function') ? D5_getSize() : 'Mediano';
+      const max  = computeMaxLoad(fue, size, false);
+      loadState  = D5_computeLoadState(total, max);
+    }
+  }catch(e){}
+  if(loadState === 'sobrecarga'){
+    eff = 0;
+    notes.push('sobrecarga');
+  } else if(loadState === 'pesada' || loadState === 'media'){
+    const speedFromEnc = Math.floor(base * 2 / 3 / 5) * 5;
+    if(speedFromEnc < eff){ eff = speedFromEnc; notes.push('carga ' + loadState); }
+  }
+  effEl.value = eff + ' ft' + (notes.length ? ' ('+notes.join(', ')+')' : '');
   effEl.style.color = eff < base ? 'var(--negative)' : '';
 }
 function D5_recompute(){
@@ -8151,7 +8249,11 @@ function D5_init(){
 })();
 
 /* ─── BUFF MOD ENGINE ─── */
-const _BUFF_MOD_TOTALS = {atk:0,ac:0,str:0,dex:0,con:0,int:0,wis:0,cha:0,fort:0,ref:0,will:0,cmb:0,cmd:0,init:0,hp:0};
+const _BUFF_MOD_TOTALS = {atk:0,ac:0,str:0,dex:0,con:0,int:0,wis:0,cha:0,fort:0,ref:0,will:0,cmb:0,cmd:0,init:0,hp:0,dmg:0};
+/* MA-3 Fase A: condAtk global usado por D5_computeWeaponAttack/D5_getIterativeAttacks.
+   Se recalcula en CombatEngine.apply() leyendo cond-* checkboxes activos. */
+let _COND_ATK = 0;
+let _COND_AC  = 0;
 let _RAGE_ACTIVE = false;
 const _RAGE_BONUSES = {str:4,con:4,will:2,ac:-2};
 
@@ -8279,6 +8381,23 @@ const CombatEngine = (function(){
   function sign(n){ return n>=0 ? '+'+n : ''+n; }
 
   const _modCache = {};
+  /* MA-8 Fase A: tabla de mods de edad PF1e (FUE/DES/CON, INT/SAB/CAR) */
+  const _AGE_MODS = {
+    'young':         {str:0, dex:0, con:0, int:0,  wis:0,  cha:0},
+    'adult':         {str:0, dex:0, con:0, int:0,  wis:0,  cha:0},
+    'middle':        {str:-1, dex:-1, con:-1, int:1, wis:1, cha:1},
+    'mediana':       {str:-1, dex:-1, con:-1, int:1, wis:1, cha:1},
+    'old':           {str:-3, dex:-3, con:-3, int:2, wis:2, cha:2},
+    'viejo':         {str:-3, dex:-3, con:-3, int:2, wis:2, cha:2},
+    'vieja':         {str:-3, dex:-3, con:-3, int:2, wis:2, cha:2},
+    'venerable':     {str:-6, dex:-6, con:-6, int:3, wis:3, cha:3}
+  };
+  function _getAgeMods(){
+    const el = document.getElementById('in-edad-cat') || document.getElementById('age-category') || document.getElementById('in-age-cat');
+    const v = (el && el.value) ? String(el.value).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'') : '';
+    return _AGE_MODS[v] || {str:0,dex:0,con:0,int:0,wis:0,cha:0};
+  }
+
   function getMods(){
     const map = {FUE:'str',DES:'dex',CON:'con',INT:'int',SAB:'wis',CAR:'cha'};
     const out = {str:0,dex:0,con:0,int:0,wis:0,cha:0};
@@ -8292,6 +8411,18 @@ const CombatEngine = (function(){
     ['str','dex','con','int','wis','cha'].forEach(k=>{
       out[k] += (_BUFF_MOD_TOTALS[k]||0) + (_RAGE_ACTIVE ? (_RAGE_BONUSES[k]||0) : 0);
     });
+    /* MA-8: aplicar modificadores de edad sobre los mods finales */
+    const age = _getAgeMods();
+    ['str','dex','con','int','wis','cha'].forEach(k=>{ out[k] += (age[k]||0); });
+    /* MA-5: paralyzed / helpless / pinned fuerzan FUE y DEX a 0 (para fines de modificadores) */
+    const par = !!document.getElementById('cond-paralyzed')?.checked;
+    const hel = !!document.getElementById('cond-helpless')?.checked;
+    const pin = !!document.getElementById('cond-pinned')?.checked;
+    if(par || hel || pin){
+      /* PF1e: paralyzed FUE y DEX 0; helpless DEX 0; pinned DEX 0 (FUE solo paralyzed) */
+      out.dex = Math.min(out.dex, -5); /* equivalente a stat 0 → mod -5 */
+      if(par) out.str = Math.min(out.str, -5);
+    }
     return out;
   }
 
@@ -8351,6 +8482,37 @@ const CombatEngine = (function(){
     const el = document.querySelector(`#m-ca-rows input[data-ca="${name}"]`);
     return el ? (parseInt(el.value,10)||0) : 0;
   }
+  /* MA-3/MA-4 Fase A: lee chips activos y calcula penalizadores PF1e a atq/AC.
+     Actualiza globals _COND_ATK y _COND_AC para que D5_* y otros consumidores
+     (cards de armas) los usen. */
+  function _computeCondMods(){
+    const on = (id)=> !!document.getElementById(id)?.checked;
+    let condAtk = 0, condAC = 0, flatFooted = false, helpless = false, pinned = false, prone = false;
+    /* Atq: shaken/frightened/panicked = miedo (no apilan), sickened, entangled, grappled, dazzled */
+    const fear = on('cond-shaken') || on('cond-frightened') || on('cond-panicked');
+    if(fear) condAtk -= 2;
+    if(on('cond-sickened'))   condAtk -= 2;
+    if(on('cond-entangled'))  condAtk -= 2;
+    if(on('cond-grappled'))   condAtk -= 2;
+    if(on('cond-dazzled'))    condAtk -= 1;
+    /* AC: blinded/cowering/stunned/unconscious -2 cada uno */
+    if(on('cond-blinded'))    condAC -= 2;
+    if(on('cond-cowering'))   condAC -= 2;
+    if(on('cond-stunned'))    condAC -= 2;
+    if(on('cond-unconscious')) condAC -= 2;
+    /* Pinned: -4 CA + sin DEX (R-PF1e) */
+    if(on('cond-pinned'))     { condAC -= 4; pinned = true; }
+    /* Helpless: -4 CA defensiva + DEX 0 (R-PF1e proxy del coup-de-grace +4 atacante) */
+    if(on('cond-helpless'))   { condAC -= 4; helpless = true; }
+    /* Prone: tracker para pronePenalty melee, +4 CA vs ranged (no aplicado en CA total mobile) */
+    if(on('cond-prone'))      prone = true;
+    /* Flat-footed: pierde DEX a CA + dodge */
+    if(on('cond-flat-footed') || on('cond-flatfooted')) flatFooted = true;
+    _COND_ATK = condAtk;
+    _COND_AC  = condAC;
+    return { condAtk, condAC, flatFooted, helpless, pinned, prone };
+  }
+
   function calcAC(mods){
     const armor   = readCARow('armor');
     const shield  = readCARow('shield');
@@ -8365,18 +8527,45 @@ const CombatEngine = (function(){
       const md = parseInt(maxDexAttr,10);
       if(!isNaN(md)) effDex = Math.min(effDex, md);
     }
+    const cond = _computeCondMods();
+    /* MA-5: helpless/pinned fuerzan DEX 0 a efectos de CA (igual que paralyzed) */
+    if(cond.helpless || cond.pinned) effDex = Math.min(0, effDex);
+    /* Flat-footed: usa CA Desprevenido como Total (pierde DES y dodge) */
+    const effDexFlat = Math.min(0, effDex);
+    const effDodge   = (cond.flatFooted || cond.helpless || cond.pinned) ? 0 : dodge;
     const _acMisc = (_BUFF_MOD_TOTALS.ac||0) + (_RAGE_ACTIVE?(_RAGE_BONUSES.ac||0):0);
-    const total = 10 + armor + shield + effDex + size + nat + deflect + dodge + _acMisc;
-    const touch = 10 + effDex + size + deflect + dodge + _acMisc;
-    const flat  = 10 + armor + shield + size + nat + deflect + _acMisc;
+    let total;
+    if(cond.flatFooted){
+      total = 10 + armor + shield + effDexFlat + size + nat + deflect + _acMisc + cond.condAC;
+    } else {
+      total = 10 + armor + shield + effDex + size + nat + deflect + effDodge + _acMisc + cond.condAC;
+    }
+    const touch = 10 + effDex + size + deflect + effDodge + _acMisc + cond.condAC;
+    const flat  = 10 + armor + shield + effDexFlat + size + nat + deflect + _acMisc + cond.condAC;
     return {total, touch, flat};
   }
 
   function calcCMBCMD(mods, bab){
-    const sizeKey = (document.getElementById('m-size')||{}).value || 'medium';
+    /* MA-7: leer tamano via D5_getSize() (con fallback a #m-size si existiese) */
+    let sizeKey;
+    const mSizeEl = document.getElementById('m-size');
+    if(mSizeEl && mSizeEl.value) sizeKey = mSizeEl.value;
+    else if(typeof D5_getSize === 'function'){
+      const size = D5_getSize();
+      const sizeMap = {'Diminuto':'tiny','Pequeño':'small','Pequeno':'small','Mediano':'medium','Grande':'large','Enorme':'huge','Gargantuesco':'gargantuan','Colosal':'colossal'};
+      sizeKey = sizeMap[size] || 'medium';
+    } else sizeKey = 'medium';
     const sCMB = SIZE_CMB[sizeKey] || 0;
-    const cmb = bab + (mods.str|0) + sCMB;
-    const cmd = 10 + bab + (mods.str|0) + (mods.dex|0) + sCMB;
+    const cond = _computeCondMods();
+    /* CMB: bab + STR + size + cond_atk (mismo que ataque genérico) */
+    const cmb = bab + (mods.str|0) + sCMB + cond.condAtk;
+    /* CMD: 10 + bab + STR + DEX + size + deflect + dodge (regla oficial PF1e).
+       Si flat-footed/helpless/pinned, pierde DEX y dodge. */
+    const deflect = readCARow('deflect');
+    const dodge   = readCARow('dodge');
+    const effDodge = (cond.flatFooted || cond.helpless || cond.pinned) ? 0 : dodge;
+    const effDex = (cond.flatFooted || cond.helpless || cond.pinned) ? 0 : (mods.dex|0);
+    const cmd = 10 + bab + (mods.str|0) + effDex + sCMB + deflect + effDodge + cond.condAC;
     return {cmb, cmd};
   }
   function hasFeatByName(re){
@@ -10051,6 +10240,29 @@ function recomputeCAAuto(){
   }catch(e){ console.warn('recomputeCAAuto', e); }
 }
 
+/* Fase A MA-1: cualquier toggle táctico (PA/DA/TWF/Asalto Energético) o
+   cambio de condición debe disparar recálculo del motor + refresco de armas. */
+function wireCombatTacticals(){
+  const trigger = ()=>{
+    try{ if(typeof CombatEngine!=='undefined') CombatEngine.apply(); }catch(e){}
+    try{ if(typeof D5_refreshWeaponRolls==='function') D5_refreshWeaponRolls(); }catch(e){}
+  };
+  document.querySelectorAll('.combat-tactical').forEach(el=>{
+    el.addEventListener('change', trigger);
+  });
+  /* Las condiciones también deben re-disparar el motor y armas para
+     que condAtk/condAC propaguen a las cards. */
+  document.querySelectorAll('.cond-chip, [id^="cond-"]').forEach(el=>{
+    el.addEventListener('change', trigger);
+    el.addEventListener('click', ()=>setTimeout(trigger, 50));
+  });
+  /* Edad: si cambia, re-recalcular */
+  ['in-edad-cat','age-category','in-age-cat'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('change', trigger);
+  });
+}
+
 function wireCAAutoFill(){
   ['armor-equipped','armor-removed','attr-changed','size-changed','class-changed'].forEach(ev=>{
     document.addEventListener(ev, recomputeCAAuto);
@@ -10117,6 +10329,7 @@ function init6(){
   wireRestPF1e();
   wireSettingsControls();
   wireRoundButton();
+  wireCombatTacticals();
 
   const stored = loadStoredState();
   if(stored){
