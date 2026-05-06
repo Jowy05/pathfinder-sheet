@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#1a2415" />
+<title>Modo Máster — Pathfinder 1e</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=EB+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="themes.css">
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overscroll-behavior: none;
+    -webkit-font-smoothing: antialiased;
+    background: var(--body-bg-color, #1a2415);
+  }
+  body { font-family: 'EB Garamond', Georgia, serif; color: var(--ink, #e8d5a8); }
+  #root { width: 100%; height: 100%; }
+  .mst-app { height: 100% !important; width: 100% !important; }
+
+  /* Splash micro mientras Babel arranca */
+  .mst-splash {
+    position: fixed; inset: 0;
+    display: grid; place-items: center;
+    background: var(--body-bg-color, #1a2415);
+    color: var(--gold, #c89030);
+    font: 600 14px/1 'Cinzel', Georgia, serif;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    z-index: 999;
+    pointer-events: none;
+    transition: opacity .25s ease;
+  }
+  .mst-splash::after {
+    content: '';
+    position: absolute;
+    bottom: 38%;
+    width: 80px; height: 1px;
+    background: linear-gradient(90deg, transparent, currentColor, transparent);
+    animation: mst-splash-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes mst-splash-pulse {
+    0%, 100% { opacity: .25; transform: scaleX(.6); }
+    50%      { opacity: 1;   transform: scaleX(1); }
+  }
+  .mst-splash.hide { opacity: 0; }
+</style>
+</head>
+<body>
+  <div class="mst-splash" id="splash">Modo Máster</div>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+
+  <script type="text/babel" src="data.jsx"></script>
+  <script type="text/babel" src="icons.jsx"></script>
+  <script type="text/babel" src="persist.jsx"></script>
+  <script type="text/babel" src="bestiary-store.jsx"></script>
+  <script type="text/babel" src="map.jsx"></script>
+  <script type="text/babel" src="drawer.jsx"></script>
+  <script type="text/babel" src="init-list.jsx"></script>
+  <script type="text/babel" src="init-full.jsx"></script>
+  <script type="text/babel" src="dice-log.jsx"></script>
+  <script type="text/babel" src="settings.jsx"></script>
+  <script type="text/babel" src="bestiary.jsx"></script>
+  <script type="text/babel" src="edit-token.jsx"></script>
+  <script type="text/babel" src="app.jsx"></script>
+
+  <script type="text/babel">
+    const { useEffect } = React;
+
+    const TWEAKS_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "theme": "pergamino",
+      "lang": "es",
+      "encounter": "urban",
+      "gridType": "hex",
+      "drawerLayout": "compact-tabs",
+      "initPos": "top",
+      "density": "minimal"
+    }/*EDITMODE-END*/;
+
+    const THEME_OPTIONS = [
+      { value: 'verdant',     label: 'Verdant' },
+      { value: 'pergamino',   label: 'Pergamino' },
+      { value: 'dark',        label: 'Dark' },
+      { value: 'light',       label: 'Light' },
+      { value: 'cyber-yellow',label: 'Cyber Yellow' },
+      { value: 'cyber-red',   label: 'Cyber Red' },
+      { value: 'navy',        label: 'Navy' },
+    ];
+
+    function Root() {
+      const [tweaks, setTweak] = useTweaks(TWEAKS_DEFAULTS);
+
+      // Aplica el tema al <html> (y body para que el background herede en cualquier capa)
+      useEffect(() => {
+        document.documentElement.setAttribute('data-theme', tweaks.theme || 'verdant');
+        document.body.setAttribute('data-theme', tweaks.theme || 'verdant');
+      }, [tweaks.theme]);
+
+      // Oculta splash en cuanto monta el árbol
+      useEffect(() => {
+        const s = document.getElementById('splash');
+        if (s) {
+          s.classList.add('hide');
+          setTimeout(() => s.remove(), 400);
+        }
+      }, []);
+
+      return (
+        <>
+          <MasterApp
+            drawerLayout={tweaks.drawerLayout}
+            initPos={tweaks.initPos}
+            density={tweaks.density}
+            encounterKey={tweaks.encounter}
+            gridType={tweaks.gridType}
+            lang={tweaks.lang}
+            theme={tweaks.theme}
+            onSetTheme={(v) => setTweak('theme', v)}
+            onSetLang={(v) => setTweak('lang', v)}
+            onSetGrid={(v) => setTweak('gridType', v)}
+            initialDrawerHeight="peek"
+          />
+
+          <TweaksPanel title="Tweaks">
+            <TweakSection title="Tema">
+              <TweakSelect
+                value={tweaks.theme}
+                onChange={(v) => setTweak('theme', v)}
+                options={THEME_OPTIONS}
+              />
+            </TweakSection>
+            <TweakSection title="Idioma">
+              <TweakRadio
+                value={tweaks.lang}
+                onChange={(v) => setTweak('lang', v)}
+                options={[
+                  { value: 'es', label: 'Español' },
+                  { value: 'en', label: 'English' },
+                ]}
+              />
+            </TweakSection>
+            <TweakSection title="Cuadrícula">
+              <TweakRadio
+                value={tweaks.gridType}
+                onChange={(v) => setTweak('gridType', v)}
+                options={[
+                  { value: 'square', label: 'Cuadrada' },
+                  { value: 'hex',    label: 'Hex' },
+                ]}
+              />
+            </TweakSection>
+            <TweakSection title="Encuentro">
+              <TweakSelect
+                value={tweaks.encounter}
+                onChange={(v) => setTweak('encounter', v)}
+                options={[
+                  { value: 'forest',  label: 'Emboscada bosque' },
+                  { value: 'dungeon', label: 'Sala del trono' },
+                  { value: 'urban',   label: 'Plaza del mercado' },
+                ]}
+              />
+            </TweakSection>
+            <TweakSection title="Layout drawer">
+              <TweakRadio
+                value={tweaks.drawerLayout}
+                onChange={(v) => setTweak('drawerLayout', v)}
+                options={[
+                  { value: 'compact-tabs',  label: 'Pestañas' },
+                  { value: 'expanded',      label: 'Expandido' },
+                  { value: 'compact',       label: 'Compacto' },
+                ]}
+              />
+            </TweakSection>
+            <TweakSection title="Iniciativa">
+              <TweakRadio
+                value={tweaks.initPos}
+                onChange={(v) => setTweak('initPos', v)}
+                options={[
+                  { value: 'top',   label: 'Tira sup.' },
+                  { value: 'rail',  label: 'Carril' },
+                  { value: 'float', label: 'Flotante' },
+                ]}
+              />
+            </TweakSection>
+            <TweakSection title="Densidad">
+              <TweakRadio
+                value={tweaks.density}
+                onChange={(v) => setTweak('density', v)}
+                options={[
+                  { value: 'minimal', label: 'Mínima' },
+                  { value: 'rich',    label: 'Rica' },
+                ]}
+              />
+            </TweakSection>
+            <div style={{font:'500 11px/1.5 system-ui', color:'rgba(var(--ink-rgb,232,213,168),.6)', padding:'10px 4px 0', borderTop:'1px solid var(--line, rgba(255,255,255,.08))'}}>
+              <b style={{color:'var(--ink)'}}>Drawer:</b> arrastra el manillar para peek / medio / completo. Toca tokens en el mapa para abrir su tarjeta. Diamantes = acciones. ＋/− PG bajo la barra. La flecha del header avanza turno.
+            </div>
+          </TweaksPanel>
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<Root />);
+  </script>
+</body>
+</html>
