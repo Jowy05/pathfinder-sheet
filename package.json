@@ -29,7 +29,6 @@
       "cyberpunk-fx.js",
       "cyberpunk-loader.css",
       "cyberpunk-loader.js",
-      "cyberpunk-mode.css",
       "cyberpunk-overlay.css",
       "*.json",
       "!package-lock.json",

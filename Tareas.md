@@ -155,38 +155,42 @@ Todo el trabajo R-21..R-29 está hecho en PC (commits `14043a7`/`b25bbff`/`83dac
 
 ## 🟡 BUGS PENDIENTES (mobile, ver auditoria-mobile-v2.md)
 
-> La Fase 1 mobile (commits `adb87fd`/`76b627c`/`032cc44`/`2c36b12`/`9500d99`/`663aea7`/`50265c8`) cerró 7 bugs catastróficos. Los que siguen abiertos:
+> La Fase 1 mobile (commits `adb87fd`/`76b627c`/`032cc44`/`2c36b12`/`9500d99`/`663aea7`/`50265c8`) cerró 7 bugs catastróficos. Ronda 2026-05-06 (commit `4f90a2f`) cerró los 5 restantes:
 
-- **P-16/P-38 (parcial)** — `CombatEngine` mobile lee `#m-size` que no existe; `D5_getSize` fallback funciona para CA pero `calcCMBCMD` sigue dando 'medium' siempre.
-- **A-06 (parcial)** — `D3_SKILLS.state.misc` y `CUSTOM_SKILLS` solo en localStorage, no en JSON exportado.
-- **N-01** — Cambiar idioma EN↔ES NO retraduce cards dinámicas (renderClasses/renderWeapons/renderFeatsCrud/renderInit/companions).
-- **N-02** — Settings tipográficos (`fontSize`/`daltonic`) viven en localStorage `ficha-mobile-settings` separado, NO se incluyen en JSON exportado.
-- **N-03** — Importar ficha vieja sin nuevos campos: sin toast de migración. Usuario no sabe qué se completó por defecto.
+- ~~**P-16/P-38**~~ ✅ commit `4f90a2f` — select tamaño con `id="m-size"` y `value="medium"`/etc.; `D5_getSizeKey()` devuelve clave SIZE_CMB directa; `size-changed` dispara `CombatEngine.apply()`.
+- ~~**A-06**~~ ✅ commit `4f90a2f` — `D3_SKILLS.state` (rangos+misc) y `CUSTOM_SKILLS` ahora viajan en el JSON.
+- ~~**N-01**~~ ✅ commit `4f90a2f` — `language-changed` re-renderiza classes/weapons/armor/feats/buffs/adjusts/init/spells/SLAs/topbar y refresca D3_SKILLS.
+- ~~**N-02**~~ ✅ commit `4f90a2f` — settings tipográficos (`fontSize`/`daltonic`/`theme`/`lang`) embebidos en `uiSettings` y aplicados al importar.
+- ~~**N-03**~~ ✅ commit `4f90a2f` — toast de migración detallado (`v0→v2`) con lista de campos rellenados, bilingüe es/en.
 
 ## 🟠 BUGS PENDIENTES (PC, ver auditoria-pc.md)
 
-- **P-19** — No existe campo "Género".
-- **P-37** — Input "BAB total" en Identidad hardcoded a +3 readonly, sin actualización desde `apply()`.
-- **P-44** — No hay botones rápidos +/− HP en panel.
-- **P-45** — Botones de descanso (corto/largo) están en sección de Conjuros, UX confusa para PJ no lanzador.
-- **P-47** — Velocidad efectiva siempre "30 ft" hardcoded; no responde a speed-base/armadura/raza.
-- **P-64** — No hay botones tirada para Fortaleza/Reflejos/Voluntad (sí los hay para iniciativa, dispel, SR).
-- **A-29 / A-34 / A-40** — Selectores de Escuela Arcana, Escuela Prohibida y Dominios prometen +1 slot/nivel pero el motor NO lo aplica todavía.
-- **T-22** — Cambiar idioma NO retraduce cards dinámicas ya creadas (buff/weapon/feat/item) en PC.
-- **T-10** — JSON exportado sin `__schema`. Sin migrate explícito.
-- **T-28** — Modo Demo (`Demo Efectos.html` + 5 archivos) huérfano, no enlazado.
-- **X-19** — `cyberpunk-mode.css` huérfano (en package.json pero ningún HTML lo carga).
-- **X-28** — Fuentes Google no funcionan en `file://`. Empaquetar WOFF2 locales.
+> Ronda 2026-05-06 (commit `2da6e26`) cerró los 9 abiertos:
+
+- ~~**P-19**~~ ✅ commit `2da6e26` — campo Género (`#char-gender`) en cabecera con `data-i18n="h.gender"`.
+- ~~**P-37**~~ ✅ ya estaba bien (verificado 2026-05-06): `bab-total` se actualiza vía `sv('bab-total', …)` en cada `recalc()`.
+- ~~**P-44**~~ ✅ commit `2da6e26` — botones +/- junto al input. Click=±1, Shift+click=±5, clamp al máximo.
+- ~~**P-45**~~ ✅ commit `2da6e26` — descansos corto/largo duplicados en panel HP.
+- ~~**P-47**~~ ✅ ya estaba bien (verificado 2026-05-06): `speed-final` calculado desde `base-speed` + armadura + carga + raza (vía `applyRaceFull` que setea `base-speed`).
+- ~~**P-64**~~ ✅ commit `2da6e26` — botones ⚂ junto a Fort/Ref/Vol con detección de 1/20 natural.
+- ~~**A-29 / A-34 / A-40**~~ ✅ commit `2da6e26` — +1 slot/nivel (1-9) por escuela arcana especialista (Mago no-universalista) y por dominio elegido (Clérigo `domain-1/2`). Aplicado en single y multi-caster.
+- **T-22** (parcial) — commit `2da6e26` tagueó `addWeapon` y `addBuff/addCompItem` con `data-i18n`/`data-i18n-ph`. Faltan `addArmor`, `addItem`, `addFeat` y otros add* para retraducción completa in-place.
+- ~~**T-10**~~ ✅ commit `2da6e26` — `__schema=1` en JSON, `migrateImportedDataPC()` con toast bilingüe.
+- **T-28** — Modo Demo (`Demo Efectos.html` + 5 archivos `demo*.css/js`). Sigue como sandbox opcional, no se borra.
+- ~~**X-19**~~ ✅ commit `<hash siguiente>` — `cyberpunk-mode.css` borrado, removido de `package.json`.
+- **X-28** — Fuentes Google no funcionan en `file://`. Empaquetar WOFF2 locales (no urgente; CSP tolera `data:` y la red sí carga).
 
 ---
 
 ## 🟢 LIMPIEZA (auditoria-extra.md)
 
-- **I-04** — Borrar `patches/patches/` duplicado byte-a-byte de `patches/`.
-- **I-06 / I-23 / I-27** — Borrar 6 archivos huérfanos del cache-bust hash abandonado: `index-1e31a0ff.html`, `fallback-data-a8e94bc7.js`, `style-53d8f154.css`, `icono-1fab3e2a.png`, `CLAUDE-563aaf3a.md`, `normas-8b479885.md`.
-- **I-07** — Re-build Electron `dist-electron/` (5 días desactualizado).
-- **I-09** — ~~Borrar `port/app/src/main/assets/index.desktop.bak.html`~~ ✅ HECHO commit `b96daa5`.
-- **I-12 / I-13** — Borrar `app/` raíz y `test/` (código muerto duplicado).
+> Ronda 2026-05-06 (commit `68819f6`) cerró 4 acciones de la lista:
+
+- ~~**I-04**~~ ✅ commit `68819f6` — `patches/patches/` borrado.
+- ~~**I-06 / I-23 / I-27**~~ ✅ commit `68819f6` — 6 archivos cache-bust hash huérfanos borrados.
+- **I-07** — Re-build Electron `dist-electron/` (sigue desactualizado; depende del usuario).
+- ~~**I-09**~~ ✅ HECHO commit `b96daa5`.
+- ~~**I-12 / I-13**~~ ✅ commit `68819f6` — `app/` raíz y `test/` borrados; también los `build.gradle`/`settings.gradle` raíz que solo servían a esas dirs muertas.
 
 ---
 
@@ -202,14 +206,15 @@ Todo el trabajo R-21..R-29 está hecho en PC (commits `14043a7`/`b25bbff`/`83dac
 
 ## 📊 Métricas
 
-- **Pendiente mobile**: 8 motor combate + 5 motor conjuros + 6 auto-features + 5 paneles + 9 UX = **33 items, ~22h**.
-- **Pendiente PC**: 11 bugs menores + ~7 patches/decisiones de producto.
-- **Limpieza**: 8 acciones rápidas (1-2h).
+- **Mobile**: catálogo cerrado (5/5 bugs); fases A-I de mejoras completadas en commits previos.
+- **PC**: 9/12 bugs cerrados; quedan T-22 parcial (faltan add* secundarios), T-28 (sandbox demo), X-28 (WOFF2 locales).
+- **Limpieza**: 6/7 acciones cerradas; queda I-07 (rebuild dist-electron).
 
-## 🎯 Recomendación de orden
+## 🎯 Estado a 2026-05-06
 
-1. **Limpieza** (1-2h sin riesgo).
-2. **Fase A motor combate mobile** (3-4h, alto impacto).
-3. **Fase B motor conjuros mobile** (3h).
-4. **Fase C auto-features mobile** (4h).
+Plataforma estable. Lo que queda son mejoras opcionales que no bloquean uso:
+
+1. T-22 completar — taguear `addArmor`/`addItem`/`addFeat` con `data-i18n` para retraducción in-place completa al cambiar idioma.
+2. X-28 — descargar y empaquetar WOFF2 locales de Cinzel/EB Garamond/Orbitron para uso offline garantizado.
+3. I-07 — el usuario dispara el rebuild de Electron cuando quiera nueva release de escritorio.
 5. Resto a discreción.

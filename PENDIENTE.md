@@ -1,6 +1,6 @@
 # PENDIENTE — trabajo en vuelo
 
-Última actualización: 2026-05-01
+Última actualización: 2026-05-06
 
 ## Estado actual de la base de datos
 
