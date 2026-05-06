@@ -2304,12 +2304,19 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
 
     <div class="sub-page" data-sub="armas">
       <div id="weapons-list"></div>
-      <button class="btn-add" id="weap-add">＋ Añadir arma</button>
+      <!-- UX-10 Fase G: dos opciones — catálogo o crear personalizada -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+        <button class="btn-add" id="weap-add-catalog" style="background:var(--accent-soft);color:var(--accent);border-color:var(--accent)">📚 Del catálogo</button>
+        <button class="btn-add" id="weap-add">＋ Personalizada</button>
+      </div>
     </div>
 
     <div class="sub-page" data-sub="armadura" hidden>
       <div id="armor-list"></div>
-      <button class="btn-add" id="armor-add">＋ Añadir armadura</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+        <button class="btn-add" id="armor-add-catalog" style="background:var(--accent-soft);color:var(--accent);border-color:var(--accent)">📚 Del catálogo</button>
+        <button class="btn-add" id="armor-add">＋ Personalizada</button>
+      </div>
     </div>
 
     <div class="sub-page" data-sub="inventario" hidden>
@@ -2890,6 +2897,13 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
   <div class="drag-handle"></div>
   <div class="sheet-header"><div class="sheet-title" data-i18n="featPickTitle">Catálogo de dotes</div><button class="sheet-close" data-close>✕</button></div>
   <div class="sheet-content">
+    <!-- UX-11 Fase G: contador de dotes esperadas vs gastadas + filtro "cumplo" -->
+    <div id="feat-pick-counter" style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--surface-2);border-radius:8px;margin-bottom:8px;font:600 12px system-ui">
+      <span id="feat-counter-text">Dotes: 0 / 0</span>
+      <label style="display:flex;align-items:center;gap:6px;font:600 11px system-ui;cursor:pointer">
+        <input type="checkbox" id="feat-pick-only-met"> Solo cumplidas
+      </label>
+    </div>
     <div class="field" style="margin-bottom:8px">
       <input class="field-input" id="feat-pick-search" data-i18n-ph="featPickSearchPh" placeholder="Buscar por nombre…">
     </div>
@@ -6423,6 +6437,12 @@ function rebindRolls(){
 /* ─── BINDINGS for new sheets ─── */
 function bindSaveRolls(){
   const SAVE_LABELS = {fort:'Fortaleza',ref:'Reflejos',will:'Voluntad'};
+  /* UX-15 Fase G: condiciones sugeridas según tipo de TS y resultado */
+  const SAVE_SUGGESTED_CONDS = {
+    fort: ['Fatigado','Mareado','Enfermo','Envenenado'],
+    ref:  ['Tumbado','Cegado','Aturdido','Ralentizado'],
+    will: ['Asustado','Confundido','Hechizado','Dominado','Aturdido']
+  };
   document.querySelectorAll('.save-row[data-save]').forEach(row=>{
     if(row.dataset.saveRollBound) return;
     row.dataset.saveRollBound = '1';
@@ -6440,12 +6460,60 @@ function bindSaveRolls(){
         dice:`1d20${sign}`,
         roll, mod, total, nat20: roll===20, nat1: roll===1
       }}));
-      // Log to roll history if function exists
       if(typeof logRoll==='function') logRoll(`TS ${label}`, `1d20${sign}`, total, roll===20, roll===1);
       else if(typeof addRollToHistory==='function') addRollToHistory(`TS ${label}`, roll, mod, total);
       toast(`TS ${label}: ${roll}${sign} = ${total}${nat}`);
+      /* UX-15 Fase G: si NAT 1 o resultado bajo (<10), ofrecer aplicar condición sugerida */
+      if(roll === 1 || total < 10){
+        _showSuggestedConditions(k, SAVE_SUGGESTED_CONDS[k] || [], total);
+      }
     });
   });
+}
+
+/* UX-15 Fase G: banner inferior con sugerencias de condiciones para aplicar
+   después de un TS fallido. Tap en una aplica la condición y cierra. */
+function _showSuggestedConditions(saveType, conds, total){
+  if(!conds.length) return;
+  let banner = document.getElementById('save-fail-banner');
+  if(!banner){
+    banner = document.createElement('div');
+    banner.id = 'save-fail-banner';
+    banner.style.cssText = 'position:fixed;bottom:80px;left:8px;right:8px;background:linear-gradient(135deg,var(--negative),#a02828);color:white;padding:10px 14px;border-radius:10px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,0.3)';
+    document.body.appendChild(banner);
+  }
+  const labels = {fort:'Fortaleza',ref:'Reflejos',will:'Voluntad'};
+  banner.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <span style="font:700 12px 'Cinzel',serif">⚠ TS ${labels[saveType]} bajo (${total})</span>
+      <button data-sf-close style="background:transparent;border:0;color:white;font-size:18px;cursor:pointer;padding:0 4px">✕</button>
+    </div>
+    <div style="font:11px system-ui;margin-bottom:6px;opacity:0.9">¿Aplicar condición sugerida?</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      ${conds.map(c=>`<button data-sf-cond="${c}" style="font:600 11px system-ui;padding:5px 10px;border-radius:99px;border:1px solid white;background:rgba(255,255,255,0.15);color:white;cursor:pointer">${c}</button>`).join('')}
+    </div>`;
+  banner.querySelectorAll('[data-sf-cond]').forEach(b=>b.addEventListener('click',()=>{
+    const condName = b.dataset.sfCond;
+    /* Buscar el chip correspondiente en el grid de condiciones y activarlo */
+    const chips = document.querySelectorAll('.cond-chip[data-cond-name]');
+    let applied = false;
+    chips.forEach(chip=>{
+      if(chip.dataset.condName === condName || chip.textContent.trim().toLowerCase() === condName.toLowerCase()){
+        if(!chip.classList.contains('active')){
+          chip.click();
+          applied = true;
+        }
+      }
+    });
+    if(applied){
+      if(typeof toast==='function') toast(`Condición ${condName} aplicada`);
+    } else if(typeof toast==='function') toast(`No encontré chip para "${condName}", abrir Combate > Condiciones`);
+    banner.remove();
+  }));
+  banner.querySelector('[data-sf-close]').addEventListener('click',()=>banner.remove());
+  /* Auto-close en 8s */
+  clearTimeout(banner.__t);
+  banner.__t = setTimeout(()=>banner.remove(), 8000);
 }
 
 function bindNewSheets(){
@@ -6667,6 +6735,11 @@ function bindNewSheets(){
     ['weap-enh','weap-misc','weap-weight'].forEach((id,i)=>{ const el=document.getElementById(id); if(el) el.value=[0,0,4][i]; });
     openSheet('sheet-weapon-add');
   });
+  /* UX-10 Fase G: catálogo de armas desde DB.equipment */
+  const weapCat = document.getElementById('weap-add-catalog');
+  if(weapCat) weapCat.addEventListener('click', _openWeaponCatalog);
+  const armorCat = document.getElementById('armor-add-catalog');
+  if(armorCat) armorCat.addEventListener('click', _openArmorCatalog);
   const weapSave = document.getElementById('weap-save');
   if(weapSave) weapSave.addEventListener('click',()=>{
     const n = document.getElementById('weap-name').value.trim();
@@ -7201,21 +7274,64 @@ function bindFormSheets(){
   function _featNormalize(s){
     return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
   }
+  /* UX-11 Fase G: contador de dotes esperadas vs gastadas */
+  function _computeFeatBudget(){
+    let total = 1;  /* nivel 1 */
+    const totalLvl = (CLASSES_DATA||[]).reduce((s,c)=>s+(parseInt(c.level,10)||0),0);
+    /* Dote estándar cada 2 niveles a partir de nivel 1: nv 1, 3, 5, 7… */
+    total = Math.ceil(totalLvl / 2);
+    /* Humano +1 dote */
+    const race = (document.getElementById('in-raza')?.value||'').toLowerCase();
+    if(/human|humano/.test(race)) total += 1;
+    /* Guerrero: dote bonus extra cada nivel par + nivel 1 */
+    (CLASSES_DATA||[]).forEach(c=>{
+      const ck = (c.classKey||'').toLowerCase();
+      const lvl = parseInt(c.level,10) || 0;
+      if(['guerrero','fighter'].includes(ck)){
+        total += 1 + Math.floor(lvl/2); /* nivel 1 + cada 2 */
+      }
+      if(['monje','monk'].includes(ck) && lvl >= 1) total += 1; /* monje a nivel 1 */
+    });
+    const used = (FEATS||[]).length;
+    return {total, used, free: Math.max(0, total - used)};
+  }
+  function _refreshFeatCounter(){
+    const counter = document.getElementById('feat-counter-text');
+    if(!counter) return;
+    const b = _computeFeatBudget();
+    const color = b.free > 0 ? 'var(--accent)' : (b.free < 0 ? 'var(--negative)' : 'var(--positive)');
+    counter.innerHTML = `Dotes: <span style="color:${color}">${b.used}</span> / ${b.total}` + (b.free > 0 ? ` · <span style="color:var(--accent)">${b.free} libres</span>` : '');
+  }
+  function _featPrereqsCumplidos(f){
+    /* Reusa checkFeatPrereqsMobile que ya existe (returns {met, missing, unknown}) */
+    if(typeof checkFeatPrereqsMobile === 'function'){
+      const featObj = {n: _featTData(f,'name')};
+      const c = checkFeatPrereqsMobile(featObj);
+      return c.met;
+    }
+    return true;
+  }
   function buildFeatPickerListMobile(filter){
     const list = document.getElementById('feat-pick-list');
     const meta = document.getElementById('feat-pick-meta');
     if(!list) return;
+    _refreshFeatCounter();
     const feats = (window.DB && Array.isArray(DB.feats)) ? DB.feats : [];
     const q = _featNormalize(filter||'');
+    const onlyMet = !!document.getElementById('feat-pick-only-met')?.checked;
     const lang = document.documentElement.dataset.lang || 'es';
-    const filtered = feats.filter(f=>{
+    let filtered = feats.filter(f=>{
       if(!q) return true;
       return _featNormalize(_featTData(f,'name')).includes(q)
           || _featNormalize(f.name_en||'').includes(q)
           || _featNormalize(f.name||'').includes(q);
-    }).sort((a,b)=> _featTData(a,'name').localeCompare(_featTData(b,'name'), lang));
+    });
+    if(onlyMet){
+      filtered = filtered.filter(_featPrereqsCumplidos);
+    }
+    filtered.sort((a,b)=> _featTData(a,'name').localeCompare(_featTData(b,'name'), lang));
     if(meta){
-      meta.textContent = (lang==='en' ? 'Showing ' : 'Mostrando ') + filtered.length + ' / ' + feats.length;
+      meta.textContent = (lang==='en' ? 'Showing ' : 'Mostrando ') + filtered.length + ' / ' + feats.length + (onlyMet ? ' (cumplidas)' : '');
     }
     if(!filtered.length){
       list.innerHTML = '<div class="empty-state">'+(lang==='en'?'No feats found':'Sin resultados')+'</div>';
@@ -7268,6 +7384,12 @@ function bindFormSheets(){
       _featSearchTO = setTimeout(()=>buildFeatPickerListMobile(featPickSearch.value), 120);
     });
   }
+  /* UX-11 Fase G: toggle "solo cumplidas" */
+  const onlyMet = document.getElementById('feat-pick-only-met');
+  if(onlyMet) onlyMet.addEventListener('change',()=>{
+    const search = document.getElementById('feat-pick-search');
+    buildFeatPickerListMobile(search?.value||'');
+  });
   // HP edit
   const hpEdit = document.getElementById('hp-edit');
   const hpEdit2 = document.getElementById('hp-edit-2');
@@ -8798,6 +8920,12 @@ function D5_renderInventory(){
                 <input type="checkbox" class="d5-item-magic" data-d5-mag="${it.id}" ${it.magic?'checked':''}>✦ Mágico
               </label>
             </div>
+            ${(()=>{
+              /* UX-16 Fase G: detectar pociones (por nombre) y mostrar botón Beber */
+              const isPotion = /poci[oó]n|elixir|potion/i.test(it.name||'');
+              if(!isPotion || (it.qty||0) <= 0) return '';
+              return `<button class="btn-secondary d5-drink-potion" data-d5-drink="${it.id}" style="width:100%;margin-top:6px;background:var(--accent-soft);color:var(--accent);border-color:var(--accent);font-size:12px">🧪 Beber (curar 1d8+1, descontar 1)</button>`;
+            })()}
             ${it.magic ? (()=>{
               const max = parseInt(it.chargesMax,10) || 50;
               const cur = (typeof it.chargesUsed === 'number') ? it.chargesUsed : 0;
@@ -8866,6 +8994,30 @@ function D5_renderInventory(){
     it.chargesUsed = (idx < cur) ? idx : (idx + 1);
     D5_renderInventory();
     if(typeof saveStateDebounced==='function') saveStateDebounced('d5-charge-tog');
+  }));
+  /* UX-16 Fase G: beber poción */
+  c.querySelectorAll('.d5-drink-potion').forEach(b=>b.addEventListener('click',()=>{
+    const it = D5_INVENTORY.find(x=>x.id===+b.dataset.d5Drink);
+    if(!it || (it.qty||0) <= 0) return;
+    /* Detectar fórmula del nombre o usar default 1d8+1 */
+    const nameLow = (it.name||'').toLowerCase();
+    let formula = '1d8+1', dieFaces = 8, dieCount = 1, mod = 1;
+    if(/leve|light/.test(nameLow)){ formula='1d8+1'; dieFaces=8; dieCount=1; mod=1; }
+    else if(/moderad/.test(nameLow)){ formula='2d8+3'; dieFaces=8; dieCount=2; mod=3; }
+    else if(/grave|serious/.test(nameLow)){ formula='3d8+5'; dieFaces=8; dieCount=3; mod=5; }
+    else if(/cr[ií]tica/.test(nameLow)){ formula='4d8+7'; dieFaces=8; dieCount=4; mod=7; }
+    /* Tira el dado */
+    let healed = mod;
+    for(let i=0;i<dieCount;i++) healed += Math.floor(Math.random()*dieFaces) + 1;
+    if(typeof setHP === 'function' && typeof hp !== 'undefined' && typeof HP_MAX !== 'undefined'){
+      setHP(Math.min(HP_MAX, hp + healed));
+    }
+    /* Descontar 1 unidad */
+    it.qty = Math.max(0, (it.qty||0) - 1);
+    D5_renderInventory();
+    if(typeof D5_recompute === 'function') D5_recompute();
+    if(typeof toast === 'function') toast(`🧪 ${it.name}: +${healed} PG (${formula}). Quedan ${it.qty}.`);
+    if(typeof saveStateDebounced === 'function') saveStateDebounced('drink-potion');
   }));
 }
 
@@ -10411,33 +10563,197 @@ function wireAutosave(){
 }
 
 function wireSummaryAttack(){
-  // Bug bloqueante reportado por auditoría: el botón ⚔ Atacar del Resumen
-  // no tenía listener. Aquí lo conectamos para abrir el FAB de armas o,
-  // si solo hay una, tirar ataque directo con la primera arma equipada.
+  // UX-13 Fase G: con varias armas abre bottom-sheet inline en lugar de
+  // cambiar de tab. Solo lleva al usuario a Equipo si no tiene armas.
   const btn = document.getElementById('summary-attack');
   if(!btn) return;
   btn.addEventListener('click', ()=>{
     const weapons = (typeof WEAPONS_DATA!=='undefined' ? WEAPONS_DATA : []);
     if(!weapons.length){
       if(typeof toast==='function') toast('Sin armas en el arsenal');
-      // Cambiar a tab Equipo > Armas
       try{ if(typeof setTab==='function') setTab('equipo'); }catch(e){}
       return;
     }
     if(weapons.length===1){
-      // Tirada directa
       const w = weapons[0];
       if(typeof performRoll==='function') performRoll({expr:'1d20'+w.atk, label:w.name+' · Ataque', isAttack:true});
       return;
     }
-    // Múltiples armas: ir a tab Equipo > Armas para que el usuario elija
-    try{
-      if(typeof setTab==='function') setTab('equipo');
-      const chip = document.querySelector('.tab-page[data-tab="equipo"] .subchip[data-sub="armas"]');
-      if(chip) chip.click();
-      if(typeof toast==='function') toast('Elige un arma');
-    }catch(e){}
+    /* UX-13: abrir bottom-sheet con lista de armas */
+    _openQuickAttackSheet(weapons);
   });
+}
+
+/* UX-10 Fase G: catálogo de armas desde DB.equipment.weapons */
+function _openWeaponCatalog(){
+  const arr = (DB?.equipment?.weapons) || [];
+  if(!arr.length){ if(typeof toast==='function') toast('Catálogo de armas no disponible'); return; }
+  _openCatalogPicker('Catálogo de armas', arr, (it)=>{
+    const id = ((WEAPONS_DATA||[])[(WEAPONS_DATA||[]).length-1]?.id || 0) + 1;
+    /* Mapeo defensivo del JSON al schema mobile */
+    const dieMatch = (it.damage_die_es || it.damage_die_en || it.damage || '1d8').match(/(\d+d\d+)/);
+    const damage_die = dieMatch ? dieMatch[1] : '1d8';
+    const critRange = it.crit_range_es || it.crit_range_en || it.critical || '20/×2';
+    const cm = critRange.match(/(\d+)(?:[-–](\d+))?\s*\/\s*[×x](\d+)/i);
+    const crit_threat = cm ? parseInt(cm[1],10) : 20;
+    const crit_mult = cm ? parseInt(cm[3],10) : 2;
+    const isRanged = /distan|ranged|arco|ballesta|bow|crossbow/i.test(it.type || it.category || '');
+    const is2h = /2h|two\s*hand|2\s*manos/i.test(it.type || it.category || '');
+    const style = isRanged ? 'ranged' : (is2h ? 'melee2h' : 'melee1h');
+    const newW = {
+      id, name: it.name_es || it.name || it.id || 'Arma',
+      type: it.category || it.type || 'CaC',
+      style: style,
+      damage_die, crit_threat, crit_mult,
+      enh: 0, misc: 0,
+      weight: parseFloat(it.weight) || 0,
+      hands: is2h ? 2 : 1,
+      notes: it.description_es || it.description || '',
+      atk: '+0', dmg: damage_die, crit: `${crit_threat===20?'20':crit_threat+'-20'}/×${crit_mult}`
+    };
+    WEAPONS_DATA.push(newW);
+    if(typeof D5_refreshWeaponRolls==='function') D5_refreshWeaponRolls(); else { renderWeapons(); rebindRolls(); }
+    if(typeof D5_recompute==='function') D5_recompute();
+    if(typeof toast==='function') toast('Arma añadida: ' + newW.name);
+    if(typeof saveStateDebounced==='function') saveStateDebounced('weap-catalog');
+  });
+}
+
+/* UX-10 Fase G: catálogo de armaduras desde DB.equipment.armor */
+function _openArmorCatalog(){
+  const arr = (DB?.equipment?.armor) || [];
+  if(!arr.length){ if(typeof toast==='function') toast('Catálogo de armaduras no disponible'); return; }
+  _openCatalogPicker('Catálogo de armaduras', arr, (it)=>{
+    const id = ((ARMOR_DATA||[])[(ARMOR_DATA||[]).length-1]?.id || 0) + 1;
+    const isShield = /escudo|shield/i.test(it.type || it.category || it.name_es || '');
+    const armorType = /pesad|heavy/i.test(it.type||'') ? 'heavy'
+                    : /medi/i.test(it.type||'') ? 'medium'
+                    : isShield ? 'shield' : 'light';
+    const newA = {
+      id, name: it.name_es || it.name || 'Armadura',
+      type: it.type || (isShield?'Escudo':'Armadura'),
+      armor_type: armorType,
+      ac_bonus: parseInt(it.ac_bonus||it.ac, 10) || 0,
+      max_dex: parseInt(it.max_dex, 10) || 99,
+      acp: parseInt(it.acp || it.armor_check_penalty, 10) || 0,
+      arcane_failure: parseInt(it.arcane_failure || it.spell_failure, 10) || 0,
+      weight: parseFloat(it.weight) || 0,
+      equipped: false,
+      ac: '+' + (parseInt(it.ac_bonus||it.ac,10)||0),
+      maxDex: '+' + (parseInt(it.max_dex,10)||99),
+      penalty: String(parseInt(it.acp || it.armor_check_penalty,10) || 0),
+      spell: (parseInt(it.arcane_failure || it.spell_failure,10)||0) + '%'
+    };
+    ARMOR_DATA.push(newA);
+    if(typeof renderArmor==='function') renderArmor();
+    if(typeof D5_recompute==='function') D5_recompute();
+    if(typeof toast==='function') toast('Armadura añadida: ' + newA.name);
+    if(typeof saveStateDebounced==='function') saveStateDebounced('armor-catalog');
+  });
+}
+
+/* UX-10 Fase G: bottom-sheet genérico para listar items con búsqueda */
+function _openCatalogPicker(title, items, onPick){
+  let sheet = document.getElementById('sheet-catalog-picker');
+  if(!sheet){
+    sheet = document.createElement('dialog');
+    sheet.className = 'bottom-sheet';
+    sheet.id = 'sheet-catalog-picker';
+    sheet.setAttribute('aria-label', 'Catálogo');
+    sheet.innerHTML = `
+      <div class="drag-handle"></div>
+      <div class="sheet-header"><div class="sheet-title" id="catalog-title">Catálogo</div><button class="sheet-close" data-close>✕</button></div>
+      <div class="sheet-content">
+        <input class="field-input" id="catalog-search" placeholder="Buscar…" style="margin-bottom:10px">
+        <div id="catalog-list" class="picker-list"></div>
+      </div>`;
+    document.body.appendChild(sheet);
+    sheet.addEventListener('click',(e)=>{
+      if(e.target.matches('[data-close]')) sheet.close();
+    });
+  }
+  document.getElementById('catalog-title').textContent = title;
+  const list = document.getElementById('catalog-list');
+  const search = document.getElementById('catalog-search');
+  const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const renderList = (q='')=>{
+    const qq = norm(q);
+    const filtered = items.filter(it=>{
+      if(!qq) return true;
+      const n = norm(it.name_es || it.name);
+      const d = norm(it.description_es || it.description || it.type || '');
+      return n.includes(qq) || d.includes(qq);
+    });
+    list.innerHTML = filtered.map((it,i)=>`
+      <button class="picker-row" data-cat-pick="${i}" style="display:block;width:100%;text-align:left;padding:10px;margin-bottom:6px;border:1px solid var(--line);border-radius:6px;background:transparent">
+        <div style="font-weight:600;font-family:'Cinzel',serif">${it.name_es || it.name || it.id || '?'}</div>
+        <div style="font:12px/1.4 system-ui;color:var(--ink-muted);margin-top:2px">${it.type||it.category||''} · ${it.damage_die_es||it.damage||''} ${it.weight?(' · '+it.weight+' lb'):''}</div>
+      </button>`).join('');
+    list.querySelectorAll('[data-cat-pick]').forEach(b=>b.addEventListener('click',()=>{
+      onPick(filtered[+b.dataset.catPick]);
+      sheet.close();
+    }));
+  };
+  renderList('');
+  search.value = '';
+  search.oninput = ()=>renderList(search.value);
+  if(typeof openSheet==='function') openSheet('sheet-catalog-picker');
+  else sheet.showModal();
+}
+
+/* UX-13 Fase G: bottom-sheet inline con armas equipadas para atacar/dañar
+   sin salir de la pestaña Combate. */
+function _openQuickAttackSheet(weapons){
+  let sheet = document.getElementById('sheet-quick-attack');
+  if(!sheet){
+    sheet = document.createElement('dialog');
+    sheet.className = 'bottom-sheet';
+    sheet.id = 'sheet-quick-attack';
+    sheet.setAttribute('aria-label', 'Elegir arma para atacar');
+    sheet.innerHTML = `
+      <div class="drag-handle"></div>
+      <div class="sheet-header"><div class="sheet-title">⚔ Elegir arma</div><button class="sheet-close" data-close>✕</button></div>
+      <div class="sheet-content"><div id="quick-attack-list"></div></div>`;
+    document.body.appendChild(sheet);
+    /* Cerrar con botón X */
+    sheet.addEventListener('click',(e)=>{
+      if(e.target.matches('[data-close]')) sheet.close();
+    });
+  }
+  const list = document.getElementById('quick-attack-list');
+  list.innerHTML = weapons.map(w=>{
+    const atks = w.iterativeAtks || [w.atk||'+0'];
+    const atkDisplay = atks.join('/');
+    const atkBtns = atks.map((a,j)=>{
+      const lbl = atks.length>1 ? `Atq ${j+1} (${a})` : `Atacar (${a})`;
+      return `<button class="btn-secondary" data-qa-atk="${w.id}" data-qa-i="${j}" style="flex:1">${lbl}</button>`;
+    }).join('');
+    return `
+      <div class="eq-card" style="margin-bottom:10px;padding:10px">
+        <div class="eq-name">${w.name}</div>
+        <div class="eq-meta">${w.type||''} · ${atkDisplay} atq · ${w.dmg} daño · ${w.crit}</div>
+        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+          ${atkBtns}
+          <button class="btn-secondary" data-qa-dmg="${w.id}" style="flex:1;min-width:90px;background:var(--accent-soft);color:var(--accent)">Daño (${w.dmg})</button>
+        </div>
+      </div>`;
+  }).join('');
+  /* Listeners */
+  list.querySelectorAll('[data-qa-atk]').forEach(b=>b.addEventListener('click',()=>{
+    const w = weapons.find(x=>x.id===+b.dataset.qaAtk); if(!w) return;
+    const i = +b.dataset.qaI || 0;
+    const atks = w.iterativeAtks || [w.atk];
+    const a = atks[i];
+    const multi = atks.length>1;
+    const lbl = `${w.name}${multi?' ('+(i+1)+'º atq)':''} · Ataque`;
+    if(typeof performRoll==='function') performRoll({expr:'1d20'+a, label:lbl, isAttack:true});
+  }));
+  list.querySelectorAll('[data-qa-dmg]').forEach(b=>b.addEventListener('click',()=>{
+    const w = weapons.find(x=>x.id===+b.dataset.qaDmg); if(!w) return;
+    if(typeof performRoll==='function') performRoll({expr:w.dmg, label:`${w.name} · Daño`, isAttack:false});
+  }));
+  if(typeof openSheet==='function') openSheet('sheet-quick-attack');
+  else sheet.showModal();
 }
 
 /* P-04: tirar todos los DG de TODAS las clases multi-clase y regenerar PG totales */
