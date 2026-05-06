@@ -2368,6 +2368,12 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
         <span class="more-label">Avisos del personaje <span id="warnings-badge" style="background:var(--negative);color:white;border-radius:99px;padding:2px 8px;font:700 10px system-ui;margin-left:6px;display:none">0</span></span>
         <span class="more-chev">›</span>
       </button>
+      <!-- MD-4 Fase D: Panel Mythic Adventures -->
+      <button class="more-row" id="more-mythic">
+        <span class="more-icon">✨</span>
+        <span class="more-label">Mythic Adventures (opcional)</span>
+        <span class="more-chev">›</span>
+      </button>
       <button class="more-row" id="more-settings">
         <span class="more-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2.1-1.6-2-3.4-2.5.9a7 7 0 0 0-2.1-1.2L14 3h-4l-.4 2.5A7 7 0 0 0 7.5 6.7L5 5.8 3 9.2l2.1 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2L3 14.8l2 3.4 2.5-.9a7 7 0 0 0 2.1 1.2L10 21h4l.4-2.5a7 7 0 0 0 2.1-1.2l2.5.9 2-3.4-2.1-1.6c.1-.4.1-.8.1-1.2z"/></svg></span>
         <span class="more-label" data-i18n="moreAjustes">Ajustes</span>
@@ -2612,6 +2618,11 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
       <input type="checkbox" id="settings-epic"> <span data-i18n="opt.epicMode">Modo Epic (nivel 21-30)</span>
     </label>
     <div style="font-size:11px;color:var(--ink-muted);margin:0 0 8px 26px;font-style:italic;line-height:1.4" data-i18n="epicModeNote">El contenido oficial PF1e termina en 20. Las reglas Epic son material de comunidad.</div>
+    <!-- MD-3 Fase D: Modo Gestalt -->
+    <label style="display:flex;align-items:center;gap:8px;padding:8px 0;cursor:pointer">
+      <input type="checkbox" id="settings-gestalt"> <span>🧬 Modo Gestalt (2 clases por nivel, MAX stat)</span>
+    </label>
+    <div style="font-size:11px;color:var(--ink-muted);margin:0 0 8px 26px;font-style:italic;line-height:1.4">Cada fila de clase muestra una segunda clase. BAB/HD/saves toman el MAX entre las dos. Skills suman. No es regla oficial Paizo (Unearthed Arcana 3.5).</div>
     <button class="btn-secondary" data-toast="datos-limpios" style="width:100%;margin-top:8px">Limpiar todos los datos</button>
     <div style="text-align:center;margin-top:12px;color:var(--ink-muted);font:11px system-ui">Versión 1.0 · build 2024.11</div>
   </div>
@@ -2632,6 +2643,23 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
   <div class="drag-handle"></div>
   <div class="sheet-header"><div class="sheet-title">Compañeros</div><button class="sheet-close" data-close>✕</button></div>
   <div class="sheet-content">
+    <!-- MD-1 Fase D: Toggle Synthesist Fusionado, visible solo si arquetipo synthesist activo -->
+    <div id="synth-fusion-bar" style="display:none;margin-bottom:10px;padding:8px 10px;background:var(--accent-soft);border:1px dashed var(--accent);border-radius:8px">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+        <input type="checkbox" id="synth-fused-toggle">
+        <span style="flex:1;font:600 12px 'Cinzel',serif;color:var(--leather)">🔗 Synthesist Fusionado</span>
+      </label>
+      <div style="font:11px/1.4 system-ui;color:var(--ink-muted);margin-top:4px">FUE/DES/CON pasan a las del eidolón. INT/SAB/CAR del invocador. PG eidolón consumen primero el daño.</div>
+    </div>
+    <!-- MD-2 Fase D: Selector Broodmaster (Eidolón 1 / Eidolón 2) — pool PE compartido a la mitad -->
+    <div id="brood-bar-mobile" style="display:none;margin-bottom:10px;padding:8px 10px;background:var(--accent-soft);border:1px dashed var(--accent);border-radius:8px">
+      <label style="font:600 11px 'Cinzel',serif;letter-spacing:.07em;text-transform:uppercase;color:var(--leather);display:block;margin-bottom:4px">🐲 Broodmaster · Editando:</label>
+      <select id="brood-active-mobile" class="field-select" style="width:100%">
+        <option value="0">Eidolón 1</option>
+        <option value="1">Eidolón 2</option>
+      </select>
+      <div style="font:10px system-ui;color:var(--ink-muted);margin-top:4px">El pool de PE se reparte entre los 2 eidolones (mitad cada uno).</div>
+    </div>
     <div class="comp-tabs">
       <button class="comp-tab active" data-comp="familiar">Familiar</button>
       <button class="comp-tab" data-comp="animal">Compañero animal</button>
@@ -2720,6 +2748,71 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <button class="btn-secondary" data-close>Cancelar</button>
         <button class="btn-primary" id="adj-save">Añadir ajuste</button>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<!-- MD-4 Fase D: Panel Mythic Adventures (opcional) -->
+<dialog class="bottom-sheet" id="sheet-mythic" aria-label="Mythic Adventures">
+  <div class="drag-handle"></div>
+  <div class="sheet-header"><div class="sheet-title">✨ Mythic Adventures</div><button class="sheet-close" data-close>✕</button></div>
+  <div class="sheet-content">
+    <div class="card" style="margin-bottom:10px">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+        <input type="checkbox" id="mythic-active"> <span style="flex:1;font:600 13px 'Cinzel',serif">Activar reglas míticas</span>
+      </label>
+      <div style="font:11px/1.4 system-ui;color:var(--ink-muted);margin-top:6px">Sistema opcional de Pathfinder. Si lo activas, se desbloquean tier, path, mythic power y surge.</div>
+    </div>
+    <div id="mythic-content" style="display:none">
+      <div class="card" style="margin-bottom:10px">
+        <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:10px">
+          <div class="field"><label class="field-label">Tier (1-10)</label>
+            <input class="field-input" type="number" id="mythic-tier" min="0" max="10" value="0">
+          </div>
+          <div class="field"><label class="field-label">Path</label>
+            <select class="field-select" id="mythic-path">
+              <option value="">— Selecciona —</option>
+              <option value="archmage">Archimago</option>
+              <option value="champion">Campeón</option>
+              <option value="guardian">Guardián</option>
+              <option value="hierophant">Hierofante</option>
+              <option value="marshal">Mariscal</option>
+              <option value="trickster">Embaucador</option>
+            </select>
+          </div>
+          <div class="field"><label class="field-label">Mythic Power actual</label>
+            <input class="field-input" type="number" id="mythic-power-current" min="0" value="0">
+          </div>
+          <div class="field"><label class="field-label">Mythic Power máx</label>
+            <input class="field-input" type="number" id="mythic-power-max" min="0" value="0" readonly style="background:var(--surface-2)">
+          </div>
+          <div class="field"><label class="field-label">Surges usados</label>
+            <input class="field-input" type="number" id="mythic-surges-used" min="0" value="0" readonly style="background:var(--surface-2)">
+          </div>
+          <div class="field"><label class="field-label">Dado de Surge</label>
+            <input class="field-input" type="text" id="mythic-surge-die-display" value="—" readonly style="background:var(--surface-2);font-weight:bold">
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:10px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button class="btn-primary" id="mythic-surge-btn">⚡ Surge</button>
+          <button class="btn-secondary" id="mythic-rest-btn">🌅 Recargar día</button>
+        </div>
+        <div id="mythic-surge-log" style="margin-top:10px;font:600 12px system-ui;color:var(--accent);min-height:18px;text-align:center"></div>
+      </div>
+      <div class="card" style="margin-bottom:10px">
+        <div class="field"><label class="field-label">Dotes míticas</label>
+          <textarea class="field-input" id="mythic-feats-text" rows="3" placeholder="Improved Power Attack (Mítico), Improved Critical (Mítico)…"></textarea>
+        </div>
+        <div class="field"><label class="field-label">Habilidades de senda</label>
+          <textarea class="field-input" id="mythic-path-abilities" rows="3" placeholder="Force of Will, Marshal's Order, Beast's Fury…"></textarea>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font:600 11px 'Cinzel',serif;color:var(--leather);margin-bottom:6px">🛡 Hard to Kill (regla pasiva)</div>
+        <div style="font:11px/1.4 system-ui;color:var(--ink-muted)">Con tier ≥ 1, no quedas inconsciente automáticamente al caer en negativo. Mueres a -CON×2 (no a -CON normal). Esta regla queda como referencia visual; el HP en negativo no auto-marca Inconsciente.</div>
       </div>
     </div>
   </div>
@@ -6211,6 +6304,16 @@ function bindNewSheets(){
     const allData = getClassPickerData();
     const addCls = ([n,,k])=>{
       const dbCls = k && DB.classes?.[k];
+      /* MD-5 Fase D: si es prestige, validar prerequisites */
+      if(dbCls && dbCls.category === 'prestige' && Array.isArray(dbCls.prerequisites) && dbCls.prerequisites.length){
+        const check = checkPrestigePrerequisitesMobile(k);
+        if(!check.met){
+          const missing = check.missing.length ? '• ' + check.missing.join('\n• ') : '';
+          const unknown = check.unknown.length ? '\n\nNo verificables (revisa manualmente):\n• ' + check.unknown.join('\n• ') : '';
+          const msg = 'Esta clase prestigiosa requiere:\n\n' + missing + unknown + '\n\n¿Añadir igualmente?';
+          if(!confirm(msg)) return;
+        }
+      }
       const hd = dbCls ? `1d${dbCls.hit_die||8}` : '1d8';
       const newId = (CLASSES_DATA[CLASSES_DATA.length-1]?.id||0)+1;
       const cl = {id:newId,name:n,classKey:k||'',archetype:'—',archetypeKey:'',level:1,hp:8,hd};
@@ -8792,6 +8895,15 @@ const CombatEngine = (function(){
     /* MA-8: aplicar modificadores de edad sobre los mods finales */
     const age = _getAgeMods();
     ['str','dex','con','int','wis','cha'].forEach(k=>{ out[k] += (age[k]||0); });
+    /* MD-1 Fase D: Synthesist fusionado — sustituir FUE/DES/CON por las del eidolón */
+    try{
+      const synth = (typeof getSynthFusionMods === 'function') ? getSynthFusionMods() : null;
+      if(synth){
+        out.str = synth.str;
+        out.dex = synth.dex;
+        out.con = synth.con;
+      }
+    }catch(_){}
     /* MA-5: paralyzed / helpless / pinned fuerzan FUE y DEX a 0 (para fines de modificadores) */
     const par = !!document.getElementById('cond-paralyzed')?.checked;
     const hel = !!document.getElementById('cond-helpless')?.checked;
@@ -8829,10 +8941,17 @@ const CombatEngine = (function(){
 
   function calcBAB(){
     let bab = 0;
+    /* MD-3 Fase D: en Gestalt, BAB no se SUMA entre clases — se toma el MAX
+       por nivel. Aproximación: tomar el max por clase activa al mismo nivel
+       (asume todas tienen el mismo nivel). Si difieren, se queda con el max
+       global. Es simplificación pero conserva spec. */
+    const gestalt = (typeof _isGestaltOn === 'function') && _isGestaltOn();
     try{
       (CLASSES_DATA||[]).forEach(cl=>{
         const lvl = parseInt(cl.level,10) || 0;
-        bab += babFor(cl.name, lvl);
+        const b = babFor(cl.name, lvl);
+        if(gestalt){ if(b > bab) bab = b; }
+        else bab += b;
       });
     }catch(e){}
     return bab + (_BUFF_MOD_TOTALS.atk||0);
@@ -8840,13 +8959,22 @@ const CombatEngine = (function(){
 
   function calcSaves(mods){
     let f=0,r=0,w=0;
+    /* MD-3 Fase D: en Gestalt, saves base toman el MAX por save (no suma) */
+    const gestalt = (typeof _isGestaltOn === 'function') && _isGestaltOn();
     try{
       (CLASSES_DATA||[]).forEach(cl=>{
         const lvl = parseInt(cl.level,10)||0;
         const pat = SAVE_PATTERN[cl.name] || ['b','b','b'];
-        f += baseSave(pat[0], lvl);
-        r += baseSave(pat[1], lvl);
-        w += baseSave(pat[2], lvl);
+        const fc = baseSave(pat[0], lvl);
+        const rc = baseSave(pat[1], lvl);
+        const wc = baseSave(pat[2], lvl);
+        if(gestalt){
+          if(fc > f) f = fc;
+          if(rc > r) r = rc;
+          if(wc > w) w = wc;
+        } else {
+          f += fc; r += rc; w += wc;
+        }
       });
     }catch(e){}
     return {
@@ -9264,6 +9392,12 @@ function snapshotState(){
   s.lang  = document.documentElement.dataset.lang || null;
   /* R-29 · Modo Epic (niveles 21-30) — flag persistente en JSON exportado */
   try{ s.epicMode = (typeof _epicModeOn!=='undefined') ? !!_epicModeOn : false; }catch(e){ s.epicMode = false; }
+  /* MD-4 Fase D: Mythic state */
+  try{ s.mythic = (typeof _MYTHIC_STATE!=='undefined') ? _mythicSerialize() : null; }catch(e){ s.mythic = null; }
+  /* MD-1/MD-2/MD-3 Fase D: Synthesist + Broodmaster + Gestalt flags */
+  try{ s.synthFused = (typeof _SYNTH_FUSED!=='undefined') ? !!_SYNTH_FUSED : false; }catch(e){ s.synthFused = false; }
+  try{ s.broodActive = (typeof _BROOD_ACTIVE_MOBILE!=='undefined') ? (parseInt(_BROOD_ACTIVE_MOBILE,10)||0) : 0; }catch(e){ s.broodActive = 0; }
+  try{ s.gestaltMode = (typeof _GESTALT_MODE!=='undefined') ? !!_GESTALT_MODE : false; }catch(e){ s.gestaltMode = false; }
   // Internal state variables
   try{
     s.schoolPick    = (typeof SCHOOL_PICK    !== 'undefined') ? SCHOOL_PICK    : '';
@@ -9363,6 +9497,28 @@ function applyState(state){
         cur.epicMode = epicOn;
         if(typeof saveSettings==='function') saveSettings(cur);
       }catch(_){}
+    }
+  }catch(_){}
+  /* MD-4 Fase D: restaurar Mythic state si presente */
+  try{
+    if(state.mythic && typeof _mythicRestore === 'function'){ _mythicRestore(state.mythic); }
+  }catch(_){}
+  /* MD-1/MD-2/MD-3 Fase D: restaurar flags */
+  try{
+    if(Object.prototype.hasOwnProperty.call(state,'synthFused')){
+      _SYNTH_FUSED = !!state.synthFused;
+      const cb = document.getElementById('synth-fused-toggle');
+      if(cb) cb.checked = _SYNTH_FUSED;
+    }
+    if(Object.prototype.hasOwnProperty.call(state,'broodActive')){
+      _BROOD_ACTIVE_MOBILE = parseInt(state.broodActive,10) || 0;
+      const sel = document.getElementById('brood-active-mobile');
+      if(sel) sel.value = String(_BROOD_ACTIVE_MOBILE);
+    }
+    if(Object.prototype.hasOwnProperty.call(state,'gestaltMode')){
+      _GESTALT_MODE = !!state.gestaltMode;
+      const cb = document.getElementById('settings-gestalt');
+      if(cb) cb.checked = _GESTALT_MODE;
     }
   }catch(_){}
   try{
@@ -10067,6 +10223,353 @@ function wireRoundButton(){
   setTimeout(renderSummaryBuffs, 300);
 }
 
+/* MD-5 Fase D: Validación de prerequisites de clases prestigiosas en mobile.
+   Reusa el campo `prerequisites` ya añadido en classes.json (commit b25bbff). */
+function checkPrestigePrerequisitesMobile(classKey){
+  const out = {met: true, missing: [], unknown: []};
+  const dbCls = DB?.classes?.[classKey];
+  if(!dbCls || !Array.isArray(dbCls.prerequisites)) return out;
+  /* Helpers */
+  const getBAB = ()=>{ try{ return (typeof CombatEngine!=='undefined' && CombatEngine.calcBAB) ? CombatEngine.calcBAB() : 0; }catch(e){ return 0; } };
+  const getSkillRank = (name)=>{
+    /* SKILL_STATE keys vienen del registro mobile */
+    try{
+      const id = String(name).toLowerCase().replace(/[^a-z]/g,'_');
+      if(typeof SKILL_STATE!=='undefined' && SKILL_STATE[id]) return parseInt(SKILL_STATE[id].r,10) || 0;
+      /* Buscar por nombre en filas */
+      const all = (typeof window!=='undefined' && window.D3_SKILLS && window.D3_SKILLS.all) ? window.D3_SKILLS.all() : [];
+      const found = all.find(s => (s.id||'').toLowerCase() === id || (s.name||'').toLowerCase() === String(name).toLowerCase());
+      return found ? (parseInt(window.D3_SKILLS.state?.[found.id]?.r,10) || 0) : 0;
+    }catch(e){ return 0; }
+  };
+  const hasFeat = (featName)=>{
+    if(!Array.isArray(FEATS)) return false;
+    const fnLow = String(featName).toLowerCase();
+    return FEATS.some(f => (f.n||'').toLowerCase().includes(fnLow));
+  };
+  const hasArcaneCasting = (minSpellLvl)=>{
+    return (CLASSES_DATA||[]).some(cl=>{
+      const cid = canonicalClassId(cl.name);
+      if(!_ARCANE_CASTERS_MOBILE.has(cid)) return false;
+      const info = PF1E_CASTER_INFO[cid] || {};
+      const lvl = parseInt(cl.level,10) || 0;
+      /* Aproximación: lvl >= 2*minSpellLvl-1 para preparado, similar para spont */
+      return lvl >= (minSpellLvl ? (2*minSpellLvl-1) : 1);
+    });
+  };
+  const hasDivineCasting = (minSpellLvl)=>{
+    return (CLASSES_DATA||[]).some(cl=>{
+      const cid = canonicalClassId(cl.name);
+      if(!_DIVINE_CASTERS_MOBILE.has(cid)) return false;
+      const lvl = parseInt(cl.level,10) || 0;
+      return lvl >= (minSpellLvl ? (2*minSpellLvl-1) : 1);
+    });
+  };
+  const hasSneakAttack = (dice)=>{
+    const totalLvl = (CLASSES_DATA||[]).reduce((acc,cl)=>{
+      const cid = canonicalClassId(cl.name);
+      if(['picaro','picaro_unchained','ninja','matador'].includes(cid)){
+        return acc + (parseInt(cl.level,10) || 0);
+      }
+      return acc;
+    },0);
+    /* Ladrón: 1d6 a nv 1, +1d6 cada 2 niveles → dado = ceil(lvl/2) */
+    const haveDice = totalLvl > 0 ? Math.ceil(totalLvl/2) : 0;
+    return haveDice >= (parseInt(dice,10) || 1);
+  };
+  /* Evaluar cada prereq */
+  dbCls.prerequisites.forEach(p=>{
+    if(!p || !p.type) return;
+    const desc = p.desc || (p.name ? (p.name + (p.value!==undefined?' '+p.value:'')) : p.type);
+    switch(p.type){
+      case 'skill':{
+        const need = parseInt(p.value,10) || 0;
+        const have = getSkillRank(p.name);
+        if(have < need){ out.met=false; out.missing.push(`${p.name} ${need} rangos (tienes ${have})`); }
+        break;
+      }
+      case 'bab':{
+        const need = parseInt(p.value,10) || 0;
+        const have = getBAB();
+        if(have < need){ out.met=false; out.missing.push(`BAB +${need} (tienes +${have})`); }
+        break;
+      }
+      case 'feat':{
+        if(!hasFeat(p.name)){ out.met=false; out.missing.push(`Dote: ${p.name}`); }
+        break;
+      }
+      case 'caster_level':{
+        const minLvl = parseInt(p.value,10) || 1;
+        const ok = (p.kind === 'arcane') ? hasArcaneCasting(minLvl)
+                  : (p.kind === 'divine') ? hasDivineCasting(minLvl)
+                  : (hasArcaneCasting(minLvl) || hasDivineCasting(minLvl));
+        if(!ok){ out.met=false; out.missing.push(`Lanzar conjuros ${p.kind||''} de nivel ${minLvl}`); }
+        break;
+      }
+      case 'sneak_attack':{
+        if(!hasSneakAttack(p.value)){ out.met=false; out.missing.push(`Ataque furtivo +${p.value}d6`); }
+        break;
+      }
+      case 'proficiency':{
+        /* No se modela competencias en mobile aún */
+        out.unknown.push(p.desc || `Competencia: ${p.name||p.value||''}`);
+        break;
+      }
+      default:
+        out.unknown.push(desc);
+    }
+  });
+  return out;
+}
+
+/* MD-4 Fase D: Módulo Mythic Adventures */
+const MYTHIC_KEY = 'pf1e-mobile-mythic';
+const _MYTHIC_STATE = {
+  active: false, tier: 0, path: '',
+  powerCurrent: 0, powerMax: 0, surgesUsed: 0,
+  feats: '', pathAbilities: ''
+};
+function _mythicSurgeDie(tier){
+  if(tier <= 0) return 0;
+  if(tier <= 3) return 6;
+  if(tier <= 6) return 8;
+  if(tier <= 9) return 10;
+  return 12;
+}
+function _mythicMaxPower(tier){ return tier > 0 ? 3 + 2*tier : 0; }
+function _mythicSerialize(){ return {..._MYTHIC_STATE}; }
+function _mythicRestore(payload){
+  if(!payload || typeof payload !== 'object') return;
+  Object.keys(_MYTHIC_STATE).forEach(k=>{
+    if(payload[k] !== undefined) _MYTHIC_STATE[k] = payload[k];
+  });
+  _mythicRefreshUi();
+}
+function _mythicRefreshUi(){
+  const cb = document.getElementById('mythic-active');
+  const cont = document.getElementById('mythic-content');
+  if(cb) cb.checked = !!_MYTHIC_STATE.active;
+  if(cont) cont.style.display = _MYTHIC_STATE.active ? '' : 'none';
+  const tierEl = document.getElementById('mythic-tier');
+  const pathEl = document.getElementById('mythic-path');
+  const powCur = document.getElementById('mythic-power-current');
+  const powMax = document.getElementById('mythic-power-max');
+  const surges = document.getElementById('mythic-surges-used');
+  const dieEl  = document.getElementById('mythic-surge-die-display');
+  const featsEl = document.getElementById('mythic-feats-text');
+  const pathAb = document.getElementById('mythic-path-abilities');
+  const tier = parseInt(_MYTHIC_STATE.tier,10) || 0;
+  const max = _mythicMaxPower(tier);
+  _MYTHIC_STATE.powerMax = max;
+  if(_MYTHIC_STATE.powerCurrent > max) _MYTHIC_STATE.powerCurrent = max;
+  if(tierEl) tierEl.value = tier;
+  if(pathEl) pathEl.value = _MYTHIC_STATE.path || '';
+  if(powCur) powCur.value = _MYTHIC_STATE.powerCurrent;
+  if(powMax) powMax.value = max;
+  if(surges) surges.value = _MYTHIC_STATE.surgesUsed;
+  const die = _mythicSurgeDie(tier);
+  if(dieEl) dieEl.value = die > 0 ? '1d'+die : '—';
+  if(featsEl) featsEl.value = _MYTHIC_STATE.feats || '';
+  if(pathAb) pathAb.value = _MYTHIC_STATE.pathAbilities || '';
+}
+function isMythicHardToKill(){ return !!_MYTHIC_STATE.active && (parseInt(_MYTHIC_STATE.tier,10) || 0) >= 1; }
+function _mythicSurge(){
+  const tier = parseInt(_MYTHIC_STATE.tier,10) || 0;
+  const sides = _mythicSurgeDie(tier);
+  const cur = _MYTHIC_STATE.powerCurrent;
+  const log = document.getElementById('mythic-surge-log');
+  if(sides <= 0){
+    if(log) log.textContent = 'Tier 0: sin surge disponible.';
+    return;
+  }
+  if(cur <= 0){
+    if(log) log.textContent = 'Sin Mythic Power. Recarga el día.';
+    return;
+  }
+  const roll = Math.floor(Math.random()*sides) + 1;
+  _MYTHIC_STATE.powerCurrent = cur - 1;
+  _MYTHIC_STATE.surgesUsed = (_MYTHIC_STATE.surgesUsed || 0) + 1;
+  if(log) log.textContent = `1d${sides} = ${roll} · Power ${_MYTHIC_STATE.powerCurrent}/${_MYTHIC_STATE.powerMax}`;
+  _mythicRefreshUi();
+  if(typeof saveStateDebounced === 'function') saveStateDebounced('mythic-surge');
+}
+function _mythicRestDay(){
+  _MYTHIC_STATE.powerCurrent = _MYTHIC_STATE.powerMax;
+  _MYTHIC_STATE.surgesUsed = 0;
+  _mythicRefreshUi();
+  if(typeof toast === 'function') toast('Mythic Power recargado al máximo');
+  if(typeof saveStateDebounced === 'function') saveStateDebounced('mythic-rest');
+}
+/* MD-1 Fase D: Synthesist (Summoner archetype) — fusión de stats físicos.
+   Toggle mostrado en sheet-companions. Cuando activo, FUE/DES/CON usan
+   los stats del primer eidolón en COMP_DATA.eidolon[0]. */
+let _SYNTH_FUSED = false;
+function _isSynthesistActive(){
+  /* Detecta si alguna clase tiene archetype synthesist */
+  return (CLASSES_DATA||[]).some(cl => {
+    const arc = (cl.archetypeKey||cl.archetype||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    return arc === 'synthesist' || arc === 'synthesist_unchained';
+  });
+}
+function _refreshSynthBar(){
+  const bar = document.getElementById('synth-fusion-bar');
+  const cb = document.getElementById('synth-fused-toggle');
+  if(!bar) return;
+  const isSynth = _isSynthesistActive();
+  bar.style.display = isSynth ? '' : 'none';
+  if(cb) cb.checked = !!_SYNTH_FUSED;
+}
+function _getEidolonPhysical(){
+  const eid = (typeof COMP_DATA !== 'undefined' && Array.isArray(COMP_DATA.eidolon)) ? COMP_DATA.eidolon[0] : null;
+  if(!eid) return null;
+  return {
+    str: parseInt(eid.str,10) || 10,
+    dex: parseInt(eid.dex,10) || 10,
+    con: parseInt(eid.con,10) || 10
+  };
+}
+function _scoreToMod(score){ return Math.floor((score - 10) / 2); }
+/* Hook: getMods de CombatEngine puede consultar este helper para fusionar */
+function getSynthFusionMods(){
+  if(!_SYNTH_FUSED || !_isSynthesistActive()) return null;
+  const eid = _getEidolonPhysical();
+  if(!eid) return null;
+  return { str: _scoreToMod(eid.str), dex: _scoreToMod(eid.dex), con: _scoreToMod(eid.con) };
+}
+
+/* MD-2 Fase D: Broodmaster (Summoner archetype) — switch entre 2 eidolones.
+   COMP_DATA.eidolon ya es array (M-01..M-04). Si broodmaster: usar slot 0 y 1.
+   _BROOD_ACTIVE_MOBILE indica cuál se está editando. */
+let _BROOD_ACTIVE_MOBILE = 0;
+function _isBroodmasterActive(){
+  return (CLASSES_DATA||[]).some(cl => {
+    const arc = (cl.archetypeKey||cl.archetype||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    return arc === 'broodmaster' || arc === 'broodmaster_unchained';
+  });
+}
+function _refreshBroodBar(){
+  const bar = document.getElementById('brood-bar-mobile');
+  const sel = document.getElementById('brood-active-mobile');
+  if(!bar) return;
+  const isBrood = _isBroodmasterActive();
+  bar.style.display = isBrood ? '' : 'none';
+  /* Si broodmaster, asegurar que COMP_DATA.eidolon tiene 2 slots */
+  if(isBrood && typeof COMP_DATA !== 'undefined' && Array.isArray(COMP_DATA.eidolon)){
+    while(COMP_DATA.eidolon.length < 2){
+      if(typeof COMP_DEFAULTS !== 'undefined' && typeof COMP_DEFAULTS.eidolon === 'function'){
+        COMP_DATA.eidolon.push(COMP_DEFAULTS.eidolon());
+      } else {
+        break;
+      }
+    }
+  }
+  if(sel) sel.value = String(_BROOD_ACTIVE_MOBILE);
+}
+
+/* MD-3 Fase D: Modo Gestalt (cada nivel = 2 clases con MAX stat).
+   Toggle global en settings. Cuando activo, cada class-row muestra
+   secondaryClass + nivel; los cálculos toman MAX(claseA, claseB). */
+let _GESTALT_MODE = false;
+function _isGestaltOn(){ return _SYNTH_FUSED ? false : !!_GESTALT_MODE; /* incompatible juntos */ }
+
+function wireMythic(){
+  /* Atajo del menú Más */
+  const more = document.getElementById('more-mythic');
+  if(more) more.addEventListener('click', ()=>{
+    _mythicRefreshUi();
+    if(typeof openSheet === 'function') openSheet('sheet-mythic');
+  });
+  /* Toggle activar */
+  const cb = document.getElementById('mythic-active');
+  if(cb) cb.addEventListener('change', ()=>{
+    _MYTHIC_STATE.active = cb.checked;
+    _mythicRefreshUi();
+    if(typeof saveStateDebounced === 'function') saveStateDebounced('mythic-active');
+  });
+  /* Inputs */
+  const sync = (id, key, parse)=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('change', ()=>{
+      const v = parse ? parse(el.value) : el.value;
+      _MYTHIC_STATE[key] = v;
+      if(key === 'tier'){
+        const newMax = _mythicMaxPower(v);
+        _MYTHIC_STATE.powerMax = newMax;
+        if(_MYTHIC_STATE.powerCurrent > newMax) _MYTHIC_STATE.powerCurrent = newMax;
+      }
+      _mythicRefreshUi();
+      if(typeof saveStateDebounced === 'function') saveStateDebounced('mythic-' + key);
+    });
+  };
+  sync('mythic-tier', 'tier', v => Math.max(0, Math.min(10, parseInt(v,10) || 0)));
+  sync('mythic-path', 'path');
+  sync('mythic-power-current', 'powerCurrent', v => Math.max(0, parseInt(v,10) || 0));
+  sync('mythic-feats-text', 'feats');
+  sync('mythic-path-abilities', 'pathAbilities');
+  /* Botones */
+  const surgeBtn = document.getElementById('mythic-surge-btn');
+  if(surgeBtn) surgeBtn.addEventListener('click', _mythicSurge);
+  const restBtn = document.getElementById('mythic-rest-btn');
+  if(restBtn) restBtn.addEventListener('click', _mythicRestDay);
+}
+
+/* MD-3 Fase D: Modo Gestalt — toggle global. Versión simplificada:
+   añade flag _GESTALT_MODE persistido en settings; el cálculo MAX entre
+   2 clases por fila requiere ampliar CLASSES_DATA con campo secondaryName.
+   En esta primera iteración solo persiste el flag y permite que cada
+   class-row tenga un campo "Clase B" libre (el usuario lo edita en
+   classes JSON). Las stats max se calculan en _gestaltAdjustClassStats. */
+function wireGestaltMode(){
+  const cb = document.getElementById('settings-gestalt');
+  if(!cb) return;
+  /* Cargar inicial desde settings */
+  try{
+    const cur = (typeof loadSettings==='function') ? loadSettings() : {};
+    _GESTALT_MODE = !!cur.gestaltMode;
+    cb.checked = _GESTALT_MODE;
+  }catch(_){}
+  cb.addEventListener('change', ()=>{
+    _GESTALT_MODE = cb.checked;
+    try{
+      const cur = (typeof loadSettings==='function') ? loadSettings() : {};
+      cur.gestaltMode = _GESTALT_MODE;
+      if(typeof saveSettings === 'function') saveSettings(cur);
+    }catch(_){}
+    if(typeof CombatEngine!=='undefined' && CombatEngine.apply) CombatEngine.apply();
+    if(typeof renderClasses === 'function') renderClasses();
+    if(typeof toast === 'function') toast(_GESTALT_MODE ? '🧬 Modo Gestalt activado' : 'Modo Gestalt desactivado');
+    if(typeof saveStateDebounced === 'function') saveStateDebounced('gestalt-mode');
+  });
+}
+
+/* MD-1 + MD-2 + MD-3 Fase D: wire synth/brood/gestalt */
+function wireSummonerArchetypes(){
+  /* Synthesist toggle */
+  const synthCb = document.getElementById('synth-fused-toggle');
+  if(synthCb) synthCb.addEventListener('change', ()=>{
+    _SYNTH_FUSED = synthCb.checked;
+    if(typeof CombatEngine!=='undefined' && CombatEngine.apply) CombatEngine.apply();
+    if(typeof toast === 'function') toast(_SYNTH_FUSED ? '🔗 Eidolón fusionado' : 'Synthesist separado');
+    if(typeof saveStateDebounced === 'function') saveStateDebounced('synth-fused');
+  });
+  /* Broodmaster selector */
+  const broodSel = document.getElementById('brood-active-mobile');
+  if(broodSel) broodSel.addEventListener('change', ()=>{
+    _BROOD_ACTIVE_MOBILE = parseInt(broodSel.value,10) || 0;
+    /* Reabrir el editor del eidolón apuntando al slot correcto */
+    if(typeof CURRENT_COMP_TYPE !== 'undefined' && CURRENT_COMP_TYPE === 'eidolon'){
+      if(typeof CURRENT_COMP_IDX !== 'undefined') CURRENT_COMP_IDX = _BROOD_ACTIVE_MOBILE;
+      if(typeof renderComp === 'function') renderComp('eidolon');
+    }
+    if(typeof saveStateDebounced === 'function') saveStateDebounced('brood-switch');
+  });
+  /* Refresca barras al abrir el sheet de companions y al cambiar clase */
+  const compBtn = document.getElementById('more-companions');
+  if(compBtn) compBtn.addEventListener('click', ()=>{ _refreshSynthBar(); _refreshBroodBar(); });
+  document.addEventListener('class-changed', ()=>{ _refreshSynthBar(); _refreshBroodBar(); });
+}
+
 /* M-06: Settings persistentes (idioma/tema/tamaño fuente/daltónico) */
 const SETTINGS_KEY = 'ficha-mobile-settings';
 function loadSettings(){
@@ -10716,6 +11219,9 @@ function init6(){
   wireSettingsControls();
   wireRoundButton();
   wireCombatTacticals();
+  wireMythic();
+  wireSummonerArchetypes();
+  wireGestaltMode();
 
   const stored = loadStoredState();
   if(stored){
