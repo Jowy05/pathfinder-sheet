@@ -1507,9 +1507,9 @@ body.theme-dark .spell-level-h{color:#f5d8b0}
   /* Saltos de página entre tab principales */
   .tab-page { page-break-before:always; }
   .tab-page:first-of-type { page-break-before:auto; }
-  /* Heading visual para cada tab */
+  /* Heading visual para cada tab — usa data-screen-label (más legible) */
   .tab-page::before {
-    content:attr(data-tab);
+    content:attr(data-screen-label);
     display:block;
     font-family:'Cinzel',serif;
     font-weight:700;
@@ -2236,6 +2236,14 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
 
     <div class="sub-page" data-sub="aptclase" hidden>
       <div id="cf-list"></div>
+      <!-- ME-4 Fase E: SLAs at-will (Spell-Like Abilities) -->
+      <div class="card" style="margin-top:14px">
+        <h3 class="card-title" style="font:600 12px 'Cinzel',serif">✨ SLAs a voluntad</h3>
+        <div style="font:11px/1.3 system-ui;color:var(--ink-muted);margin-bottom:8px">Habilidades de conjuro a voluntad (aasimar luz diurna, tiefling oscuridad, etc.). Tira CL y registra usos.</div>
+        <div id="sla-list" style="display:flex;flex-direction:column;gap:6px"></div>
+        <button class="btn-add" id="sla-add-btn" style="width:100%;margin-top:8px">＋ Añadir SLA</button>
+        <div id="sla-log" style="margin-top:10px;font:11px system-ui;color:var(--ink-muted);min-height:18px"></div>
+      </div>
     </div>
 
     <div class="sub-page" data-sub="conjuros" hidden>
@@ -5000,13 +5008,35 @@ function injectPickerSheets(){
       });
     });
   }
-  bindPicker('sheet-arcane-school',ARCANE_SCHOOLS,v=>{SCHOOL_PICK=v; if(typeof toast==='function') toast('Escuela: '+v);});
-  bindPicker('sheet-bloodline',    BLOODLINES,    v=>{BLOODLINE_PICK=v; if(typeof toast==='function') toast('Linaje: '+v);});
-  bindPicker('sheet-domain-1',     DOMAINS,       v=>{DOMAIN_PICKS[0]=v; if(typeof toast==='function') toast('Dominio 1: '+v);});
-  bindPicker('sheet-domain-2',     DOMAINS,       v=>{DOMAIN_PICKS[1]=v; if(typeof toast==='function') toast('Dominio 2: '+v);});
-  bindPicker('sheet-mystery',      MYSTERIES,     v=>{MYSTERY_PICK=v; if(typeof toast==='function') toast('Misterio: '+v);});
-  bindPicker('sheet-patron',       PATRONS,       v=>{PATRON_PICK=v; if(typeof toast==='function') toast('Patrón: '+v);});
-  bindPicker('sheet-order',        ORDERS,        v=>{ORDER_PICK=v; if(typeof toast==='function') toast('Orden: '+v);});
+  /* ME-9 Fase E: si DB.orders existe (60 órdenes del JSON), úsalo en lugar
+     del array hardcoded. Igualmente para schools/bloodlines/mysteries/
+     patrons/domains: si hay DB cargada, usa la BBDD completa. */
+  function _toBindData(dbObj, fallback){
+    if(!dbObj) return fallback;
+    /* Acepta objeto {key:{name_es,description_es}} o array */
+    if(Array.isArray(dbObj)){
+      return dbObj.map(o => [o.name_es || o.name || o.id || '?', o.description_es || o.description || o.desc || '']);
+    }
+    if(typeof dbObj === 'object'){
+      return Object.entries(dbObj)
+        .filter(([k])=>k!=='_meta' && k!=='_schema')
+        .map(([k,v])=>[v.name_es || v.name || v.name_en || k, v.description_es || v.description || v.description_en || v.desc || '']);
+    }
+    return fallback;
+  }
+  const _orderData = _toBindData(DB?.orders, ORDERS);
+  const _schoolData = _toBindData(DB?.arcane_schools, ARCANE_SCHOOLS);
+  const _bloodData = _toBindData(DB?.bloodlines, BLOODLINES);
+  const _domainData = _toBindData(DB?.domains, DOMAINS);
+  const _mysteryData = _toBindData(DB?.oracle_mysteries, MYSTERIES);
+  const _patronData = _toBindData(DB?.witch_patrons, PATRONS);
+  bindPicker('sheet-arcane-school', _schoolData, v=>{SCHOOL_PICK=v; if(typeof toast==='function') toast('Escuela: '+v);});
+  bindPicker('sheet-bloodline',     _bloodData,  v=>{BLOODLINE_PICK=v; if(typeof toast==='function') toast('Linaje: '+v);});
+  bindPicker('sheet-domain-1',      _domainData, v=>{DOMAIN_PICKS[0]=v; if(typeof toast==='function') toast('Dominio 1: '+v);});
+  bindPicker('sheet-domain-2',      _domainData, v=>{DOMAIN_PICKS[1]=v; if(typeof toast==='function') toast('Dominio 2: '+v);});
+  bindPicker('sheet-mystery',       _mysteryData,v=>{MYSTERY_PICK=v; if(typeof toast==='function') toast('Misterio: '+v);});
+  bindPicker('sheet-patron',        _patronData, v=>{PATRON_PICK=v; if(typeof toast==='function') toast('Patrón: '+v);});
+  bindPicker('sheet-order',         _orderData,  v=>{ORDER_PICK=v; if(typeof toast==='function') toast('Orden: '+v);});
 }
 
 document.addEventListener('attr-changed', ()=>{
@@ -5401,6 +5431,21 @@ function renderWeapons(){
           <input type="checkbox" class="weap-broken" data-weap-id="${w.id}" ${w.broken?'checked':''}>Roto
         </label>
       </div>
+      <!-- ME-3 Fase E: damage-type chips multi-select (físicos + 8 elementales) -->
+      <div class="weap-dtypes" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">
+        ${(()=>{
+          const types = [
+            ['piercing','P'], ['slashing','C'], ['bludgeoning','Co'],
+            ['fire','🔥'], ['cold','❄'], ['acid','🧪'], ['electricity','⚡'],
+            ['sonic','🔊'], ['force','✨'], ['negative','💀'], ['positive','✟']
+          ];
+          const active = Array.isArray(w.damageTypes) ? w.damageTypes : [];
+          return types.map(([k,lbl])=>{
+            const on = active.includes(k);
+            return `<button class="weap-dtype-chip" data-weap-id="${w.id}" data-dtype="${k}" style="font:700 10px system-ui;padding:3px 8px;border-radius:99px;border:1px solid ${on?'var(--accent)':'var(--line)'};background:${on?'var(--accent)':'transparent'};color:${on?'white':'var(--ink-muted)'};cursor:pointer">${lbl}</button>`;
+          }).join('');
+        })()}
+      </div>
       <div class="weap-actions">
         ${atkBtns}
         <button data-roll="${w.dmg}" data-roll-label="${w.name} · Daño">Daño</button>
@@ -5438,6 +5483,19 @@ function renderWeapons(){
         if(typeof D5_refreshWeaponRolls==='function') D5_refreshWeaponRolls();
         if(typeof saveStateDebounced==='function') saveStateDebounced('weap-broken');
       }
+    });
+  });
+  /* ME-3 Fase E: chips de tipo de daño (toggle multi-select) */
+  c.querySelectorAll('.weap-dtype-chip').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const wep = WEAPONS_DATA.find(x=>x.id===+b.dataset.weapId);
+      if(!wep) return;
+      const dt = b.dataset.dtype;
+      if(!Array.isArray(wep.damageTypes)) wep.damageTypes = [];
+      const i = wep.damageTypes.indexOf(dt);
+      if(i >= 0) wep.damageTypes.splice(i, 1); else wep.damageTypes.push(dt);
+      renderWeapons();
+      if(typeof saveStateDebounced==='function') saveStateDebounced('weap-dtype');
     });
   });
 }
@@ -5742,10 +5800,19 @@ function renderInit(){
     const condStr = (r.conds && r.conds.length)
       ? `<div style="font:10px system-ui;color:var(--negative);margin-top:2px">${r.conds.join(', ')}</div>`
       : '';
+    /* ME-5 Fase E: economía de acciones por turno (tokens Std/Move/Swift) */
+    if(!r.actions) r.actions = {std:false, move:false, swift:false};
+    const tk = (k, ico, title)=>{
+      const used = r.actions[k];
+      return `<button class="init-action-tk" data-init-act="${i}" data-act-kind="${k}" title="${title} ${used?'(usada)':''}" style="font:600 11px system-ui;padding:2px 6px;margin:0 1px;border-radius:99px;border:1px solid ${used?'var(--ink-muted)':'var(--accent)'};background:${used?'transparent':'var(--accent-soft)'};color:${used?'var(--ink-muted)':'var(--accent)'};opacity:${used?0.45:1};cursor:pointer">${ico}</button>`;
+    };
+    const actsHtml = r.active ? `<div style="margin-top:3px">${tk('std','●','Acción estándar')}${tk('move','○','Movimiento')}${tk('swift','◆','Rápida')}</div>` : '';
+    /* ME-5: mini botón "+" para añadir/quitar conds del combatiente */
+    const condBtn = `<button class="init-cond-btn" data-init-cond="${i}" title="Condiciones" style="font:600 9px system-ui;padding:2px 6px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--ink-muted);cursor:pointer">⚠</button>`;
     return `<div class="init-card ${r.active?'active':''}${r.hp!=null&&r.hp<=0?' init-dead':''}" data-init-card="${i}">
       <span class="ir-val">${r.v>=0?'+':'' }${r.v}</span>
-      <span class="ir-name">${typeBadge}${r.n}${acStr}${condStr}</span>
-      <span class="init-hp-wrap">${hpStr}${hpBtns}</span>
+      <span class="ir-name">${typeBadge}${r.n}${acStr}${condStr}${actsHtml}</span>
+      <span class="init-hp-wrap">${hpStr}${hpBtns}${condBtn}</span>
       <button class="crud-del" data-init-del="${i}" aria-label="Quitar">×</button>
     </div>`;
   }).join('');
@@ -5768,7 +5835,40 @@ function renderInit(){
       renderInit();
     });
   });
+  /* ME-5 Fase E: tokens de acción por combatiente */
+  c.querySelectorAll('.init-action-tk').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const r = INIT_LIST[+b.dataset.initAct]; if(!r) return;
+      const k = b.dataset.actKind;
+      if(!r.actions) r.actions = {std:false, move:false, swift:false};
+      r.actions[k] = !r.actions[k];
+      renderInit();
+      if(typeof saveStateDebounced==='function') saveStateDebounced('init-action');
+    });
+  });
+  /* ME-5 Fase E: gestor de condiciones por combatiente — prompt con lista */
+  c.querySelectorAll('.init-cond-btn').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const r = INIT_LIST[+b.dataset.initCond]; if(!r) return;
+      const cur = (r.conds||[]).join(', ');
+      const v = prompt('Condiciones (separadas por coma) — ej: aturdido, asustado, enredado:', cur);
+      if(v === null) return;
+      r.conds = v.split(',').map(s=>s.trim()).filter(Boolean);
+      renderInit();
+      if(typeof saveStateDebounced==='function') saveStateDebounced('init-cond');
+    });
+  });
 }
+
+/* ME-5 Fase E: al avanzar de turno, resetear las acciones del combatiente activo */
+document.addEventListener('init-turn-changed', (ev)=>{
+  try{
+    const newActiveIdx = ev?.detail?.activeIdx;
+    if(typeof newActiveIdx === 'number' && INIT_LIST[newActiveIdx]){
+      INIT_LIST[newActiveIdx].actions = {std:false, move:false, swift:false};
+    }
+  }catch(_){}
+});
 
 /* ─── COMPANIONS (M-01..M-04: multi-instancia + schema PF1e) ─── */
 /* Estructura: arrays de instancias por tipo. Cada instancia tiene id único.
@@ -6690,20 +6790,100 @@ function renderAdjusts(){
 }
 
 /* ─── DOTES (renderFeats con eliminar) ─── */
+/* ME-2 Fase E: evalúa prerequisites de una dote y devuelve {met, missing}.
+   Reusa el evaluador de prestige (skill/bab/feat/caster_level/sneak_attack). */
+function checkFeatPrereqsMobile(featObj){
+  const out = {met: true, missing: [], unknown: []};
+  if(!featObj) return out;
+  /* Buscar el feat en DB.feats por nombre (substring) */
+  let dbFeat = null;
+  try{
+    const fnLow = String(featObj.n||'').toLowerCase();
+    if(Array.isArray(DB?.feats)){
+      dbFeat = DB.feats.find(f => {
+        const en = (f.name_en||'').toLowerCase();
+        const es = (f.name_es||f.name||'').toLowerCase();
+        return en === fnLow || es === fnLow || en.includes(fnLow) || es.includes(fnLow) || fnLow.includes(en) || fnLow.includes(es);
+      });
+    }
+  }catch(_){}
+  if(!dbFeat || !Array.isArray(dbFeat.prerequisites) || !dbFeat.prerequisites.length){
+    /* Si la dote tiene texto libre prereq (campo viejo), marcarlo unknown */
+    if(featObj.prereq) out.unknown.push(featObj.prereq);
+    return out;
+  }
+  /* Reusar checkPrestigePrerequisitesMobile evaluator pasando un mock de classKey */
+  /* Más simple: replicar inline (pequeño) */
+  dbFeat.prerequisites.forEach(p=>{
+    if(!p || !p.type) return;
+    switch(p.type){
+      case 'skill':{
+        const need = parseInt(p.value,10) || 0;
+        const id = String(p.name||'').toLowerCase().replace(/[^a-z]/g,'_');
+        let have = 0;
+        try{
+          if(typeof SKILL_STATE!=='undefined' && SKILL_STATE[id]) have = parseInt(SKILL_STATE[id].r,10) || 0;
+        }catch(_){}
+        if(have < need){ out.met=false; out.missing.push(`${p.name} ${need} rangos (tienes ${have})`); }
+        break;
+      }
+      case 'bab':{
+        const need = parseInt(p.value,10) || 0;
+        const have = (typeof CombatEngine!=='undefined' && CombatEngine.calcBAB) ? CombatEngine.calcBAB() : 0;
+        if(have < need){ out.met=false; out.missing.push(`BAB +${need}`); }
+        break;
+      }
+      case 'feat':{
+        const has = Array.isArray(FEATS) && FEATS.some(f => (f.n||'').toLowerCase().includes(String(p.name).toLowerCase()) && f.n !== featObj.n);
+        if(!has){ out.met=false; out.missing.push(`Dote: ${p.name}`); }
+        break;
+      }
+      case 'attr':
+      case 'ability':{
+        const need = parseInt(p.value,10) || 0;
+        const abbr = String(p.name||'').toUpperCase().substring(0,3);
+        const map = {STR:'FUE',DEX:'DES',CON:'CON',INT:'INT',WIS:'SAB',CHA:'CAR'};
+        const k = map[abbr] || abbr;
+        let score = 10;
+        try{
+          const row = (typeof ATTRS!=='undefined') ? ATTRS.find(r=>r[0]===k) : null;
+          if(row) score = parseInt(row[2],10) || 10;
+        }catch(_){}
+        if(score < need){ out.met=false; out.missing.push(`${p.name} ${need} (tienes ${score})`); }
+        break;
+      }
+      default:
+        out.unknown.push(p.desc || p.type);
+    }
+  });
+  return out;
+}
+
 function renderFeatsCrud(){
   const list = document.getElementById('feats-list');
   if(!list) return;
-  list.innerHTML = FEATS.map((f,i)=>`
+  list.innerHTML = FEATS.map((f,i)=>{
+    /* ME-2 Fase E: chip prereq ✓/⚠️/❓ */
+    const check = checkFeatPrereqsMobile(f);
+    let chip = '';
+    if(check.missing.length){
+      chip = `<span class="feat-prereq-chip" title="${(check.missing||[]).join(', ')}" style="font:700 10px system-ui;background:#c0392b;color:#fff;padding:1px 6px;border-radius:99px;margin-left:6px">⚠</span>`;
+    } else if(check.unknown.length){
+      chip = `<span class="feat-prereq-chip" title="${(check.unknown||[]).join(', ')}" style="font:700 10px system-ui;background:#7f8c8d;color:#fff;padding:1px 6px;border-radius:99px;margin-left:6px">❓</span>`;
+    } else {
+      chip = `<span class="feat-prereq-chip" title="Prereqs cumplidos" style="font:700 10px system-ui;background:#27ae60;color:#fff;padding:1px 6px;border-radius:99px;margin-left:6px">✓</span>`;
+    }
+    return `
     <div class="feat-card" data-feat="${i}" style="position:relative">
       <button class="crud-del" data-feat-del="${i}" aria-label="Quitar dote">×</button>
       <div class="feat-head">
-        <div class="feat-name" style="padding-right:24px">${f.n}</div>
+        <div class="feat-name" style="padding-right:24px">${f.n}${chip}</div>
         <span class="feat-tag tag-${f.t}">${f.t==='combat'?'Combate':(f.t==='general'?'General':'Objeto')}</span>
       </div>
       ${f.prereq?`<div style="font:11px/1.3 system-ui;color:var(--ink-muted);margin-bottom:4px">Prereq: ${f.prereq}</div>`:''}
       <div class="feat-desc collapsed">${f.d}</div>
     </div>
-  `).join('');
+  `}).join('');
   list.querySelectorAll('.feat-card').forEach(c=>{
     c.addEventListener('click',e=>{
       if(e.target.matches('.crud-del')) return;
@@ -8524,12 +8704,31 @@ function D5_renderInventory(){
             <button class="crud-del" data-d5-del="${it.id}" aria-label="Quitar">×</button>
             <div class="eq-name">${it.name}</div>
             <div class="eq-meta">${it.weight} lb · ${it.value} po${it.desc?' · '+it.desc:''}</div>
-            <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap">
               <button class="btn-secondary" data-d5-qty="${it.id}" data-d5-d="-1" style="min-width:32px">−</button>
               <input class="field-input" data-d5-qtyin="${it.id}" type="number" inputmode="numeric" value="${it.qty}" style="text-align:center;max-width:64px">
               <button class="btn-secondary" data-d5-qty="${it.id}" data-d5-d="1" style="min-width:32px">+</button>
               <span style="color:var(--ink-muted);font:12px system-ui">×${it.qty} = ${(it.weight*it.qty).toFixed(1)} lb</span>
+              <label style="display:flex;align-items:center;gap:4px;font:600 10px system-ui;color:var(--accent);cursor:pointer;margin-left:auto" title="Marcar como objeto mágico con cargas (varita, pergamino, etc.)">
+                <input type="checkbox" class="d5-item-magic" data-d5-mag="${it.id}" ${it.magic?'checked':''}>✦ Mágico
+              </label>
             </div>
+            ${it.magic ? (()=>{
+              const max = parseInt(it.chargesMax,10) || 50;
+              const cur = (typeof it.chargesUsed === 'number') ? it.chargesUsed : 0;
+              const remain = Math.max(0, max - cur);
+              const bubblesCount = Math.min(50, max);
+              const bubbles = Array.from({length: bubblesCount}, (_,k)=>{
+                const used = k < cur;
+                return `<button class="d5-charge-bubble" data-d5-charge="${it.id}" data-charge-idx="${k}" title="Carga ${k+1}/${max}" style="width:14px;height:14px;border-radius:50%;border:1px solid var(--accent);background:${used?'transparent':'var(--accent)'};opacity:${used?0.35:1};cursor:pointer;padding:0;margin:1px"></button>`;
+              }).join('');
+              return `<div style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap;padding:6px;background:var(--surface-2);border-radius:6px">
+                <span style="font:600 10px 'Cinzel',serif;letter-spacing:.07em;color:var(--leather)">Cargas</span>
+                <input type="number" class="field-input d5-charge-max" data-d5-mag-max="${it.id}" value="${max}" min="1" style="width:50px;text-align:center;padding:2px 4px;font-size:11px">
+                <span style="font:600 11px system-ui;color:var(--accent)">${remain}/${max}</span>
+                <div style="display:flex;flex-wrap:wrap;width:100%">${bubbles}</div>
+              </div>`;
+            })() : ''}
           </div>`).join('') : `<div class="eq-meta" style="color:var(--ink-muted);text-align:center;padding:8px">Sin objetos</div>`) : ''}
       </div>`;
   }).join('');
@@ -8548,6 +8747,40 @@ function D5_renderInventory(){
   c.querySelectorAll('[data-d5-qtyin]').forEach(inp=>inp.addEventListener('change',()=>{
     const it = D5_INVENTORY.find(x=>x.id===+inp.dataset.d5Qtyin);
     if(it){ it.qty = Math.max(0,parseInt(inp.value,10)||0); D5_renderInventory(); D5_recompute(); }
+  }));
+  /* ME-6 Fase E: marcar objeto como mágico con cargas */
+  c.querySelectorAll('.d5-item-magic').forEach(chk=>chk.addEventListener('change',()=>{
+    const it = D5_INVENTORY.find(x=>x.id===+chk.dataset.d5Mag);
+    if(it){
+      it.magic = chk.checked;
+      if(it.magic){
+        if(typeof it.chargesMax !== 'number') it.chargesMax = 50;
+        if(typeof it.chargesUsed !== 'number') it.chargesUsed = 0;
+      }
+      D5_renderInventory();
+      if(typeof saveStateDebounced==='function') saveStateDebounced('d5-magic');
+    }
+  }));
+  /* ME-6 Fase E: cambiar máximo de cargas */
+  c.querySelectorAll('.d5-charge-max').forEach(inp=>inp.addEventListener('change',()=>{
+    const it = D5_INVENTORY.find(x=>x.id===+inp.dataset.d5MagMax);
+    if(it){
+      it.chargesMax = Math.max(1, parseInt(inp.value,10)||1);
+      if(it.chargesUsed > it.chargesMax) it.chargesUsed = it.chargesMax;
+      D5_renderInventory();
+      if(typeof saveStateDebounced==='function') saveStateDebounced('d5-charge-max');
+    }
+  }));
+  /* ME-6 Fase E: clic en burbuja toggle gastar/recuperar carga */
+  c.querySelectorAll('.d5-charge-bubble').forEach(b=>b.addEventListener('click',()=>{
+    const it = D5_INVENTORY.find(x=>x.id===+b.dataset.d5Charge);
+    if(!it) return;
+    const idx = parseInt(b.dataset.chargeIdx,10) || 0;
+    const cur = it.chargesUsed || 0;
+    /* Si idx < cur, recupera (decrementa hasta idx). Si >=, gasta hasta idx+1 */
+    it.chargesUsed = (idx < cur) ? idx : (idx + 1);
+    D5_renderInventory();
+    if(typeof saveStateDebounced==='function') saveStateDebounced('d5-charge-tog');
   }));
 }
 
@@ -9398,6 +9631,8 @@ function snapshotState(){
   try{ s.synthFused = (typeof _SYNTH_FUSED!=='undefined') ? !!_SYNTH_FUSED : false; }catch(e){ s.synthFused = false; }
   try{ s.broodActive = (typeof _BROOD_ACTIVE_MOBILE!=='undefined') ? (parseInt(_BROOD_ACTIVE_MOBILE,10)||0) : 0; }catch(e){ s.broodActive = 0; }
   try{ s.gestaltMode = (typeof _GESTALT_MODE!=='undefined') ? !!_GESTALT_MODE : false; }catch(e){ s.gestaltMode = false; }
+  /* ME-4 Fase E: SLAs at-will */
+  try{ s.slaList = (typeof SLA_LIST!=='undefined') ? SLA_LIST.map(s=>({...s})) : []; }catch(e){ s.slaList = []; }
   // Internal state variables
   try{
     s.schoolPick    = (typeof SCHOOL_PICK    !== 'undefined') ? SCHOOL_PICK    : '';
@@ -9419,6 +9654,8 @@ function snapshotState(){
     s.coinsD5    = (typeof D5_COINS !== 'undefined') ? {...D5_COINS} : null;
     s.notesList  = (typeof NOTES_LIST !== 'undefined') ? NOTES_LIST.map(n=>({...n})) : [];
     s.initList   = (typeof INIT_LIST !== 'undefined') ? INIT_LIST.map(i=>({...i})) : [];
+    /* ME-5 Fase E: persistir round counter del tracker */
+    s.initRound  = (typeof INIT_ROUND !== 'undefined') ? INIT_ROUND : 1;
     s.caRows = {};
     document.querySelectorAll('#m-ca-rows input[data-ca]').forEach(i=>{
       s.caRows[i.dataset.ca] = +(i.value||0);
@@ -9519,6 +9756,12 @@ function applyState(state){
       _GESTALT_MODE = !!state.gestaltMode;
       const cb = document.getElementById('settings-gestalt');
       if(cb) cb.checked = _GESTALT_MODE;
+    }
+    /* ME-4 Fase E: restaurar SLAs at-will */
+    if(Array.isArray(state.slaList) && typeof SLA_LIST!=='undefined'){
+      SLA_LIST.length = 0;
+      state.slaList.forEach(s=>SLA_LIST.push({...s}));
+      if(typeof renderSLAs==='function') renderSLAs();
     }
   }catch(_){}
   try{
@@ -9633,6 +9876,10 @@ function applyState(state){
     if(Array.isArray(state.initList) && typeof INIT_LIST !== 'undefined'){
       INIT_LIST.length = 0;
       state.initList.forEach(i=>INIT_LIST.push(i));
+      /* ME-5 Fase E: restaurar round counter */
+      if(typeof state.initRound === 'number' && typeof INIT_ROUND !== 'undefined'){
+        INIT_ROUND = Math.max(1, state.initRound|0);
+      }
       if(typeof renderInit === 'function') renderInit();
     }
     if(state.caRows){
@@ -10472,6 +10719,51 @@ function _refreshBroodBar(){
 let _GESTALT_MODE = false;
 function _isGestaltOn(){ return _SYNTH_FUSED ? false : !!_GESTALT_MODE; /* incompatible juntos */ }
 
+/* ME-4 Fase E: SLAs at-will (Spell-Like Abilities) — array de {n, cl, dc, desc} */
+const SLA_LIST = [];
+function renderSLAs(){
+  const c = document.getElementById('sla-list');
+  if(!c) return;
+  if(!SLA_LIST.length){
+    c.innerHTML = '<div style="text-align:center;color:var(--ink-muted);font:12px system-ui;padding:8px">Sin SLAs definidos. Añade luz diurna, oscuridad, etc.</div>';
+    return;
+  }
+  c.innerHTML = SLA_LIST.map((s,i)=>`
+    <div class="eq-card" data-sla="${i}" style="padding:8px">
+      <button class="crud-del" data-sla-del="${i}" aria-label="Quitar SLA">×</button>
+      <div class="eq-name" style="padding-right:24px">${s.n}</div>
+      <div class="eq-meta">CL ${s.cl||'?'} · DC ${s.dc||'?'}${s.desc?' · '+s.desc:''}</div>
+      <button class="btn-secondary" data-sla-cast="${i}" style="margin-top:6px;font-size:11px;padding:4px 10px">⚡ Lanzar (a voluntad)</button>
+    </div>`).join('');
+  c.querySelectorAll('[data-sla-del]').forEach(b=>b.addEventListener('click',e=>{
+    e.stopPropagation();
+    SLA_LIST.splice(+b.dataset.slaDel,1); renderSLAs();
+    if(typeof saveStateDebounced==='function') saveStateDebounced('sla-del');
+  }));
+  c.querySelectorAll('[data-sla-cast]').forEach(b=>b.addEventListener('click',()=>{
+    const s = SLA_LIST[+b.dataset.slaCast]; if(!s) return;
+    const log = document.getElementById('sla-log');
+    if(log){
+      const ts = new Date().toLocaleTimeString();
+      log.textContent = `[${ts}] ${s.n} (CL ${s.cl||'?'}, DC ${s.dc||'?'}) — lanzado`;
+    }
+    if(typeof toast==='function') toast('SLA lanzado: '+s.n);
+  }));
+}
+function wireSLAs(){
+  const addBtn = document.getElementById('sla-add-btn');
+  if(addBtn) addBtn.addEventListener('click',()=>{
+    const n = prompt('Nombre del SLA (ej. Luz diurna, Oscuridad…):');
+    if(!n) return;
+    const cl = prompt('Nivel de lanzador (CL) — dejar vacío si no aplica:', '');
+    const dc = prompt('CD del conjuro — dejar vacío si no aplica:', '');
+    SLA_LIST.push({n, cl: cl||'', dc: dc||'', desc: ''});
+    renderSLAs();
+    if(typeof saveStateDebounced==='function') saveStateDebounced('sla-add');
+  });
+  renderSLAs();
+}
+
 function wireMythic(){
   /* Atajo del menú Más */
   const more = document.getElementById('more-mythic');
@@ -11222,6 +11514,7 @@ function init6(){
   wireMythic();
   wireSummonerArchetypes();
   wireGestaltMode();
+  wireSLAs();
 
   const stored = loadStoredState();
   if(stored){
