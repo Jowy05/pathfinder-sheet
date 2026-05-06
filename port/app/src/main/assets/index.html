@@ -13582,6 +13582,33 @@ if(document.readyState==='complete' || document.readyState==='interactive'){
     const m = String(s).match(/-?\d+/);
     return m ? parseInt(m[0], 10) : def;
   }
+  function readActiveConditions(){
+    try {
+      return [...document.querySelectorAll('.cond-chip.active')]
+        .map(c => (c.dataset.cond || c.querySelector('.cond-name')?.textContent || '').trim())
+        .filter(Boolean);
+    } catch(_) { return []; }
+  }
+  function readActiveBuffs(){
+    try {
+      const list = (typeof BUFFS_LIST !== 'undefined' && Array.isArray(BUFFS_LIST)) ? BUFFS_LIST : [];
+      return list.map(b => ({
+        label: String(b.name || '').trim(),
+        rounds: (b.dur === 'Asaltos' || b.dur === 'Rounds') ? parseInt(b.remaining ?? b.qty, 10) || undefined : undefined,
+      })).filter(b => b.label);
+    } catch(_) { return []; }
+  }
+  function readWeapons(){
+    try {
+      const list = (window.STATE && Array.isArray(window.STATE.weapons)) ? window.STATE.weapons : [];
+      return list.map(w => ({
+        name: String(w.name || '').trim() || 'Arma',
+        tohit: String(w.atk || '+0').trim(),
+        dmg: String(w.dmg || w.damage_die || '1d6').trim() + (w.crit ? ' (' + w.crit + ')' : ''),
+        type: (w.style && /ranged|range|dist/i.test(w.style)) ? 'ranged' : 'melee',
+      })).filter(w => w.name);
+    } catch(_) { return []; }
+  }
   function readActivePJ(){
     const $ = id => document.getElementById(id);
     const txt = el => el ? (el.textContent || el.value || '') : '';
@@ -13600,21 +13627,30 @@ if(document.readyState==='complete' || document.readyState==='interactive'){
       will: num(txt($('m-save-will-r')), 0),
       per:  0,
       spd:  num(txt($('speed-base')) || txt($('speed-eff')), 30),
+      conditions: readActiveConditions(),
+      buffs: readActiveBuffs(),
+      attacks: readWeapons(),
     };
   }
-  function applyHpUpdate(name, hp){
+  function setFieldVal(el, val){
+    if(!el) return;
+    if(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'){
+      el.value = String(val);
+      el.dispatchEvent(new Event('input', { bubbles:true }));
+      el.dispatchEvent(new Event('change', { bubbles:true }));
+    } else {
+      el.textContent = String(val);
+    }
+  }
+  function applyHpUpdate(name, hp, hpMax){
     const $ = id => document.getElementById(id);
-    const cur = $('pg-current');
-    if(!cur) return;
     const activeName = (((window.STATE||{}).identity)||{}).nombre || '';
     if(activeName && name && activeName.trim() !== name.trim()) return;
-    const v = String(Math.max(0, parseInt(hp,10) || 0));
-    if(cur.tagName === 'INPUT' || cur.tagName === 'TEXTAREA'){
-      cur.value = v;
-      cur.dispatchEvent(new Event('input', { bubbles:true }));
-      cur.dispatchEvent(new Event('change', { bubbles:true }));
-    } else {
-      cur.textContent = v;
+    const cur = $('pg-current');
+    if(cur && Number.isFinite(parseInt(hp,10))) setFieldVal(cur, Math.max(0, parseInt(hp,10)));
+    if(Number.isFinite(parseInt(hpMax,10))){
+      const max = $('pg-max');
+      if(max) setFieldVal(max, Math.max(1, parseInt(hpMax,10)));
     }
   }
   function isFromChildIframe(source){
@@ -13636,12 +13672,12 @@ if(document.readyState==='complete' || document.readyState==='interactive'){
     }
     if(d.type === 'mst-pj-update'){
       if(!isFromChildIframe(e.source)) return;
-      try { applyHpUpdate(d.name, d.hp); } catch(_){}
+      try { applyHpUpdate(d.name, d.hp, d.hpMax); } catch(_){}
       return;
     }
   });
 
-  let lastSentHp = null;
+  let lastSentKey = null;
   let dbg = null;
   function broadcastHp(){
     const $ = id => document.getElementById(id);
@@ -13651,9 +13687,10 @@ if(document.readyState==='complete' || document.readyState==='interactive'){
     const txt = el => el ? (el.textContent || el.value || '') : '';
     const hp = parseInt(txt(cur), 10);
     if(!Number.isFinite(hp)) return;
-    if(lastSentHp === hp) return;
-    lastSentHp = hp;
     const hpMax = parseInt(txt(max), 10);
+    const key = hp + '|' + (Number.isFinite(hpMax) ? hpMax : '?');
+    if(lastSentKey === key) return;
+    lastSentKey = key;
     const name = (((window.STATE||{}).identity)||{}).nombre || (txt($('in-nombre'))) || '';
     const payload = { type: 'mst-sheet-update', name, hp, hpMax: Number.isFinite(hpMax) ? hpMax : undefined };
     try {
@@ -13671,6 +13708,11 @@ if(document.readyState==='complete' || document.readyState==='interactive'){
     if(!cur) return false;
     cur.addEventListener('input', scheduleBroadcast);
     cur.addEventListener('change', scheduleBroadcast);
+    const max = document.getElementById('pg-max');
+    if(max){
+      max.addEventListener('input', scheduleBroadcast);
+      max.addEventListener('change', scheduleBroadcast);
+    }
     return true;
   }
   if(!attach()){
