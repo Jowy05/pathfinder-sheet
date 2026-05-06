@@ -1730,6 +1730,11 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
   <div class="topbar-actions">
     <!-- UX-03 Fase F: indicador "Guardado" tipo Google Docs -->
     <span id="save-indicator" style="font:600 10px system-ui;color:var(--ink-muted);padding:0 6px;align-self:center;opacity:0;transition:opacity 200ms" aria-live="polite">Guardado</span>
+    <!-- UX-19 Fase H: botón Deshacer -->
+    <button class="icon-btn" id="btn-undo" aria-label="Deshacer último cambio" title="Deshacer (Ctrl+Z)" style="opacity:0.4;transition:opacity 200ms" onclick="performUndo()">
+      <svg viewBox="0 0 24 24"><path d="M3 7v6h6M3 13a9 9 0 1 0 3-7L3 9"/></svg>
+      <span id="undo-indicator" style="display:none"></span>
+    </button>
     <button class="icon-btn" id="btn-lang" aria-label="Cambiar idioma">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
       <span class="lang-tag" id="lang-tag">ES</span>
@@ -1896,6 +1901,19 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
     </div>
 
     <div class="sub-page" data-sub="atributos" hidden>
+      <!-- UX-21 Fase H: generador de atributos siempre accesible -->
+      <div class="card" style="margin-bottom:10px">
+        <h3 class="card-title"><span class="ornament">🎲</span><span>Generador de atributos</span><span class="ornament">🎲</span></h3>
+        <div style="font:11px/1.4 system-ui;color:var(--ink-muted);margin-bottom:8px">Aplica un método de generación al campo Base de cada atributo.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <button class="btn-secondary attr-gen-btn" data-gen="standard" style="font-size:11px">Standard Array (15,14,13,12,10,8)</button>
+          <button class="btn-secondary attr-gen-btn" data-gen="pb15" style="font-size:11px">Point-Buy 15</button>
+          <button class="btn-secondary attr-gen-btn" data-gen="pb20" style="font-size:11px">Point-Buy 20</button>
+          <button class="btn-secondary attr-gen-btn" data-gen="pb25" style="font-size:11px">Point-Buy 25</button>
+          <button class="btn-secondary attr-gen-btn" data-gen="roll" style="font-size:11px;grid-column:span 2">🎲 Tirar 4d6 quitar el más bajo</button>
+        </div>
+        <div id="attr-gen-feedback" style="font:11px system-ui;color:var(--accent);margin-top:6px;text-align:center;min-height:14px"></div>
+      </div>
       <div class="attr-grid" id="attr-grid"></div>
     </div>
 
@@ -1976,6 +1994,15 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
           <div style="color:var(--ink-muted);font-style:italic">Sin buffs activos. Añade desde Combate &gt; Condiciones &gt; Buffs.</div>
         </div>
         <button class="btn-secondary" id="btn-next-round" style="width:100%;margin-top:8px">▶ Siguiente asalto (decrementa rondas)</button>
+      </div>
+      <!-- UX-22 Fase H: tracker iniciativa read-only para jugador (visible si hay combatientes) -->
+      <div class="card" id="combat-init-readonly" style="display:none">
+        <h3 class="card-title">⚔ Iniciativa <span id="ro-round-label" style="font:600 11px system-ui;color:var(--accent);margin-left:6px">Asalto 1</span></h3>
+        <div id="ro-init-list" style="display:flex;flex-direction:column;gap:4px;font:12px/1.3 system-ui"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px">
+          <button class="btn-secondary" id="ro-my-turn-done" style="font-size:12px">✓ Mi turno terminado</button>
+          <button class="btn-secondary" id="ro-open-master" style="font-size:12px;background:var(--accent-soft);color:var(--accent)">🛡 Modo Máster</button>
+        </div>
       </div>
       <button class="btn-primary" style="width:100%;min-height:52px;font-size:15px" id="summary-attack">⚔ Atacar</button>
     </div>
@@ -2753,6 +2780,11 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
   <div class="drag-handle"></div>
   <div class="sheet-header"><div class="sheet-title">Añadir buff temporal</div><button class="sheet-close" data-close>✕</button></div>
   <div class="sheet-content">
+    <!-- UX-18 Fase H: catálogo de buffs comunes -->
+    <div style="margin-bottom:10px">
+      <div style="font:600 11px 'Cinzel',serif;color:var(--leather);margin-bottom:4px">Plantillas comunes (tap para autocompletar):</div>
+      <div id="buff-templates" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px"></div>
+    </div>
     <div class="form-grid">
       <div class="field"><label class="field-label">Nombre</label><input class="field-input" id="buff-name" placeholder="Bendición, Heroísmo, Inspiración…"></div>
       <div class="field"><label class="field-label">Modificador</label><input class="field-input" id="buff-mod" placeholder="+1 atq, +1 TS vs miedo"></div>
@@ -3205,6 +3237,9 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
   <div class="drag-handle"></div>
   <div class="sheet-header"><div class="sheet-title">Añadir conjuro</div><button class="sheet-close" data-close>✕</button></div>
   <div class="sheet-content">
+    <!-- UX-17 Fase H: botón catálogo en lugar de form vacío -->
+    <button class="btn-secondary" id="spell-add-from-catalog" style="width:100%;margin-bottom:10px;background:var(--accent-soft);color:var(--accent);border-color:var(--accent)">📚 Buscar en catálogo PF1e (60 conjuros)</button>
+    <div style="font:11px system-ui;color:var(--ink-muted);text-align:center;margin-bottom:10px">— o crea uno personalizado —</div>
     <div class="form-grid">
       <div class="field-row">
         <div class="field" style="flex:1"><label class="field-label">Nivel</label>
@@ -5412,6 +5447,7 @@ function renderClasses(){
       const id = +b.dataset.classDel;
       const i = CLASSES_DATA.findIndex(x=>x.id===id);
       if(i>=0){
+        if(typeof pushUndoSnapshot === 'function') pushUndoSnapshot('Eliminar clase ' + (CLASSES_DATA[i].name||''));
         CLASSES_DATA.splice(i,1);
         renderClasses();
         /* P-04: notificar al resto del sistema */
@@ -5798,7 +5834,7 @@ function renderWeapons(){
     b.addEventListener('click',()=>{
       const i = WEAPONS_DATA.findIndex(x=>x.id===+b.dataset.weapDel);
       if(i>=0){
-        WEAPONS_DATA.splice(i,1); renderWeapons(); rebindRolls();
+        if(typeof pushUndoSnapshot === 'function') pushUndoSnapshot('Eliminar arma ' + (WEAPONS_DATA[i].name||'')); WEAPONS_DATA.splice(i,1); renderWeapons(); rebindRolls();
         /* E-01: peso recalculado al eliminar arma */
         if(typeof D5_recompute==='function') D5_recompute();
       }
@@ -5862,7 +5898,7 @@ function renderArmor(){
   c.querySelectorAll('[data-armor-del]').forEach(b=>{
     b.addEventListener('click',()=>{
       const i = ARMOR_DATA.findIndex(x=>x.id===+b.dataset.armorDel);
-      if(i>=0){ ARMOR_DATA.splice(i,1); renderArmor(); if(typeof D5_recompute==='function') D5_recompute(); }
+      if(i>=0){ if(typeof pushUndoSnapshot === 'function') pushUndoSnapshot('Eliminar armadura ' + (ARMOR_DATA[i].name||'')); ARMOR_DATA.splice(i,1); renderArmor(); if(typeof D5_recompute==='function') D5_recompute(); }
     });
   });
   c.querySelectorAll('[data-armor-eq]').forEach(chk=>{
@@ -6214,7 +6250,20 @@ document.addEventListener('init-turn-changed', (ev)=>{
       INIT_LIST[newActiveIdx].actions = {std:false, move:false, swift:false};
     }
   }catch(_){}
+  /* UX-22: refrescar tracker read-only del Resumen */
+  if(typeof renderInitReadOnly === 'function') renderInitReadOnly();
 });
+/* UX-22: hook a renderInit original para sincronizar el read-only del Resumen */
+(function(){
+  const _origRenderInit = window.renderInit;
+  if(typeof _origRenderInit === 'function'){
+    window.renderInit = function(){
+      const r = _origRenderInit.apply(this, arguments);
+      if(typeof renderInitReadOnly === 'function') renderInitReadOnly();
+      return r;
+    };
+  }
+})();
 
 /* ─── COMPANIONS (M-01..M-04: multi-instancia + schema PF1e) ─── */
 /* Estructura: arrays de instancias por tipo. Cada instancia tiene id único.
@@ -7302,7 +7351,9 @@ function renderFeatsCrud(){
   list.querySelectorAll('[data-feat-del]').forEach(b=>{
     b.addEventListener('click',e=>{
       e.stopPropagation();
-      FEATS.splice(+b.dataset.featDel,1);
+      const idx = +b.dataset.featDel;
+      if(typeof pushUndoSnapshot === 'function' && FEATS[idx]) pushUndoSnapshot('Eliminar dote ' + FEATS[idx].n);
+      FEATS.splice(idx,1);
       renderFeatsCrud();
     });
   });
@@ -10473,6 +10524,66 @@ function applyState(state){
 }
 
 let __saveTimer = null;
+/* UX-23 Fase H: schema versioning explícito.
+   Cada cambio breaking en la estructura debe incrementar este número. */
+const STATE_SCHEMA_VERSION = 2;
+const STATE_BACKUP_KEYS = ['ficha-mobile-backup-1','ficha-mobile-backup-2','ficha-mobile-backup-3'];
+let __lastBackupAt = 0;
+const BACKUP_INTERVAL_MS = 5 * 60 * 1000; /* máximo 1 backup cada 5 min */
+
+/* UX-20 Fase H: rotar 3 backups al guardar (evita pérdida si state se corrompe) */
+function _rotateBackups(stateJson){
+  const now = Date.now();
+  if(now - __lastBackupAt < BACKUP_INTERVAL_MS) return;
+  __lastBackupAt = now;
+  try{
+    /* Mover bak2→bak3, bak1→bak2, current→bak1 */
+    const b2 = localStorage.getItem(STATE_BACKUP_KEYS[1]);
+    if(b2) localStorage.setItem(STATE_BACKUP_KEYS[2], b2);
+    const b1 = localStorage.getItem(STATE_BACKUP_KEYS[0]);
+    if(b1) localStorage.setItem(STATE_BACKUP_KEYS[1], b1);
+    /* Etiquetar con timestamp como prefijo en JSON */
+    const wrapped = JSON.stringify({_backupAt: now, _backupTs: new Date(now).toISOString(), state: JSON.parse(stateJson)});
+    localStorage.setItem(STATE_BACKUP_KEYS[0], wrapped);
+  }catch(e){
+    /* Si los backups exceden cuota, los eliminamos progresivamente */
+    if(e && e.name === 'QuotaExceededError'){
+      try{ localStorage.removeItem(STATE_BACKUP_KEYS[2]); }catch(_){}
+      try{ localStorage.removeItem(STATE_BACKUP_KEYS[1]); }catch(_){}
+    }
+  }
+}
+
+/* UX-20 Fase H: lista los backups disponibles (para UI de restauración) */
+function listBackups(){
+  return STATE_BACKUP_KEYS.map((k,i)=>{
+    try{
+      const raw = localStorage.getItem(k);
+      if(!raw) return null;
+      const parsed = JSON.parse(raw);
+      const ts = parsed._backupTs || new Date(parsed._backupAt||0).toISOString();
+      const charName = parsed.state?.identity?.nombre || parsed.state?.nombre || '?';
+      return {slot: i+1, key: k, ts, charName, raw};
+    }catch(_){ return null; }
+  }).filter(Boolean);
+}
+window.listBackups = listBackups;
+
+/* UX-20 Fase H: restaurar un backup */
+function restoreBackup(slot){
+  const key = STATE_BACKUP_KEYS[slot-1];
+  if(!key) return false;
+  try{
+    const raw = localStorage.getItem(key);
+    if(!raw) return false;
+    const parsed = JSON.parse(raw);
+    if(!parsed.state) return false;
+    localStorage.setItem(STATE_KEY, JSON.stringify(parsed.state));
+    return true;
+  }catch(e){ return false; }
+}
+window.restoreBackup = restoreBackup;
+
 function saveStateDebounced(reason){
   /* UX-03 Fase F: indicador "Guardando…" / "Guardado" tipo Google Docs */
   const ind = document.getElementById('save-indicator');
@@ -10485,7 +10596,12 @@ function saveStateDebounced(reason){
   __saveTimer = setTimeout(()=>{
     try{
       snapshotState();
-      localStorage.setItem(STATE_KEY, JSON.stringify(window.STATE));
+      /* UX-23: marcar versión del schema */
+      window.STATE.__schema = STATE_SCHEMA_VERSION;
+      const json = JSON.stringify(window.STATE);
+      localStorage.setItem(STATE_KEY, json);
+      /* UX-20: backup rotatorio (cada 5 min) */
+      _rotateBackups(json);
       if(ind){
         ind.textContent = '✓ Guardado';
         ind.style.color = 'var(--positive)';
@@ -10547,30 +10663,52 @@ function loadStoredState(){
     return migrateState(obj);
   }catch(e){ console.warn('loadState fail',e); return null; }
 }
+/* UX-23 Fase H: migraciones por pasos.
+   Cada bump incrementa __schema en 1. La función aplica en cadena los pasos
+   hasta llegar al schema actual. */
+function _migrateV0toV1(obj){
+  return Object.assign(blankState(), {
+    identity: obj.identity || {},
+    attrs: obj.attrs || {},
+    classes: obj.classes || obj.CLASSES_DATA || [],
+    feats: obj.feats || obj.FEATS || [],
+    weapons: obj.weapons || obj.WEAPONS_DATA || [],
+    armor: obj.armor || obj.ARMOR_DATA || [],
+    skills: obj.skills || {},
+    items: obj.items || [],
+    conds: obj.conds || [],
+    buffs: obj.buffs || [],
+    adjusts: obj.adjusts || [],
+    notes: obj.notes || '',
+    photo: obj.photo || null,
+    settings: obj.settings || {},
+    theme: obj.theme || null,
+    lang: obj.lang || null,
+  });
+}
+function _migrateV1toV2(obj){
+  /* v2: añade campos para Mythic, Synthesist, Broodmaster, Gestalt, SLA, weaknesses.
+     No es breaking — solo asegura defaults. Sin warnings. */
+  if(!('mythic' in obj)) obj.mythic = null;
+  if(!('synthFused' in obj)) obj.synthFused = false;
+  if(!('broodActive' in obj)) obj.broodActive = 0;
+  if(!('gestaltMode' in obj)) obj.gestaltMode = false;
+  if(!('slaList' in obj)) obj.slaList = [];
+  if(!('weaknesses' in obj)) obj.weaknesses = '';
+  if(!('epicMode' in obj)) obj.epicMode = false;
+  if(!('initRound' in obj)) obj.initRound = 1;
+  return obj;
+}
 function migrateState(obj){
   if(!obj) return null;
-  let v = obj.v|0;
-  if(!v) v = 0;
-  if(v===0){
-    obj = Object.assign(blankState(), {
-      identity: obj.identity || {},
-      attrs: obj.attrs || {},
-      classes: obj.classes || obj.CLASSES_DATA || [],
-      feats: obj.feats || obj.FEATS || [],
-      weapons: obj.weapons || obj.WEAPONS_DATA || [],
-      armor: obj.armor || obj.ARMOR_DATA || [],
-      skills: obj.skills || {},
-      items: obj.items || [],
-      conds: obj.conds || [],
-      buffs: obj.buffs || [],
-      adjusts: obj.adjusts || [],
-      notes: obj.notes || '',
-      photo: obj.photo || null,
-      settings: obj.settings || {},
-      theme: obj.theme || null,
-      lang: obj.lang || null,
-    });
-    obj.v = 1;
+  let schema = (typeof obj.__schema === 'number') ? obj.__schema : (obj.v|0 || 0);
+  let migrated = false;
+  if(schema < 1){ obj = _migrateV0toV1(obj); schema = 1; migrated = true; }
+  if(schema < 2){ obj = _migrateV1toV2(obj); schema = 2; migrated = true; }
+  obj.__schema = STATE_SCHEMA_VERSION;
+  obj.v = STATE_SCHEMA_VERSION; /* compat con v= legacy */
+  if(migrated && typeof toast === 'function'){
+    setTimeout(()=>toast(`✓ Ficha migrada a v${STATE_SCHEMA_VERSION}`), 800);
   }
   return obj;
 }
@@ -10962,6 +11100,344 @@ function appPrompt(message, defaultValue, opts){
 }
 window.appConfirm = appConfirm;
 window.appPrompt = appPrompt;
+
+/* UX-17 Fase H: catálogo de conjuros PF1e core (MVP — 60 conjuros comunes).
+   Cada entrada: {n, lvl:{class:level}, school, comp, range, dur, save, sr, desc}.
+   El picker filtra por clase y nivel del PJ. */
+const SPELLS_CATALOG = [
+  // Cantrips (Nv 0)
+  {n:'Detectar Magia', lvl:{wizard:0,sorcerer:0,bard:0,cleric:0,druid:0,paladin:1,ranger:1}, school:'Adivinación', comp:'V,S', range:'60ft cono', dur:'Concentración (1 min/nv)', save:'—', sr:'No', desc:'Detecta auras mágicas en un cono.'},
+  {n:'Luz', lvl:{wizard:0,sorcerer:0,bard:0,cleric:0,druid:0}, school:'Evocación (luz)', comp:'V,S/M', range:'Toque', dur:'10 min/nv', save:'—', sr:'No', desc:'Objeto emite luz como antorcha.'},
+  {n:'Mano Mágica', lvl:{wizard:0,sorcerer:0,bard:0}, school:'Transmutación', comp:'V,S', range:'Cerca', dur:'Concentración', save:'—', sr:'No', desc:'Mueve objetos ligeros (≤5 lb) a distancia.'},
+  {n:'Toque Estremecedor', lvl:{wizard:0,sorcerer:0}, school:'Necromancia', comp:'V,S', range:'Toque', dur:'1 ronda', save:'Fort', sr:'Sí', desc:'1d6 daño no letal y aturde si fallan TS.'},
+  {n:'Resistencia', lvl:{wizard:0,sorcerer:0,bard:0,cleric:0,druid:0}, school:'Abjuración', comp:'V,S/M', range:'Toque', dur:'1 minuto', save:'Vol niega', sr:'Sí', desc:'+1 resistencia a TS.'},
+  {n:'Estabilizar', lvl:{cleric:0,druid:0}, school:'Conjuración (curación)', comp:'V,S', range:'Cerca', dur:'Instantáneo', save:'Vol niega', sr:'Sí', desc:'Estabiliza criatura moribunda.'},
+  // Nv 1
+  {n:'Curar Heridas Leves', lvl:{cleric:1,druid:1,bard:1,paladin:1,ranger:2}, school:'Conjuración (curación)', comp:'V,S', range:'Toque', dur:'Instantáneo', save:'Vol media', sr:'Sí', desc:'Cura 1d8 + NL (max +5).'},
+  {n:'Misil Mágico', lvl:{wizard:1,sorcerer:1}, school:'Evocación (fuerza)', comp:'V,S', range:'Medio', dur:'Instantáneo', save:'—', sr:'Sí', desc:'1d4+1 daño de fuerza por proyectil. +1 cada 2 NL (max 5).'},
+  {n:'Bendición', lvl:{cleric:1,paladin:1}, school:'Encantamiento', comp:'V,S,DF', range:'50ft cerca', dur:'1 min/nv', save:'—', sr:'Sí', desc:'+1 atq y +1 ts vs miedo a aliados en 50ft.'},
+  {n:'Escudo', lvl:{wizard:1,sorcerer:1}, school:'Abjuración (fuerza)', comp:'V,S', range:'Personal', dur:'1 min/nv', save:'—', sr:'No', desc:'+4 CA escudo, inmune a misil mágico.'},
+  {n:'Toro (Fuerza)', lvl:{wizard:2,sorcerer:2,cleric:2,druid:2,paladin:2,alchemist:2}, school:'Transmutación', comp:'V,S,M', range:'Toque', dur:'1 min/nv', save:'Vol niega', sr:'Sí', desc:'+4 mejora a FUE.'},
+  {n:'Sueño', lvl:{wizard:1,sorcerer:1,bard:1}, school:'Encantamiento (compulsión)', comp:'V,S,M', range:'Medio', dur:'1 min/nv', save:'Vol niega', sr:'Sí', desc:'4 DG de criaturas duermen.'},
+  {n:'Hechizar Persona', lvl:{wizard:1,sorcerer:1,bard:1}, school:'Encantamiento (compulsión)', comp:'V,S', range:'Cerca', dur:'1 hora/nv', save:'Vol niega', sr:'Sí', desc:'Trata al PJ como amigo.'},
+  {n:'Manos Ardientes', lvl:{wizard:1,sorcerer:1}, school:'Evocación (fuego)', comp:'V,S', range:'15ft cono', dur:'Instantáneo', save:'Ref media', sr:'Sí', desc:'1d4 fuego/NL (max 5d4).'},
+  {n:'Identificar', lvl:{wizard:1,sorcerer:1,bard:1}, school:'Adivinación', comp:'V,S,M', range:'60ft', dur:'3 ron/nv', save:'—', sr:'No', desc:'Identifica propiedades mágicas.'},
+  {n:'Escudo de la Fe', lvl:{cleric:1,paladin:1}, school:'Abjuración', comp:'V,S,M', range:'Toque', dur:'1 min/nv', save:'Vol niega', sr:'Sí', desc:'+2 desviación a CA (escala +1 cada 6 NL).'},
+  {n:'Rayo de Escarcha', lvl:{wizard:0,sorcerer:0}, school:'Evocación (frío)', comp:'V,S', range:'Cerca', dur:'Instantáneo', save:'—', sr:'Sí', desc:'1d3 frío + agarrón.'},
+  {n:'Disfrazarse', lvl:{wizard:1,sorcerer:1,bard:1}, school:'Ilusión', comp:'V,S', range:'Personal', dur:'10 min/nv', save:'—', sr:'No', desc:'Cambia tu apariencia +10 a Disfrazarse.'},
+  // Nv 2
+  {n:'Invisibilidad', lvl:{wizard:2,sorcerer:2,bard:2,alchemist:2}, school:'Ilusión (sombra)', comp:'V,S,M', range:'Personal/toque', dur:'1 min/nv', save:'Vol niega (inofensivo)', sr:'Sí', desc:'Sujeto invisible hasta atacar.'},
+  {n:'Bola de Fuego', lvl:{wizard:3,sorcerer:3}, school:'Evocación (fuego)', comp:'V,S,M', range:'Largo', dur:'Instantáneo', save:'Ref media', sr:'Sí', desc:'1d6 fuego/NL (max 10d6) en 20ft radio.'},
+  {n:'Curar Heridas Moderadas', lvl:{cleric:2,druid:3,bard:2,paladin:3,ranger:3}, school:'Conjuración (curación)', comp:'V,S', range:'Toque', dur:'Instantáneo', save:'Vol media', sr:'Sí', desc:'Cura 2d8 + NL (max +10).'},
+  {n:'Veloz', lvl:{wizard:3,sorcerer:3,bard:3}, school:'Transmutación', comp:'V,S,M', range:'Cerca', dur:'1 ron/nv', save:'Ref niega', sr:'Sí', desc:'+30ft mov, +1 atq, +1 CA, +1 ref.'},
+  {n:'Volar', lvl:{wizard:3,sorcerer:3,druid:3,alchemist:3}, school:'Transmutación', comp:'V,S,M', range:'Toque', dur:'1 min/nv', save:'Vol niega (inofensivo)', sr:'Sí', desc:'Velocidad de vuelo 60ft (buena).'},
+  {n:'Disipar Magia', lvl:{wizard:3,sorcerer:3,cleric:3,druid:4,bard:3,paladin:3}, school:'Abjuración', comp:'V,S', range:'Medio', dur:'Instantáneo', save:'—', sr:'No', desc:'1d20+NL vs CD 11+NL del conjuro objetivo.'},
+  {n:'Toque Glacial', lvl:{wizard:1,sorcerer:1}, school:'Necromancia (frío)', comp:'V,S', range:'Toque', dur:'Especial', save:'Fort niega (objeto)', sr:'Sí', desc:'1d8+NL frío, no muertos quedan zarandeados.'},
+  {n:'Niebla Oscurecedora', lvl:{wizard:2,sorcerer:2,druid:2,cleric:2}, school:'Conjuración (creación)', comp:'V,S', range:'Cerca', dur:'1 min/nv', save:'—', sr:'No', desc:'Niebla 20ft radio, ocultación 50%.'},
+  {n:'Detectar Pensamientos', lvl:{wizard:2,sorcerer:2,bard:2}, school:'Adivinación', comp:'V,S,M', range:'60ft cono', dur:'Concentración (1 min/nv)', save:'Vol niega', sr:'No', desc:'Lee pensamientos superficiales.'},
+  // Nv 3
+  {n:'Curar Heridas Graves', lvl:{cleric:3,druid:4,bard:3,paladin:3,ranger:4}, school:'Conjuración (curación)', comp:'V,S', range:'Toque', dur:'Instantáneo', save:'Vol media', sr:'Sí', desc:'Cura 3d8 + NL (max +15).'},
+  {n:'Relámpago', lvl:{wizard:3,sorcerer:3}, school:'Evocación (eléctrico)', comp:'V,S,M', range:'120ft línea', dur:'Instantáneo', save:'Ref media', sr:'Sí', desc:'1d6/NL eléctrico (max 10d6) en línea.'},
+  {n:'Ralentizar', lvl:{wizard:3,sorcerer:3,bard:3}, school:'Transmutación', comp:'V,S,M', range:'Cerca', dur:'1 ron/nv', save:'Vol niega', sr:'Sí', desc:'1 criatura/NL: -1 atq, -1 CA, -1 ref, mov ½, sólo std.'},
+  // Nv 4
+  {n:'Resistir Energía', lvl:{wizard:2,sorcerer:2,cleric:2,druid:2,ranger:1,alchemist:2,paladin:2}, school:'Abjuración', comp:'V,S,DF', range:'Toque', dur:'10 min/nv', save:'Vol niega', sr:'Sí', desc:'Resistencia 10/20/30 a 1 tipo de energía.'},
+  {n:'Arma Mágica', lvl:{cleric:1,paladin:1}, school:'Transmutación', comp:'V,S,DF', range:'Toque', dur:'1 min/nv', save:'Vol niega (objeto)', sr:'Sí', desc:'Arma se trata como mágica con +1.'},
+  {n:'Heroísmo', lvl:{wizard:3,sorcerer:3,bard:2}, school:'Encantamiento (compulsión)', comp:'V,S', range:'Toque', dur:'10 min/nv', save:'Vol niega', sr:'Sí', desc:'+2 moral a atq, ts y skills.'},
+  {n:'Furia Divina', lvl:{cleric:1,paladin:1}, school:'Evocación', comp:'V,S,DF', range:'Personal', dur:'1 minuto', save:'—', sr:'No', desc:'+1/3 NL a atq y daño (max +3).'},
+  {n:'Inmovilizar Persona', lvl:{wizard:3,sorcerer:3,bard:3}, school:'Encantamiento (compulsión)', comp:'V,S,F', range:'Medio', dur:'1 ron/nv', save:'Vol niega', sr:'Sí', desc:'Paraliza humanoide.'},
+  {n:'Visión Verdadera', lvl:{cleric:5,druid:7,wizard:6,sorcerer:6}, school:'Adivinación', comp:'V,S,M (250po)', range:'Toque', dur:'1 min/nv', save:'—', sr:'Sí', desc:'Ve a través de ilusiones, transmutaciones y oscuridad mágica.'}
+];
+
+/* Helper: clases caster mapeadas a SPELLS_CATALOG keys */
+const _SPELLS_CLASS_MAP = {
+  mago:'wizard', wizard:'wizard',
+  hechicero:'sorcerer', sorcerer:'sorcerer',
+  clerigo:'cleric', cleric:'cleric',
+  druida:'druid', druid:'druid',
+  bardo:'bard', bard:'bard',
+  paladin:'paladin', paladín:'paladin',
+  explorador:'ranger', ranger:'ranger',
+  alquimista:'alchemist', alchemist:'alchemist',
+  oraculo:'oracle', oracle:'oracle',
+  brujo:'warlock', warlock:'warlock',
+  magus:'magus', witch:'witch',
+  inquisidor:'inquisitor', inquisitor:'inquisitor'
+};
+
+function _openSpellsCatalog(targetLvl){
+  let dlg = document.getElementById('sheet-spells-catalog');
+  if(!dlg){
+    dlg = document.createElement('dialog');
+    dlg.className = 'bottom-sheet';
+    dlg.id = 'sheet-spells-catalog';
+    dlg.setAttribute('aria-label','Catálogo de conjuros');
+    dlg.innerHTML = `
+      <div class="drag-handle"></div>
+      <div class="sheet-header"><div class="sheet-title">📜 Catálogo de conjuros (PF1e)</div><button class="sheet-close" data-close>✕</button></div>
+      <div class="sheet-content">
+        <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+          <select class="field-select" id="sp-cat-class-filter" style="flex:1;min-width:120px"></select>
+          <select class="field-select" id="sp-cat-lvl-filter" style="flex:1;min-width:80px"></select>
+        </div>
+        <input class="field-input" id="sp-cat-search" placeholder="Buscar por nombre…" style="margin-bottom:8px">
+        <div id="sp-cat-meta" style="font:11px system-ui;color:var(--ink-muted);margin-bottom:6px"></div>
+        <div id="sp-cat-list" style="max-height:55vh;overflow:auto"></div>
+      </div>`;
+    document.body.appendChild(dlg);
+    dlg.addEventListener('click',(e)=>{ if(e.target.matches('[data-close]')) dlg.close(); });
+  }
+  /* Poblar selects de filtro */
+  const classSel = document.getElementById('sp-cat-class-filter');
+  const lvlSel = document.getElementById('sp-cat-lvl-filter');
+  const cls = (CLASSES_DATA||[])[0];
+  const dominantKey = cls ? (_SPELLS_CLASS_MAP[canonicalClassId(cls.name)] || 'wizard') : 'wizard';
+  classSel.innerHTML = '<option value="">Todas</option>' + ['wizard','sorcerer','cleric','druid','bard','paladin','ranger','alchemist'].map(k=>
+    `<option value="${k}"${k===dominantKey?' selected':''}>${k.charAt(0).toUpperCase()+k.slice(1)}</option>`
+  ).join('');
+  lvlSel.innerHTML = ['<option value="">Todos</option>'].concat([0,1,2,3,4,5,6,7,8,9].map(l=>`<option value="${l}"${l===targetLvl?' selected':''}>Nivel ${l}</option>`)).join('');
+  const search = document.getElementById('sp-cat-search');
+  const list = document.getElementById('sp-cat-list');
+  const meta = document.getElementById('sp-cat-meta');
+  const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const render = ()=>{
+    const cf = classSel.value;
+    const lf = lvlSel.value;
+    const q = norm(search.value);
+    const filtered = SPELLS_CATALOG.filter(sp=>{
+      if(cf){ if(!(cf in sp.lvl)) return false; }
+      if(lf !== ''){
+        const lvl = parseInt(lf,10);
+        if(cf){ if(sp.lvl[cf] !== lvl) return false; }
+        else { if(!Object.values(sp.lvl).includes(lvl)) return false; }
+      }
+      if(q && !norm(sp.n).includes(q) && !norm(sp.desc).includes(q)) return false;
+      return true;
+    });
+    meta.textContent = `${filtered.length} de ${SPELLS_CATALOG.length} conjuros`;
+    if(!filtered.length){
+      list.innerHTML = '<div style="text-align:center;color:var(--ink-muted);font:12px system-ui;padding:16px">Sin resultados</div>';
+      return;
+    }
+    list.innerHTML = filtered.slice(0,100).map((sp,i)=>{
+      const lvls = Object.entries(sp.lvl).map(([c,l])=>`${c} ${l}`).join(' · ');
+      return `<button class="picker-row" data-sp-pick="${i}" style="display:block;width:100%;text-align:left;padding:10px;margin-bottom:6px;border:1px solid var(--line);border-radius:8px;background:transparent">
+        <div style="font-weight:700;font-family:'Cinzel',serif">${sp.n}</div>
+        <div style="font:11px/1.3 system-ui;color:var(--ink-muted)">${sp.school} · ${lvls}</div>
+        <div style="font:11px/1.3 system-ui;margin-top:3px">${sp.desc}</div>
+      </button>`;
+    }).join('');
+    list.querySelectorAll('[data-sp-pick]').forEach(b=>b.addEventListener('click',()=>{
+      const sp = filtered[+b.dataset.spPick];
+      if(!sp) return;
+      /* Determinar nivel para esta clase activa */
+      const lvl = lf !== '' ? parseInt(lf,10) : (cf ? sp.lvl[cf] : Math.min(...Object.values(sp.lvl)));
+      const id = (SPELLS_DATA[SPELLS_DATA.length-1]?.id || 5000) + 1;
+      SPELLS_DATA.push({
+        id, name: sp.n, lvl,
+        school: sp.school, comp: sp.comp,
+        prepared: (typeof CASTING_MODE !== 'undefined' && CASTING_MODE === 'spont'), cast: false
+      });
+      if(typeof renderSpells === 'function') renderSpells();
+      if(typeof toast === 'function') toast(`Conjuro añadido: ${sp.n} (Nv ${lvl})`);
+      if(typeof saveStateDebounced === 'function') saveStateDebounced('spell-catalog');
+      dlg.close();
+    }));
+  };
+  classSel.onchange = render;
+  lvlSel.onchange = render;
+  search.value = '';
+  search.oninput = render;
+  render();
+  if(typeof openSheet === 'function') openSheet('sheet-spells-catalog');
+  else dlg.showModal();
+}
+window._openSpellsCatalog = _openSpellsCatalog;
+
+/* UX-19 Fase H: pila de undo simple basada en snapshots del STATE.
+   Push antes de operaciones críticas (borrar clase/dote/arma/conjuro).
+   Pop con Ctrl+Z o botón "Deshacer" en topbar. */
+const _UNDO_STACK = [];
+const _UNDO_MAX = 20;
+function pushUndoSnapshot(label){
+  try{
+    if(typeof snapshotState === 'function') snapshotState();
+    const snap = {label: label||'cambio', ts: Date.now(), state: JSON.parse(JSON.stringify(window.STATE))};
+    _UNDO_STACK.push(snap);
+    while(_UNDO_STACK.length > _UNDO_MAX) _UNDO_STACK.shift();
+    /* Mostrar feedback breve */
+    const ind = document.getElementById('undo-indicator');
+    if(ind){ ind.style.opacity = '1'; setTimeout(()=>{ ind.style.opacity = '0.4'; }, 1500); }
+  }catch(_){}
+}
+function performUndo(){
+  if(!_UNDO_STACK.length){
+    if(typeof toast === 'function') toast('Nada que deshacer');
+    return false;
+  }
+  const snap = _UNDO_STACK.pop();
+  try{
+    if(typeof applyState === 'function'){
+      applyState(snap.state);
+      if(typeof toast === 'function') toast(`↶ Deshecho: ${snap.label}`);
+      if(typeof saveStateDebounced === 'function') saveStateDebounced('undo');
+      return true;
+    }
+  }catch(e){ console.warn('undo fail', e); }
+  return false;
+}
+window.pushUndoSnapshot = pushUndoSnapshot;
+window.performUndo = performUndo;
+
+/* Atajo Ctrl+Z (web) / botón touch en topbar */
+document.addEventListener('keydown', (e)=>{
+  if((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z') && !e.shiftKey){
+    e.preventDefault();
+    performUndo();
+  }
+});
+
+/* UX-18 Fase H: catálogo de buffs comunes con stat-mod estructurado.
+   Cada plantilla rellena #buff-name, #buff-mod, #buff-dur, #buff-qty, #buff-notes. */
+const _BUFF_TEMPLATES = [
+  {n:'Bendición', m:'+1 atq, +1 TS vs miedo', dur:'Minutos', qty:1, notes:'Conjuro Bendición (Bless)'},
+  {n:'Plegaria', m:'+1 atq, +1 daño, +1 TS', dur:'Asaltos', qty:5, notes:'Conjuro Prayer'},
+  {n:'Heroísmo', m:'+2 atq, +2 TS, +2 skills', dur:'Minutos', qty:50, notes:'Conjuro Heroism (10 min/nv)'},
+  {n:'Heroísmo mayor', m:'+4 atq, +4 TS, +4 skills', dur:'Minutos', qty:10, notes:'Greater Heroism (1 min/nv)'},
+  {n:'Escudo', m:'+4 CA escudo', dur:'Minutos', qty:5, notes:'Conjuro Shield (1 min/nv)'},
+  {n:'Escudo de la fe', m:'+2 CA desviación', dur:'Minutos', qty:1, notes:'Shield of Faith (1 min/nv)'},
+  {n:'Furia divina', m:'+1 atq, +1 daño, +1 ts vs miedo', dur:'Minutos', qty:1, notes:'Divine Favor (1 min)'},
+  {n:'Toro (Fuerza)', m:'+4 FUE', dur:'Minutos', qty:10, notes:'Bull\'s Strength (1 min/nv)'},
+  {n:'Águila (Carisma)', m:'+4 CAR', dur:'Minutos', qty:10, notes:'Eagle\'s Splendor'},
+  {n:'Lechuza (SAB)', m:'+4 SAB', dur:'Minutos', qty:10, notes:'Owl\'s Wisdom'},
+  {n:'Zorro (INT)', m:'+4 INT', dur:'Minutos', qty:10, notes:'Fox\'s Cunning'},
+  {n:'Gato (DES)', m:'+4 DES', dur:'Minutos', qty:10, notes:'Cat\'s Grace'},
+  {n:'Oso (CON)', m:'+4 CON', dur:'Minutos', qty:10, notes:'Bear\'s Endurance'},
+  {n:'Inspiración bárdica', m:'+1 atq, +1 daño, +2 TS vs encantamiento', dur:'Asaltos', qty:5, notes:'Bardic Performance'},
+  {n:'Furia (Bárbaro)', m:'+4 FUE, +4 CON, +2 ts Vol, -2 CA', dur:'Asaltos', qty:6, notes:'Rage'},
+  {n:'Castigo del mal', m:'+CAR atq, +nivel daño', dur:'Minutos', qty:1, notes:'Smite Evil (1 enemigo)'},
+  {n:'Veloz', m:'+30 ft velocidad, +1 atq, +1 CA', dur:'Asaltos', qty:5, notes:'Haste'},
+  {n:'Lento', m:'-1 atq, -1 CA, -1 TS Ref', dur:'Asaltos', qty:5, notes:'Slow (debuff)'}
+];
+function _populateBuffTemplates(){
+  const c = document.getElementById('buff-templates');
+  if(!c) return;
+  c.innerHTML = _BUFF_TEMPLATES.map((b,i)=>
+    `<button class="buff-tpl-chip" data-buff-tpl="${i}" style="font:600 10px system-ui;padding:4px 8px;border-radius:99px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);cursor:pointer">${b.n}</button>`
+  ).join('');
+  c.querySelectorAll('[data-buff-tpl]').forEach(btn=>btn.addEventListener('click',()=>{
+    const t = _BUFF_TEMPLATES[+btn.dataset.buffTpl];
+    if(!t) return;
+    const set = (id,v)=>{ const el = document.getElementById(id); if(el) el.value = v; };
+    set('buff-name', t.n);
+    set('buff-mod', t.m);
+    set('buff-dur', t.dur);
+    set('buff-qty', t.qty);
+    set('buff-notes', t.notes);
+    if(typeof toast === 'function') toast(`Plantilla "${t.n}" cargada`);
+  }));
+}
+
+/* UX-21 Fase H: generador de atributos en card de la sub-page.
+   Aplica el método al campo "base" de cada atributo. */
+function _applyAttrMethod(method){
+  const ATTR_LIST = ['FUE','DES','CON','INT','SAB','CAR'];
+  let values = [];
+  if(method === 'standard'){
+    values = [15,14,13,12,10,8];
+  } else if(method === 'pb15' || method === 'pb20' || method === 'pb25'){
+    /* Point-buy: empezar todos a 10, el usuario reparte después */
+    values = [10,10,10,10,10,10];
+  } else if(method === 'roll'){
+    values = ATTR_LIST.map(()=>{
+      const dice = [Math.floor(Math.random()*6)+1, Math.floor(Math.random()*6)+1, Math.floor(Math.random()*6)+1, Math.floor(Math.random()*6)+1];
+      dice.sort((a,b)=>a-b);
+      return dice[1] + dice[2] + dice[3];
+    });
+    /* Ordenar descendente para que el jugador asigne fácil */
+    values.sort((a,b)=>b-a);
+  }
+  /* Aplicar al campo "base" de cada atributo */
+  ATTR_LIST.forEach((k,i)=>{
+    const baseInp = document.querySelector(`input[data-attr-base="${k}"]`);
+    if(baseInp){
+      baseInp.value = values[i];
+      baseInp.dispatchEvent(new Event('change', {bubbles:true}));
+    }
+  });
+  return values;
+}
+function wireAttrGenerator(){
+  document.querySelectorAll('.attr-gen-btn').forEach(b=>b.addEventListener('click', async ()=>{
+    const m = b.dataset.gen;
+    const labels = {standard:'Standard Array', pb15:'Point-Buy 15', pb20:'Point-Buy 20', pb25:'Point-Buy 25', roll:'4d6 drop lowest'};
+    const ok = await appConfirm(`Esto sobrescribirá los valores Base de los 6 atributos con el método elegido. ¿Aplicar?`, {title:labels[m] || 'Generar atributos', okText:'Aplicar', cancelText:'Cancelar'});
+    if(!ok) return;
+    const values = _applyAttrMethod(m);
+    const fb = document.getElementById('attr-gen-feedback');
+    if(fb){
+      const ATTR_LIST = ['FUE','DES','CON','INT','SAB','CAR'];
+      const summary = m === 'roll' ? `Tirado: ${values.join(', ')} (asígnalos)` : `Aplicado: ${labels[m]}`;
+      fb.textContent = summary;
+    }
+    if(typeof toast === 'function') toast(`Atributos generados: ${labels[m]}`);
+  }));
+}
+
+/* UX-22 Fase H: render del tracker iniciativa read-only en Combate>Resumen.
+   Visible solo si INIT_LIST tiene combatientes. */
+function renderInitReadOnly(){
+  const card = document.getElementById('combat-init-readonly');
+  const list = document.getElementById('ro-init-list');
+  const round = document.getElementById('ro-round-label');
+  if(!card || !list) return;
+  if(!Array.isArray(INIT_LIST) || !INIT_LIST.length){
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = '';
+  if(round) round.textContent = 'Asalto ' + (typeof INIT_ROUND !== 'undefined' ? INIT_ROUND : 1);
+  list.innerHTML = INIT_LIST.map((r,i)=>{
+    const active = r.active ? 'background:var(--accent-soft);border-left:3px solid var(--accent);padding-left:8px' : '';
+    const typeBadge = r.type === 'pc' ? '⚔' : (r.type === 'ally' ? '🟩' : '🟥');
+    const hpStr = (r.hp != null && r.hpMax != null) ? ` · ${r.hp}/${r.hpMax}` : '';
+    return `<div style="padding:4px 6px;border-radius:4px;${active}">
+      <span style="font-weight:${r.active?'700':'600'}">${typeBadge} ${r.n}</span>
+      <span style="color:var(--ink-muted);margin-left:6px">init ${r.v>=0?'+':''}${r.v}${hpStr}</span>
+    </div>`;
+  }).join('');
+}
+/* Re-render al cambiar INIT_LIST (state-loaded, init-changed, master-toggle) */
+document.addEventListener('state-loaded', renderInitReadOnly);
+document.addEventListener('init-changed', renderInitReadOnly);
+function wireInitReadOnly(){
+  /* Botón "Mi turno terminado" — avanza el active al siguiente */
+  const myTurn = document.getElementById('ro-my-turn-done');
+  if(myTurn) myTurn.addEventListener('click',()=>{
+    if(!Array.isArray(INIT_LIST) || !INIT_LIST.length) return;
+    const i = INIT_LIST.findIndex(x=>x.active);
+    if(i < 0){ INIT_LIST[0].active = true; renderInit?.(); renderInitReadOnly(); return; }
+    INIT_LIST.forEach(x=>x.active=false);
+    const next = (i+1) % INIT_LIST.length;
+    INIT_LIST[next].active = true;
+    if(next === 0){
+      INIT_ROUND++;
+      const r = document.getElementById('init-round');
+      if(r) r.textContent = 'Asalto ' + INIT_ROUND;
+      if(typeof toast === 'function') toast('Asalto ' + INIT_ROUND);
+    }
+    if(typeof renderInit === 'function') renderInit();
+    renderInitReadOnly();
+    if(typeof saveStateDebounced === 'function') saveStateDebounced('ro-turn-done');
+  });
+  /* Botón "Modo Máster" abre el sheet completo */
+  const openMaster = document.getElementById('ro-open-master');
+  if(openMaster) openMaster.addEventListener('click',()=>{
+    const toggle = document.getElementById('master-toggle');
+    if(toggle && !toggle.checked){ toggle.checked = true; toggle.dispatchEvent(new Event('change',{bubbles:true})); }
+    if(typeof openSheet === 'function') openSheet('sheet-master');
+  });
+  setTimeout(renderInitReadOnly, 300);
+}
 
 /* UX-09 Fase G: Wizard de creación de personaje paso a paso.
    6 pasos: nombre+jugador, raza, clase, atributos, equipo, confirmación. */
@@ -12652,6 +13128,17 @@ function init6(){
   wireGestaltMode();
   wireSLAs();
   wireNewCharWizard();
+  wireInitReadOnly();
+  wireAttrGenerator();
+  if(typeof _populateBuffTemplates === 'function') _populateBuffTemplates();
+  /* UX-17 Fase H: botón catálogo desde sheet-spell-add */
+  const spCatBtn = document.getElementById('spell-add-from-catalog');
+  if(spCatBtn) spCatBtn.addEventListener('click', ()=>{
+    const lvlEl = document.getElementById('spell-add-lvl');
+    const targetLvl = lvlEl ? parseInt(lvlEl.value, 10) : null;
+    if(typeof closeSheet === 'function') closeSheet(document.getElementById('sheet-spell-add'));
+    setTimeout(()=>_openSpellsCatalog(targetLvl), 150);
+  });
 
   const stored = loadStoredState();
   if(stored){
@@ -12901,15 +13388,43 @@ if(document.readyState==='complete' || document.readyState==='interactive'){
       spd:  num(txt($('speed-base')) || txt($('speed-eff')), 30),
     };
   }
+  function applyHpUpdate(name, hp){
+    const $ = id => document.getElementById(id);
+    const cur = $('pg-current');
+    if(!cur) return;
+    const activeName = (((window.STATE||{}).identity)||{}).nombre || '';
+    if(activeName && name && activeName.trim() !== name.trim()) return;
+    const v = String(Math.max(0, parseInt(hp,10) || 0));
+    if(cur.tagName === 'INPUT' || cur.tagName === 'TEXTAREA'){
+      cur.value = v;
+      cur.dispatchEvent(new Event('input', { bubbles:true }));
+      cur.dispatchEvent(new Event('change', { bubbles:true }));
+    } else {
+      cur.textContent = v;
+    }
+  }
+  function isFromChildIframe(source){
+    try {
+      const frames = document.querySelectorAll('iframe');
+      for(const f of frames){ if(f.contentWindow === source) return true; }
+    } catch(_){}
+    return false;
+  }
   window.addEventListener('message', function(e){
     const d = e && e.data;
-    if(!d || d.type !== 'mst-request-pjs') return;
-    let blob = null;
-    try { blob = readActivePJ(); } catch(_){}
-    const pjs = blob ? [blob] : [];
-    try {
-      e.source && e.source.postMessage({ type: 'mst-pjs', pjs }, '*');
-    } catch(_){}
+    if(!d) return;
+    if(d.type === 'mst-request-pjs'){
+      let blob = null;
+      try { blob = readActivePJ(); } catch(_){}
+      const pjs = blob ? [blob] : [];
+      try { e.source && e.source.postMessage({ type: 'mst-pjs', pjs }, '*'); } catch(_){}
+      return;
+    }
+    if(d.type === 'mst-pj-update'){
+      if(!isFromChildIframe(e.source)) return;
+      try { applyHpUpdate(d.name, d.hp); } catch(_){}
+      return;
+    }
   });
 })();
 </script>
