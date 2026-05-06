@@ -118,6 +118,8 @@
       </div>
 
       <div class="header-fields row2">
+        <!-- P-19 fix: campo Género (texto libre) -->
+        <label><span data-i18n="h.gender">Género</span><input type="text" id="char-gender" data-i18n-ph="ph.gender" placeholder="Sexo / género" style="width:80px"></label>
         <label><span data-i18n="h.age">Edad</span><input type="number" id="char-age" value="25"></label>
         <label><span data-i18n="h.height">Altura (m)</span><input type="text" id="char-height" data-i18n-ph="ph.height" placeholder="1.75"></label>
         <label><span data-i18n="h.weight">Peso (kg)</span><input type="number" id="char-weight-bio" value="70"></label>
@@ -210,7 +212,36 @@
     <input type="number" id="hp-current" value="0" style="width:52px;text-align:center;font-weight:700;font-size:15px;">
     <span style="font-size:13px;">/</span>
     <input type="text" id="hp-max" readonly class="derived" style="width:52px;font-size:15px;">
+    <!-- P-44 fix: botones rápidos +/- HP. Click = ±1 / ±5 (con shift). -->
+    <div class="hp-quick-btns" style="display:flex;gap:3px;margin-left:6px">
+      <button type="button" class="hp-quick" data-hp-delta="-1" title="-1 PG (Shift = -5)" style="font:700 12px/1 system-ui;background:var(--crimson, #b94040);color:#fff;border:none;border-radius:4px;width:26px;height:26px;cursor:pointer">−</button>
+      <button type="button" class="hp-quick" data-hp-delta="1" title="+1 PG (Shift = +5)" style="font:700 12px/1 system-ui;background:var(--positive, #4d8c40);color:#fff;border:none;border-radius:4px;width:26px;height:26px;cursor:pointer">+</button>
+    </div>
     <div class="hp-bar"><div class="hp-bar-fill" id="hp-fill" style="--hp-fill:1"></div></div>
+  </div>
+  <script>
+  /* P-44 fix: handler global para los botones +/- HP. */
+  document.addEventListener('click', function(ev){
+    const btn = ev.target.closest('.hp-quick');
+    if(!btn) return;
+    const inp = document.getElementById('hp-current');
+    if(!inp) return;
+    let delta = parseInt(btn.dataset.hpDelta,10) || 0;
+    if(ev.shiftKey) delta *= 5;
+    const cur = parseInt(inp.value,10) || 0;
+    const max = parseInt((document.getElementById('hp-max')||{}).value,10) || 0;
+    let next = cur + delta;
+    if(max > 0 && next > max) next = max;
+    inp.value = String(next);
+    inp.dispatchEvent(new Event('input', {bubbles:true}));
+    inp.dispatchEvent(new Event('change', {bubbles:true}));
+  });
+  </script>
+  <!-- P-45 fix: botones de descanso accesibles desde el panel principal,
+       no escondidos en la tab de conjuros. Mismas funciones globales. -->
+  <div class="rest-quick-row" style="display:flex;gap:6px;margin:6px 0 8px;flex-wrap:wrap">
+    <button type="button" class="rest-short-btn" onclick="if(typeof restShort==='function')restShort()" data-i18n="btn.restShort" title="Descanso corto (1h)" style="flex:1 1 140px;font:600 11px/1.1 system-ui;padding:6px 10px;background:var(--leather-lt, #8a6a44);color:#fff;border:1px solid var(--leather-dk);border-radius:5px;cursor:pointer">☾ Descanso corto</button>
+    <button type="button" class="rest-long-btn" onclick="if(typeof restLong==='function')restLong()" data-i18n="btn.restLong" title="Descanso largo (8h)" style="flex:1 1 140px;font:600 11px/1.1 system-ui;padding:6px 10px;background:var(--leather, #5a3a22);color:#fff;border:1px solid var(--leather-dk);border-radius:5px;cursor:pointer">☀ Descanso largo</button>
   </div>
   <div class="hp-temp-row">
     <div class="hp-temp-main">
@@ -726,6 +757,7 @@
       <input type="text" id="save-fort-attr" readonly style="width:34px;font-size:11px;border:none;background:transparent;text-align:center;">
       <input type="number" id="save-fort-item" class="recalc" value="0" style="width:34px;" data-i18n-title="tt.saveItems" title="Bonos de objetos mágicos">
       <input type="number" id="save-fort-misc" class="recalc" value="0" style="width:34px;">
+      <button type="button" class="save-roll-btn" onclick="rollSave('fort')" title="Tirar Fortaleza (1d20 + bono)" style="font:700 11px/1 system-ui;background:var(--leather, #5a3a22);color:#fff;border:none;border-radius:4px;padding:5px 8px;cursor:pointer;margin-left:4px">⚂</button>
     </div>
     <div class="save-row">
       <span class="save-name" data-i18n="save.ref">Reflejos</span>
@@ -734,6 +766,7 @@
       <input type="text" id="save-ref-attr" readonly style="width:34px;font-size:11px;border:none;background:transparent;text-align:center;">
       <input type="number" id="save-ref-item" class="recalc" value="0" style="width:34px;" data-i18n-title="tt.saveItems" title="Bonos de objetos mágicos">
       <input type="number" id="save-ref-misc" class="recalc" value="0" style="width:34px;">
+      <button type="button" class="save-roll-btn" onclick="rollSave('ref')" title="Tirar Reflejos (1d20 + bono)" style="font:700 11px/1 system-ui;background:var(--leather, #5a3a22);color:#fff;border:none;border-radius:4px;padding:5px 8px;cursor:pointer;margin-left:4px">⚂</button>
     </div>
     <div class="save-row">
       <span class="save-name" data-i18n="save.will">Voluntad</span>
@@ -742,8 +775,33 @@
       <input type="text" id="save-will-attr" readonly style="width:34px;font-size:11px;border:none;background:transparent;text-align:center;">
       <input type="number" id="save-will-item" class="recalc" value="0" style="width:34px;" data-i18n-title="tt.saveItems" title="Bonos de objetos mágicos">
       <input type="number" id="save-will-misc" class="recalc" value="0" style="width:34px;">
+      <button type="button" class="save-roll-btn" onclick="rollSave('will')" title="Tirar Voluntad (1d20 + bono)" style="font:700 11px/1 system-ui;background:var(--leather, #5a3a22);color:#fff;border:none;border-radius:4px;padding:5px 8px;cursor:pointer;margin-left:4px">⚂</button>
     </div>
   </div>
+  <div id="save-roll-result" style="font:600 12px/1.4 system-ui;color:var(--ink);margin-top:6px;min-height:18px"></div>
+  <script>
+  /* P-64 fix: tiradas de Fort/Ref/Vol con d20 + bono total mostrado.
+     Lee #save-{key} (string como "+5"), suma 1d20, escribe en #save-roll-result. */
+  function rollSave(key){
+    const totalEl = document.getElementById('save-'+key);
+    if(!totalEl) return;
+    const txt = (totalEl.value||'').replace(/[+\s]/g,'');
+    const bonus = parseInt(txt,10) || 0;
+    const d20 = 1 + Math.floor(Math.random()*20);
+    const total = d20 + bonus;
+    const labels = { fort:'Fortaleza', ref:'Reflejos', will:'Voluntad' };
+    const labelsEn = { fort:'Fortitude', ref:'Reflex', will:'Will' };
+    const lang = (document.documentElement.lang === 'en') ? 'en' : 'es';
+    const lab = (lang==='en'?labelsEn:labels)[key] || key;
+    const sign = bonus >= 0 ? '+' : '';
+    const out = document.getElementById('save-roll-result');
+    if(out){
+      const critFlag = d20===20 ? ' 🎯' : (d20===1 ? ' ☠️' : '');
+      out.textContent = `🎲 ${lab}: 1d20(${d20}) ${sign}${bonus} = ${total}${critFlag}`;
+    }
+  }
+  window.rollSave = rollSave;
+  </script>
   <div class="divider"></div>
   <h3 data-i18n="p.resists">Resistencias y Especiales</h3>
   <div class="two-col">
@@ -1679,6 +1737,7 @@ const I18N = {
     'h.name':'Nombre','h.player':'Jugador','h.race':'Raza','h.deity':'Deidad','h.alignment':'Alineamiento',
     'align.L':'Legal','align.N':'Neutral','align.C':'Caótico','align.G':'Bueno','align.E':'Malvado',
     'h.age':'Edad','h.height':'Altura (m)','h.weight':'Peso (kg)','h.size':'Tamaño',
+    'h.gender':'Género','ph.gender':'Sexo / género',
     'h.xpTrack':'Avance XP','h.xpCurrent':'XP Actual','h.xpNext':'Siguiente Nivel',
     'ph.charName':'Nombre del personaje','ph.player':'Nombre del jugador','ph.race':'Raza','ph.deity':'Deidad','ph.alignment':'NG, LB…','ph.height':'1.75',
     'xp.slow':'Lenta','xp.medium':'Media','xp.fast':'Rápida','xp.max':'Nivel Máx',
@@ -2148,6 +2207,7 @@ const I18N = {
     'h.name':'Name','h.player':'Player','h.race':'Race','h.deity':'Deity','h.alignment':'Alignment',
     'align.L':'Lawful','align.N':'Neutral','align.C':'Chaotic','align.G':'Good','align.E':'Evil',
     'h.age':'Age','h.height':'Height (m)','h.weight':'Weight (kg)','h.size':'Size',
+    'h.gender':'Gender','ph.gender':'Sex / gender',
     'h.xpTrack':'XP Track','h.xpCurrent':'Current XP','h.xpNext':'Next Level',
     'ph.charName':'Character name','ph.player':'Player name','ph.race':'Race','ph.deity':'Deity','ph.alignment':'NG, LG…','ph.height':'1.75',
     'xp.slow':'Slow','xp.medium':'Medium','xp.fast':'Fast','xp.max':'Max Lvl',
@@ -5517,7 +5577,22 @@ function calcMultiCasterSpells(mods) {
           ? parseInt(perdayEl.dataset.base)
           : (parseInt(perdayEl.value) || 0);
         if(perdayEl.dataset.base === undefined) perdayEl.dataset.base = perdayEl.value || '0';
-        const newTotal = baseVal + bonus;
+        /* A-29/A-34/A-40 fix: +1 slot/nivel por especialización de escuela arcana
+           (Wizard Specialist, niveles 1-9) y por dominios elegidos (Cleric, niveles 1-9).
+           No aplica al nivel 0 (orisons/cantrips) ni si el usuario hizo override. */
+        let specBonus = 0;
+        if(lv > 0 && perdayEl.dataset.userOverride !== '1'){
+          if(classKey === 'mago' || classKey === 'wizard'){
+            const sch = (document.getElementById('arcane-school-select')||{}).value;
+            if(sch && sch !== 'universalist') specBonus += 1;
+          }
+          if(classKey === 'clerigo' || classKey === 'cleric'){
+            const d1 = (document.getElementById('domain-1')||{}).value;
+            const d2 = (document.getElementById('domain-2')||{}).value;
+            if(d1 || d2) specBonus += 1;
+          }
+        }
+        const newTotal = baseVal + bonus + specBonus;
         if(parseInt(perdayEl.value) !== newTotal) {
           perdayEl.value = newTotal;
           perdayEl.setAttribute('value', newTotal);
@@ -6900,9 +6975,37 @@ function calcSpells(mods) {
       if(castMod >= lv + 12) bonus++;
     }
 
+    /* A-29/A-34/A-40 fix: +1 slot/nivel para single-caster cuando el
+       PJ es Mago especialista (Wizard con escuela arcana, no universalist)
+       o Clérigo con dominios elegidos. Solo niveles 1-9, no cantrips/orisons. */
+    let specBonus = 0;
+    try{
+      let bestClass = null, bestLevel = 0;
+      document.querySelectorAll('.class-row-dynamic').forEach(row => {
+        const idx = row.dataset.rowIdx;
+        const cls = (document.getElementById(`class${idx}`)||{}).value;
+        const lvl = parseInt((document.getElementById(`level${idx}`)||{}).value) || 0;
+        if(cls && lvl > bestLevel && DB.classes && DB.classes[cls]?.spells_per_day) {
+          bestClass = cls; bestLevel = lvl;
+        }
+      });
+      if(lv > 0 && bestClass){
+        if(bestClass === 'mago' || bestClass === 'wizard'){
+          const sch = (document.getElementById('arcane-school-select')||{}).value;
+          if(sch && sch !== 'universalist') specBonus += 1;
+        }
+        if(bestClass === 'clerigo' || bestClass === 'cleric'){
+          const d1 = (document.getElementById('domain-1')||{}).value;
+          const d2 = (document.getElementById('domain-2')||{}).value;
+          if(d1 || d2) specBonus += 1;
+        }
+      }
+    }catch(_){}
+
     // Show badge
     const bonusEl = document.getElementById(`sp-bonus-${lv}`);
-    if(bonusEl) bonusEl.textContent = bonus > 0 ? `+${bonus} bonus` : '';
+    const totalShown = bonus + specBonus;
+    if(bonusEl) bonusEl.textContent = totalShown > 0 ? `+${totalShown} bonus${specBonus?' (esp.)':''}` : '';
 
     // Auto-write bonus into the "Por Día" base field ONLY if the
     // player hasn't manually overridden it (detect via data-base attr)
@@ -6918,7 +7021,7 @@ function calcSpells(mods) {
         perdayEl.dataset.base = perdayEl.value || '0';
       }
 
-      const newTotal = baseVal + bonus;
+      const newTotal = baseVal + bonus + specBonus;
       // Only update the display if it would actually change something
       if(parseInt(perdayEl.value) !== newTotal) {
         perdayEl.value = newTotal;
@@ -8289,71 +8392,73 @@ function addWeapon(data = {}) {
     data.damageTypes = seedDamageTypesFromDB(data);
   }
 
+  /* T-22 fix: marcar los labels con data-i18n para que setLanguage los retraduzca
+     in-place sin tener que reconstruir la card (preservando valores del usuario). */
   div.innerHTML = `
-    <div class="item-check"><input type="checkbox" class="weapon-equipped recalc" checked id="weq-${i}"><label for="weq-${i}">${t('w.eqp')}</label></div>
-    <div class="item-field wide"><label>${t('w.name')}</label><input type="text" placeholder="${t('ph.wpnName')}" value="${wName}"></div>
-    <div class="item-field"><label>${t('w.type')}</label>
+    <div class="item-check"><input type="checkbox" class="weapon-equipped recalc" checked id="weq-${i}"><label for="weq-${i}" data-i18n="w.eqp">${t('w.eqp')}</label></div>
+    <div class="item-field wide"><label data-i18n="w.name">${t('w.name')}</label><input type="text" data-i18n-ph="ph.wpnName" placeholder="${t('ph.wpnName')}" value="${wName}"></div>
+    <div class="item-field"><label data-i18n="w.type">${t('w.type')}</label>
       <select class="weapon-style recalc" style="width:88px;font-size:11px;">${styleOpts}</select>
     </div>
     <div class="weapon-hands-toggle">
       <input type="checkbox" class="weapon-1h recalc" id="w1h-${i}" ${!def2H?'checked':''} onchange="syncHands(this,'1h')">
-      <label for="w1h-${i}">${t('w.1m')}</label>
+      <label for="w1h-${i}" data-i18n="w.1m">${t('w.1m')}</label>
       <input type="checkbox" class="weapon-2h recalc" id="w2h-${i}" ${def2H?'checked':''} onchange="syncHands(this,'2h')">
-      <label for="w2h-${i}">${t('w.2m')}</label>
+      <label for="w2h-${i}" data-i18n="w.2m">${t('w.2m')}</label>
     </div>
-    <div class="item-field"><label>${t('w.dmg')}</label><input type="text" class="weapon-base-dmg recalc" placeholder="${t('ph.dmg')}" style="width:52px;" value="${wDmg}"></div>
-    <div class="item-field"><label>${t('w.crit')}</label><input type="text" class="weapon-crit recalc" placeholder="${t('ph.crit')}" style="width:65px;" value="${wCrit}"></div>
-    <div class="item-field"><label>${t('w.dtype')}</label><input type="text" class="weapon-type recalc" placeholder="${t('ph.dtype')}" style="width:40px;" value="${wType}"></div>
-    <div class="item-field"><label>${t('w.magic')}</label><input type="number" class="weapon-enhance recalc" value="0" style="width:40px;"></div>
-    <div class="item-field"><label title="${t('tt.atkBonusFeats')}">${t('w.atkBonus')}</label>
+    <div class="item-field"><label data-i18n="w.dmg">${t('w.dmg')}</label><input type="text" class="weapon-base-dmg recalc" data-i18n-ph="ph.dmg" placeholder="${t('ph.dmg')}" style="width:52px;" value="${wDmg}"></div>
+    <div class="item-field"><label data-i18n="w.crit">${t('w.crit')}</label><input type="text" class="weapon-crit recalc" data-i18n-ph="ph.crit" placeholder="${t('ph.crit')}" style="width:65px;" value="${wCrit}"></div>
+    <div class="item-field"><label data-i18n="w.dtype">${t('w.dtype')}</label><input type="text" class="weapon-type recalc" data-i18n-ph="ph.dtype" placeholder="${t('ph.dtype')}" style="width:40px;" value="${wType}"></div>
+    <div class="item-field"><label data-i18n="w.magic">${t('w.magic')}</label><input type="number" class="weapon-enhance recalc" value="0" style="width:40px;"></div>
+    <div class="item-field"><label data-i18n="w.atkBonus" data-i18n-title="tt.atkBonusFeats" title="${t('tt.atkBonusFeats')}">${t('w.atkBonus')}</label>
       <div style="display:flex;align-items:center;gap:2px;">
-        <input type="checkbox" class="weapon-atk-bonus-on recalc" id="watkbon-${i}" checked title="${t('tt.atkBonusToggle')}" style="margin:0;">
-        <input type="number" class="weapon-atk-bonus recalc" value="0" style="width:40px;" title="${t('tt.atkBonusFeats')}">
+        <input type="checkbox" class="weapon-atk-bonus-on recalc" id="watkbon-${i}" checked data-i18n-title="tt.atkBonusToggle" title="${t('tt.atkBonusToggle')}" style="margin:0;">
+        <input type="number" class="weapon-atk-bonus recalc" value="0" style="width:40px;" data-i18n-title="tt.atkBonusFeats" title="${t('tt.atkBonusFeats')}">
       </div>
     </div>
-    <div class="item-field"><label>${t('w.dmgBonus')}</label><input type="number" class="weapon-dmg-bonus recalc" value="0" style="width:40px;"></div>
-    <div class="item-field weapon-composite-field" style="display:${selStyle==='composite'?'block':'none'};"><label title="${t('tt.strCap')}">${t('w.strCap')}</label><input type="number" class="weapon-composite-cap recalc" value="0" style="width:40px;"></div>
+    <div class="item-field"><label data-i18n="w.dmgBonus">${t('w.dmgBonus')}</label><input type="number" class="weapon-dmg-bonus recalc" value="0" style="width:40px;"></div>
+    <div class="item-field weapon-composite-field" style="display:${selStyle==='composite'?'block':'none'};"><label data-i18n="w.strCap" data-i18n-title="tt.strCap" title="${t('tt.strCap')}">${t('w.strCap')}</label><input type="number" class="weapon-composite-cap recalc" value="0" style="width:40px;"></div>
     <div class="item-field weapon-ammo-field" style="display:${(selStyle==='ranged'||selStyle==='composite')?'flex':'none'};flex-direction:column;">
-      <label title="${t('tt.ammo')}">${t('w.ammo')}</label>
+      <label data-i18n="w.ammo" data-i18n-title="tt.ammo" title="${t('tt.ammo')}">${t('w.ammo')}</label>
       <div style="display:flex;gap:2px;align-items:center;">
         <input type="number" class="weapon-ammo-cur" value="0" min="0" style="width:34px;">
         <span style="font-size:10px;">/</span>
         <input type="number" class="weapon-ammo-max" value="0" min="0" style="width:34px;">
       </div>
     </div>
-    <div class="item-field"><label>${t('w.weight')}</label><input type="number" class="item-weight recalc" value="0" style="width:40px;"></div>
-    <div class="item-check"><input type="checkbox" class="weapon-broken recalc" id="wbr-${i}"><label for="wbr-${i}" style="color:var(--crimson);">${t('w.broken')}</label></div>
-    <div class="item-check"><input type="checkbox" class="item-magic" id="wmag-${i}" onchange="toggleMagicCharges(this)"><label for="wmag-${i}" style="color:var(--gold);">${t('item.magic')}</label></div>
-    <button class="btn-remove" type="button" aria-label="${t('aria.delete')}" title="${t('aria.delete')}"><span aria-hidden="true">×</span></button>
+    <div class="item-field"><label data-i18n="w.weight">${t('w.weight')}</label><input type="number" class="item-weight recalc" value="0" style="width:40px;"></div>
+    <div class="item-check"><input type="checkbox" class="weapon-broken recalc" id="wbr-${i}"><label for="wbr-${i}" data-i18n="w.broken" style="color:var(--crimson);">${t('w.broken')}</label></div>
+    <div class="item-check"><input type="checkbox" class="item-magic" id="wmag-${i}" onchange="toggleMagicCharges(this)"><label for="wmag-${i}" data-i18n="item.magic" style="color:var(--gold);">${t('item.magic')}</label></div>
+    <button class="btn-remove" type="button" data-i18n-aria="aria.delete" data-i18n-title="aria.delete" aria-label="${t('aria.delete')}" title="${t('aria.delete')}"><span aria-hidden="true">×</span></button>
 
     <div class="weapon-result-row">
       <div class="weapon-result-block">
-        <span class="wres-label">${t('w.atk')}</span>
+        <span class="wres-label" data-i18n="w.atk">${t('w.atk')}</span>
         <span class="weapon-atk-display wres-value"></span>
         <span class="wres-sep">·</span>
-        <span class="wres-label">${t('w.critLabel')}</span>
+        <span class="wres-label" data-i18n="w.critLabel">${t('w.critLabel')}</span>
         <span class="weapon-crit-range-display wres-crit"></span>
       </div>
       <div class="weapon-result-block">
-        <span class="wres-label">${t('w.dmgLabel')}</span>
+        <span class="wres-label" data-i18n="w.dmgLabel">${t('w.dmgLabel')}</span>
         <span class="weapon-dmg-normal-display wres-value"></span>
         <span class="wres-sep">|</span>
-        <span class="wres-label">${t('w.critX')}</span>
+        <span class="wres-label" data-i18n="w.critX">${t('w.critX')}</span>
         <span class="weapon-dmg-crit-display wres-crit"></span>
       </div>
     </div>
     <div class="weapon-roll-row">
-      <button class="btn-roll-dmg" onclick="rollWeaponAttack(this)" title="${t('tt.wpnAtk')}">${t('btn.wpnAtk')}</button>
-      <button class="btn-discord-copy" onclick="copyDiscordRoll(this,'atk')" title="${t('tt.discordAtk')}">📋</button>
-      <button class="btn-roll-dmg" onclick="rollWeaponDamage(this,false)" title="${t('tt.wpnDmg')}">${t('btn.wpnDmg')}</button>
-      <button class="btn-discord-copy" onclick="copyDiscordRoll(this,'dmg')" title="${t('tt.discordDmg')}">📋</button>
-      <button class="btn-roll-dmg btn-roll-crit" onclick="rollWeaponDamage(this,true)" title="${t('tt.wpnCrit')}">${t('btn.wpnCrit')}</button>
+      <button class="btn-roll-dmg" onclick="rollWeaponAttack(this)" data-i18n="btn.wpnAtk" data-i18n-title="tt.wpnAtk" title="${t('tt.wpnAtk')}">${t('btn.wpnAtk')}</button>
+      <button class="btn-discord-copy" onclick="copyDiscordRoll(this,'atk')" data-i18n-title="tt.discordAtk" title="${t('tt.discordAtk')}">📋</button>
+      <button class="btn-roll-dmg" onclick="rollWeaponDamage(this,false)" data-i18n="btn.wpnDmg" data-i18n-title="tt.wpnDmg" title="${t('tt.wpnDmg')}">${t('btn.wpnDmg')}</button>
+      <button class="btn-discord-copy" onclick="copyDiscordRoll(this,'dmg')" data-i18n-title="tt.discordDmg" title="${t('tt.discordDmg')}">📋</button>
+      <button class="btn-roll-dmg btn-roll-crit" onclick="rollWeaponDamage(this,true)" data-i18n="btn.wpnCrit" data-i18n-title="tt.wpnCrit" title="${t('tt.wpnCrit')}">${t('btn.wpnCrit')}</button>
       <span class="weapon-roll-result"></span>
     </div>
     <div class="weapon-traits-row">
-      <span class="trait-label">${t('label.traits')}</span>
+      <span class="trait-label" data-i18n="label.traits">${t('label.traits')}</span>
       ${traitChips}
-      <input type="text" class="trait-custom-input" placeholder="${t('ph.customTrait')}" style="margin-left:4px;">
+      <input type="text" class="trait-custom-input" data-i18n-ph="ph.customTrait" placeholder="${t('ph.customTrait')}" style="margin-left:4px;">
       <button class="trait-add-btn" onclick="addCustomTrait(this)">+</button>
     </div>
     <div class="weapon-trait-effects-row" style="display:none;">
@@ -8459,17 +8564,19 @@ function addBuff(targetContainerId, isPermanentTweak = false) {
   const div = document.createElement('div');
   div.className = isPermanentTweak ? 'buff-card tweak-card' : 'buff-card';
   if(isPermanentTweak) div.style.borderColor = 'var(--leather)';
+  /* T-22 fix: data-i18n + data-i18n-ph para retraducir labels y placeholders */
+  const phKey = isPermanentTweak ? 'ph.buffName' : 'ph.buffName2';
   div.innerHTML = `
-    <input type="checkbox" class="buff-active recalc" checked title="${t('tt.buffActive')}">
-    <input type="text" placeholder="${isPermanentTweak ? t('ph.buffName') : t('ph.buffName2')}" style="flex:1;min-width:90px;">
+    <input type="checkbox" class="buff-active recalc" checked data-i18n-title="tt.buffActive" title="${t('tt.buffActive')}">
+    <input type="text" data-i18n-ph="${phKey}" placeholder="${t(phKey)}" style="flex:1;min-width:90px;">
     <select class="buff-stat recalc" style="width:130px;font-size:11px;">${buildBuffStatOptions()}</select>
-    <input type="number" class="buff-value recalc" value="0" style="width:42px;" title="${t('tt.buffMag')}">
+    <input type="number" class="buff-value recalc" value="0" style="width:42px;" data-i18n-title="tt.buffMag" title="${t('tt.buffMag')}">
     <select class="buff-type recalc" style="width:68px;font-size:11px;">
-      <option value="morale">${t('bt.moral')}</option><option value="enhancement">${t('bt.enhance')}</option><option value="deflection">${t('bt.deflection')}</option>
-      <option value="luck">${t('bt.luck')}</option><option value="alchemical">${t('bt.alchemical')}</option><option value="sacred">${t('bt.sacred')}</option>
-      <option value="untyped">${t('bt.untyped')}</option>
+      <option value="morale" data-i18n="bt.moral">${t('bt.moral')}</option><option value="enhancement" data-i18n="bt.enhance">${t('bt.enhance')}</option><option value="deflection" data-i18n="bt.deflection">${t('bt.deflection')}</option>
+      <option value="luck" data-i18n="bt.luck">${t('bt.luck')}</option><option value="alchemical" data-i18n="bt.alchemical">${t('bt.alchemical')}</option><option value="sacred" data-i18n="bt.sacred">${t('bt.sacred')}</option>
+      <option value="untyped" data-i18n="bt.untyped">${t('bt.untyped')}</option>
     </select>
-    <button class="btn-remove" type="button" aria-label="${t('aria.delBuff')}" title="${t('aria.delBuff')}" style="margin-left:auto;"><span aria-hidden="true">×</span></button>`;
+    <button class="btn-remove" type="button" data-i18n-aria="aria.delBuff" data-i18n-title="aria.delBuff" aria-label="${t('aria.delBuff')}" title="${t('aria.delBuff')}" style="margin-left:auto;"><span aria-hidden="true">×</span></button>`;
   container.appendChild(div);
 }
 
@@ -8478,9 +8585,9 @@ function addCompItem() {
   const div = document.createElement('div');
   div.className = 'item-card comp-item-card';
   div.innerHTML = `
-    <div class="item-field wide"><label>${t('i.name')}</label><input type="text" placeholder="${t('ph.compItem')}"></div>
-    <div class="item-field"><label>${t('label.compItemWeight')}</label><input type="number" class="item-weight recalc" value="0" style="width:50px;"></div>
-    <button class="btn-remove" type="button" aria-label="${t('aria.delete')}" title="${t('aria.delete')}"><span aria-hidden="true">×</span></button>`;
+    <div class="item-field wide"><label data-i18n="i.name">${t('i.name')}</label><input type="text" data-i18n-ph="ph.compItem" placeholder="${t('ph.compItem')}"></div>
+    <div class="item-field"><label data-i18n="label.compItemWeight">${t('label.compItemWeight')}</label><input type="number" class="item-weight recalc" value="0" style="width:50px;"></div>
+    <button class="btn-remove" type="button" data-i18n-aria="aria.delete" data-i18n-title="aria.delete" aria-label="${t('aria.delete')}" title="${t('aria.delete')}"><span aria-hidden="true">×</span></button>`;
   container.appendChild(div);
   recalc();
 }
@@ -11507,6 +11614,10 @@ function exportData() {
   // R-25 · Synthesist fused toggle (visible sólo si arquetipo Synthesist)
   try { data['__synth_fused'] = !!document.getElementById('synth-fused')?.checked; } catch(e) { data['__synth_fused'] = false; }
 
+  /* T-10 fix PC: marcar __schema en el JSON exportado para poder migrar
+     fichas viejas en el futuro sin romper. Versión inicial = 1. */
+  data['__schema'] = STATE_SCHEMA_VERSION_PC;
+
   const json = JSON.stringify(data, null, 2);
   // Android: ir directo al bridge nativo. El truco del <a download> falla
   // en algunos WebViews porque el <a> no está en el DOM y el evento no
@@ -11528,13 +11639,59 @@ function exportData() {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/* T-10 fix PC: schema versioning + migración para JSON exportado.
+   Cada bump de schema aplica una transformación en cadena. Mostrar toast con
+   los campos rellenados por defecto para que el usuario sepa qué cambió. */
+const STATE_SCHEMA_VERSION_PC = 1;
+function _migratePCv0toV1(obj){
+  /* v1: defaults para campos añadidos en R-21..R-29 */
+  const defaults = {
+    __epic_mode:false, __gestalt_mode:false, __synth_fused:false,
+    __mythic_state:null, __weaknesses:'', __notes_data:'',
+    __session_log:'', __combat_tracker:''
+  };
+  const filled = [];
+  Object.keys(defaults).forEach(k=>{
+    if(!(k in obj)){ obj[k] = defaults[k]; filled.push(k); }
+  });
+  obj._migratedFields = (obj._migratedFields||[]).concat(filled);
+  return obj;
+}
+function migrateImportedDataPC(data){
+  if(!data) return data;
+  let schema = (typeof data.__schema === 'number') ? data.__schema : 0;
+  let migrated = false;
+  const fromVer = schema;
+  if(schema < 1){ data = _migratePCv0toV1(data); schema = 1; migrated = true; }
+  data.__schema = STATE_SCHEMA_VERSION_PC;
+  if(migrated){
+    const filled = Array.isArray(data._migratedFields) ? data._migratedFields.filter((v,i,a)=>a.indexOf(v)===i) : [];
+    const lang = (document.documentElement.dataset.lang === 'en') ? 'en' : 'es';
+    const head = (lang==='en')
+      ? `Sheet migrated v${fromVer}→v${STATE_SCHEMA_VERSION_PC}`
+      : `Ficha migrada v${fromVer}→v${STATE_SCHEMA_VERSION_PC}`;
+    const body = filled.length ? (filled.length<=4 ? ` · ${filled.join(', ')}` :
+      ((lang==='en') ? ` (${filled.length} new fields filled)` : ` (${filled.length} campos completados)`)) : '';
+    setTimeout(()=>{
+      try{
+        if(typeof showToast === 'function') showToast(head + body, 4500);
+        else if(typeof toast === 'function') toast(head + body, 4500);
+        else console.log(head + body);
+      }catch(_){}
+    }, 600);
+    delete data._migratedFields;
+  }
+  return data;
+}
+
 function importData(event) {
   const file = event.target.files[0];
   if(!file) return;
   const reader = new FileReader();
   reader.onload = e => {
     try {
-      const data = JSON.parse(e.target.result);
+      let data = JSON.parse(e.target.result);
+      data = migrateImportedDataPC(data);
 
       // R-29 · Restaurar Modo Epic ANTES de crear las filas de clase para
       // que los nuevos inputs nazcan con max=30 y los niveles >20 no se clampeen.
