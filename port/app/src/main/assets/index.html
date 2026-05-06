@@ -2541,6 +2541,11 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
         <span class="more-icon">📋</span>
         <span class="over-info"><span class="over-label">Nueva ficha (limpiar todo)</span><span class="over-desc">Borra el PJ actual y empieza desde cero</span></span>
       </button>
+      <!-- UX-09 Fase G: Botón Wizard guiado -->
+      <button class="over-row" id="ov-wizard" style="color:var(--accent)">
+        <span class="more-icon">🧙</span>
+        <span class="over-info"><span class="over-label">Wizard nuevo personaje</span><span class="over-desc">Crear PJ paso a paso (raza, clase, atributos, equipo)</span></span>
+      </button>
       <div class="over-sep"></div>
       <label class="over-row" style="cursor:pointer">
         <span class="more-icon"><svg viewBox="0 0 24 24"><path d="m12 2 9 5v6c0 5-3.5 8.5-9 9-5.5-.5-9-4-9-9V7z"/></svg></span>
@@ -2846,6 +2851,81 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
         <div style="font:600 11px 'Cinzel',serif;color:var(--leather);margin-bottom:6px">🛡 Hard to Kill (regla pasiva)</div>
         <div style="font:11px/1.4 system-ui;color:var(--ink-muted)">Con tier ≥ 1, no quedas inconsciente automáticamente al caer en negativo. Mueres a -CON×2 (no a -CON normal). Esta regla queda como referencia visual; el HP en negativo no auto-marca Inconsciente.</div>
       </div>
+    </div>
+  </div>
+</dialog>
+
+<!-- UX-09 Fase G: Wizard 'Nuevo personaje' paso a paso -->
+<dialog class="bottom-sheet" id="sheet-newchar-wizard" aria-label="Wizard Nuevo personaje">
+  <div class="drag-handle"></div>
+  <div class="sheet-header">
+    <div class="sheet-title">🧙 Nuevo personaje</div>
+    <button class="sheet-close" data-close>✕</button>
+  </div>
+  <div class="sheet-content">
+    <!-- Indicador paso N/6 -->
+    <div id="wiz-progress" style="display:flex;align-items:center;gap:6px;margin-bottom:12px">
+      <div class="wiz-dot" data-wiz-dot="1" style="flex:1;height:4px;background:var(--accent);border-radius:99px"></div>
+      <div class="wiz-dot" data-wiz-dot="2" style="flex:1;height:4px;background:var(--surface-2);border-radius:99px"></div>
+      <div class="wiz-dot" data-wiz-dot="3" style="flex:1;height:4px;background:var(--surface-2);border-radius:99px"></div>
+      <div class="wiz-dot" data-wiz-dot="4" style="flex:1;height:4px;background:var(--surface-2);border-radius:99px"></div>
+      <div class="wiz-dot" data-wiz-dot="5" style="flex:1;height:4px;background:var(--surface-2);border-radius:99px"></div>
+      <div class="wiz-dot" data-wiz-dot="6" style="flex:1;height:4px;background:var(--surface-2);border-radius:99px"></div>
+    </div>
+    <!-- Paso 1: Bienvenida + Nombre -->
+    <div class="wiz-step" data-wiz-step="1">
+      <h3 style="font:700 16px 'Cinzel',serif;margin-top:0">Bienvenido</h3>
+      <p style="font:13px/1.5 'EB Garamond',serif;color:var(--ink);margin-bottom:14px">Vamos a crear tu personaje paso a paso. Puedes saltar cualquier paso y rellenarlo después en la ficha.</p>
+      <div class="field"><label class="field-label">Nombre del personaje</label>
+        <input class="field-input" id="wiz-name" placeholder="Ej. Aldric el Valiente">
+      </div>
+      <div class="field"><label class="field-label">Tu nombre (jugador)</label>
+        <input class="field-input" id="wiz-player" placeholder="Tu nombre">
+      </div>
+    </div>
+    <!-- Paso 2: Raza -->
+    <div class="wiz-step" data-wiz-step="2" hidden>
+      <h3 style="font:700 16px 'Cinzel',serif;margin-top:0">Elige tu raza</h3>
+      <p style="font:12px/1.4 system-ui;color:var(--ink-muted);margin-bottom:10px">La raza define velocidad, tamaño, atributos raciales y rasgos especiales.</p>
+      <div id="wiz-race-list" style="max-height:50vh;overflow:auto"></div>
+    </div>
+    <!-- Paso 3: Clase -->
+    <div class="wiz-step" data-wiz-step="3" hidden>
+      <h3 style="font:700 16px 'Cinzel',serif;margin-top:0">Elige tu clase</h3>
+      <p style="font:12px/1.4 system-ui;color:var(--ink-muted);margin-bottom:10px">La clase define cómo combates, lanzas conjuros y subes de nivel. Empezarás a nivel 1.</p>
+      <input class="field-input" id="wiz-class-search" placeholder="Buscar clase…" style="margin-bottom:8px">
+      <div id="wiz-class-list" style="max-height:48vh;overflow:auto"></div>
+    </div>
+    <!-- Paso 4: Atributos -->
+    <div class="wiz-step" data-wiz-step="4" hidden>
+      <h3 style="font:700 16px 'Cinzel',serif;margin-top:0">Reparte atributos</h3>
+      <p style="font:12px/1.4 system-ui;color:var(--ink-muted);margin-bottom:10px">Elige el método y reparte los puntos.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">
+        <button class="btn-secondary wiz-attr-method" data-method="standard" style="font-size:12px">Standard Array (15,14,13,12,10,8)</button>
+        <button class="btn-secondary wiz-attr-method" data-method="pb15" style="font-size:12px">Point-Buy 15</button>
+        <button class="btn-secondary wiz-attr-method" data-method="pb20" style="font-size:12px">Point-Buy 20</button>
+        <button class="btn-secondary wiz-attr-method" data-method="pb25" style="font-size:12px">Point-Buy 25</button>
+        <button class="btn-secondary wiz-attr-method" data-method="roll" style="font-size:12px;grid-column:span 2">🎲 4d6 quitar el más bajo</button>
+      </div>
+      <div id="wiz-attr-counter" style="text-align:center;font:600 12px system-ui;color:var(--accent);margin-bottom:8px">Elige un método</div>
+      <div id="wiz-attr-grid" style="display:grid;grid-template-columns:1fr 80px 60px;gap:8px;align-items:center"></div>
+    </div>
+    <!-- Paso 5: Equipo inicial -->
+    <div class="wiz-step" data-wiz-step="5" hidden>
+      <h3 style="font:700 16px 'Cinzel',serif;margin-top:0">Equipo inicial</h3>
+      <p style="font:12px/1.4 system-ui;color:var(--ink-muted);margin-bottom:10px">Sugerencia según tu clase. Puedes cambiar todo después en Equipo.</p>
+      <div id="wiz-equip-suggest"></div>
+    </div>
+    <!-- Paso 6: Confirmación -->
+    <div class="wiz-step" data-wiz-step="6" hidden>
+      <h3 style="font:700 16px 'Cinzel',serif;margin-top:0">¡Listo!</h3>
+      <div id="wiz-summary" style="font:13px/1.6 system-ui;background:var(--surface-2);border-radius:8px;padding:12px;margin-bottom:12px"></div>
+      <p style="font:12px/1.4 system-ui;color:var(--ink-muted)">Al pulsar <b>Crear personaje</b> se aplicará todo. Podrás editarlo en cualquier momento desde la ficha.</p>
+    </div>
+    <!-- Navegación -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;border-top:1px solid var(--line);padding-top:12px">
+      <button class="btn-secondary" id="wiz-prev" disabled>← Atrás</button>
+      <button class="btn-primary" id="wiz-next">Siguiente →</button>
     </div>
   </div>
 </dialog>
@@ -10584,6 +10664,322 @@ function wireSummaryAttack(){
   });
 }
 
+/* UX-09 Fase G: Wizard de creación de personaje paso a paso.
+   6 pasos: nombre+jugador, raza, clase, atributos, equipo, confirmación. */
+const _WIZ_STATE = {
+  step: 1,
+  name: '', player: '',
+  raceKey: '', raceName: '',
+  classKey: '', className: '',
+  attrMethod: '', attrs: {FUE:10, DES:10, CON:10, INT:10, SAB:10, CAR:10},
+  pbBudget: 0, pbCost: {7:-4,8:-2,9:-1,10:0,11:1,12:2,13:3,14:5,15:7,16:10,17:13,18:17},
+  equipPicked: []
+};
+function _wizGoTo(step){
+  step = Math.max(1, Math.min(6, step));
+  _WIZ_STATE.step = step;
+  document.querySelectorAll('.wiz-step').forEach(el=>{
+    el.hidden = parseInt(el.dataset.wizStep,10) !== step;
+  });
+  document.querySelectorAll('.wiz-dot').forEach(d=>{
+    const n = parseInt(d.dataset.wizDot,10);
+    d.style.background = n <= step ? 'var(--accent)' : 'var(--surface-2)';
+  });
+  const prev = document.getElementById('wiz-prev');
+  const next = document.getElementById('wiz-next');
+  if(prev) prev.disabled = step === 1;
+  if(next) next.textContent = step === 6 ? '✓ Crear personaje' : 'Siguiente →';
+  /* Cargar contenido dinámico de cada paso */
+  if(step === 2) _wizPopulateRaces();
+  if(step === 3) _wizPopulateClasses();
+  if(step === 4) _wizRenderAttrs();
+  if(step === 5) _wizRenderEquipSuggest();
+  if(step === 6) _wizRenderSummary();
+}
+function _wizPopulateRaces(){
+  const list = document.getElementById('wiz-race-list');
+  if(!list) return;
+  const races = (typeof RACES_DATA_FULL!=='undefined' && RACES_DATA_FULL.length) ? RACES_DATA_FULL
+              : (typeof RACES_DATA!=='undefined' ? RACES_DATA.map(r=>({key:r[0].toLowerCase(),name:r[0],desc:r[1]})) : []);
+  list.innerHTML = races.map((r,i)=>{
+    const sel = (_WIZ_STATE.raceKey === (r.key||r.name));
+    return `<button class="picker-row" data-wiz-race="${i}" style="display:block;width:100%;text-align:left;padding:10px;margin-bottom:6px;border:1px solid ${sel?'var(--accent)':'var(--line)'};border-radius:8px;background:${sel?'var(--accent-soft)':'transparent'}">
+      <div style="font-weight:700;font-family:'Cinzel',serif">${r.name}</div>
+      <div style="font:11px/1.3 system-ui;color:var(--ink-muted);margin-top:2px">${r.desc||r.description||''}</div>
+    </button>`;
+  }).join('');
+  list.querySelectorAll('[data-wiz-race]').forEach(b=>b.addEventListener('click',()=>{
+    const r = races[+b.dataset.wizRace];
+    _WIZ_STATE.raceKey = r.key || r.name;
+    _WIZ_STATE.raceName = r.name;
+    _wizPopulateRaces();
+  }));
+}
+function _wizPopulateClasses(){
+  const list = document.getElementById('wiz-class-list');
+  const search = document.getElementById('wiz-class-search');
+  if(!list) return;
+  const allData = (typeof getClassPickerData === 'function') ? getClassPickerData() : [];
+  const render = (q)=>{
+    const filtered = q ? allData.filter(([n,d])=>(n+d).toLowerCase().includes(q.toLowerCase())) : allData;
+    list.innerHTML = filtered.slice(0,200).map(([n,d,k])=>{
+      const sel = _WIZ_STATE.classKey === k;
+      return `<button class="picker-row" data-wiz-class-k="${k||''}" data-wiz-class-n="${n}" style="display:block;width:100%;text-align:left;padding:10px;margin-bottom:6px;border:1px solid ${sel?'var(--accent)':'var(--line)'};border-radius:8px;background:${sel?'var(--accent-soft)':'transparent'}">
+        <div style="font-weight:700;font-family:'Cinzel',serif">${n}</div>
+        <div style="font:11px/1.3 system-ui;color:var(--ink-muted);margin-top:2px">${d}</div>
+      </button>`;
+    }).join('');
+    list.querySelectorAll('[data-wiz-class-n]').forEach(b=>b.addEventListener('click',()=>{
+      _WIZ_STATE.classKey = b.dataset.wizClassK;
+      _WIZ_STATE.className = b.dataset.wizClassN;
+      _wizPopulateClasses();
+    }));
+  };
+  render('');
+  if(search){ search.value = ''; search.oninput = ()=>render(search.value); }
+}
+function _wizRenderAttrs(){
+  const grid = document.getElementById('wiz-attr-grid');
+  const counter = document.getElementById('wiz-attr-counter');
+  if(!grid) return;
+  const ATTR_LIST = ['FUE','DES','CON','INT','SAB','CAR'];
+  const m = _WIZ_STATE.attrMethod;
+  const STANDARD = [15,14,13,12,10,8];
+  if(m === 'standard'){
+    if(counter) counter.textContent = 'Standard Array · arrastra los valores 15/14/13/12/10/8 a tus atributos';
+  } else if(m && m.startsWith('pb')){
+    /* Calcular coste del estado actual */
+    let cost = 0;
+    ATTR_LIST.forEach(k=>{
+      const v = _WIZ_STATE.attrs[k];
+      cost += (_WIZ_STATE.pbCost[v] !== undefined) ? _WIZ_STATE.pbCost[v] : 0;
+    });
+    const budget = _WIZ_STATE.pbBudget;
+    const remain = budget - cost;
+    const color = remain === 0 ? 'var(--positive)' : (remain < 0 ? 'var(--negative)' : 'var(--accent)');
+    if(counter) counter.innerHTML = `Point-Buy ${budget} · gastado <span style="color:${color}">${cost}</span> · libre <span style="color:${color}">${remain}</span>`;
+  } else if(m === 'roll'){
+    if(counter) counter.textContent = '4d6 drop lowest tirado. Reparte los valores libremente.';
+  } else {
+    if(counter) counter.textContent = 'Elige un método arriba';
+    grid.innerHTML = '';
+    return;
+  }
+  grid.innerHTML = ATTR_LIST.map(k=>{
+    const v = _WIZ_STATE.attrs[k];
+    const mod = Math.floor((v - 10) / 2);
+    return `
+      <div style="font:600 13px 'Cinzel',serif">${k}</div>
+      <div style="display:flex;align-items:center;gap:4px">
+        <button class="btn-secondary wiz-attr-d" data-attr="${k}" data-d="-1" style="min-width:28px">−</button>
+        <input class="field-input wiz-attr-in" data-attr="${k}" type="number" value="${v}" style="text-align:center">
+        <button class="btn-secondary wiz-attr-d" data-attr="${k}" data-d="1" style="min-width:28px">+</button>
+      </div>
+      <div style="font:700 13px system-ui;color:${mod>=0?'var(--positive)':'var(--negative)'};text-align:center">${mod>=0?'+':''}${mod}</div>
+    `;
+  }).join('');
+  grid.querySelectorAll('.wiz-attr-d').forEach(b=>b.addEventListener('click',()=>{
+    const k = b.dataset.attr;
+    const d = parseInt(b.dataset.d,10);
+    _WIZ_STATE.attrs[k] = Math.max(7, Math.min(20, _WIZ_STATE.attrs[k] + d));
+    _wizRenderAttrs();
+  }));
+  grid.querySelectorAll('.wiz-attr-in').forEach(inp=>inp.addEventListener('change',()=>{
+    const k = inp.dataset.attr;
+    _WIZ_STATE.attrs[k] = Math.max(3, Math.min(25, parseInt(inp.value,10) || 10));
+    _wizRenderAttrs();
+  }));
+}
+function _wizRenderEquipSuggest(){
+  const c = document.getElementById('wiz-equip-suggest');
+  if(!c) return;
+  /* Sugerencias por clase (no exhaustivo) */
+  const SUGG = {
+    barbarian: [{n:'Hacha de batalla',die:'1d8',th:20,m:2,ranged:false},{n:'Cota de mallas',ac:5}],
+    fighter:   [{n:'Espada larga',die:'1d8',th:19,m:2,ranged:false},{n:'Cota de mallas',ac:5},{n:'Escudo de acero',ac:2,shield:true}],
+    rogue:     [{n:'Espada corta',die:'1d6',th:19,m:2,ranged:false},{n:'Daga',die:'1d4',th:19,m:2,ranged:false},{n:'Armadura de cuero',ac:2}],
+    monk:      [{n:'Bastón',die:'1d6',th:20,m:2,ranged:false}],
+    wizard:    [{n:'Bastón',die:'1d6',th:20,m:2,ranged:false}],
+    sorcerer:  [{n:'Daga',die:'1d4',th:19,m:2,ranged:false}],
+    cleric:    [{n:'Mangual',die:'1d8',th:20,m:2,ranged:false},{n:'Cota de mallas',ac:5},{n:'Escudo de acero',ac:2,shield:true}],
+    druid:     [{n:'Cimitarra',die:'1d6',th:18,m:2,ranged:false},{n:'Pieles',ac:3}],
+    bard:      [{n:'Espada larga',die:'1d8',th:19,m:2,ranged:false},{n:'Armadura de cuero',ac:2}],
+    paladin:   [{n:'Espada larga',die:'1d8',th:19,m:2,ranged:false},{n:'Cota de mallas',ac:5},{n:'Escudo de acero',ac:2,shield:true}],
+    ranger:    [{n:'Arco largo',die:'1d8',th:20,m:3,ranged:true},{n:'Espada corta',die:'1d6',th:19,m:2,ranged:false},{n:'Armadura de cuero',ac:2}]
+  };
+  const items = SUGG[_WIZ_STATE.classKey] || SUGG.fighter;
+  c.innerHTML = items.map((it,i)=>{
+    const isArm = it.ac !== undefined;
+    const checked = _WIZ_STATE.equipPicked.includes(i);
+    return `<label style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:8px;background:${checked?'var(--accent-soft)':'transparent'};margin-bottom:6px;cursor:pointer">
+      <input type="checkbox" data-wiz-equip="${i}" ${checked?'checked':''}>
+      <span style="flex:1">
+        <span style="font:600 13px 'Cinzel',serif">${it.n}</span>
+        <span style="display:block;font:11px system-ui;color:var(--ink-muted)">${isArm?('Armadura · CA +'+it.ac):('Arma · '+it.die+' '+(it.ranged?'distancia':'CaC')+' · crit '+it.th+(it.th<20?'-20':'')+'/×'+it.m)}</span>
+      </span>
+    </label>`;
+  }).join('');
+  c.querySelectorAll('[data-wiz-equip]').forEach(cb=>cb.addEventListener('change',()=>{
+    const i = +cb.dataset.wizEquip;
+    if(cb.checked){ if(!_WIZ_STATE.equipPicked.includes(i)) _WIZ_STATE.equipPicked.push(i); }
+    else _WIZ_STATE.equipPicked = _WIZ_STATE.equipPicked.filter(x=>x!==i);
+  }));
+  /* Auto-marcar todas la primera vez */
+  if(_WIZ_STATE.equipPicked.length === 0){
+    _WIZ_STATE.equipPicked = items.map((_,i)=>i);
+    _wizRenderEquipSuggest();
+  }
+  /* Guardar el set actual para aplicar después */
+  _WIZ_STATE._equipSet = items;
+}
+function _wizRenderSummary(){
+  const c = document.getElementById('wiz-summary');
+  if(!c) return;
+  const a = _WIZ_STATE.attrs;
+  c.innerHTML = `
+    <div><b>Nombre:</b> ${_WIZ_STATE.name || '—'}${_WIZ_STATE.player?` (${_WIZ_STATE.player})`:''}</div>
+    <div><b>Raza:</b> ${_WIZ_STATE.raceName || '—'}</div>
+    <div><b>Clase:</b> ${_WIZ_STATE.className || '—'} (Nv 1)</div>
+    <div><b>Atributos:</b> FUE ${a.FUE} · DES ${a.DES} · CON ${a.CON} · INT ${a.INT} · SAB ${a.SAB} · CAR ${a.CAR}</div>
+    <div><b>Equipo inicial:</b> ${_WIZ_STATE.equipPicked.length} items seleccionados</div>
+  `;
+}
+function _wizApply(){
+  /* Capturar nombre + jugador */
+  _WIZ_STATE.name = document.getElementById('wiz-name')?.value?.trim() || '';
+  _WIZ_STATE.player = document.getElementById('wiz-player')?.value?.trim() || '';
+  /* 1. Limpiar estado actual */
+  try{
+    if(typeof CLASSES_DATA!=='undefined') CLASSES_DATA.length = 0;
+    if(typeof WEAPONS_DATA!=='undefined') WEAPONS_DATA.length = 0;
+    if(typeof ARMOR_DATA!=='undefined') ARMOR_DATA.length = 0;
+    if(typeof FEATS!=='undefined') FEATS.length = 0;
+  }catch(_){}
+  /* 2. Aplicar nombre + jugador */
+  const nIn = document.getElementById('in-nombre');
+  if(nIn) nIn.value = _WIZ_STATE.name;
+  const pIn = document.getElementById('in-jugador');
+  if(pIn) pIn.value = _WIZ_STATE.player;
+  /* 3. Aplicar raza */
+  if(_WIZ_STATE.raceName && typeof applyRaceFull === 'function'){
+    try{ applyRaceFull(_WIZ_STATE.raceName); }catch(_){}
+  }
+  /* 4. Añadir clase nivel 1 */
+  if(_WIZ_STATE.className){
+    const dbCls = DB?.classes?.[_WIZ_STATE.classKey];
+    const hd = dbCls ? `1d${dbCls.hit_die||8}` : '1d8';
+    const newId = 1;
+    CLASSES_DATA.push({
+      id: newId, name: _WIZ_STATE.className, classKey: _WIZ_STATE.classKey || '',
+      archetype: '—', archetypeKey: '', level: 1, hp: 8, hd
+    });
+    if(typeof renderClasses==='function') renderClasses();
+    if(typeof _triggerClassFeaturesFor==='function') _triggerClassFeaturesFor(CLASSES_DATA[0]);
+    document.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'add', id:newId}}));
+  }
+  /* 5. Aplicar atributos: escribir el campo "base" de cada atributo */
+  ['FUE','DES','CON','INT','SAB','CAR'].forEach(k=>{
+    const baseInp = document.querySelector(`input[data-attr-base="${k}"]`);
+    if(baseInp){
+      baseInp.value = _WIZ_STATE.attrs[k];
+      baseInp.dispatchEvent(new Event('change', {bubbles:true}));
+    }
+  });
+  /* 6. Aplicar equipo inicial */
+  const items = _WIZ_STATE._equipSet || [];
+  const picked = _WIZ_STATE.equipPicked || [];
+  picked.forEach(idx=>{
+    const it = items[idx]; if(!it) return;
+    if(it.ac !== undefined){
+      /* Armadura */
+      const id = ((ARMOR_DATA||[])[(ARMOR_DATA||[]).length-1]?.id || 0) + 1;
+      const armor_type = it.shield ? 'shield' : (it.ac >= 5 ? 'medium' : 'light');
+      ARMOR_DATA.push({
+        id, name: it.n, type: it.shield ? 'Escudo' : 'Armadura',
+        armor_type, ac_bonus: it.ac, max_dex: 99, acp: 0, arcane_failure: 0,
+        weight: 5, equipped: true,
+        ac: '+'+it.ac, maxDex: '+99', penalty: '0', spell: '0%'
+      });
+    } else {
+      /* Arma */
+      const id = ((WEAPONS_DATA||[])[(WEAPONS_DATA||[]).length-1]?.id || 0) + 1;
+      WEAPONS_DATA.push({
+        id, name: it.n, type: it.ranged ? 'Distancia' : 'CaC',
+        style: it.ranged ? 'ranged' : 'melee1h',
+        damage_die: it.die, crit_threat: it.th, crit_mult: it.m,
+        enh: 0, misc: 0, weight: 4, hands: 1, notes: '',
+        atk: '+0', dmg: it.die, crit: `${it.th===20?'20':it.th+'-20'}/×${it.m}`
+      });
+    }
+  });
+  if(typeof renderArmor==='function') renderArmor();
+  if(typeof D5_refreshWeaponRolls==='function') D5_refreshWeaponRolls();
+  if(typeof D5_recompute==='function') D5_recompute();
+  /* 7. Recalc + autosave */
+  if(typeof CombatEngine!=='undefined' && CombatEngine.apply) CombatEngine.apply();
+  if(typeof saveStateDebounced==='function') saveStateDebounced('wizard-apply');
+  if(typeof toast==='function') toast(`✨ ${_WIZ_STATE.name || 'Personaje'} creado`);
+  /* Cerrar wizard */
+  const dlg = document.getElementById('sheet-newchar-wizard');
+  if(dlg) dlg.close();
+}
+function wireNewCharWizard(){
+  const ovBtn = document.getElementById('ov-wizard');
+  if(ovBtn) ovBtn.addEventListener('click', ()=>_openWizard());
+  const next = document.getElementById('wiz-next');
+  const prev = document.getElementById('wiz-prev');
+  if(next) next.addEventListener('click', ()=>{
+    /* Capturar nombre del paso 1 si estamos saliendo */
+    if(_WIZ_STATE.step === 1){
+      _WIZ_STATE.name = document.getElementById('wiz-name')?.value?.trim() || '';
+      _WIZ_STATE.player = document.getElementById('wiz-player')?.value?.trim() || '';
+    }
+    if(_WIZ_STATE.step === 6){ _wizApply(); return; }
+    _wizGoTo(_WIZ_STATE.step + 1);
+  });
+  if(prev) prev.addEventListener('click', ()=>_wizGoTo(_WIZ_STATE.step - 1));
+  /* Botones de método de atributos */
+  document.querySelectorAll('.wiz-attr-method').forEach(b=>b.addEventListener('click',()=>{
+    const m = b.dataset.method;
+    _WIZ_STATE.attrMethod = m;
+    if(m === 'standard'){
+      const arr = [15,14,13,12,10,8];
+      ['FUE','DES','CON','INT','SAB','CAR'].forEach((k,i)=>_WIZ_STATE.attrs[k] = arr[i]);
+    } else if(m === 'pb15'){ _WIZ_STATE.pbBudget = 15; ['FUE','DES','CON','INT','SAB','CAR'].forEach(k=>_WIZ_STATE.attrs[k]=10); }
+    else if(m === 'pb20'){ _WIZ_STATE.pbBudget = 20; ['FUE','DES','CON','INT','SAB','CAR'].forEach(k=>_WIZ_STATE.attrs[k]=10); }
+    else if(m === 'pb25'){ _WIZ_STATE.pbBudget = 25; ['FUE','DES','CON','INT','SAB','CAR'].forEach(k=>_WIZ_STATE.attrs[k]=10); }
+    else if(m === 'roll'){
+      ['FUE','DES','CON','INT','SAB','CAR'].forEach(k=>{
+        const dice = [Math.floor(Math.random()*6)+1, Math.floor(Math.random()*6)+1, Math.floor(Math.random()*6)+1, Math.floor(Math.random()*6)+1];
+        dice.sort((a,b)=>a-b);
+        _WIZ_STATE.attrs[k] = dice[1] + dice[2] + dice[3];
+      });
+    }
+    _wizRenderAttrs();
+  }));
+}
+function _openWizard(){
+  /* Reset state */
+  _WIZ_STATE.step = 1;
+  _WIZ_STATE.name = '';
+  _WIZ_STATE.player = '';
+  _WIZ_STATE.raceKey = '';
+  _WIZ_STATE.raceName = '';
+  _WIZ_STATE.classKey = '';
+  _WIZ_STATE.className = '';
+  _WIZ_STATE.attrMethod = '';
+  ['FUE','DES','CON','INT','SAB','CAR'].forEach(k=>_WIZ_STATE.attrs[k]=10);
+  _WIZ_STATE.equipPicked = [];
+  /* Pre-rellenar nombre actual si existe */
+  const cur = document.getElementById('in-nombre')?.value?.trim();
+  const wn = document.getElementById('wiz-name');
+  if(wn) wn.value = cur || '';
+  const wp = document.getElementById('wiz-player');
+  if(wp) wp.value = document.getElementById('in-jugador')?.value?.trim() || '';
+  _wizGoTo(1);
+  if(typeof openSheet === 'function') openSheet('sheet-newchar-wizard');
+}
+
 /* UX-10 Fase G: catálogo de armas desde DB.equipment.weapons */
 function _openWeaponCatalog(){
   const arr = (DB?.equipment?.weapons) || [];
@@ -11955,6 +12351,7 @@ function init6(){
   wireSummonerArchetypes();
   wireGestaltMode();
   wireSLAs();
+  wireNewCharWizard();
 
   const stored = loadStoredState();
   if(stored){
