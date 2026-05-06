@@ -2813,12 +2813,16 @@ body.theme-dark .tmp-card .name{color:#f5d8b0}
     <div id="rest-preview" style="background:var(--surface-2);padding:10px;border-radius:8px;font:13px/1.5 'EB Garamond',serif;margin-bottom:10px">
       Calculando…
     </div>
+    <!-- MC-1 Fase C: Botón Descanso corto (1h) restaura solo pools de encuentro -->
+    <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:8px">
+      <button class="btn-secondary" id="btn-rest-short" style="background:var(--accent-soft);border:1px dashed var(--accent)">☕ Descanso corto (1h) · pools de encuentro</button>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
       <button class="btn-secondary" data-close>Cancelar</button>
-      <button class="btn-primary" id="btn-rest-apply">🌙 Descansar 8h</button>
+      <button class="btn-primary" id="btn-rest-apply">🌙 Descansar 8h (largo)</button>
     </div>
     <div style="margin-top:10px;font:11px/1.4 system-ui;color:var(--ink-muted);text-align:center">
-      Ojo: el reset de slots de conjuros y aptitudes auto se hace por separado en <b>Aptitudes &gt; Conjuros &gt; Descansar 8h</b>.
+      Descanso corto: ki/panache/grit/reserva/bombas/inspiración/etc.<br>Descanso largo: TODO + slots de conjuros + aptitudes auto.
     </div>
   </div>
 </dialog>
@@ -4038,7 +4042,27 @@ function canonicalClassId(name){
     'escaldo':'escaldo','skald':'escaldo',
     'chaman':'chaman','shaman':'chaman',
     'vigilante':'vigilante',
-    'arcanista':'arcanista','arcanist':'arcanista'
+    'arcanista':'arcanista','arcanist':'arcanista',
+    /* MC-2 Fase C: 13 clases nuevas */
+    'ocultista':'ocultista','occultist':'ocultista',
+    'psiquico':'psiquico','psychic':'psiquico',
+    'hipnotizador':'hipnotizador','mesmerist':'hipnotizador',
+    'medium':'medium','medio':'medium','médium':'medium',
+    'espiritista':'espiritista','spiritualist':'espiritista',
+    'cambiante':'cambiante','shifter':'cambiante',
+    /* Prestige */
+    'descendiente de dragón':'descendiente_de_dragon','descendiente de dragon':'descendiente_de_dragon',
+    'dragon disciple':'descendiente_de_dragon','dragon_disciple':'descendiente_de_dragon',
+    'bailarin de las sombras':'bailarin_sombras','bailarín de las sombras':'bailarin_sombras',
+    'shadowdancer':'bailarin_sombras','bailarin sombras':'bailarin_sombras',
+    /* Unchained */
+    'barbaro desencadenado':'barbaro_unchained','bárbaro desencadenado':'barbaro_unchained',
+    'unchained barbarian':'barbaro_unchained','barbaro_unchained':'barbaro_unchained',
+    'monje desencadenado':'monje_unchained','unchained monk':'monje_unchained','monje_unchained':'monje_unchained',
+    'picaro desencadenado':'picaro_unchained','pícaro desencadenado':'picaro_unchained',
+    'unchained rogue':'picaro_unchained','picaro_unchained':'picaro_unchained',
+    'invocador desencadenado':'invocador_unchained','convocador desencadenado':'invocador_unchained',
+    'unchained summoner':'invocador_unchained','invocador_unchained':'invocador_unchained'
   };
   return map[k] || 'guerrero';
 }
@@ -4212,29 +4236,36 @@ const CLASS_AUTO_FEATURES_D4 = {
      max: Math.max(0, 4 + A.CON + 2*Math.max(0,lvl-1)), reset:'long', tracker:true}
   ],
   monje: (lvl,A)=>[
-    {name:'Pool de Ki', desc:'Punto extra de movimiento, ataque flurry o golpe ágil.',
-     max: Math.max(0, Math.floor(lvl/2) + A.SAB), reset:'long', tracker:true}
+    {name:'Pool de Ki', desc:'Punto extra de movimiento, ataque flurry o golpe ágil. Disponible ≥4.',
+     max: lvl >= 4 ? Math.max(0, Math.floor(lvl/2) + (A.SAB||0)) : 0, reset:'short', tracker:lvl>=4},
+    /* MC-3: Stunning Fist lvl/4 usos/día (mín 1) */
+    {name:'Golpe Aturdidor', desc:'Aturde 1 ronda con CD = 10+½lvl+SAB. Lvl/4 usos/día (mín 1).',
+     max: Math.max(1, Math.floor(lvl/4)), reset:'long', tracker:true}
   ],
   paladin: (lvl,A)=>[
+    /* MC-3: Imposición de manos PC = lvl/2 + CAR. Castigo del mal PC = 1 + lvl/3 (alineado). */
     {name:'Imposición de manos', desc:'Cura 1d6 cada 2 niveles. Acción estándar (uno mismo: rápida).',
-     max: Math.max(0, Math.floor(lvl/2) + A.CAR), reset:'long', tracker:true},
+     max: Math.max(0, Math.floor(lvl/2) + (A.CAR||0)), reset:'long', tracker:true},
     {name:'Castigo del mal', desc:'+CAR atq, +nivel daño contra mal. Bypass DR.',
-     max: 1 + Math.floor((lvl-1)/4), reset:'long', tracker:true}
+     max: 1 + Math.floor(lvl/3), reset:'long', tracker:true}
   ],
   inquisidor: (lvl,A)=>[
     {name:'Juicio', desc:'Bono variable (atq, daño, CA, TS, etc.) en combate.',
-     max: Math.max(1, Math.floor((lvl-1)/3)+1), reset:'long', tracker:true}
+     max: Math.max(1, Math.floor((lvl-1)/3)+1), reset:'long', tracker:true},
+    /* MC-3: añadir Bane (perdición). lvl rondas/día. */
+    {name:'Perdición (Bane)', desc:'Arma alineada como bane. lvl rondas/día (no consecutivas).',
+     max: lvl, reset:'long', tracker:true}
   ],
   bardo: (lvl,A)=>[
-    {name:'Inspiración heroica', desc:'+nivel/3 a TS contra encantamiento, +1 atq y daño en aliados.',
-     max: lvl>=17 ? 999 : (3 + A.CAR), reset:'long', tracker:true}
+    /* MC-3: Performance rounds = 4 + CAR + 2*(lvl-1) (PC fórmula correcta) */
+    {name:'Inspiración heroica', desc:'+nivel/3 a TS encantamiento, +1 atq y daño en aliados. Rondas/día.',
+     max: lvl>=20 ? 999 : Math.max(1, 4 + (A.CAR||0) + 2*Math.max(0,lvl-1)), reset:'long', tracker:true}
   ],
   witch: (lvl,A)=>{
-    const hexLvls = [1,2,4,6,8,10,12,14,16,18];
-    const known = hexLvls.filter(h=>h<=lvl).length;
+    /* MC-3: hex = lvl conocidos (PC fórmula simple) */
     return [
-      {name:'Hexes conocidos', desc:'Maleficios aprendidos del patrón. (1 a niv 1,2,4,6,8,10,12,14,16,18).',
-       max: known, reset:'none', tracker:false}
+      {name:'Hexes conocidos', desc:'Maleficios aprendidos del patrón. 1 a niv 1, +1 cada 2 niveles.',
+       max: 1 + Math.floor(lvl/2), reset:'none', tracker:false}
     ];
   },
   cavalier: (lvl,A)=>[
@@ -4252,8 +4283,9 @@ const CLASS_AUTO_FEATURES_D4 = {
      max: Math.max(0, 3 + A.CAR), reset:'long', tracker:true}
   ],
   druida: (lvl,A)=>[
-    {name:'Forma salvaje', desc:'Adopta forma animal/elemental.',
-     max: Math.max(0, lvl<4 ? 0 : (lvl-2)), reset:'long', tracker:true}
+    /* MC-3: gating ≥4 con escala (lvl-2)/2 más usos por nivel (PC) */
+    {name:'Forma salvaje', desc:'Adopta forma animal/elemental. Disponible ≥4.',
+     max: lvl >= 4 ? Math.max(0, Math.floor((lvl-2)/2) + 1) : 0, reset:'long', tracker:lvl>=4}
   ],
   /* Pasada manual de clases base/avanzadas — paridad con CLASS_AUTO_FEATURES de PC */
   alquimista: (lvl,A)=>[
@@ -4268,11 +4300,15 @@ const CLASS_AUTO_FEATURES_D4 = {
   ],
   magus: (lvl,A)=>[
     {name:'Reserva arcana', desc:'Encantamiento temporal del arma o efectos especiales.',
-     max: Math.max(0, Math.floor(lvl/2) + (A.INT||0)), reset:'long', tracker:true}
+     max: Math.max(0, Math.floor(lvl/2) + (A.INT||0)), reset:'short', tracker:true},
+    /* MC-3: Spell Recall (≥4) — recupera conjuro lanzado consumiendo puntos = nivel del conjuro */
+    {name:'Recordar conjuro', desc:'Gasta puntos = nv del conjuro para recuperar slot. Lvl ≥4.',
+     max: lvl >= 4 ? 1 : 0, reset:'long', tracker:lvl>=4}
   ],
   oraculo: (lvl,A)=>[
-    {name:'Revelaciones', desc:'Habilidades únicas del misterio elegido.',
-     max: Math.min(7, 1 + Math.floor((lvl-1)/2)), reset:'none', tracker:false}
+    /* MC-3: Revelation count fórmula PC = 3+CAR (no escala con nivel) */
+    {name:'Revelaciones', desc:'Habilidades únicas del misterio elegido. Pool de revelaciones conocidas.',
+     max: Math.max(1, 3 + (A.CAR||0)), reset:'long', tracker:true}
   ],
   invocador: (lvl,A)=>[
     {name:'Invocar monstruo', desc:'Invocar criaturas de listas summon monster (1+CAR/día).',
@@ -4289,8 +4325,9 @@ const CLASS_AUTO_FEATURES_D4 = {
      max: Math.max(0, Math.floor(lvl/2) + (A.CAR||0)), reset:'long', tracker:true}
   ],
   ninja: (lvl,A)=>[
-    {name:'Pool de Ki', desc:'Acción rápida extra, +20 ft velocidad o ataque adicional.',
-     max: Math.max(0, Math.floor(lvl/2) + (A.CAR||0)), reset:'long', tracker:true}
+    /* MC-3: gating ≥2 (PC) */
+    {name:'Pool de Ki', desc:'Acción rápida extra, +20 ft velocidad o ataque adicional. Disponible ≥2.',
+     max: lvl >= 2 ? Math.max(0, Math.floor(lvl/2) + (A.CAR||0)) : 0, reset:'short', tracker:lvl>=2}
   ],
   rabioso_de_sangre: (lvl,A)=>[
     {name:'Rabia de sangre', desc:'Como rabia + poderes del linaje.',
@@ -4303,10 +4340,11 @@ const CLASS_AUTO_FEATURES_D4 = {
      max: 1, reset:'long', tracker:false}
   ],
   cazador: (lvl,A)=>[
+    /* MC-3: Animal Focus (lvl) — minutos/día = nivel total */
+    {name:'Animal Focus', desc:'Otorga aspecto bestial al cazador o compañero. Minutos/día = lvl.',
+     max: Math.max(1, lvl), reset:'long', tracker:true},
     {name:'Vínculo de cazador', desc:'Bono de equipo o compañero animal mejorado.',
-     max: 1, reset:'long', tracker:false},
-    {name:'Empatía con animales', desc:'Tirada CAR para influir actitud animal.',
-     max: 99, reset:'none', tracker:false}
+     max: 1, reset:'long', tracker:false}
   ],
   investigador: (lvl,A)=>[
     {name:'Inspiración', desc:'+1d6 a tiradas de habilidad o ataque/save (gasto pool).',
@@ -4329,26 +4367,145 @@ const CLASS_AUTO_FEATURES_D4 = {
      max: 1, reset:'long', tracker:false}
   ],
   cinetico: (lvl,A)=>[
-    {name:'Burn (acumulación)', desc:'Punto de quemadura para potenciar efectos kinéticos.',
-     max: 3 + (A.CON||0), reset:'long', tracker:true}
+    /* MC-3: Burn fórmula PC = lvl/2 max acumulado por encuentro */
+    {name:'Burn (acumulación)', desc:'Quemadura por blast. Máx CON+3 por día. Lvl/2 sin daño.',
+     max: 3 + (A.CON||0), reset:'long', tracker:true},
+    {name:'Burn no letal', desc:'Lvl/2 burn al día sin daño no letal (gather power).',
+     max: Math.max(0, Math.floor(lvl/2)), reset:'short', tracker:true}
   ],
   escaldo: (lvl,A)=>[
-    {name:'Canción enfurecida', desc:'Otorga rabia/inspiración a aliados elegidos.',
-     max: 3 + (A.CAR||0), reset:'long', tracker:true}
+    /* MC-3: Raging Song fórmula PC = 4+CAR+2*(lvl-1) (igual que bardo) */
+    {name:'Canción enfurecida', desc:'Otorga rabia/inspiración a aliados elegidos. Rondas/día.',
+     max: Math.max(1, 4 + (A.CAR||0) + 2*Math.max(0,lvl-1)), reset:'long', tracker:true}
   ],
   chaman: (lvl,A)=>[
     {name:'Hexes de espíritu', desc:'Maleficios del espíritu vinculado.',
-     max: Math.max(0, Math.floor(lvl/2) + 1), reset:'none', tracker:false}
+     max: Math.max(0, Math.floor(lvl/2) + 1), reset:'none', tracker:false},
+    /* MC-3: Wandering Spirit ≥4 (1/día, cambia al descansar) */
+    {name:'Espíritu Errante', desc:'Cambia espíritu al descansar. Disponible ≥4.',
+     max: lvl >= 4 ? 1 : 0, reset:'long', tracker:lvl>=4}
   ],
   vigilante: (lvl,A)=>[
     {name:'Talentos de Vigilante', desc:'Talentos sociales y de combate del rol vigilante.',
      max: Math.max(0, Math.floor(lvl/2)), reset:'none', tracker:false}
   ],
   arcanista: (lvl,A)=>[
+    /* MC-3: fórmula PC alineada — 3+lvl/2 (no era max(1, lvl/2 + INT)) */
     {name:'Reserva arcana', desc:'Punto para potenciar conjuros (extender, empoderar, etc.).',
-     max: Math.max(1, Math.floor(lvl/2) + (A.INT||0)), reset:'long', tracker:true}
+     max: 3 + Math.floor(lvl/2), reset:'long', tracker:true}
+  ],
+  /* MC-2 Fase C: 13 clases que faltaban con auto-features (paridad con PC) */
+  hechicero: (lvl,A)=>[
+    {name:'Poder de Linaje', desc:'Habilidad otorgada por el linaje. Usos = 3 + CAR/día.',
+     max: Math.max(0, 3 + (A.CAR||0)), reset:'long', tracker:true}
+  ],
+  explorador: (lvl,A)=>[
+    {name:'Enemigo predilecto', desc:'+2 atq/daño/skills contra tipo elegido (escala +2/5 nv).',
+     max: 1 + Math.floor(lvl/5), reset:'none', tracker:false},
+    /* Quarry desde nivel 11: cazar como move, +20 movimiento, ignora condiciones de visión */
+    {name:'Presa', desc:'Marca a 1 enemigo como presa. Reroll fallos vs presa. Lvl ≥11.',
+     max: lvl >= 11 ? 1 : 0, reset:'long', tracker:lvl>=11}
+  ],
+  ocultista: (lvl,A)=>[
+    /* Ocultista: focus power = 1 + (lvl-1)/2 cada implemento */
+    {name:'Focus mental', desc:'Puntos por implemento para focus powers. 1 + (lvl-1)/2 por escuela.',
+     max: 3 + Math.floor((lvl-1)/2), reset:'long', tracker:true}
+  ],
+  psiquico: (lvl,A)=>[
+    {name:'Pool frenetico', desc:'Punto para metamagia psíquica. lvl/2 + INT/SAB.',
+     max: Math.max(0, Math.floor(lvl/2) + (A.INT||0)), reset:'long', tracker:true}
+  ],
+  hipnotizador: (lvl,A)=>[
+    /* Mesmerist: Touch Treatment lvl/2+CAR (≥2) */
+    {name:'Toque tratante', desc:'Cura condiciones por toque. Lvl/2 + CAR usos/día. Disponible ≥2.',
+     max: lvl >= 2 ? Math.max(1, Math.floor(lvl/2) + (A.CAR||0)) : 0, reset:'long', tracker:lvl>=2},
+    {name:'Trucos hipnóticos', desc:'Triggers en aliados (1 punto = 1 trigger). 3+CAR usos/día.',
+     max: Math.max(1, 3 + (A.CAR||0)), reset:'long', tracker:true}
+  ],
+  medium: (lvl,A)=>[
+    /* Medium: Channel Spirit (1 espíritu activo, max ≥1 desde nivel 1) */
+    {name:'Canalizar Espíritu', desc:'1 espíritu vinculado por día (ascendant/champion/guardian/hierophant/marshal/trickster).',
+     max: 1, reset:'long', tracker:true},
+    {name:'Influencia/Sello', desc:'Influencias acumuladas que el espíritu impone al medium.',
+     max: 5, reset:'long', tracker:true}
+  ],
+  espiritista: (lvl,A)=>[
+    /* Spiritualist: Bonded Manifestation lvl/2+CAR (≥1) */
+    {name:'Manifestación vinculada', desc:'Phantom manifestado como ectoplasma o etéreo. Lvl/2 + CAR rondas/día.',
+     max: Math.max(1, Math.floor(lvl/2) + (A.CAR||0)), reset:'long', tracker:true}
+  ],
+  cambiante: (lvl,A)=>[
+    /* Shifter: Wild Shape Shifter desde nivel 1 (lvl/4 forms?) */
+    {name:'Forma Salvaje (Cambiante)', desc:'Adopta forma de aspect animal. Tabla shifter.',
+     max: Math.max(0, Math.floor(lvl/2)), reset:'long', tracker:true},
+    {name:'Aspecto Salvaje', desc:'Aspecto bestial menor (garras, mordisco, etc.). 1 al inicio.',
+     max: 1, reset:'none', tracker:false}
+  ],
+  /* Prestige */
+  descendiente_de_dragon: (lvl,A)=>[
+    {name:'Aliento dracónico', desc:'1d6 fuego/nivel (cono o línea). Lvl ≥2.',
+     max: lvl >= 2 ? 1 : 0, reset:'long', tracker:lvl>=2}
+  ],
+  bailarin_sombras: (lvl,A)=>[
+    /* Shadowdancer: Shadow Jump 40·2^(lvl-4) ft/día desde nivel 4 */
+    {name:'Salto de sombra', desc:'Teletransporte por sombras. 40·2^(NS-4) ft/día. Desde nivel 4.',
+     max: lvl >= 4 ? Math.max(0, 40 * Math.pow(2, lvl - 4)) : 0, reset:'long', tracker:lvl>=4}
+  ],
+  /* Unchained */
+  barbaro_unchained: (lvl,A)=>[
+    {name:'Rabia (Unchained)', desc:'Rondas/día. +2 FUE/CON pasivos durante rabia, +1 atq/daño.',
+     max: Math.max(0, 4 + (A.CON||0) + 2*Math.max(0,lvl-1)), reset:'long', tracker:true}
+  ],
+  monje_unchained: (lvl,A)=>[
+    {name:'Pool de Ki (Unchained)', desc:'Ki como Monje. ½lvl + SAB.',
+     max: Math.max(0, Math.floor(lvl/2) + (A.SAB||0)), reset:'long', tracker:true},
+    {name:'Golpe Aturdidor (Unchained)', desc:'Lvl/4 usos/día. Disponible ≥4.',
+     max: lvl >= 4 ? Math.max(1, Math.floor(lvl/4)) : 0, reset:'long', tracker:lvl>=4}
+  ],
+  picaro_unchained: (lvl,A)=>[
+    {name:'Talento de pícaro', desc:'Talentos especiales (rogue talents). 1 cada 2 niveles.',
+     max: Math.max(0, Math.floor(lvl/2)), reset:'none', tracker:false}
+  ],
+  invocador_unchained: (lvl,A)=>[
+    {name:'Invocar monstruo (UC)', desc:'Invocar criaturas reformuladas. 3+CAR+lvl/2 usos.',
+     max: 3 + (A.CAR||0) + Math.floor(lvl/2), reset:'long', tracker:true},
+    {name:'Vínculo eidolón (UC)', desc:'Eidolón de subtipo elegido (Agatión, Demonio, etc.).',
+     max: 1, reset:'long', tracker:false}
   ]
 };
+
+/* MC-1 Fase C: tabla central reset por feature.
+   short = Descanso corto (1h, recarga pools de encuentro/concentración).
+   long  = Descanso largo (8h, recarga TODO).
+   none  = nunca (informativo). */
+const REST_RESET_KEY_MAP = {
+  /* short rest: ki, panache, grit, arcane reservoir, magus reserva, bombs, inspiration,
+     martial flexibility, animal focus, studied target, performance/raging song. */
+  'Pool de Ki': 'short', 'Pool de Ki (Unchained)': 'short',
+  'Brio (Panache)': 'short', 'Arrojo (Grit)': 'short',
+  'Reserva arcana': 'short',
+  'Bombas': 'short',
+  'Inspiración': 'short',
+  'Flexibilidad marcial': 'short',
+  'Vínculo de cazador': 'short',
+  'Objetivo estudiado': 'short',
+  'Inspiración heroica': 'short',
+  'Canción enfurecida': 'short',
+  'Focus mental': 'short',
+  'Pool frenetico': 'short',
+  'Toque tratante': 'short'
+};
+function _getResetKindForFeature(feature){
+  /* Si la feature tiene reset:'short' o 'long', usar eso. Si no, mirar mapa. */
+  if(feature && feature.reset && feature.reset !== 'long') return feature.reset;
+  return REST_RESET_KEY_MAP[feature?.name] || feature?.reset || 'long';
+}
+
+/* MC-5 Fase C: features auto descartadas no se re-inyectan al rebuild */
+const _autoFeaturesDismissed = new Set();
+function _dismissedKeyForClass(){
+  return canonicalClassId((CLASSES_DATA[0]||{name:''}).name) || 'guerrero';
+}
 
 const ARCANE_SCHOOLS = [
   ['Abjuración','Magia protectora; desviar daño y disipar.'],
@@ -10243,6 +10400,14 @@ function wireRestPF1e(){
     document.dispatchEvent(new CustomEvent('rest-long',{detail:{quality:_REST_QUALITY}}));
     if(typeof closeSheet==='function') closeSheet(document.getElementById('sheet-rest'));
     if(typeof saveStateDebounced==='function') saveStateDebounced('rest');
+  });
+  /* MC-1 Fase C: Descanso corto (1h) — solo recarga pools 'short' (ki, panache, grit, etc.) */
+  const shortBtn = document.getElementById('btn-rest-short');
+  if(shortBtn) shortBtn.addEventListener('click', ()=>{
+    document.dispatchEvent(new CustomEvent('rest-short'));
+    if(typeof toast==='function') toast('Descanso corto: pools de encuentro restaurados');
+    if(typeof closeSheet==='function') closeSheet(document.getElementById('sheet-rest'));
+    if(typeof saveStateDebounced==='function') saveStateDebounced('rest-short');
   });
 }
 
