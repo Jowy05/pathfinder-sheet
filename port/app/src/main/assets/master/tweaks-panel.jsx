@@ -335,7 +335,11 @@ function TweakRadio({ label, value, options, onChange }) {
              style={{ left: `calc(2px + ${idx} * (100% - 4px) / ${n})`,
                       width: `calc((100% - 4px) / ${n})` }} />
         {opts.map((o) => (
-          <button key={o.value} type="button" role="radio" aria-checked={o.value === value}>
+          /* 2026-05-07: añadido onClick para que el botón funcione con tap/teclado.
+             Antes el cambio sólo se gestionaba vía onPointerDown del contenedor,
+             rompiendo accesibilidad por teclado y tap directo. */
+          <button key={o.value} type="button" role="radio" aria-checked={o.value === value}
+                  onClick={() => onChange(o.value)}>
             {o.label}
           </button>
         ))}

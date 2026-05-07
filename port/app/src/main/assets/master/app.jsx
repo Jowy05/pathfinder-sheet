@@ -2995,19 +2995,9 @@ function MasterApp({
     <div className={"mst-app" + (streamMode ? ' stream-mode' : '')}>
       {/* HEADER */}
       <div className="mst-header">
-        <div className="mst-btn-stack">
-          <button
-            className="mst-exit-btn"
-            aria-label={t.exit}
-            title={t.exit}
-            onClick={() => {
-              try { window.parent.postMessage({ type: 'mst-exit' }, '*'); } catch (_) {}
-            }}
-          >
-            <window.MstIcon name="exit" size={20}/>
-          </button>
-          <span className="mst-btn-caption">{t.lblExit}</span>
-        </div>
+        {/* 2026-05-07: botón SALIR eliminado — el overlay wrapper de la ficha
+            ya tiene una "✕ Cerrar" arriba, era redundante. La SPA puede seguir
+            cerrándose vía postMessage 'mst-exit' desde otros sitios si hace falta. */}
         <div style={{ flex:1, minWidth:0 }}>
           <div className="mst-header-title">
             <span style={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
@@ -3016,27 +3006,11 @@ function MasterApp({
           </div>
           <div className="mst-header-meta">
             <span key={roundFlash} className="mst-round-pill mst-round-pill-flash">{t.round} {round}</span>
-            <button className="mst-btn-icon mst-btn-sm" onClick={rewindTurn} aria-label={t.lblPrev} title={t.lblPrev}>
-              <window.MstIcon name="rewind" size={14}/>
-            </button>
-            <button className="mst-btn-icon mst-btn-sm mst-btn-primary" onClick={advanceTurn} aria-label={t.lblNextTurn} title={t.lblNextTurn}>
-              <window.MstIcon name="fast" size={14}/>
-            </button>
+            {/* 2026-05-07: avanzar/retroceder turno y bestiario eliminados del header.
+                Ya están en init-full toolbar (donde se gestiona iniciativa) y en
+                bottom-nav respectivamente. Header se queda sólo con título + ronda. */}
           </div>
         </div>
-        {initPos === 'top' && (
-          <div className="mst-btn-stack">
-            <button
-              className="mst-btn-icon"
-              aria-label={t.bestiary}
-              title={t.bestiary}
-              onClick={() => setBottomTab('best')}
-            >
-              <window.MstIcon name="book" size={20}/>
-            </button>
-            <span className="mst-btn-caption">{t.lblBestiary}</span>
-          </div>
-        )}
       </div>
 
       {/* INIT TOP */}
