@@ -57736,7 +57736,9 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
       <h3 style="font:700 16px 'Cinzel',serif;margin-top:0">Reparte atributos</h3>
       <p style="font:12px/1.4 system-ui;color:var(--ink-muted);margin-bottom:10px">Elige el método y reparte los puntos.</p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">
-        <button class="btn-secondary wiz-attr-method" data-method="standard" style="font-size:12px">Standard Array (15,14,13,12,10,8)</button>
+        <!-- 2026-05-07: Standard Array reemplazado por "Personalizado" — el
+             usuario edita los stats libremente con +/− por atributo. -->
+        <button class="btn-secondary wiz-attr-method" data-method="custom" style="font-size:12px">✏ Personalizado</button>
         <button class="btn-secondary wiz-attr-method" data-method="pb15" style="font-size:12px">Point-Buy 15</button>
         <button class="btn-secondary wiz-attr-method" data-method="pb20" style="font-size:12px">Point-Buy 20</button>
         <button class="btn-secondary wiz-attr-method" data-method="pb25" style="font-size:12px">Point-Buy 25</button>
@@ -59091,6 +59093,27 @@ document.addEventListener('DOMContentLoaded', function(){
       }
     }catch(_){}
   });
+});
+
+/* 2026-05-07: refresco automático ligero cada 5s.
+   Mantiene actualizado XP banner / level-up notification / condiciones auto
+   sin que el usuario tenga que pulsar "Refrescar ficha" manualmente.
+   Pausa cuando la pestaña no es visible (ahorra batería). */
+function _autoTick(){
+  if(document.hidden) return;
+  try{
+    if(typeof CombatEngine !== 'undefined' && CombatEngine.apply) CombatEngine.apply();
+    if(typeof refreshXPBar === 'function') refreshXPBar();
+    if(typeof updateTopbar === 'function') updateTopbar();
+    if(typeof renderTopbarFlags === 'function') renderTopbarFlags();
+    if(typeof renderConditionsSummary === 'function') renderConditionsSummary();
+    if(typeof renderWarnings === 'function') renderWarnings();
+  }catch(e){ /* silencioso para no spamear consola */ }
+}
+let _autoTickInterval = setInterval(_autoTick, 5000);
+document.addEventListener('visibilitychange', ()=>{
+  /* Re-tick inmediato al volver, para refrescar tras minutos en background. */
+  if(!document.hidden) setTimeout(_autoTick, 100);
 });
 
 /* 2026-05-07: Refrescar ficha — handler real (antes era solo data-toast cosmético).
@@ -67148,18 +67171,28 @@ function _wizGoTo(step){
 function _wizPopulateRaces(){
   const list = document.getElementById('wiz-race-list');
   if(!list) return;
-  const races = (typeof RACES_DATA_FULL!=='undefined' && RACES_DATA_FULL.length) ? RACES_DATA_FULL
-              : (typeof RACES_DATA!=='undefined' ? RACES_DATA.map(r=>({key:r[0].toLowerCase(),name:r[0],desc:r[1]})) : []);
-  list.innerHTML = races.map((r,i)=>{
-    const sel = (_WIZ_STATE.raceKey === (r.key||r.name));
+  /* 2026-05-07: bug fix [Object Object]. RACES_DATA_FULL tiene name:{es,en}
+     en lugar de string. Extraemos el localizado y construimos desc resumida
+     desde bonuses + traits (los campos reales del schema). */
+  const lang = (document.documentElement.dataset.lang === 'en') ? 'en' : 'es';
+  const fullList = (typeof window.RACES_DATA_FULL !== 'undefined' && window.RACES_DATA_FULL.length)
+    ? window.RACES_DATA_FULL.map(r=>{
+        const nm = (typeof r.name === 'object' && r.name) ? (r.name[lang] || r.name.es || r.name.en || r.id) : (r.name || r.id || '?');
+        const traits = Array.isArray(r.traits) ? r.traits.slice(0,3).join(' · ') : '';
+        const desc = [r.bonuses, traits].filter(Boolean).join(' · ');
+        return { key: r.id || nm.toLowerCase(), name: nm, desc };
+      })
+    : (typeof RACES_DATA !== 'undefined' ? RACES_DATA.map(r => ({ key: r[0].toLowerCase(), name: r[0], desc: r[1] })) : []);
+  list.innerHTML = fullList.map((r,i)=>{
+    const sel = (_WIZ_STATE.raceKey === r.key);
     return `<button class="picker-row" data-wiz-race="${i}" style="display:block;width:100%;text-align:left;padding:10px;margin-bottom:6px;border:1px solid ${sel?'var(--accent)':'var(--line)'};border-radius:8px;background:${sel?'var(--accent-soft)':'transparent'}">
       <div style="font-weight:700;font-family:'Cinzel',serif">${r.name}</div>
-      <div style="font:11px/1.3 system-ui;color:var(--ink-muted);margin-top:2px">${r.desc||r.description||''}</div>
+      <div style="font:11px/1.3 system-ui;color:var(--ink-muted);margin-top:2px">${r.desc||''}</div>
     </button>`;
   }).join('');
   list.querySelectorAll('[data-wiz-race]').forEach(b=>b.addEventListener('click',()=>{
-    const r = races[+b.dataset.wizRace];
-    _WIZ_STATE.raceKey = r.key || r.name;
+    const r = fullList[+b.dataset.wizRace];
+    _WIZ_STATE.raceKey = r.key;
     _WIZ_STATE.raceName = r.name;
     _wizPopulateRaces();
   }));
@@ -67193,9 +67226,8 @@ function _wizRenderAttrs(){
   if(!grid) return;
   const ATTR_LIST = ['FUE','DES','CON','INT','SAB','CAR'];
   const m = _WIZ_STATE.attrMethod;
-  const STANDARD = [15,14,13,12,10,8];
-  if(m === 'standard'){
-    if(counter) counter.textContent = 'Standard Array · arrastra los valores 15/14/13/12/10/8 a tus atributos';
+  if(m === 'custom'){
+    if(counter) counter.textContent = 'Personalizado · escribe los valores que quieras';
   } else if(m && m.startsWith('pb')){
     /* Calcular coste del estado actual */
     let cost = 0;
@@ -67391,9 +67423,9 @@ function wireNewCharWizard(){
   document.querySelectorAll('.wiz-attr-method').forEach(b=>b.addEventListener('click',()=>{
     const m = b.dataset.method;
     _WIZ_STATE.attrMethod = m;
-    if(m === 'standard'){
-      const arr = [15,14,13,12,10,8];
-      ['FUE','DES','CON','INT','SAB','CAR'].forEach((k,i)=>_WIZ_STATE.attrs[k] = arr[i]);
+    if(m === 'custom'){
+      /* 2026-05-07: modo libre — todos a 10, el usuario edita +/− sin límite. */
+      ['FUE','DES','CON','INT','SAB','CAR'].forEach(k=>_WIZ_STATE.attrs[k]=10);
     } else if(m === 'pb15'){ _WIZ_STATE.pbBudget = 15; ['FUE','DES','CON','INT','SAB','CAR'].forEach(k=>_WIZ_STATE.attrs[k]=10); }
     else if(m === 'pb20'){ _WIZ_STATE.pbBudget = 20; ['FUE','DES','CON','INT','SAB','CAR'].forEach(k=>_WIZ_STATE.attrs[k]=10); }
     else if(m === 'pb25'){ _WIZ_STATE.pbBudget = 25; ['FUE','DES','CON','INT','SAB','CAR'].forEach(k=>_WIZ_STATE.attrs[k]=10); }
