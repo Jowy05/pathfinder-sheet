@@ -56768,7 +56768,10 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
         <div id="summary-buffs-list" style="display:grid;gap:6px;font:13px/1.4 system-ui">
           <div style="color:var(--ink-muted);font-style:italic">Sin buffs activos. Añade desde Combate &gt; Condiciones &gt; Buffs.</div>
         </div>
-        <button class="btn-secondary" id="btn-next-round" style="width:100%;margin-top:8px">▶ Siguiente asalto (decrementa rondas)</button>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:6px;margin-top:8px">
+          <button class="btn-secondary" id="btn-next-round">▶ Siguiente asalto (decrementa rondas)</button>
+          <button class="btn-secondary" id="btn-reset-round" style="font-size:11px;padding:6px 10px" title="Reiniciar combate: vuelve al asalto 1 y restaura duraciones de buffs">↺ Reset</button>
+        </div>
       </div>
       <!-- UX-22 Fase H: tracker iniciativa read-only para jugador (visible si hay combatientes) -->
       <div class="card" id="combat-init-readonly" style="display:none">
@@ -57135,9 +57138,12 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
           <li>Odre de agua</li>
           <li>Pociones de curar heridas leves (2)</li>
         </ul>
-        <div class="field-with-action" style="margin-top:10px">
+        <!-- 2026-05-07: ahora con campo peso por unidad. Antes solo añadía texto. -->
+        <div style="display:grid;grid-template-columns:1fr 70px 60px auto;gap:6px;margin-top:10px;align-items:center">
           <input class="field-input" id="inv-input" placeholder="Añadir objeto…">
-          <button class="field-attach" id="inv-add" aria-label="Añadir">+</button>
+          <input class="field-input" id="inv-input-qty" type="number" inputmode="numeric" min="1" value="1" placeholder="Qty" title="Cantidad" style="text-align:center">
+          <input class="field-input" id="inv-input-weight" type="number" inputmode="decimal" step="0.1" min="0" value="0" placeholder="Lb" title="Peso por unidad (lb)" style="text-align:center">
+          <button class="field-attach" id="inv-add" aria-label="Añadir" style="height:38px;padding:0 14px">+</button>
         </div>
       </div>
     </div>
@@ -58069,7 +58075,7 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
   <div class="sheet-header"><div class="sheet-title">Añadir conjuro</div><button class="sheet-close" data-close>✕</button></div>
   <div class="sheet-content">
     <!-- UX-17 Fase H: botón catálogo en lugar de form vacío -->
-    <button class="btn-secondary" id="spell-add-from-catalog" style="width:100%;margin-bottom:10px;background:var(--accent-soft);color:var(--accent);border-color:var(--accent)">📚 Buscar en catálogo PF1e (60 conjuros)</button>
+    <button class="btn-secondary" id="spell-add-from-catalog" style="width:100%;margin-bottom:10px;background:var(--accent-soft);color:var(--accent);border-color:var(--accent)">📚 Buscar en catálogo PF1e (564 conjuros)</button>
     <div style="font:11px system-ui;color:var(--ink-muted);text-align:center;margin-bottom:10px">— o crea uno personalizado —</div>
     <div class="form-grid">
       <div class="field-row">
@@ -61310,24 +61316,33 @@ let spellFilter='todos';
 function renderSpells(){
   const c = document.getElementById('spell-list');
   if(!c) return;
+  /* 2026-05-07: incluso cuando el filtro excluye todo, mostrar siempre los
+     botones "+ Añadir conjuro Nv N" para no bloquear al usuario. */
   if(SPELLS_DATA.length===0){
-    c.innerHTML = `<div class="spell-list-empty">
+    let html = `<div class="spell-list-empty">
       <span class="em">📜</span>
       <strong>Sin conjuros conocidos</strong><br>
-      Esta clase no lanza conjuros, o aún no se han añadido.<br>
-      <button class="btn-add" id="spell-add-empty" style="margin-top:12px;max-width:240px">＋ Añadir conjuro</button>
-    </div>`;
-    const ad = document.getElementById('spell-add-empty');
-    if(ad) ad.addEventListener('click',()=>{
-      const lvlEl = document.getElementById('spell-add-lvl'); if(lvlEl) lvlEl.value='1';
+      Pulsa abajo para añadir el primero (nivel 0-9).
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px">`;
+    for(let lvl=0; lvl<=9; lvl++){
+      html += `<button class="spell-add" data-spell-add-lvl="${lvl}" style="font-size:12px">＋ Nv ${lvl}</button>`;
+    }
+    html += `</div>`;
+    c.innerHTML = html;
+    c.querySelectorAll('[data-spell-add-lvl]').forEach(b=>b.addEventListener('click',()=>{
+      const lvlEl = document.getElementById('spell-add-lvl');
+      if(lvlEl) lvlEl.value = b.dataset.spellAddLvl;
       openSheet('sheet-spell-add');
-    });
+    }));
     return;
   }
   // group by level
   const byLvl = {};
   SPELLS_DATA.forEach(s=>{ (byLvl[s.lvl]=byLvl[s.lvl]||[]).push(s); });
   let html = '';
+  /* Mostrar TODOS los niveles con datos, aunque el filtro excluya todos los items.
+     Así el botón "Añadir conjuro Nv N" siempre está disponible. */
   Object.keys(byLvl).sort((a,b)=>+a-+b).forEach(lvl=>{
     const items = byLvl[lvl].filter(s=>{
       if(spellFilter==='conocidos') return !s.prepared && !s.cast;
@@ -61335,23 +61350,29 @@ function renderSpells(){
       if(spellFilter==='lanzados') return s.cast;
       return true;
     });
-    if(!items.length) return;
     const slotStr = SLOT_STATE[+lvl] ? (SLOT_STATE[+lvl].max-SLOT_STATE[+lvl].used)+'/'+SLOT_STATE[+lvl].max : '—';
     const dc = calcSpellDC(+lvl);
     const dcStr = dc !== null ? ` · DC ${dc}` : '';
     html += `<div class="spell-level-h">Nivel ${lvl} · slots ${slotStr}${dcStr}</div>`;
-    items.forEach(s=>{
-      html += `<div class="spell-row ${s.cast?'cast':''}" data-spell="${s.id}">
-        <span class="lvl-badge">Nv ${s.lvl}</span>
-        <div class="name">${s.name}<small>${s.school||''} ${s.comp?'· '+s.comp:''}</small></div>
-        <button class="prep-toggle ${s.prepared?'active':''}" data-spell-prep="${s.id}" aria-label="Preparado">✓</button>
-        <button class="cast-btn" data-spell-cast="${s.id}" ${s.cast?'disabled':''}>${s.cast?'✓':'Lanzar'}</button>
-      </div>`;
-    });
+    if(items.length){
+      items.forEach(s=>{
+        html += `<div class="spell-row ${s.cast?'cast':''}" data-spell="${s.id}">
+          <span class="lvl-badge">Nv ${s.lvl}</span>
+          <div class="name">${s.name}<small>${s.school||''} ${s.comp?'· '+s.comp:''}</small></div>
+          <button class="prep-toggle ${s.prepared?'active':''}" data-spell-prep="${s.id}" aria-label="Preparado">✓</button>
+          <button class="cast-btn" data-spell-cast="${s.id}" ${s.cast?'disabled':''}>${s.cast?'✓':'Lanzar'}</button>
+        </div>`;
+      });
+    } else {
+      html += `<div style="padding:6px 10px;color:var(--ink-muted);font:11px italic system-ui">Sin conjuros de este nivel con el filtro activo</div>`;
+    }
     html += `<button class="spell-add" data-spell-add-lvl="${lvl}">＋ Añadir conjuro Nv ${lvl}</button>`;
   });
-  if(!html){
-    html = `<div class="spell-list-empty"><span class="em">🔍</span><strong>Sin conjuros con este filtro</strong></div>`;
+  /* Añadir niveles 0-9 que NO tengan conjuros aún (para que se pueda añadir el primero) */
+  for(let l=0; l<=9; l++){
+    if(!byLvl[l]){
+      html += `<button class="spell-add" data-spell-add-lvl="${l}" style="opacity:.7;font-size:12px">＋ Añadir Nv ${l}</button>`;
+    }
   }
   c.innerHTML = html;
   c.querySelectorAll('[data-spell-prep]').forEach(b=>b.addEventListener('click',()=>{
@@ -62444,12 +62465,20 @@ function bindNewSheets(){
     SPELLS_DATA.push({id, name, lvl, school, comp, prepared: CASTING_MODE==='spont', cast:false, custom:true});
     // Ensure slot max covers this level if needed
     if(SLOT_STATE[lvl] && SLOT_STATE[lvl].max===0) SLOT_STATE[lvl].max = 1;
+    /* 2026-05-07: reset filter a "Todos" para que el conjuro recién añadido
+       sea visible (si el usuario tenía el filtro en "Lanzados", "Preparados",
+       etc., el nuevo no aparecería). */
+    spellFilter = 'todos';
+    document.querySelectorAll('#spell-filter button').forEach(b=>{
+      b.classList.toggle('active', b.dataset.sf === 'todos');
+    });
     if(typeof renderSpells==='function') renderSpells();
     if(typeof renderSlots==='function') renderSlots();
     closeSheet(document.getElementById('sheet-spell-add'));
     // Clear fields for next use
     ['spell-add-name','spell-add-comp'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
     toast('Conjuro añadido: '+name);
+    if(typeof saveStateDebounced==='function') saveStateDebounced('spell-add');
   });
 }
 
@@ -62859,11 +62888,24 @@ function bindCustomAdds(){
     invAdd.addEventListener('click',()=>{
       const v = invIn.value.trim();
       if(!v) return;
+      /* 2026-05-07: leer cantidad y peso de los inputs nuevos. */
+      const qtyInp = document.getElementById('inv-input-qty');
+      const wInp = document.getElementById('inv-input-weight');
+      const qty = Math.max(1, parseInt(qtyInp?.value,10) || 1);
+      const weight = Math.max(0, parseFloat(wInp?.value) || 0);
       const li = document.createElement('li');
-      li.textContent = v;
+      const totalW = (qty * weight).toFixed(2).replace(/\.?0+$/,'');
+      const label = qty > 1 ? `${v} ×${qty}${weight>0?' · '+weight+' lb/u ('+totalW+' lb)':''}` : `${v}${weight>0?' · '+weight+' lb':''}`;
+      li.textContent = label;
+      li.dataset.qty = qty;
+      li.dataset.weight = weight;
       invList.appendChild(li);
       invIn.value='';
+      if(qtyInp) qtyInp.value = '1';
+      if(wInp) wInp.value = '0';
       bindInvItems();
+      if(typeof D5_recompute==='function') D5_recompute();
+      if(typeof saveStateDebounced==='function') saveStateDebounced('inv-add');
     });
   }
 }
@@ -65302,10 +65344,19 @@ const CombatEngine = (function(){
         }
       });
     }catch(e){}
+    /* 2026-05-07: aplicar bonos de dotes mecánicas comunes a saves.
+       Gran fortaleza +2 fort, Reflejos felinos +2 ref, Voluntad de hierro +2 will.
+       Versiones mejoradas (Improved) acumulan +2 más (en PF1e dan re-roll, simplificado). */
+    const featFort = (hasFeatByName(/gran\s+fortaleza|great\s+fortitude/i) ? 2 : 0)
+                   + (hasFeatByName(/gran\s+fortaleza\s+mejorada|improved\s+great\s+fortitude/i) ? 2 : 0);
+    const featRef  = (hasFeatByName(/reflejos?\s+felinos?|lightning\s+reflexes/i) ? 2 : 0)
+                   + (hasFeatByName(/reflejos?\s+felinos?\s+mejorad|improved\s+lightning\s+reflexes/i) ? 2 : 0);
+    const featWill = (hasFeatByName(/voluntad\s+de\s+hierro|iron\s+will/i) ? 2 : 0)
+                   + (hasFeatByName(/voluntad\s+de\s+hierro\s+mejorada|improved\s+iron\s+will/i) ? 2 : 0);
     return {
-      fort:{base:f, attr:mods.con|0, total:f+(mods.con|0)+(_BUFF_MOD_TOTALS.fort||0)},
-      ref :{base:r, attr:mods.dex|0, total:r+(mods.dex|0)+(_BUFF_MOD_TOTALS.ref||0)},
-      will:{base:w, attr:mods.wis|0, total:w+(mods.wis|0)+(_BUFF_MOD_TOTALS.will||0)+(_RAGE_ACTIVE?(_RAGE_BONUSES.will||0):0)}
+      fort:{base:f, attr:mods.con|0, total:f+(mods.con|0)+(_BUFF_MOD_TOTALS.fort||0)+featFort},
+      ref :{base:r, attr:mods.dex|0, total:r+(mods.dex|0)+(_BUFF_MOD_TOTALS.ref||0)+featRef},
+      will:{base:w, attr:mods.wis|0, total:w+(mods.wis|0)+(_BUFF_MOD_TOTALS.will||0)+(_RAGE_ACTIVE?(_RAGE_BONUSES.will||0):0)+featWill}
     };
   }
 
@@ -65351,7 +65402,12 @@ const CombatEngine = (function(){
     const size    = readCARow('size');
     const nat     = readCARow('nat');
     const deflect = readCARow('deflect');
-    const dodge   = readCARow('dodge');
+    /* 2026-05-07: Esquiva (Dodge feat) → +1 esquiva CA por defecto.
+       Si ya hay valor en la fila "esquiva" del DOM se respeta y se SUMA
+       (asumiendo que el usuario lo puso por otra fuente — bracelet of dodge,
+       monje, etc.). Sumamos el bonus de la dote si está presente. */
+    const featDodge = hasFeatByName(/^esquiva$|^dodge$/i) ? 1 : 0;
+    const dodge   = readCARow('dodge') + featDodge;
     let effDex = dex;
     const maxDexAttr = document.body.dataset.armorMaxDex;
     if(maxDexAttr !== undefined && maxDexAttr !== ''){
@@ -67360,6 +67416,21 @@ function _wizRenderEquipSuggest(){
     if(cb.checked){ if(!_WIZ_STATE.equipPicked.includes(i)) _WIZ_STATE.equipPicked.push(i); }
     else _WIZ_STATE.equipPicked = _WIZ_STATE.equipPicked.filter(x=>x!==i);
   }));
+  /* 2026-05-07: añadir botones para abrir catálogos completos directamente,
+     en lugar de obligar al usuario a usar las sugerencias predefinidas. */
+  const catalogBlock = document.createElement('div');
+  catalogBlock.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:12px';
+  catalogBlock.innerHTML = `
+    <button class="btn-secondary" id="wiz-open-weap-cat" style="font-size:12px">📚 Catálogo armas</button>
+    <button class="btn-secondary" id="wiz-open-armor-cat" style="font-size:12px">🛡 Catálogo armadura</button>
+  `;
+  c.appendChild(catalogBlock);
+  document.getElementById('wiz-open-weap-cat')?.addEventListener('click', ()=>{
+    if(typeof _openWeaponCatalog === 'function') _openWeaponCatalog();
+  });
+  document.getElementById('wiz-open-armor-cat')?.addEventListener('click', ()=>{
+    if(typeof _openArmorCatalog === 'function') _openArmorCatalog();
+  });
   /* Auto-marcar todas la primera vez */
   if(_WIZ_STATE.equipPicked.length === 0){
     _WIZ_STATE.equipPicked = items.map((_,i)=>i);
@@ -67518,30 +67589,39 @@ function _openWizard(){
 
 /* UX-10 Fase G: catálogo de armas desde DB.equipment.weapons */
 function _openWeaponCatalog(){
-  const arr = (DB?.equipment?.weapons) || [];
+  /* 2026-05-07: DB.equipment es {weapons:[…], armors:[…]} (no "armor"!).
+     Si DB.equipment es array directo, asumir que son armas. */
+  const eq = (typeof DB!=='undefined') ? DB.equipment : null;
+  const arr = (eq && Array.isArray(eq.weapons)) ? eq.weapons
+            : (Array.isArray(eq) ? eq : []);
   if(!arr.length){ if(typeof toast==='function') toast('Catálogo de armas no disponible'); return; }
   _openCatalogPicker('Catálogo de armas', arr, (it)=>{
     const id = ((WEAPONS_DATA||[])[(WEAPONS_DATA||[]).length-1]?.id || 0) + 1;
-    /* Mapeo defensivo del JSON al schema mobile */
-    const dieMatch = (it.damage_die_es || it.damage_die_en || it.damage || '1d8').match(/(\d+d\d+)/);
+    /* 2026-05-07 BUGFIX: mapeo al schema real de equipment.json:
+       {id, name, name_en, style, damage, crit, type, weight}.
+       Antes leía claves inexistentes (damage_die_*, crit_range_*, critical). */
+    const dieRaw = it.damage || it.damage_die_es || '1d8';
+    const dieMatch = dieRaw.match(/(\d+d\d+)/);
     const damage_die = dieMatch ? dieMatch[1] : '1d8';
-    const critRange = it.crit_range_es || it.crit_range_en || it.critical || '20/×2';
+    const critRange = it.crit || it.crit_range_es || '20/×2';
     const cm = critRange.match(/(\d+)(?:[-–](\d+))?\s*\/\s*[×x](\d+)/i);
     const crit_threat = cm ? parseInt(cm[1],10) : 20;
     const crit_mult = cm ? parseInt(cm[3],10) : 2;
-    const isRanged = /distan|ranged|arco|ballesta|bow|crossbow/i.test(it.type || it.category || '');
-    const is2h = /2h|two\s*hand|2\s*manos/i.test(it.type || it.category || '');
+    /* style en equipment.json puede ser: melee1h, melee2h, finesse, ranged, composite, offhand */
+    const styleRaw = (it.style || '').toLowerCase();
+    const isRanged = styleRaw === 'ranged' || styleRaw === 'composite';
+    const is2h = styleRaw === 'melee2h';
     const style = isRanged ? 'ranged' : (is2h ? 'melee2h' : 'melee1h');
     const newW = {
-      id, name: it.name_es || it.name || it.id || 'Arma',
-      type: it.category || it.type || 'CaC',
+      id, name: it.name || it.name_es || it.id || 'Arma',
+      type: it.type || (style === 'ranged' ? 'Distancia' : 'CaC'),
       style: style,
       damage_die, crit_threat, crit_mult,
       enh: 0, misc: 0,
       weight: parseFloat(it.weight) || 0,
       hands: is2h ? 2 : 1,
-      notes: it.description_es || it.description || '',
-      atk: '+0', dmg: damage_die, crit: `${crit_threat===20?'20':crit_threat+'-20'}/×${crit_mult}`
+      notes: it.description || '',
+      atk: '+0', dmg: damage_die, crit: critRange
     };
     WEAPONS_DATA.push(newW);
     if(typeof D5_refreshWeaponRolls==='function') D5_refreshWeaponRolls(); else { renderWeapons(); rebindRolls(); }
@@ -67551,30 +67631,38 @@ function _openWeaponCatalog(){
   });
 }
 
-/* UX-10 Fase G: catálogo de armaduras desde DB.equipment.armor */
+/* UX-10 Fase G: catálogo de armaduras desde DB.equipment.armors */
 function _openArmorCatalog(){
-  const arr = (DB?.equipment?.armor) || [];
+  /* 2026-05-07 BUGFIX: la key correcta en equipment.json es "armors" (con s),
+     no "armor". Antes el botón nunca abría nada porque arr siempre era []. */
+  const eq = (typeof DB!=='undefined') ? DB.equipment : null;
+  const arr = (eq && Array.isArray(eq.armors)) ? eq.armors
+            : ((eq && Array.isArray(eq.armor)) ? eq.armor : []);
   if(!arr.length){ if(typeof toast==='function') toast('Catálogo de armaduras no disponible'); return; }
   _openCatalogPicker('Catálogo de armaduras', arr, (it)=>{
     const id = ((ARMOR_DATA||[])[(ARMOR_DATA||[]).length-1]?.id || 0) + 1;
-    const isShield = /escudo|shield/i.test(it.type || it.category || it.name_es || '');
-    const armorType = /pesad|heavy/i.test(it.type||'') ? 'heavy'
-                    : /medi/i.test(it.type||'') ? 'medium'
-                    : isShield ? 'shield' : 'light';
+    /* 2026-05-07 BUGFIX: schema real es ca_bonus (no ac_bonus) y armor_type
+       directo ('light'/'medium'/'heavy'/'shield'/'none'). */
+    const armorType = it.armor_type || 'light';
+    const isShield = armorType === 'shield' || /escudo|shield/i.test(it.name||'');
+    const ca = parseInt(it.ca_bonus ?? it.ac_bonus ?? it.ac, 10) || 0;
+    const md = parseInt(it.max_dex, 10);
+    const acp = parseInt(it.acp ?? it.armor_check_penalty, 10) || 0;
+    const asf = parseInt(it.arcane_failure ?? it.spell_failure, 10) || 0;
     const newA = {
-      id, name: it.name_es || it.name || 'Armadura',
-      type: it.type || (isShield?'Escudo':'Armadura'),
+      id, name: it.name || it.name_es || 'Armadura',
+      type: it.type || (isShield ? 'Escudo' : (armorType==='heavy'?'Pesada':armorType==='medium'?'Media':'Ligera')),
       armor_type: armorType,
-      ac_bonus: parseInt(it.ac_bonus||it.ac, 10) || 0,
-      max_dex: parseInt(it.max_dex, 10) || 99,
-      acp: parseInt(it.acp || it.armor_check_penalty, 10) || 0,
-      arcane_failure: parseInt(it.arcane_failure || it.spell_failure, 10) || 0,
+      ac_bonus: ca,
+      max_dex: isNaN(md) ? 99 : md,
+      acp,
+      arcane_failure: asf,
       weight: parseFloat(it.weight) || 0,
       equipped: false,
-      ac: '+' + (parseInt(it.ac_bonus||it.ac,10)||0),
-      maxDex: '+' + (parseInt(it.max_dex,10)||99),
-      penalty: String(parseInt(it.acp || it.armor_check_penalty,10) || 0),
-      spell: (parseInt(it.arcane_failure || it.spell_failure,10)||0) + '%'
+      ac: '+' + ca,
+      maxDex: '+' + (isNaN(md) ? 99 : md),
+      penalty: String(acp),
+      spell: asf + '%'
     };
     ARMOR_DATA.push(newA);
     if(typeof renderArmor==='function') renderArmor();
@@ -67612,15 +67700,28 @@ function _openCatalogPicker(title, items, onPick){
     const qq = norm(q);
     const filtered = items.filter(it=>{
       if(!qq) return true;
-      const n = norm(it.name_es || it.name);
-      const d = norm(it.description_es || it.description || it.type || '');
+      const n = norm(it.name || it.name_es || it.name_en);
+      const d = norm(it.description || it.description_es || it.type || '');
       return n.includes(qq) || d.includes(qq);
     });
-    list.innerHTML = filtered.map((it,i)=>`
-      <button class="picker-row" data-cat-pick="${i}" style="display:block;width:100%;text-align:left;padding:10px;margin-bottom:6px;border:1px solid var(--line);border-radius:6px;background:transparent">
-        <div style="font-weight:600;font-family:'Cinzel',serif">${it.name_es || it.name || it.id || '?'}</div>
-        <div style="font:12px/1.4 system-ui;color:var(--ink-muted);margin-top:2px">${it.type||it.category||''} · ${it.damage_die_es||it.damage||''} ${it.weight?(' · '+it.weight+' lb'):''}</div>
-      </button>`).join('');
+    /* 2026-05-07: meta info según armadura o arma. */
+    list.innerHTML = filtered.length ? filtered.map((it,i)=>{
+      const nm = it.name || it.name_es || it.name_en || it.id || '?';
+      const isArmor = (it.armor_type !== undefined) || (it.ca_bonus !== undefined);
+      let meta;
+      if(isArmor){
+        const ca = it.ca_bonus ?? it.ac_bonus ?? 0;
+        const md = it.max_dex ?? '';
+        const acp = it.acp ?? '';
+        meta = `CA +${ca}${md!==''?' · DEX máx '+md:''}${acp!==''?' · ACP '+acp:''}${it.weight?' · '+it.weight+' lb':''}`;
+      } else {
+        meta = `${it.style||it.type||''} · ${it.damage||it.damage_die||''} ${it.crit||it.crit_range||''}${it.weight?' · '+it.weight+' lb':''}`;
+      }
+      return `<button class="picker-row" data-cat-pick="${i}" style="display:block;width:100%;text-align:left;padding:10px;margin-bottom:6px;border:1px solid var(--line);border-radius:6px;background:transparent">
+        <div style="font-weight:600;font-family:'Cinzel',serif">${nm}</div>
+        <div style="font:12px/1.4 system-ui;color:var(--ink-muted);margin-top:2px">${meta}</div>
+      </button>`;
+    }).join('') : '<div style="text-align:center;color:var(--ink-muted);padding:20px;font:12px system-ui">Sin resultados</div>';
     list.querySelectorAll('[data-cat-pick]').forEach(b=>b.addEventListener('click',()=>{
       onPick(filtered[+b.dataset.catPick]);
       sheet.close();
@@ -67841,6 +67942,34 @@ setTimeout(_refreshRoundLabels, 400);
 function wireRoundButton(){
   const btn = document.getElementById('btn-next-round');
   if(btn) btn.addEventListener('click', nextRoundDecrement);
+  /* 2026-05-07: botón reset asalto. Vuelve a asalto 1, restaura duraciones
+     ORIGINALES de buffs si las tienen guardadas (rounds_max), y resetea init. */
+  const resetBtn = document.getElementById('btn-reset-round');
+  if(resetBtn) resetBtn.addEventListener('click', async ()=>{
+    const ok = (typeof appConfirm === 'function')
+      ? await appConfirm('¿Reiniciar combate? Vuelve al asalto 1 y restaura duraciones de buffs.', {title:'Reset asalto', okText:'Reset', cancelText:'Cancelar'})
+      : confirm('¿Reiniciar combate?');
+    if(!ok) return;
+    if(typeof INIT_ROUND === 'number') INIT_ROUND = 1;
+    /* Restaurar duraciones de buffs activos a su valor original si existe */
+    if(Array.isArray(BUFFS_LIST)){
+      BUFFS_LIST.forEach(b=>{
+        if(typeof b.rounds_max === 'number') b.rounds = b.rounds_max;
+      });
+    }
+    /* Reset turno activo */
+    if(Array.isArray(INIT_LIST)){
+      INIT_LIST.forEach(c=>{ c.active = false; });
+      if(INIT_LIST[0]) INIT_LIST[0].active = true;
+    }
+    if(typeof renderInit === 'function') renderInit();
+    if(typeof renderInitReadOnly === 'function') renderInitReadOnly();
+    if(typeof renderBuffs === 'function') renderBuffs();
+    if(typeof renderSummaryBuffs === 'function') renderSummaryBuffs();
+    if(typeof _refreshRoundLabels === 'function') _refreshRoundLabels();
+    if(typeof saveStateDebounced === 'function') saveStateDebounced('round-reset');
+    if(typeof toast === 'function') toast('↺ Combate reiniciado · Asalto 1');
+  });
   /* Re-render buffs cuando cambian */
   document.addEventListener('state-loaded', renderSummaryBuffs);
   setTimeout(renderSummaryBuffs, 300);
