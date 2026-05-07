@@ -198,7 +198,7 @@
         "sor": 6,
         "wiz": 6,
         "brd": 6,
-        "witch": 6
+        "wit": 6
       },
       "components": "V, S, F",
       "casting_time": "1 acción estándar",
@@ -313,7 +313,7 @@
         "clr": 3,
         "wiz": 4,
         "sor": 4,
-        "witch": 4
+        "wit": 4
       },
       "components": "V, S, M (polvo onyx 25po/DG)",
       "casting_time": "1 acción estándar",
@@ -832,7 +832,7 @@
         "clr": 0,
         "magus": 0,
         "drd": 0,
-        "witch": 0
+        "wit": 0
       },
       "components": "V, S",
       "casting_time": "1 acción estándar",
@@ -963,7 +963,6 @@
         "wiz": 2,
         "sor": 2,
         "brd": 2,
-        "witch": 3,
         "inq": 3,
         "oracle": 2,
         "wit": 2
@@ -1154,7 +1153,7 @@
       "level": {
         "drd": 1,
         "rgr": 1,
-        "witch": 1
+        "wit": 1
       },
       "components": "V, S",
       "casting_time": "1 acción estándar",
@@ -1232,7 +1231,6 @@
         "wiz": 1,
         "sor": 1,
         "brd": 1,
-        "witch": 1,
         "inq": 1,
         "wit": 1
       },
@@ -2513,7 +2511,7 @@
       ],
       "level": {
         "clr": 2,
-        "witch": 2
+        "wit": 2
       },
       "components": "V, S",
       "casting_time": "1 acción estándar",
@@ -3736,7 +3734,7 @@
       "level": {
         "drd": 1,
         "rgr": 1,
-        "witch": 1
+        "wit": 1
       },
       "components": "V, S, DF",
       "casting_time": "1 acción estándar",
@@ -4297,7 +4295,7 @@
         "sor": 2,
         "drd": 2,
         "magus": 2,
-        "witch": 2
+        "wit": 2
       },
       "components": "V, S, M/DF (sebo, azufre y polvo de hierro)",
       "casting_time": "1 acción estándar",
@@ -4658,7 +4656,7 @@
         "clr": 2,
         "wiz": 3,
         "sor": 3,
-        "witch": 2
+        "wit": 2
       },
       "components": "V, S, M/DF (sal y moneda en cada ojo)",
       "casting_time": "1 acción estándar",
@@ -8233,7 +8231,7 @@
       "level": {
         "drd": 3,
         "rgr": 3,
-        "witch": 3
+        "wit": 3
       },
       "components": "V, S, DF",
       "casting_time": "1 acción estándar",
@@ -10198,7 +10196,7 @@
         "sor": 3,
         "drd": 3,
         "magus": 3,
-        "witch": 3
+        "wit": 3
       },
       "components": "V, S, M/DF (polvo y agua)",
       "casting_time": "1 acción estándar",
@@ -10427,7 +10425,7 @@
       "descriptors": [],
       "level": {
         "clr": 3,
-        "witch": 3
+        "wit": 3
       },
       "components": "V, S, DF",
       "casting_time": "10 minutos",
@@ -10576,7 +10574,7 @@
         "alchemist": 2,
         "magus": 2,
         "summoner": 2,
-        "witch": 2
+        "wit": 2
       },
       "components": "V, S, M (gota de betún y una araña viva)",
       "casting_time": "1 acción estándar",
@@ -11308,7 +11306,7 @@
         "wiz": 2,
         "sor": 2,
         "brd": 2,
-        "witch": 2
+        "wit": 2
       },
       "components": "V, S, M/DF (insecto rojo)",
       "casting_time": "1 ronda completa",
@@ -12477,9 +12475,9 @@
       "level": {
         "clr": 3,
         "rgr": 3,
-        "witch": 3,
         "inq": 3,
-        "oracle": 3
+        "oracle": 3,
+        "wit": 3
       },
       "components": "V, S, DF",
       "casting_time": "1 acción estándar",
