@@ -59125,46 +59125,65 @@ document.addEventListener('DOMContentLoaded', function(){
   });
 });
 
-/* 2026-05-07: refresco automático ligero cada 5s.
-   Mantiene actualizado XP banner / level-up notification / condiciones auto
-   sin que el usuario tenga que pulsar "Refrescar ficha" manualmente.
-   Pausa cuando la pestaña no es visible (ahorra batería). */
-function _autoTick(){
-  if(document.hidden) return;
+/* 2026-05-07: refresco completo de la ficha. Misma rutina para el botón
+   manual ("Refrescar ficha") y para el auto-tick cada 5s. Re-renderiza
+   TODAS las cards dinámicas para que cualquier cambio (subir nivel, cambiar
+   atributo, etc.) propague a todos los paneles automáticamente. */
+function _fullRefresh(){
   try{
     if(typeof CombatEngine !== 'undefined' && CombatEngine.apply) CombatEngine.apply();
+    /* Skip re-render de listas pesadas si el usuario está editando un input/select dentro
+       de ellas — re-renderizar destruiría el foco y borraría lo que está escribiendo. */
+    const ae = document.activeElement;
+    const editing = ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.tagName === 'SELECT');
+    const inDynamicCard = editing && ae.closest && (
+      ae.closest('.class-card') || ae.closest('.eq-card') || ae.closest('.feat-card') ||
+      ae.closest('.buff-card') || ae.closest('.init-row') || ae.closest('.skill-row')
+    );
+    if(!inDynamicCard){
+      if(typeof renderClasses === 'function') renderClasses();
+      if(typeof renderWeapons === 'function') renderWeapons();
+      if(typeof renderArmor === 'function') renderArmor();
+      if(typeof renderBuffs === 'function') renderBuffs();
+      if(typeof renderAdjusts === 'function') renderAdjusts();
+      if(typeof renderInit === 'function') renderInit();
+      if(typeof renderInitReadOnly === 'function') renderInitReadOnly();
+      if(typeof renderClassFeatures === 'function') renderClassFeatures();
+      if(typeof renderFeatsCrud === 'function') renderFeatsCrud();
+      if(typeof D5_renderInventory === 'function') D5_renderInventory();
+      if(typeof D5_renderWeight === 'function') D5_renderWeight();
+      if(typeof window.D3_SKILLS === 'object' && window.D3_SKILLS.recalc) window.D3_SKILLS.recalc();
+    }
+    /* Estos son baratos y no destruyen foco — siempre se ejecutan. */
     if(typeof refreshXPBar === 'function') refreshXPBar();
     if(typeof updateTopbar === 'function') updateTopbar();
     if(typeof renderTopbarFlags === 'function') renderTopbarFlags();
     if(typeof renderConditionsSummary === 'function') renderConditionsSummary();
     if(typeof renderWarnings === 'function') renderWarnings();
-  }catch(e){ /* silencioso para no spamear consola */ }
+    if(typeof updateCondBadge === 'function') updateCondBadge();
+    if(typeof updateSummaryConds === 'function') updateSummaryConds();
+    if(typeof _refreshFeatCounter === 'function') _refreshFeatCounter();
+    if(typeof autoFillXPNext === 'function') autoFillXPNext();
+  }catch(e){ /* silencioso */ }
+}
+window._fullRefresh = _fullRefresh;
+
+function _autoTick(){
+  if(document.hidden) return; /* ahorrar batería en background */
+  _fullRefresh();
 }
 let _autoTickInterval = setInterval(_autoTick, 5000);
 document.addEventListener('visibilitychange', ()=>{
-  /* Re-tick inmediato al volver, para refrescar tras minutos en background. */
   if(!document.hidden) setTimeout(_autoTick, 100);
 });
 
-/* 2026-05-07: Refrescar ficha — handler real (antes era solo data-toast cosmético).
-   Recompone CombatEngine, fuerza re-render de clases/buffs/init/skills + recalc XP. */
+/* 2026-05-07: Refrescar ficha — botón manual ahora reusa _fullRefresh. */
 document.addEventListener('DOMContentLoaded', ()=>{
   const refreshBtn = document.getElementById('ov-refrescar');
   if(!refreshBtn) return;
   refreshBtn.addEventListener('click', ()=>{
     try{
-      if(typeof CombatEngine !== 'undefined' && CombatEngine.apply) CombatEngine.apply();
-      if(typeof renderClasses === 'function') renderClasses();
-      if(typeof renderWeapons === 'function') renderWeapons();
-      if(typeof renderArmor === 'function') renderArmor();
-      if(typeof renderBuffs === 'function') renderBuffs();
-      if(typeof renderInit === 'function') renderInit();
-      if(typeof window.D3_SKILLS === 'object' && window.D3_SKILLS.recalc) window.D3_SKILLS.recalc();
-      if(typeof refreshXPBar === 'function') refreshXPBar();
-      if(typeof updateTopbar === 'function') updateTopbar();
-      if(typeof renderTopbarFlags === 'function') renderTopbarFlags();
-      if(typeof renderConditionsSummary === 'function') renderConditionsSummary();
-      if(typeof renderWarnings === 'function') renderWarnings();
+      _fullRefresh();
       if(typeof saveStateDebounced === 'function') saveStateDebounced('refresh-manual');
       const lang = document.documentElement.dataset.lang;
       toast(lang === 'en' ? '✓ Sheet refreshed' : '✓ Ficha refrescada');
