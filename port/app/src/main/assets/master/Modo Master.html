@@ -108,6 +108,42 @@
         document.body.setAttribute('data-theme', tweaks.theme || 'verdant');
       }, [tweaks.theme]);
 
+      // 2026-05-07: sincronizar tema con la app principal.
+      // Algunos temas existen en la ficha pero no en master.css — mapearlos al
+      // más cercano en lugar de dejar el data-theme inválido (que rompería estilos).
+      const _MASTER_THEMES = ['pergamino','dark','light','cyber-yellow','cyber-red','navy','verdant'];
+      const _SHEET_TO_MASTER = {
+        'cyber-cyan':'cyber-yellow',
+        'dape':'pergamino',
+        'maniqka':'cyber-red',
+        'olympus':'pergamino',
+        'rosita':'pergamino',
+        'mi-tema':'pergamino'
+      };
+      const mapTheme = (t) => {
+        if (!t) return 'verdant';
+        if (_MASTER_THEMES.indexOf(t) !== -1) return t;
+        if (_SHEET_TO_MASTER[t]) return _SHEET_TO_MASTER[t];
+        return 'verdant';
+      };
+      useEffect(() => {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const urlTheme = params.get('theme');
+          if (urlTheme) setTweak('theme', mapTheme(urlTheme));
+        } catch (_) {}
+        const onMsg = (ev) => {
+          try {
+            const msg = ev.data;
+            if (msg && msg.type === 'theme-change' && msg.theme) {
+              setTweak('theme', mapTheme(msg.theme));
+            }
+          } catch (_) {}
+        };
+        window.addEventListener('message', onMsg);
+        return () => window.removeEventListener('message', onMsg);
+      }, []);
+
       // Oculta splash en cuanto monta el árbol
       useEffect(() => {
         const s = document.getElementById('splash');

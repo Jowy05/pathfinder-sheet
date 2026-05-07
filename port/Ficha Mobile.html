@@ -59076,8 +59076,17 @@ document.addEventListener('DOMContentLoaded', function(){
   const cls = document.getElementById('mst-overlay-close');
   if(!btn || !dlg || !frm) return;
   const MST_URL = 'master/Modo%20Master.html';
+  /* 2026-05-07: helper para construir la URL con el tema actual de la ficha
+     pasado como query param. La SPA del Modo Máster lo lee al cargar
+     y lo aplica como tema inicial. */
+  const _currentTheme = ()=> document.documentElement.dataset.theme || 'pergamino';
   btn.addEventListener('click', function(){
-    if(!frm.src) frm.src = MST_URL; /* lazy load la primera vez */
+    if(!frm.src){
+      frm.src = MST_URL + '?theme=' + encodeURIComponent(_currentTheme());
+    } else {
+      /* Iframe ya cargado: notificar tema actual por si cambió desde la última apertura. */
+      try{ frm.contentWindow.postMessage({type:'theme-change', theme:_currentTheme()}, '*'); }catch(_){}
+    }
     if(typeof dlg.showModal === 'function') dlg.showModal();
     else dlg.setAttribute('open','');
   });
@@ -59085,6 +59094,13 @@ document.addEventListener('DOMContentLoaded', function(){
     if(typeof dlg.close === 'function') dlg.close();
     else dlg.removeAttribute('open');
   });
+  /* 2026-05-07: cuando la ficha cambia de tema (data-theme en <html>),
+     propagar al iframe del Modo Máster en vivo. */
+  const themeObserver = new MutationObserver(()=>{
+    if(!frm.src) return; /* iframe no se ha abierto nunca */
+    try{ frm.contentWindow.postMessage({type:'theme-change', theme:_currentTheme()}, '*'); }catch(_){}
+  });
+  try{ themeObserver.observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']}); }catch(_){}
   /* La SPA puede emitir 'mst-exit' por postMessage para cerrarse a sí misma. */
   window.addEventListener('message', function(ev){
     try{
