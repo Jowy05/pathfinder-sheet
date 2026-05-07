@@ -26,7 +26,9 @@ const GRIDS = [
 function MstSettings({
   lang, theme, gridKind, savedAt,
   onSetLang, onSetTheme, onSetGrid,
-  onResetEncounter, onExport, onImportFile, onClearSaved,
+  onResetEncounter, onEmptyEncounter, /* MST-J02 */
+  snapToGrid, onToggleSnapToGrid, /* MST-J05 */
+  onExport, onImportFile, onClearSaved,
   onImportFromSheet, onImportPJFromFile,
   // Mapa avanzado
   mapBg, onChangeBgImage, onChangeBgColor, onResetBg,
@@ -229,6 +231,20 @@ function MstSettings({
           </div>
         </div>
 
+        {/* MST-J05: snap a celda al mover tokens */}
+        {onToggleSnapToGrid && (
+          <div className="mst-settings-row">
+            <div className="lbl">
+              {t.snapToGrid || 'Imantar a celda'}
+              <div className="hint">{t.snapToGridHelp || 'Los tokens se alinean al centro de la cuadrícula al moverlos'}</div>
+            </div>
+            <div className="mst-segmented">
+              <button type="button" className={"seg " + (snapToGrid ? 'active' : '')} onClick={() => onToggleSnapToGrid(true)}>{t.on || 'On'}</button>
+              <button type="button" className={"seg " + (!snapToGrid ? 'active' : '')} onClick={() => onToggleSnapToGrid(false)}>{t.off || 'Off'}</button>
+            </div>
+          </div>
+        )}
+
         <div className="mst-settings-row">
           <div className="lbl">
             {t.resetEncounter || 'Reiniciar encuentro'}
@@ -248,6 +264,24 @@ function MstSettings({
             <span style={{ marginLeft: 6 }}>{t.resetEncounter}</span>
           </button>
         </div>
+
+        {/* MST-J02: empezar encuentro vacío manteniendo el mapa */}
+        {onEmptyEncounter && (
+          <div className="mst-settings-row">
+            <div className="lbl">
+              {t.emptyEncounter || 'Encuentro vacío'}
+              <div className="hint">{t.emptyEncounterHelp || 'Limpia tokens, niebla y plantillas. Empieza en R1 con el mapa actual.'}</div>
+            </div>
+            <button
+              type="button"
+              className="mst-modal-btn"
+              onClick={() => { onEmptyEncounter(); showFlash('ok', t.emptyEncounter || 'Encuentro vacío'); }}
+            >
+              <window.MstIcon name="plus" size={14}/>
+              <span style={{ marginLeft: 6 }}>{t.emptyEncounterAction || 'Encuentro vacío'}</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* PERSISTENCIA */}

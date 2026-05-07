@@ -58,31 +58,93 @@ function MstInitFull({
     return c;
   }, [tokens]);
 
-  // Drag-to-reorder
-  const dragRef = useRefIF(null);
-  const [dragOver, setDragOver] = useStateIF(null); // id sobre el que se arrastra
+  /* MST-J01: pointer events para reorder (drag HTML5 no funciona en WebView Android touch) */
+  const dragRef = useRefIF(null);            // id del token que se arrastra
+  const startYRef = useRefIF(0);             // y inicial del pointerdown
+  const longPressTimerRef = useRefIF(null);  // timer para long-press (300ms)
+  const listRef = useRefIF(null);            // contenedor de la lista
+  const [dragOver, setDragOver] = useStateIF(null);   // id sobre el que se arrastra
+  const [draggingId, setDraggingId] = useStateIF(null); // id actualmente "agarrado"
 
-  const onDragStart = (e, id) => {
-    dragRef.current = id;
-    e.dataTransfer.effectAllowed = 'move';
-    try { e.dataTransfer.setData('text/plain', id); } catch (err) {}
+  // Detecta el id del row debajo del puntero, leyendo data-token-id
+  const findRowIdFromPoint = (clientX, clientY) => {
+    const el = document.elementFromPoint(clientX, clientY);
+    if (!el) return null;
+    const row = el.closest('[data-token-id]');
+    return row ? row.getAttribute('data-token-id') : null;
   };
-  const onDragOver = (e, id) => {
-    e.preventDefault();
-    if (dragOver !== id) setDragOver(id);
+
+  const cancelLongPress = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
   };
-  const onDrop = (e, id) => {
-    e.preventDefault();
+
+  const endDrag = (commitTargetId) => {
     const fromId = dragRef.current;
-    setDragOver(null);
+    cancelLongPress();
     dragRef.current = null;
-    if (!fromId || fromId === id) return;
-    onReorder && onReorder(fromId, id);
-  };
-  const onDragEnd = () => {
     setDragOver(null);
-    dragRef.current = null;
+    setDraggingId(null);
+    if (fromId && commitTargetId && fromId !== commitTargetId) {
+      onReorder && onReorder(fromId, commitTargetId);
+    }
+    // Eliminar listeners globales
+    window.removeEventListener('pointermove', onPointerMoveGlobal);
+    window.removeEventListener('pointerup', onPointerUpGlobal);
+    window.removeEventListener('pointercancel', onPointerCancelGlobal);
   };
+
+  const onPointerMoveGlobal = (e) => {
+    // Si no hemos iniciado drag aún, el movimiento cancela el long-press
+    if (!draggingId && longPressTimerRef.current) {
+      const dy = Math.abs(e.clientY - startYRef.current);
+      if (dy > 8) cancelLongPress();
+      return;
+    }
+    if (!dragRef.current) return;
+    e.preventDefault();
+    const overId = findRowIdFromPoint(e.clientX, e.clientY);
+    if (overId !== dragOver) setDragOver(overId);
+  };
+  const onPointerUpGlobal = (e) => {
+    const overId = dragRef.current ? findRowIdFromPoint(e.clientX, e.clientY) : null;
+    endDrag(overId);
+  };
+  const onPointerCancelGlobal = () => endDrag(null);
+
+  // Inicia el drag desde el grip (pointerdown). Long-press en touch para no
+  // bloquear scroll vertical del propio contenedor; en mouse se inicia inmediato.
+  const onGripPointerDown = (e, id) => {
+    if (e.button != null && e.button !== 0) return; // solo botón principal/touch
+    startYRef.current = e.clientY;
+    dragRef.current = id;
+    const startNow = () => {
+      setDraggingId(id);
+      setDragOver(id);
+    };
+    if (e.pointerType === 'mouse') {
+      startNow();
+    } else {
+      cancelLongPress();
+      longPressTimerRef.current = setTimeout(startNow, 220);
+    }
+    window.addEventListener('pointermove', onPointerMoveGlobal, { passive: false });
+    window.addEventListener('pointerup', onPointerUpGlobal);
+    window.addEventListener('pointercancel', onPointerCancelGlobal);
+  };
+
+  // Cleanup al desmontar
+  useEffectIF(() => {
+    return () => {
+      cancelLongPress();
+      window.removeEventListener('pointermove', onPointerMoveGlobal);
+      window.removeEventListener('pointerup', onPointerUpGlobal);
+      window.removeEventListener('pointercancel', onPointerCancelGlobal);
+    };
+    // eslint-disable-next-line
+  }, []);
 
   return (
     <div className="mst-initfull">
@@ -153,7 +215,7 @@ function MstInitFull({
       </div>
 
       {/* LISTA */}
-      <div className="mst-initfull-list">
+      <div className="mst-initfull-list" ref={listRef}>
         {ordered.map((tk, idx) => {
           const pct = Math.max(0, (tk.hp / tk.hpMax) * 100);
           const hpColor = pct > 50 ? 'var(--positive)' : pct > 20 ? 'var(--gold)' : 'var(--negative)';
@@ -161,27 +223,31 @@ function MstInitFull({
           const isSel = tk.id === selectedId;
           const isDead = tk.hp <= 0;
           const tkBuffs = buffs[tk.id] || [];
-          const isOver = dragOver === tk.id;
+          const isOver = dragOver === tk.id && draggingId && draggingId !== tk.id;
+          const isDragging = draggingId === tk.id;
 
           return (
             <div
               key={tk.id}
-              draggable
-              onDragStart={(e) => onDragStart(e, tk.id)}
-              onDragOver={(e) => onDragOver(e, tk.id)}
-              onDrop={(e) => onDrop(e, tk.id)}
-              onDragEnd={onDragEnd}
+              data-token-id={tk.id}
               className={
                 "mst-initfull-row" +
                 (isActive ? ' active' : '') +
                 (isSel ? ' selected' : '') +
                 (isDead ? ' dead' : '') +
-                (isOver ? ' drag-over' : '')
+                (isOver ? ' drag-over' : '') +
+                (isDragging ? ' dragging' : '')
               }
-              onClick={() => onSelectToken(tk.id)}
+              onClick={() => { if (!draggingId) onSelectToken(tk.id); }}
             >
-              {/* Drag handle */}
-              <div className="mst-initfull-grip" aria-label="reordenar" title="Arrastrar para reordenar">
+              {/* Drag handle — MST-J01: pointer events */}
+              <div
+                className="mst-initfull-grip"
+                aria-label="reordenar"
+                title="Arrastrar para reordenar"
+                onPointerDown={(e) => onGripPointerDown(e, tk.id)}
+                style={{ touchAction: 'none', cursor: 'grab' }}
+              >
                 <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor">
                   <circle cx="2.5" cy="3"  r="1.2"/><circle cx="7.5" cy="3"  r="1.2"/>
                   <circle cx="2.5" cy="8"  r="1.2"/><circle cx="7.5" cy="8"  r="1.2"/>
@@ -238,16 +304,24 @@ function MstInitFull({
                     onChange={(e) => onChangeIni(tk.id, parseInt(e.target.value, 10) || 0)}
                   />
                 </label>
-                <label className="stat-cell">
-                  <span className="lbl">{t.delay || 'DELAY'}</span>
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    min={0}
-                    value={tk.delay ?? 0}
-                    onChange={(e) => onChangeDelay(tk.id, Math.max(0, parseInt(e.target.value, 10) || 0))}
-                  />
-                </label>
+                {/* MST-J09: DELAY como toggle booleano. Activado = salta su turno
+                    y se relega al final del round actual; se restablece al
+                    iniciar la siguiente ronda. */}
+                <button
+                  type="button"
+                  className={"action-btn sm" + (tk.delay === true ? ' active' : '')}
+                  title={t.delay || 'DELAY'}
+                  aria-pressed={tk.delay === true}
+                  onClick={() => onChangeDelay(tk.id, tk.delay === true ? false : true)}
+                  style={{
+                    minWidth: 56,
+                    background: tk.delay === true ? 'var(--gold)' : undefined,
+                    color: tk.delay === true ? '#1a1a1a' : undefined,
+                    fontWeight: 600, letterSpacing: '.04em',
+                  }}
+                >
+                  {t.delay || 'DELAY'}
+                </button>
               </div>
 
               {/* Acciones */}

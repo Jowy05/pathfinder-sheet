@@ -215,9 +215,10 @@ function MstDrawer({ token, lang, layout, density, drawerHeight, onSetHeight, on
     const onHalf = () => onSetHp && onSetHp(token.id, Math.ceil(token.hpMax / 2));
     return (
       <div>
+        {/* MST-J10: etiquetas semánticas en el stepper (Daño / Curar) */}
         <div className="mst-hp-stepper-v2" style={{ marginTop: 10 }}>
-          <button className="hp-btn neg" onClick={() => onChangeHp(token.id, -1)} aria-label="-1">−1</button>
-          <button className="hp-btn neg sm" onClick={() => apply(-1)} aria-label="restar" disabled={!hpAmt}>−</button>
+          <button className="hp-btn neg" onClick={() => onChangeHp(token.id, -1)} aria-label={(t.damage || 'Daño') + ' -1'} title={t.damage || 'Daño'}>−1</button>
+          <button className="hp-btn neg sm" onClick={() => apply(-1)} aria-label={t.damage || 'Daño'} title={t.damage || 'Daño'} disabled={!hpAmt}>−</button>
           <input
             className="hp-amt"
             type="number"
@@ -230,8 +231,8 @@ function MstDrawer({ token, lang, layout, density, drawerHeight, onSetHeight, on
             }}
             placeholder="—"
           />
-          <button className="hp-btn pos sm" onClick={() => apply(+1)} aria-label="sumar" disabled={!hpAmt}>＋</button>
-          <button className="hp-btn pos" onClick={() => onChangeHp(token.id, +1)} aria-label="+1">+1</button>
+          <button className="hp-btn pos sm" onClick={() => apply(+1)} aria-label={t.heal || 'Curar'} title={t.heal || 'Curar'} disabled={!hpAmt}>＋</button>
+          <button className="hp-btn pos" onClick={() => onChangeHp(token.id, +1)} aria-label={(t.heal || 'Curar') + ' +1'} title={t.heal || 'Curar'}>+1</button>
           <div className="hp-bar-wrap">
             <HpBar hp={token.hp} hpMax={token.hpMax} />
           </div>

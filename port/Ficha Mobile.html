@@ -57456,15 +57456,16 @@ const FALLBACK_SPECIAL_ABILITIES = [
     <label style="display:flex;align-items:center;gap:10px;margin:10px 0">
       <input type="checkbox" id="settings-daltonic"> <span>Modo daltónico (alto contraste, texto en negrita, sin rojos críticos)</span>
     </label>
-    <!-- R-29 · Modo Epic (niveles 21-30) -->
+    <!-- R-29 · Modo Epic (niveles 21-30) — UX-D3: marcar como experimental -->
     <label style="display:flex;align-items:center;gap:10px;margin:10px 0 2px">
-      <input type="checkbox" id="settings-epic"> <span data-i18n="opt.epicMode">Modo Epic (nivel 21-30)</span>
+      <input type="checkbox" id="settings-epic"> <span data-i18n="opt.epicMode">⚠️ Modo Epic (nivel 21-30) <span style="background:var(--negative);color:white;font:700 9px system-ui;padding:2px 6px;border-radius:99px;margin-left:4px;letter-spacing:.05em">EXPERIMENTAL</span></span>
     </label>
-    <div style="font-size:11px;color:var(--ink-muted);margin:0 0 8px 26px;font-style:italic;line-height:1.4" data-i18n="epicModeNote">El contenido oficial PF1e termina en 20. Las reglas Epic son material de comunidad.</div>
-    <!-- MD-3 Fase D: Modo Gestalt -->
-    <label style="display:flex;align-items:center;gap:8px;padding:8px 0;cursor:pointer">
+    <div style="font-size:11px;color:var(--negative);margin:0 0 8px 26px;font-style:italic;line-height:1.4;font-weight:600" data-i18n="epicModeNote">⚠ Sin contenido oficial. Solo cap numérico — no hay tablas de slots, BAB ni saves Epic. Material de comunidad/homebrew.</div>
+    <!-- MD-3 Fase D: Modo Gestalt — UX-D2: aviso skills/feats -->
+    <label style="display:flex;align-items:center;gap:8px;padding:8px 0 0;cursor:pointer">
       <input type="checkbox" id="settings-gestalt"> <span>🧬 Modo Gestalt (2 clases por nivel, MAX stat)</span>
     </label>
+    <div style="font-size:11px;color:var(--ink-muted);margin:0 0 8px 26px;font-style:italic;line-height:1.4">En Gestalt: BAB/HD/saves toman MAX entre las 2 clases. Skill points y dotes <strong>NO se duplican</strong> — usa la clase con más skill points/INT y la cantidad estándar de dotes.</div>
     <div style="font-size:11px;color:var(--ink-muted);margin:0 0 8px 26px;font-style:italic;line-height:1.4">Cada fila de clase muestra una segunda clase. BAB/HD/saves toman el MAX entre las dos. Skills suman. No es regla oficial Paizo (Unearthed Arcana 3.5).</div>
     <button class="btn-secondary" data-toast="datos-limpios" style="width:100%;margin-top:8px">Limpiar todos los datos</button>
     <div style="text-align:center;margin-top:12px;color:var(--ink-muted);font:11px system-ui">Versión 1.0 · build 2024.11</div>
@@ -58362,8 +58363,8 @@ const I18N = {
     moreCompaneros:'Compañeros',moreMaster:'Modo Máster',moreMasterApp:'Modo Máster',moreNotas:'Notas de sesión',moreDados:'Dados de tirada libre',moreAjustes:'Ajustes',
     moreExportar:'Exportar ficha (JSON)',moreImportar:'Importar ficha',moreImprimir:'Imprimir',
     btnCambiarFoto:'Cambiar foto',btnQuitarFoto:'Quitar foto',lblClase:'Clase',lblNivel:'Nivel',lblXP:'Experiencia',
-    'opt.epicMode':'Modo Epic (nivel 21-30)',
-    'epicModeNote':'El contenido oficial PF1e termina en 20. Las reglas Epic son material de comunidad.',
+    'opt.epicMode':'⚠️ Modo Epic (nivel 21-30) <span style="background:var(--negative);color:white;font:700 9px system-ui;padding:2px 6px;border-radius:99px;margin-left:4px;letter-spacing:.05em">EXPERIMENTAL</span>',
+    'epicModeNote':'⚠ Sin contenido oficial. Solo cap numérico — no hay tablas de slots, BAB ni saves Epic. Material de comunidad/homebrew.',
     /* A-11: dotes — selector modo + picker catálogo */
     featAddTitle:'Añadir dote',
     featModeCatalog:'📚 Buscar en catálogo',
@@ -58405,7 +58406,7 @@ const I18N = {
     moreExportar:'Export sheet (JSON)',moreImportar:'Import sheet',moreImprimir:'Print',
     btnCambiarFoto:'Change photo',btnQuitarFoto:'Remove photo',lblClase:'Class',lblNivel:'Level',lblXP:'Experience',
     'opt.epicMode':'Epic Mode (level 21-30)',
-    'epicModeNote':'Official PF1e content ends at 20. Epic rules are community material.',
+    'epicModeNote':'⚠ No official content. Numeric cap only — no Epic slot/BAB/save tables. Community/homebrew material.',
     /* A-11: feats — mode chooser + catalog picker */
     featAddTitle:'Add feat',
     featModeCatalog:'📚 Browse catalog',
@@ -60701,12 +60702,69 @@ function _lvlupGoTo(step){
       if(fb) fb.textContent = `+${_LVLUP_STATE.hpRolled} PG máx (mín 1)`;
     }));
   } else if(step === 2){
+    /* UX-C4 Fase L: gastar puntos in-place. Mostramos las habilidades de
+       clase del PJ con +/− para subir/bajar rangos directamente. El usuario
+       sigue pudiendo pulsar "Ir a Habilidades" para una vista completa. */
     const sp = _LVLUP_STATE.skillPointsToAssign;
+    if(typeof _LVLUP_STATE.skillSpent !== 'number') _LVLUP_STATE.skillSpent = 0;
+    const ck = (cl?.classKey||'').toLowerCase();
+    const dbCls = DB && DB.classes && (DB.classes[ck] || DB.classes[cl?.classKey]);
+    const classSkills = (dbCls && Array.isArray(dbCls.class_skills)) ? dbCls.class_skills : [];
+    const allSk = (window.D3_SKILLS && window.D3_SKILLS.all) ? window.D3_SKILLS.all() : [];
+    const cap = (CLASSES_DATA||[]).reduce((s,c)=>s+(parseInt(c.level,10)||0),0);
+    /* Top 8 class skills más comunes */
+    const top = allSk.filter(s=>{
+      if(!s || !s.id) return false;
+      const idLow = s.id.toLowerCase();
+      return classSkills.some(cs => idLow === String(cs).toLowerCase().replace(/[^a-z]/g,'_')) || s.classOverride;
+    }).slice(0, 12);
+    const rowsHtml = top.length ? top.map(s=>{
+      const st = (window.D3_SKILLS && window.D3_SKILLS.state && window.D3_SKILLS.state[s.id]) || {r:0};
+      return `<div data-lvlup-sk="${s.id}" style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--line)">
+        <span style="flex:1;font:13px 'EB Garamond',serif">${s.n||s.id} <span style="font:600 10px system-ui;color:var(--ink-muted)">${s.a||''}</span></span>
+        <button class="btn-secondary lvlup-sk-minus" data-skid="${s.id}" style="min-width:28px;font-size:12px">−</button>
+        <span class="lvlup-sk-rank" data-skid="${s.id}" style="font:700 13px system-ui;min-width:22px;text-align:center">${st.r||0}</span>
+        <button class="btn-secondary lvlup-sk-plus" data-skid="${s.id}" style="min-width:28px;font-size:12px">+</button>
+      </div>`;
+    }).join('') : '<p style="font:12px/1.4 system-ui;color:var(--ink-muted)">No se detectan habilidades de clase. Ve a Aptitudes › Habilidades.</p>';
+    const rem = sp - _LVLUP_STATE.skillSpent;
     c.innerHTML = `
       <h3 style="font:700 16px 'Cinzel',serif;margin-top:0">📚 Puntos de habilidad</h3>
-      <p style="font:13px/1.5 'EB Garamond',serif">Tienes <b style="color:var(--accent)">${sp}</b> puntos nuevos para asignar.</p>
-      <p style="font:12px/1.4 system-ui;color:var(--ink-muted)">Ve a <b>Aptitudes › Habilidades</b> para asignarlos. Recuerda: máximo de rangos por habilidad = nivel del personaje.</p>
-      <button class="btn-secondary" id="lvlup-go-skills" style="margin-top:12px;width:100%">Ir a Habilidades →</button>`;
+      <p style="font:13px/1.5 'EB Garamond',serif">Tienes <b style="color:var(--accent)">${sp}</b> puntos nuevos.
+        Restantes: <b id="lvlup-sk-remaining" style="color:${rem===0?'var(--positive)':'var(--accent)'}">${rem}</b> · Cap por hab: <b>${cap}</b></p>
+      <div style="max-height:38vh;overflow-y:auto;margin:8px 0;border:1px solid var(--line);border-radius:6px;padding:0 10px">
+        ${rowsHtml}
+      </div>
+      <button class="btn-secondary" id="lvlup-go-skills" style="width:100%;font-size:12px">Ver todas las habilidades →</button>`;
+    const refreshRem = ()=>{
+      const r = sp - _LVLUP_STATE.skillSpent;
+      const el = document.getElementById('lvlup-sk-remaining');
+      if(el){ el.textContent = String(r); el.style.color = (r===0?'var(--positive)':(r<0?'var(--negative)':'var(--accent)')); }
+    };
+    c.querySelectorAll('.lvlup-sk-plus').forEach(b=>b.addEventListener('click',()=>{
+      const id = b.dataset.skid;
+      if(_LVLUP_STATE.skillSpent >= sp){
+        if(typeof toast === 'function') toast('Sin puntos disponibles');
+        return;
+      }
+      const st = window.D3_SKILLS.state[id] = window.D3_SKILLS.state[id] || {r:0, misc:0};
+      if((st.r||0) >= cap){ if(typeof toast==='function') toast(`Cap alcanzado (${cap})`); return; }
+      st.r = (st.r||0) + 1;
+      _LVLUP_STATE.skillSpent++;
+      const span = c.querySelector(`.lvlup-sk-rank[data-skid="${id}"]`); if(span) span.textContent = st.r;
+      refreshRem();
+      if(window.D3_SKILLS.fire) window.D3_SKILLS.fire();
+    }));
+    c.querySelectorAll('.lvlup-sk-minus').forEach(b=>b.addEventListener('click',()=>{
+      const id = b.dataset.skid;
+      const st = window.D3_SKILLS.state[id]; if(!st || (st.r||0) <= 0) return;
+      if(_LVLUP_STATE.skillSpent <= 0) return; /* solo permite quitar puntos asignados en esta sesión */
+      st.r--;
+      _LVLUP_STATE.skillSpent--;
+      const span = c.querySelector(`.lvlup-sk-rank[data-skid="${id}"]`); if(span) span.textContent = st.r;
+      refreshRem();
+      if(window.D3_SKILLS.fire) window.D3_SKILLS.fire();
+    }));
     document.getElementById('lvlup-go-skills')?.addEventListener('click',()=>{
       try{
         if(typeof setTab==='function') setTab('aptitudes');
@@ -60715,7 +60773,6 @@ function _lvlupGoTo(step){
       }catch(_){}
       const dlg = document.getElementById('sheet-levelup-assist');
       if(dlg) dlg.close();
-      if(typeof toast==='function') toast(`Tienes ${sp} puntos para asignar`);
     });
   } else if(step === 3){
     const givesFeat = (_LVLUP_STATE.newLvl % 2 === 1);
@@ -60751,9 +60808,21 @@ function _lvlupGoTo(step){
       c.innerHTML = `<h3 style="font:700 16px 'Cinzel',serif;margin-top:0">📜 Conjuros</h3>
         <p style="font:13px/1.5 'EB Garamond',serif">${cl?.name||'Tu clase'} no lanza conjuros. Pulsa <b>Aplicar</b> para terminar.</p>`;
     } else {
+      /* UX-C6 Fase L: para casters espontáneos, abrir el catálogo in-place
+         con un botón. El caster preparado decide mañana qué preparar. */
+      const catalogBtn = info.mode === 'spont'
+        ? `<button class="btn-primary" id="lvlup-add-spell" style="margin-top:8px;width:100%">📚 Añadir conjuro conocido (catálogo)</button>`
+        : '';
       c.innerHTML = `<h3 style="font:700 16px 'Cinzel',serif;margin-top:0">📜 Conjuros</h3>
         <p style="font:13px/1.5 'EB Garamond',serif">Tus slots se actualizan automáticamente al aplicar el nivel. ${info.mode === 'spont' ? 'Como lanzador espontáneo, también puedes aprender nuevos conjuros conocidos.' : 'Como lanzador preparado, decide mañana qué preparar.'}</p>
-        <button class="btn-secondary" id="lvlup-go-spells" style="margin-top:12px;width:100%">Ir a Conjuros →</button>`;
+        ${catalogBtn}
+        <button class="btn-secondary" id="lvlup-go-spells" style="margin-top:8px;width:100%">Ir a Conjuros →</button>`;
+      document.getElementById('lvlup-add-spell')?.addEventListener('click',()=>{
+        /* Abrir el catálogo del nivel correspondiente (estima nivel del slot
+           más alto disponible: ceil(class_level / 2) capped at 9). */
+        const lvl = Math.min(9, Math.max(1, Math.ceil(_LVLUP_STATE.newLvl / 2)));
+        if(typeof _openSpellsCatalog === 'function') _openSpellsCatalog(lvl);
+      });
       document.getElementById('lvlup-go-spells')?.addEventListener('click',()=>{
         try{
           if(typeof setTab==='function') setTab('aptitudes');
@@ -62636,24 +62705,46 @@ function bindFormSheets(){
   function _featNormalize(s){
     return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
   }
-  /* UX-11 Fase G: contador de dotes esperadas vs gastadas */
+  /* UX-11 Fase G + UX-C5 Fase L: contador de dotes esperadas vs gastadas.
+     Cubre: dote estándar 1/2 niveles + humano + Guerrero (combat feat ext) +
+     Monje (nv1) + arquetipos que regalan dotes (Two-Handed Fighter, Brawler,
+     Master of Many Styles, Tetori) + tier mítico (1/2 tiers ≥ 3). */
   function _computeFeatBudget(){
-    let total = 1;  /* nivel 1 */
     const totalLvl = (CLASSES_DATA||[]).reduce((s,c)=>s+(parseInt(c.level,10)||0),0);
     /* Dote estándar cada 2 niveles a partir de nivel 1: nv 1, 3, 5, 7… */
-    total = Math.ceil(totalLvl / 2);
+    let total = Math.ceil(totalLvl / 2);
     /* Humano +1 dote */
     const race = (document.getElementById('in-raza')?.value||'').toLowerCase();
     if(/human|humano/.test(race)) total += 1;
     /* Guerrero: dote bonus extra cada nivel par + nivel 1 */
     (CLASSES_DATA||[]).forEach(c=>{
       const ck = (c.classKey||'').toLowerCase();
+      const ak = (c.archetypeKey||'').toLowerCase();
       const lvl = parseInt(c.level,10) || 0;
       if(['guerrero','fighter'].includes(ck)){
         total += 1 + Math.floor(lvl/2); /* nivel 1 + cada 2 */
       }
       if(['monje','monk'].includes(ck) && lvl >= 1) total += 1; /* monje a nivel 1 */
+      /* C5: arquetipos que dan dotes adicionales sustituyendo features. */
+      if(ck === 'guerrero' || ck === 'fighter'){
+        if(['two_handed_fighter','two-handed_fighter','two_handed'].includes(ak)) total += 0; /* no añade extra; reemplaza Bravery */
+      }
+      if(['luchador','brawler'].includes(ck) && lvl >= 1){
+        /* Brawler: martial flexibility (no dote real) — no contar */
+      }
+      if(['monje','monk'].includes(ck)){
+        if(['master_of_many_styles','muchos_estilos'].includes(ak) && lvl >= 1) total += 1;
+        if(['tetori'].includes(ak) && lvl >= 1) total += 0; /* no extra */
+      }
+      if(['paladin','paladín','antipaladin'].includes(ck) && ['warrior_of_the_holy_light','warrior of the holy light'].includes(ak)) total += 0;
     });
+    /* C5: dotes míticas (path). 1 dote mítica al alcanzar tier mítico, +1 cada 2 tiers a partir de 3. */
+    try{
+      if(typeof _MYTHIC_STATE !== 'undefined' && _MYTHIC_STATE.active){
+        const tier = parseInt(_MYTHIC_STATE.tier,10) || 0;
+        if(tier >= 1) total += 1 + Math.floor(Math.max(0, tier-1) / 2);
+      }
+    }catch(_){}
     const used = (FEATS||[]).length;
     return {total, used, free: Math.max(0, total - used)};
   }

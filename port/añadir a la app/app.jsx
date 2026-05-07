@@ -9,11 +9,24 @@ const { useState: useStateA, useEffect: useEffectA, useMemo: useMemoA } = React;
 // =====================================================================
 function AddTokenModal({ open, onClose, onSubmit, lang }) {
   const t = window.MstData.I18N[lang];
+  /* MST-J07: paleta de 8 colores preset + foto opcional */
+  const COLOR_PRESETS = [
+    '#3a78c8', // azul aliado
+    '#5aa86a', // verde
+    '#a83828', // rojo
+    '#7a2828', // granate
+    '#88481a', // naranja terroso
+    '#5a2078', // morado
+    '#c89030', // dorado
+    '#3a3a3a', // gris/negro
+  ];
   const [form, setForm] = React.useState({
     name: '', kind: 'enemy', hpMax: 20, ac: 15, ini: 10,
+    color: COLOR_PRESETS[2], photo: null,
   });
+  const photoInputRef = React.useRef(null);
   React.useEffect(() => {
-    if (open) setForm({ name: '', kind: 'enemy', hpMax: 20, ac: 15, ini: 10 });
+    if (open) setForm({ name: '', kind: 'enemy', hpMax: 20, ac: 15, ini: 10, color: COLOR_PRESETS[2], photo: null });
   }, [open]);
   if (!open) return null;
   const submit = (e) => {
@@ -25,10 +38,42 @@ function AddTokenModal({ open, onClose, onSubmit, lang }) {
       hpMax: parseInt(form.hpMax, 10) || 20,
       ac: parseInt(form.ac, 10) || 15,
       ini: parseInt(form.ini, 10) || 10,
+      color: form.color,
+      photo: form.photo,
     });
     onClose();
   };
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  /* MST-J07/J08: leer la foto y down-scalear a 1024px+JPEG 0.8 */
+  const onPickPhoto = () => photoInputRef.current && photoInputRef.current.click();
+  const onPhotoChange = async (e) => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!f) return;
+    try {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(reader.error);
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            const maxDim = 1024;
+            let w = img.width, h = img.height;
+            const ratio = Math.min(1, maxDim / Math.max(w, h));
+            w = Math.round(w * ratio); h = Math.round(h * ratio);
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', 0.8));
+          };
+          img.onerror = () => reject(new Error('decode failed'));
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(f);
+      });
+      set('photo', dataUrl);
+    } catch (err) { console.warn('photo upload failed', err); }
+  };
   return (
     <div className="mst-modal-backdrop" onClick={onClose}>
       <div className="mst-modal" onClick={e => e.stopPropagation()}>
@@ -75,6 +120,51 @@ function AddTokenModal({ open, onClose, onSubmit, lang }) {
               <input type="number" inputMode="numeric" value={form.ini} onChange={e => set('ini', e.target.value)} />
             </label>
           </div>
+
+          {/* MST-J07: color picker (8 presets) */}
+          <div className="mst-field">
+            <span className="lbl">{t.tokenColor || 'Color'}</span>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {COLOR_PRESETS.map(c => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => set('color', c)}
+                  aria-label={c}
+                  style={{
+                    width: 28, height: 28, borderRadius: '50%',
+                    background: c,
+                    border: form.color === c ? '2px solid var(--gold)' : '2px solid var(--line)',
+                    cursor: 'pointer',
+                    boxShadow: form.color === c ? '0 0 0 2px rgba(0,0,0,.25)' : 'none',
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* MST-J07: foto opcional (down-scaled MST-J08 internamente) */}
+          <div className="mst-field">
+            <span className="lbl">{t.tokenPhoto || 'Foto'}</span>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              {form.photo ? (
+                <img src={form.photo} alt="" style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--line)' }}/>
+              ) : (
+                <div style={{ width: 44, height: 44, borderRadius: '50%', background: form.color, border: '1px solid var(--line)' }}/>
+              )}
+              <button type="button" className="mst-modal-btn" onClick={onPickPhoto}>
+                <window.MstIcon name="upload" size={14}/>
+                <span style={{ marginLeft: 6 }}>{form.photo ? (t.replace || 'Cambiar') : (t.bgUpload || 'Subir')}</span>
+              </button>
+              {form.photo && (
+                <button type="button" className="mst-modal-btn" onClick={() => set('photo', null)} aria-label={t.remove || 'Quitar'}>
+                  <window.MstIcon name="x" size={14}/>
+                </button>
+              )}
+              <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onPhotoChange}/>
+            </div>
+          </div>
+
           <div className="mst-modal-actions">
             <button type="button" className="mst-modal-btn" onClick={onClose}>{t.cancel || 'Cancelar'}</button>
             <button type="submit" className="mst-modal-btn primary" disabled={!form.name.trim()}>
@@ -86,6 +176,87 @@ function AddTokenModal({ open, onClose, onSubmit, lang }) {
     </div>
   );
 }
+
+// =====================================================================
+// MST-J04: PromptModal / ConfirmModal — modales React reutilizables
+// que reemplazan a window.prompt() / window.confirm() (no soportados
+// fiable en WebView Android, además rompen la estética del modo).
+// =====================================================================
+function PromptModal({ open, title, message, defaultValue, placeholder, okLabel, cancelLabel, onSubmit, onClose }) {
+  const [val, setVal] = React.useState('');
+  React.useEffect(() => { if (open) setVal(defaultValue || ''); }, [open, defaultValue]);
+  if (!open) return null;
+  const submit = (e) => {
+    if (e) e.preventDefault();
+    const v = (val || '').trim();
+    if (!v) { onClose && onClose(); return; }
+    onSubmit && onSubmit(v);
+  };
+  return (
+    <div className="mst-modal-backdrop" onClick={onClose}>
+      <div className="mst-modal" onClick={e => e.stopPropagation()}>
+        <div className="mst-modal-header">
+          <span style={{ fontFamily: 'Cinzel, Georgia, serif', fontWeight: 700, fontSize: 16, letterSpacing: '.06em', textTransform: 'uppercase' }}>
+            {title || 'Introduce un valor'}
+          </span>
+          <button className="mst-btn-icon" onClick={onClose} aria-label="cerrar" style={{width:32,height:32,padding:0}}>
+            <window.MstIcon name="x" size={16}/>
+          </button>
+        </div>
+        <form onSubmit={submit} className="mst-modal-body">
+          {message && <div style={{ marginBottom: 8, opacity: .85 }}>{message}</div>}
+          <label className="mst-field">
+            <input
+              autoFocus
+              type="text"
+              value={val}
+              onChange={e => setVal(e.target.value)}
+              placeholder={placeholder || ''}
+            />
+          </label>
+          <div className="mst-modal-actions">
+            <button type="button" className="mst-modal-btn" onClick={onClose}>{cancelLabel || 'Cancelar'}</button>
+            <button type="submit" className="mst-modal-btn primary" disabled={!(val || '').trim()}>
+              {okLabel || 'Aceptar'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function ConfirmModal({ open, title, message, okLabel, cancelLabel, danger, onConfirm, onClose }) {
+  if (!open) return null;
+  return (
+    <div className="mst-modal-backdrop" onClick={onClose}>
+      <div className="mst-modal" onClick={e => e.stopPropagation()}>
+        <div className="mst-modal-header">
+          <span style={{ fontFamily: 'Cinzel, Georgia, serif', fontWeight: 700, fontSize: 16, letterSpacing: '.06em', textTransform: 'uppercase' }}>
+            {title || '¿Confirmar?'}
+          </span>
+          <button className="mst-btn-icon" onClick={onClose} aria-label="cerrar" style={{width:32,height:32,padding:0}}>
+            <window.MstIcon name="x" size={16}/>
+          </button>
+        </div>
+        <div className="mst-modal-body">
+          {message && <div style={{ marginBottom: 8 }}>{message}</div>}
+          <div className="mst-modal-actions">
+            <button type="button" className="mst-modal-btn" onClick={onClose}>{cancelLabel || 'Cancelar'}</button>
+            <button
+              type="button"
+              className={"mst-modal-btn " + (danger ? 'danger' : 'primary')}
+              onClick={() => { onConfirm && onConfirm(); }}
+            >{okLabel || 'Aceptar'}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+window.MstPromptModal = PromptModal;
+window.MstConfirmModal = ConfirmModal;
 
 // =====================================================================
 // BuffPickerModal — selector de estados/buffs con duración
@@ -823,6 +994,18 @@ function MasterApp({
   const [buffPickerOpen, setBuffPickerOpen] = useStateA(false);
   const [buffPickerTarget, setBuffPickerTarget] = useStateA(null);
   const [editTokenId, setEditTokenId] = useStateA(null);
+  /* MST-J05: snap-to-grid opcional al mover tokens */
+  const [snapToGrid, setSnapToGrid] = useStateA(() => {
+    try { return localStorage.getItem('mst-snap-to-grid') !== '0'; } catch (_) { return true; }
+  });
+  useEffectA(() => {
+    try { localStorage.setItem('mst-snap-to-grid', snapToGrid ? '1' : '0'); } catch (_) {}
+  }, [snapToGrid]);
+  /* MST-J04: estado para PromptModal/ConfirmModal reutilizables */
+  const [promptCfg, setPromptCfg] = useStateA(null);   // {title,message,defaultValue,placeholder,okLabel,onSubmit}
+  const [confirmCfg, setConfirmCfg] = useStateA(null); // {title,message,okLabel,danger,onConfirm}
+  const askPrompt = (cfg) => setPromptCfg(cfg);
+  const askConfirm = (cfg) => setConfirmCfg(cfg);
   const [savedAt, setSavedAt] = useStateA(() => window.MstPersist ? window.MstPersist.getSavedAt() : null);
   // Bestiario: entrada en edición + tick para forzar reload del panel cuando cambia externamente
   const [editEntry, setEditEntry] = useStateA(null);
@@ -1095,8 +1278,14 @@ function MasterApp({
   // marca `onReorderInit` cuando el master arrastra a mano), y como último
   // recurso por nombre, para que el orden sea determinista incluso sin
   // tocar ini.
+  /* MST-J09: tokens con `delay === true` se relegan al final del round actual.
+     Mantienen su INI numérica para futuras rondas, pero en el orden visible
+     aparecen detrás de los no-delayed. */
   const initiativeOrder = useMemoA(() =>
     [...tokens].sort((a, b) => {
+      const ad = a.delay === true ? 1 : 0;
+      const bd = b.delay === true ? 1 : 0;
+      if (ad !== bd) return ad - bd; // delayed al final
       const di = (b.ini ?? 0) - (a.ini ?? 0);
       if (di !== 0) return di;
       const dx = (a.orderIndex ?? 0) - (b.orderIndex ?? 0);
@@ -1202,15 +1391,22 @@ function MasterApp({
   };
 
   // ---- Anotaciones ----
+  /* MST-J04: prompt React en lugar de window.prompt */
   const onPlaceNote = (point) => {
-    const text = window.prompt(t.noteText || 'Texto de la nota', '');
-    if (!text || !text.trim()) {
-      setPendingNote(false);
-      return;
-    }
-    const id = 'note_' + Date.now().toString(36);
-    setMapNotes(arr => [...arr, { id, x: point.x, y: point.y, text: text.trim(), color: '#c89030' }]);
-    setPendingNote(false);
+    askPrompt({
+      title: t.lblNote || 'Nota',
+      message: t.noteText || 'Texto de la nota',
+      defaultValue: '',
+      placeholder: t.noteText || 'Texto de la nota',
+      okLabel: t.add || 'Añadir',
+      onSubmit: (text) => {
+        const id = 'note_' + Date.now().toString(36);
+        setMapNotes(arr => [...arr, { id, x: point.x, y: point.y, text, color: '#c89030' }]);
+        setPendingNote(false);
+        setPromptCfg(null);
+      },
+      onCancel: () => { setPendingNote(false); setPromptCfg(null); },
+    });
   };
   const onDeleteNote = (id) => {
     if (!window.confirm(t.deleteNote || '¿Borrar nota?')) return;
@@ -1383,19 +1579,39 @@ function MasterApp({
     // El tap simple solo selecciona, deja arrastrar libremente sin abrir nada.
     if (opts && opts.openDrawer && drawerHeight === 'peek') setDrawerHeight('mid');
   };
+  /* MST-J05: snap al centro de celda (cuadrada o hex) si está activado */
+  const SQ = 50; // mismo valor que GRID_PX_PER_SQUARE
+  const snapPoint = (x, y) => {
+    if (!snapToGrid) return { x, y };
+    if (gridType === 'hex') {
+      // Hex flat-top: ancho 2R, alto 2R*sqrt(3)/2; se aproxima a SQ.
+      const colW = SQ * 0.866; // ~ancho horizontal entre hexes
+      const rowH = SQ;          // alto entre filas
+      const col  = Math.round(x / colW);
+      const isOdd = col & 1;
+      const row  = Math.round((y - (isOdd ? rowH / 2 : 0)) / rowH);
+      return { x: col * colW, y: row * rowH + (isOdd ? rowH / 2 : 0) };
+    }
+    // square: snap al centro de cuadro
+    return {
+      x: Math.round((x - SQ / 2) / SQ) * SQ + SQ / 2,
+      y: Math.round((y - SQ / 2) / SQ) * SQ + SQ / 2,
+    };
+  };
   const onTokenMove = (id, x, y) => {
     setTokens(ts => {
       const tk = ts.find(t => t.id === id);
       if (!tk) return ts;
-      const dx = x - tk.x;
-      const dy = y - tk.y;
+      const snapped = snapPoint(x, y);
+      const dx = snapped.x - tk.x;
+      const dy = snapped.y - tk.y;
       // Si hay multi-selección y el token movido pertenece, mueve a todos
       if (multiSelected.size > 1 && multiSelected.has(id)) {
         return ts.map(t => multiSelected.has(t.id)
           ? { ...t, x: t.x + dx, y: t.y + dy }
           : t);
       }
-      return ts.map(t => t.id === id ? {...t, x, y} : t);
+      return ts.map(t => t.id === id ? {...t, x: snapped.x, y: snapped.y} : t);
     });
   };
   const toggleMultiSelect = (id) => {
@@ -1406,7 +1622,61 @@ function MasterApp({
     });
   };
   const clearMultiSelect = () => setMultiSelected(new Set());
-  const onSetPhoto = (id, dataUrl) => {
+  /* MST-J08: si recibimos un File, downscalear a 1024px+JPEG 0.8 antes de guardar.
+     Si recibimos un dataURL ya, lo asumimos preprocesado (ej. desde AddTokenModal). */
+  const onSetPhoto = async (id, input) => {
+    let dataUrl = null;
+    try {
+      if (input && typeof input === 'object' && input instanceof Blob) {
+        dataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onerror = () => reject(reader.error);
+          reader.onload = () => {
+            const img = new Image();
+            img.onload = () => {
+              const maxDim = 1024;
+              let w = img.width, h = img.height;
+              const ratio = Math.min(1, maxDim / Math.max(w, h));
+              w = Math.round(w * ratio); h = Math.round(h * ratio);
+              const canvas = document.createElement('canvas');
+              canvas.width = w; canvas.height = h;
+              canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+              resolve(canvas.toDataURL('image/jpeg', 0.8));
+            };
+            img.onerror = () => reject(new Error('decode failed'));
+            img.src = reader.result;
+          };
+          reader.readAsDataURL(input);
+        });
+      } else if (typeof input === 'string') {
+        // Si el dataURL viene crudo (no procesado), también re-comprimimos para
+        // evitar guardar un PNG gigante en localStorage.
+        if (input.startsWith('data:image/') && !input.startsWith('data:image/jpeg')) {
+          dataUrl = await new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+              const maxDim = 1024;
+              let w = img.width, h = img.height;
+              const ratio = Math.min(1, maxDim / Math.max(w, h));
+              w = Math.round(w * ratio); h = Math.round(h * ratio);
+              const canvas = document.createElement('canvas');
+              canvas.width = w; canvas.height = h;
+              canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+              resolve(canvas.toDataURL('image/jpeg', 0.8));
+            };
+            img.onerror = () => reject(new Error('decode failed'));
+            img.src = input;
+          });
+        } else {
+          dataUrl = input; // ya en jpeg o null
+        }
+      } else {
+        dataUrl = null;
+      }
+    } catch (e) {
+      console.warn('onSetPhoto downscale failed', e);
+      return;
+    }
     setTokens(ts => ts.map(tk => tk.id === id ? { ...tk, photo: dataUrl } : tk));
   };
   const onRenameToken = (id, name) => {
@@ -1450,6 +1720,7 @@ function MasterApp({
       fort: 4, ref: 4, will: 4, per: 5, spd: 25,
       ini: data.ini || 10,
       attacks: window.MstData.defaultAttacksForKind(data.kind || 'enemy'),
+      photo: data.photo || null,/* MST-J07 */
     };
     setTokens(ts => [...ts, tk]);
     setSelectedId(id);
@@ -1645,6 +1916,30 @@ function MasterApp({
     window.MstPersist.clearState();
     setSavedAt(null);
   };
+  /* MST-J02: encuentro vacío — limpia combatientes y reinicia R1 con el mapa actual */
+  const handleEmptyEncounter = () => {
+    askConfirm({
+      title: t.emptyEncounter || 'Encuentro vacío',
+      message: t.emptyEncounterConfirm || '¿Empezar un encuentro vacío?',
+      okLabel: t.emptyEncounterAction || 'Empezar',
+      danger: true,
+      onConfirm: () => {
+        setTokens([]);
+        setActiveId(null);
+        setSelectedId(null);
+        setRound(1);
+        setActionsState({});
+        setBuffs({});
+        setTemplates([]);
+        setFogCells([]);
+        setMapNotes([]);
+        setMultiSelected(new Set());
+        log.clear();
+        log.push({ kind: 'turn', text: t.emptyEncounter || 'Encuentro vacío', actor: '' });
+        pushToast(t.emptyEncounter || 'Encuentro vacío', 'round', 1800);
+      },
+    });
+  };
 
   // -------- Snapshots con nombre --------
   const [snapshots, setSnapshots] = useStateA(() =>
@@ -1653,18 +1948,26 @@ function MasterApp({
   const handleCreateSnapshot = () => {
     if (!window.MstPersist) return;
     const def = (initialEnc.nameKey ? t[initialEnc.nameKey] : 'Encuentro') + ' · R' + round;
-    const name = window.prompt(t.snapshotName || 'Nombre del snapshot', def);
-    if (!name) return;
-    window.MstPersist.saveNamedSnapshot(name, {
-      encounterKey, tokens, activeId, selectedId, round, actionsState, buffs,
-      theme, lang, gridKind: gridType,
-      layout: drawerLayout, initPos, density,
-      drawerHeight, viewMode, tab: bottomTab,
-      log: log.entries,
-      templates, fogCells, mapBg, mapNotes,
+    /* MST-J04: prompt React en lugar de window.prompt */
+    askPrompt({
+      title: t.snapshotName || 'Nombre del snapshot',
+      message: t.snapshotName || 'Nombre del snapshot',
+      defaultValue: def,
+      okLabel: t.snapshotCreate || 'Crear',
+      onSubmit: (name) => {
+        window.MstPersist.saveNamedSnapshot(name, {
+          encounterKey, tokens, activeId, selectedId, round, actionsState, buffs,
+          theme, lang, gridKind: gridType,
+          layout: drawerLayout, initPos, density,
+          drawerHeight, viewMode, tab: bottomTab,
+          log: log.entries,
+          templates, fogCells, mapBg, mapNotes,
+        });
+        refreshSnapshots();
+        pushToast(t.snapshotCreated || 'Snapshot creado', 'round', 1800);
+        setPromptCfg(null);
+      },
     });
-    refreshSnapshots();
-    pushToast(t.snapshotCreated || 'Snapshot creado', 'round', 1800);
   };
   const handleLoadSnapshot = (id) => {
     if (!window.MstPersist) return;
@@ -1705,10 +2008,20 @@ function MasterApp({
   const [customEncounters, setCustomEncounters] = useStateA(() =>
     window.MstPersist ? window.MstPersist.listCustomEncounters() : []);
   const refreshCustomEncounters = () => setCustomEncounters(window.MstPersist.listCustomEncounters());
+  /* MST-J04: prompt React (Promise) en lugar de window.prompt */
   const handleImportEncounterFile = async (file) => {
     if (!file || !window.MstPersist) return null;
     const data = await window.MstPersist.importEncounterFile(file);
-    const name = window.prompt(t.encounterName || 'Nombre del encuentro', data.name || 'Custom');
+    const name = await new Promise((resolve) => {
+      askPrompt({
+        title: t.encounterName || 'Nombre del encuentro',
+        message: t.encounterName || 'Nombre del encuentro',
+        defaultValue: data.name || 'Custom',
+        okLabel: t.snapshotCreate || 'Guardar',
+        onSubmit: (v) => { setPromptCfg(null); resolve(v); },
+        onCancel: () => { setPromptCfg(null); resolve(null); },
+      });
+    });
     if (!name) return null;
     const entry = window.MstPersist.saveCustomEncounter(name, data);
     refreshCustomEncounters();
@@ -2353,6 +2666,21 @@ function MasterApp({
   };
   const onRemoveToken = (id) => {
     const tk = tokens.find(x => x.id === id);
+    /* MST-J10: confirmar si es un PJ importado de la ficha */
+    if (tk && tk.fromSheetUid) {
+      askConfirm({
+        title: t.removeToken || 'Quitar',
+        message: (t.confirmRemovePCFromSheet || 'Vas a quitar a {n}, importado de la ficha. ¿Continuar?').replace('{n}', tk.name),
+        okLabel: t.removeToken || 'Quitar',
+        danger: true,
+        onConfirm: () => doRemoveToken(id),
+      });
+      return;
+    }
+    doRemoveToken(id);
+  };
+  const doRemoveToken = (id) => {
+    const tk = tokens.find(x => x.id === id);
     setTokens(ts => ts.filter(x => x.id !== id));
     if (selectedId === id) setSelectedId(null);
     if (activeId === id) {
@@ -2396,6 +2724,24 @@ function MasterApp({
   };
 
   const onChangeHp = (id, delta) => {
+    /* MST-J06: anti-misclick si vamos a dejar a un PJ a 0 PG con −1 directo */
+    const targetTk = tokens.find(x => x.id === id);
+    if (targetTk) {
+      const isPC = targetTk.kind === 'pj' || targetTk.kind === 'player' || targetTk.fromSheet;
+      if (isPC && delta < 0 && targetTk.hp > 0 && (targetTk.hp + delta) <= 0) {
+        askConfirm({
+          title: t.koToast || 'KO',
+          message: (t.confirmKnockoutPC || '¿Aplicar daño que dejará a {n} a 0 PG?').replace('{n}', targetTk.name),
+          okLabel: t.confirm || 'Aplicar',
+          danger: true,
+          onConfirm: () => doChangeHp(id, delta),
+        });
+        return;
+      }
+    }
+    doChangeHp(id, delta);
+  };
+  const doChangeHp = (id, delta) => {
     setTokens(ts => ts.map(tk => {
       if (tk.id !== id) return tk;
       const newHp = Math.max(0, Math.min(tk.hpMax, tk.hp + delta));
@@ -2484,11 +2830,12 @@ function MasterApp({
   const advanceTurn = () => {
     const order = initiativeOrder;
     const idx = order.findIndex(x => x.id === activeId);
-    // Saltar tokens marcados como muertos (`dead:true`). Quedan visibles en
-    // el orden pero no toman turno; los estabilizados (sólo HP=0) sí.
+    /* MST-J09: saltar muertos y también los que están en delay (pero los
+       delayed ya están al final del orden; vuelven a entrar al cambiar
+       de ronda al limpiarse el flag). */
     let nextIdx = (idx + 1) % order.length;
     let safety = 0;
-    while (order[nextIdx] && order[nextIdx].dead && safety < order.length) {
+    while (order[nextIdx] && (order[nextIdx].dead) && safety < order.length) {
       nextIdx = (nextIdx + 1) % order.length;
       safety++;
     }
@@ -2497,6 +2844,9 @@ function MasterApp({
     setActiveId(next.id);
     setSelectedId(next.id);
     if (newRound) {
+      /* MST-J09: al iniciar ronda nueva, los tokens en delay vuelven a entrar
+         (les quitamos el flag para que se ordenen por INI normalmente). */
+      setTokens(ts => ts.map(tk => tk.delay === true ? { ...tk, delay: false } : tk));
       setRound(r => {
         log.push({ kind: 'turn', text: `— ${t.round} ${r + 1} —`, actor: '' });
         pushToast(`${t.round} ${r + 1}`, 'round');
@@ -2735,6 +3085,9 @@ function MasterApp({
               onSetTheme={(v) => onSetTheme && onSetTheme(v)}
               onSetGrid={(v) => onSetGrid && onSetGrid(v)}
               onResetEncounter={handleResetEncounter}
+              onEmptyEncounter={handleEmptyEncounter}
+              snapToGrid={snapToGrid}
+              onToggleSnapToGrid={setSnapToGrid}
               onExport={handleExport}
               onImportFile={handleImport}
               onClearSaved={handleClearSaved}
@@ -3049,6 +3402,29 @@ function MasterApp({
         onSubmit={(updated) => { onSaveBestiaryEntry(updated); }}
         onRemove={() => { if (editEntry) onDeleteBestiaryEntry(editEntry); }}
         lang={lang}
+      />
+
+      {/* MST-J04: PROMPT / CONFIRM MODAL — reemplazo de window.prompt/confirm */}
+      <PromptModal
+        open={!!promptCfg}
+        title={promptCfg && promptCfg.title}
+        message={promptCfg && promptCfg.message}
+        defaultValue={promptCfg && promptCfg.defaultValue}
+        placeholder={promptCfg && promptCfg.placeholder}
+        okLabel={promptCfg && promptCfg.okLabel}
+        cancelLabel={promptCfg && promptCfg.cancelLabel}
+        onSubmit={(v) => { if (promptCfg && promptCfg.onSubmit) promptCfg.onSubmit(v); else setPromptCfg(null); }}
+        onClose={() => { if (promptCfg && promptCfg.onCancel) promptCfg.onCancel(); else setPromptCfg(null); }}
+      />
+      <ConfirmModal
+        open={!!confirmCfg}
+        title={confirmCfg && confirmCfg.title}
+        message={confirmCfg && confirmCfg.message}
+        okLabel={confirmCfg && confirmCfg.okLabel}
+        cancelLabel={confirmCfg && confirmCfg.cancelLabel}
+        danger={confirmCfg && confirmCfg.danger}
+        onConfirm={() => { if (confirmCfg && confirmCfg.onConfirm) confirmCfg.onConfirm(); setConfirmCfg(null); }}
+        onClose={() => { if (confirmCfg && confirmCfg.onCancel) confirmCfg.onCancel(); setConfirmCfg(null); }}
       />
 
       {/* DRAWER — solo visible en mapa cuando hay token seleccionado */}

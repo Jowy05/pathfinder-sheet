@@ -77,6 +77,21 @@ const I18N = {
     forest: "Emboscada en el bosque",
     dungeon: "Sala del trono profanada",
     urban: "Plaza del mercado",
+    /* MST-J02 */
+    emptyEncounter: "Encuentro vacío",
+    emptyEncounterHelp: "Limpia tokens, niebla y plantillas. Empieza en R1 con el mapa actual.",
+    emptyEncounterAction: "Encuentro vacío",
+    emptyEncounterConfirm: "¿Empezar un encuentro vacío? Se borrarán tokens, niebla y plantillas.",
+    /* MST-J05 */
+    snapToGrid: "Imantar a celda",
+    snapToGridHelp: "Los tokens se alinean al centro de la cuadrícula al moverlos",
+    /* MST-J10 */
+    confirmRemovePCFromSheet: "Vas a quitar a {n}, importado de la ficha. ¿Continuar?",
+    /* MST-J07 */
+    tokenColor: "Color del token",
+    tokenPhoto: "Foto",
+    replace: "Cambiar",
+    remove: "Quitar",
     encDesc: "Toca cualquier ficha para abrir su tarjeta. Mantén pulsado para arrastrar.",
     layoutCompact: "Compacto",
     layoutExpanded: "Expandido",
@@ -430,6 +445,21 @@ const I18N = {
     ranged: "Ranged",
     crit: "Crit",
     forest: "Forest ambush",
+    /* MST-J02 */
+    emptyEncounter: "Empty encounter",
+    emptyEncounterHelp: "Clears tokens, fog and templates. Starts at R1 with the current map.",
+    emptyEncounterAction: "Empty encounter",
+    emptyEncounterConfirm: "Start an empty encounter? Tokens, fog and templates will be cleared.",
+    /* MST-J05 */
+    snapToGrid: "Snap to grid",
+    snapToGridHelp: "Tokens align to the cell center when moved",
+    /* MST-J10 */
+    confirmRemovePCFromSheet: "You are about to remove {n}, imported from the sheet. Continue?",
+    /* MST-J07 */
+    tokenColor: "Token color",
+    tokenPhoto: "Photo",
+    replace: "Replace",
+    remove: "Remove",
     dungeon: "Defiled throne room",
     urban: "Market square",
     encDesc: "Tap any token to open its card. Long-press to drag.",
@@ -731,6 +761,14 @@ const COLOR = {
 };
 
 const ENCOUNTERS = {
+  /* MST-J02: encuentro vacío — punto de partida limpio en R1 */
+  empty: {
+    nameKey: "emptyEncounter",
+    grid: { w: 1200, h: 900 },
+    zones: [],
+    tokens: [],
+    activeId: null,
+  },
   forest: {
     nameKey: "forest",
     grid: { w: 1200, h: 900 },

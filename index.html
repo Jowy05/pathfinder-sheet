@@ -68,7 +68,15 @@
 </head>
 <body>
 <script src="cyberpunk-loader.js?v=6"></script>
-<div class="sheet-container">
+<!-- PC-J09: skip-link de accesibilidad -->
+<a href="#main-sheet" class="skip-link" data-i18n="a11y.skipLink">Saltar al contenido principal</a>
+<!-- PC-J05: Banner sticky para subir nivel cuando currentXP >= xpNext -->
+<div id="level-up-banner" class="level-up-banner" hidden role="status" aria-live="polite">
+  <span class="lub-text" id="level-up-banner-text">¡Tienes XP suficiente para subir al nivel siguiente!</span>
+  <button type="button" class="lub-btn" id="level-up-banner-cta" onclick="openLevelUpWizard()">🧙 <span data-i18n="btn.levelUp">Subir nivel</span></button>
+  <button type="button" class="lub-close" onclick="dismissLevelUpBanner()" aria-label="Cerrar aviso">×</button>
+</div>
+<div class="sheet-container" id="main-sheet">
 
 <header class="sheet-header">
   <!-- Lang button — absolute top-right -->
@@ -168,6 +176,8 @@
     <div id="class-rows-container"></div>
   </div>
   <button class="btn-add" id="add-class-btn" style="width:100%;margin-bottom:6px;" data-i18n="btn.addClass">[+] Añadir Clase</button>
+  <!-- PC-J06: equipo inicial por clase -->
+  <button class="btn-add" id="apply-starting-gear-btn" type="button" onclick="applyStartingGearFromUI()" style="width:100%;margin-bottom:6px;background:rgba(120,80,40,0.12);border:1px dashed var(--leather-lt);color:var(--leather-dk);" aria-label="Cargar equipo inicial de la primera clase" data-i18n-title="tt.startingGear" title="Añade armas/armaduras/objetos básicos de la primera clase activa"><span data-i18n="btn.startingGear">🎒 Equipo inicial</span></button>
   <!-- ── PROFICIENCY SUMMARY ── -->
   <div id="prof-summary" style="font-size:11px;color:var(--leather-dk);padding:3px 6px;background:rgba(0,0,0,0.03);border:1px solid var(--parchment-dk);border-radius:3px;margin-bottom:6px;display:none;"></div>
   <!-- ── ORDEN (Cavalier / Samurai) ── -->
@@ -407,6 +417,11 @@
 
 <div class="panel attributes-panel">
   <h2 data-i18n="p.attrs">Atributos Base</h2>
+  <!-- PC-J01: Botón asistente de generación de atributos -->
+  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;align-items:center;">
+    <button type="button" id="btn-attr-gen" onclick="openAttrGen()" class="btn-add" style="background:var(--leather);color:var(--parchment);border:1px solid var(--leather-dk);padding:5px 10px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;" aria-label="Abrir asistente de generación de atributos">🎲 <span data-i18n="btn.attrGen">Generar atributos</span></button>
+    <small style="font-size:10.5px;color:var(--leather-lt);font-style:italic;" data-i18n="hint.attrGen">Point-Buy · Standard Array · 4d6 · Manual</small>
+  </div>
   <div class="attr-table-wrap">
   <table class="attr-table" id="attr-table">
     <thead>
@@ -1720,6 +1735,10 @@
   <button class="btn-action save" onclick="exportData()" data-i18n="btn.save">Guardar Personaje</button>
   <input type="file" id="import-file" style="display:none" accept=".json" onchange="importData(event)">
   <button class="btn-action" onclick="document.getElementById('import-file').click()" data-i18n="btn.load">Cargar Ficha</button>
+  <!-- PC-J02: Botón Undo (Ctrl+Z) -->
+  <button class="btn-action" id="btn-undo" type="button" onclick="undoSheet()" disabled aria-label="Deshacer último cambio (Ctrl+Z)" title="Deshacer (Ctrl+Z)" data-i18n-title="tt.undo">↶ <span data-i18n="btn.undo">Deshacer</span></button>
+  <!-- PC-J03: Botón restaurar backup -->
+  <button class="btn-action" id="btn-restore-backup" type="button" onclick="openBackupRestore()" aria-label="Restaurar copia automática" title="Restaurar copia automática" data-i18n-title="tt.restoreBackup">⏱ <span data-i18n="btn.restoreBackup">Restaurar backup</span></button>
 </div>
 
 </div>
@@ -2098,6 +2117,13 @@ const I18N = {
     'w.ok':'¡Ficha completa! No se detectan problemas.',
     // Footer / misc
     'btn.save':'Guardar Personaje','btn.load':'Cargar Ficha','m.importErr':'Error al cargar el archivo: ',
+    /* PC-J: nuevas claves para botones añadidos por la auditoría */
+    'btn.undo':'Deshacer','tt.undo':'Deshacer último cambio (Ctrl+Z)',
+    'btn.restoreBackup':'Restaurar backup','tt.restoreBackup':'Restaurar copia automática',
+    'btn.attrGen':'Generar atributos','hint.attrGen':'Point-Buy · Standard Array · 4d6 · Manual',
+    'btn.startingGear':'🎒 Equipo inicial','tt.startingGear':'Añade armas/armaduras/objetos básicos de la primera clase activa',
+    'btn.levelUp':'Subir nivel',
+    'a11y.skipLink':'Saltar al contenido principal',
     'p.rollHistory':'Historial de Tiradas','label.noRolls':'Sin tiradas aún.','btn.clearHistory':'Limpiar historial',
     'tt.removeClass':'Quitar clase',
     'label.hpTotal':'PG Total','tt.hpClassTotal':'PG total para esta clase (lo rellenan los dados)','tt.hpClassTotal.hdr':'Total PG acumulados (lo rellenan los dados)','col.level':'Nivel',
@@ -2548,6 +2574,13 @@ const I18N = {
     'w.babCl':'BAB: {bab} · Active Caster Level: {cl}.',
     'w.ok':'Sheet complete! No issues detected.',
     'btn.save':'Save Character','btn.load':'Load Sheet','m.importErr':'Error loading file: ',
+    /* PC-J: new keys for audit additions */
+    'btn.undo':'Undo','tt.undo':'Undo last change (Ctrl+Z)',
+    'btn.restoreBackup':'Restore backup','tt.restoreBackup':'Restore an automatic snapshot',
+    'btn.attrGen':'Generate attributes','hint.attrGen':'Point-Buy · Standard Array · 4d6 · Manual',
+    'btn.startingGear':'🎒 Starting gear','tt.startingGear':'Add basic weapons/armor/items from first active class',
+    'btn.levelUp':'Level up',
+    'a11y.skipLink':'Skip to main content',
     'p.rollHistory':'Roll History','label.noRolls':'No rolls yet.','btn.clearHistory':'Clear history',
     'tt.removeClass':'Remove class',
     'label.hpTotal':'Total HP','tt.hpClassTotal':'Total HP for this class (rolls fill it in)','tt.hpClassTotal.hdr':'Accumulated total HP (rolls fill it in)','col.level':'Level',
@@ -8453,6 +8486,8 @@ function addWeapon(data = {}) {
       <button class="btn-roll-dmg" onclick="rollWeaponDamage(this,false)" data-i18n="btn.wpnDmg" data-i18n-title="tt.wpnDmg" title="${t('tt.wpnDmg')}">${t('btn.wpnDmg')}</button>
       <button class="btn-discord-copy" onclick="copyDiscordRoll(this,'dmg')" data-i18n-title="tt.discordDmg" title="${t('tt.discordDmg')}">📋</button>
       <button class="btn-roll-dmg btn-roll-crit" onclick="rollWeaponDamage(this,true)" data-i18n="btn.wpnCrit" data-i18n-title="tt.wpnCrit" title="${t('tt.wpnCrit')}">${t('btn.wpnCrit')}</button>
+      <!-- PC-J07: Full Attack iterativo -->
+      <button class="btn-roll-dmg" onclick="rollWeaponFullAttack(this)" title="Full Attack (cadena iterativa con BAB)" aria-label="Full Attack iterativo">🗡 Full Atk</button>
       <span class="weapon-roll-result"></span>
     </div>
     <div class="weapon-traits-row">
@@ -8488,22 +8523,23 @@ function addArmor() {
   const container = document.getElementById('armor-container');
   const div = document.createElement('div');
   div.className = 'item-card armor-card';
+  /* T-22 Fase L: data-i18n para retraducción in-place al cambiar idioma. */
   div.innerHTML = `
-    <div class="item-check"><input type="checkbox" class="armor-equipped recalc" id="aeq-${i}"><label for="aeq-${i}">${t('a.eqp')}</label></div>
-    <div class="item-field wide" style="flex:1;"><label>${t('a.name')}</label><input type="text" placeholder="${t('ph.armName')}"></div>
-    <div class="item-field"><label>${t('a.type')}</label><select class="armor-type recalc" style="width:76px;"><option value="none">${t('arm.noneAlt')}</option><option value="light">${t('arm.light')}</option><option value="medium">${t('arm.medium')}</option><option value="heavy">${t('arm.heavy')}</option><option value="shield">${t('arm.shield')}</option></select></div>
-    <div class="item-field"><label>${t('a.acBonus')}</label><input type="number" class="armor-ac recalc" value="0" style="width:44px;"></div>
-    <div class="item-field"><label>${t('a.maxDex')}</label><input type="number" class="armor-maxdex recalc" value="99" style="width:44px;"></div>
-    <div class="item-field"><label>${t('a.acp')}</label><input type="number" class="armor-acp recalc" value="0" style="width:40px;"></div>
-    <div class="item-field"><label>${t('a.asf')}</label><input type="number" class="armor-sf recalc" value="0" style="width:44px;"></div>
-    <div class="item-field"><label>${t('a.weight')}</label><input type="number" class="item-weight recalc" value="0" style="width:50px;"></div>
-    <div class="item-check"><input type="checkbox" class="armor-broken recalc" id="abr-${i}"><label for="abr-${i}" title="${t('tt.broken')}">${t('a.broken')}</label></div>
-    <div class="item-check"><input type="checkbox" class="item-magic" id="amag-${i}" onchange="toggleMagicCharges(this)"><label for="amag-${i}" style="color:var(--gold);">${t('item.magic')}</label></div>
-    <button class="btn-remove" type="button" aria-label="${t('aria.delete')}" title="${t('aria.delete')}"><span aria-hidden="true">×</span></button>
+    <div class="item-check"><input type="checkbox" class="armor-equipped recalc" id="aeq-${i}"><label for="aeq-${i}" data-i18n="a.eqp">${t('a.eqp')}</label></div>
+    <div class="item-field wide" style="flex:1;"><label data-i18n="a.name">${t('a.name')}</label><input type="text" data-i18n-ph="ph.armName" placeholder="${t('ph.armName')}"></div>
+    <div class="item-field"><label data-i18n="a.type">${t('a.type')}</label><select class="armor-type recalc" style="width:76px;"><option value="none" data-i18n="arm.noneAlt">${t('arm.noneAlt')}</option><option value="light" data-i18n="arm.light">${t('arm.light')}</option><option value="medium" data-i18n="arm.medium">${t('arm.medium')}</option><option value="heavy" data-i18n="arm.heavy">${t('arm.heavy')}</option><option value="shield" data-i18n="arm.shield">${t('arm.shield')}</option></select></div>
+    <div class="item-field"><label data-i18n="a.acBonus">${t('a.acBonus')}</label><input type="number" class="armor-ac recalc" value="0" style="width:44px;"></div>
+    <div class="item-field"><label data-i18n="a.maxDex">${t('a.maxDex')}</label><input type="number" class="armor-maxdex recalc" value="99" style="width:44px;"></div>
+    <div class="item-field"><label data-i18n="a.acp">${t('a.acp')}</label><input type="number" class="armor-acp recalc" value="0" style="width:40px;"></div>
+    <div class="item-field"><label data-i18n="a.asf">${t('a.asf')}</label><input type="number" class="armor-sf recalc" value="0" style="width:44px;"></div>
+    <div class="item-field"><label data-i18n="a.weight">${t('a.weight')}</label><input type="number" class="item-weight recalc" value="0" style="width:50px;"></div>
+    <div class="item-check"><input type="checkbox" class="armor-broken recalc" id="abr-${i}"><label for="abr-${i}" data-i18n="a.broken" data-i18n-title="tt.broken" title="${t('tt.broken')}">${t('a.broken')}</label></div>
+    <div class="item-check"><input type="checkbox" class="item-magic" id="amag-${i}" onchange="toggleMagicCharges(this)"><label for="amag-${i}" data-i18n="item.magic" style="color:var(--gold);">${t('item.magic')}</label></div>
+    <button class="btn-remove" type="button" data-i18n-aria="aria.delete" data-i18n-title="aria.delete" aria-label="${t('aria.delete')}" title="${t('aria.delete')}"><span aria-hidden="true">×</span></button>
     <div class="magic-charges-row" style="display:none;">
-      <label>${t('item.magic')}:</label>
-      <input type="number" class="magic-charges-max" value="50" min="1" max="100" onchange="rebuildMagicBubbles(this)" title="${t('tt.magicMax')}">
-      <span class="magic-charges-label">${t('label.magicRemaining')}</span>
+      <label data-i18n="item.magic">${t('item.magic')}:</label>
+      <input type="number" class="magic-charges-max" value="50" min="1" max="100" onchange="rebuildMagicBubbles(this)" data-i18n-title="tt.magicMax" title="${t('tt.magicMax')}">
+      <span class="magic-charges-label" data-i18n="label.magicRemaining">${t('label.magicRemaining')}</span>
       <div class="magic-charge-bubbles"></div>
     </div>`;
   container.appendChild(div);
@@ -8515,17 +8551,18 @@ function addItem() {
   const container = document.getElementById('items-container');
   const div = document.createElement('div');
   div.className = 'item-card item-general-card';
+  /* T-22 Fase L: data-i18n para retraducción in-place. */
   div.innerHTML = `
-    <div class="item-field wide"><label>${t('i.name')}</label><input type="text" placeholder="${t('ph.itemName')}"></div>
-    <div class="item-field"><label>${t('i.qty')}</label><input type="number" class="item-qty recalc" value="1" min="1" style="width:44px;"></div>
-    <div class="item-field"><label>${t('i.weightU')}</label><input type="number" class="item-weight recalc" value="0" style="width:54px;"></div>
-    <div class="item-field"><label>${t('i.notes')}</label><input type="text" placeholder="${t('ph.itemNotes')}" style="width:140px;"></div>
-    <div class="item-check"><input type="checkbox" class="item-magic" id="imag-${j}" onchange="toggleMagicCharges(this)"><label for="imag-${j}" style="color:var(--gold);">${t('item.magic')}</label></div>
-    <button class="btn-remove" type="button" aria-label="${t('aria.delete')}" title="${t('aria.delete')}"><span aria-hidden="true">×</span></button>
+    <div class="item-field wide"><label data-i18n="i.name">${t('i.name')}</label><input type="text" data-i18n-ph="ph.itemName" placeholder="${t('ph.itemName')}"></div>
+    <div class="item-field"><label data-i18n="i.qty">${t('i.qty')}</label><input type="number" class="item-qty recalc" value="1" min="1" style="width:44px;"></div>
+    <div class="item-field"><label data-i18n="i.weightU">${t('i.weightU')}</label><input type="number" class="item-weight recalc" value="0" style="width:54px;"></div>
+    <div class="item-field"><label data-i18n="i.notes">${t('i.notes')}</label><input type="text" data-i18n-ph="ph.itemNotes" placeholder="${t('ph.itemNotes')}" style="width:140px;"></div>
+    <div class="item-check"><input type="checkbox" class="item-magic" id="imag-${j}" onchange="toggleMagicCharges(this)"><label for="imag-${j}" data-i18n="item.magic" style="color:var(--gold);">${t('item.magic')}</label></div>
+    <button class="btn-remove" type="button" data-i18n-aria="aria.delete" data-i18n-title="aria.delete" aria-label="${t('aria.delete')}" title="${t('aria.delete')}"><span aria-hidden="true">×</span></button>
     <div class="magic-charges-row" style="display:none;">
-      <label>${t('item.magic')}:</label>
-      <input type="number" class="magic-charges-max" value="50" min="1" max="100" onchange="rebuildMagicBubbles(this)" title="${t('tt.magicMax')}">
-      <span class="magic-charges-label">${t('label.magicRemaining')}</span>
+      <label data-i18n="item.magic">${t('item.magic')}:</label>
+      <input type="number" class="magic-charges-max" value="50" min="1" max="100" onchange="rebuildMagicBubbles(this)" data-i18n-title="tt.magicMax" title="${t('tt.magicMax')}">
+      <span class="magic-charges-label" data-i18n="label.magicRemaining">${t('label.magicRemaining')}</span>
       <div class="magic-charge-bubbles"></div>
     </div>`;
   container.appendChild(div);
@@ -8681,18 +8718,19 @@ function addFeat(name = '', type = 'normal', notes = '') {
   const div = document.createElement('div');
   div.className = `feat-card ${type}`;
   div.dataset.type = type;
+  /* T-22 Fase L: data-i18n y data-i18n-ph para retraducción in-place. */
   div.innerHTML = `
     <div class="feat-dot"></div>
-    <input type="text" class="feat-name" placeholder="${t('ph.featName')}" value="${name}">
+    <input type="text" class="feat-name" data-i18n-ph="ph.featName" placeholder="${t('ph.featName')}" value="${name}">
     <select class="feat-type-sel" onchange="updateFeatType(this)">
-      <option value="normal"  ${type==='normal' ?'selected':''}>${t('ft.normal')}</option>
-      <option value="cbt"     ${type==='cbt'    ?'selected':''}>${t('ft.combat')}</option>
-      <option value="meta"    ${type==='meta'   ?'selected':''}>${t('ft.meta')}</option>
-      <option value="crit"    ${type==='crit'   ?'selected':''}>${t('ft.crit')}</option>
-      <option value="team"    ${type==='team'   ?'selected':''}>${t('ft.team')}</option>
+      <option value="normal"  ${type==='normal' ?'selected':''} data-i18n="ft.normal">${t('ft.normal')}</option>
+      <option value="cbt"     ${type==='cbt'    ?'selected':''} data-i18n="ft.combat">${t('ft.combat')}</option>
+      <option value="meta"    ${type==='meta'   ?'selected':''} data-i18n="ft.meta">${t('ft.meta')}</option>
+      <option value="crit"    ${type==='crit'   ?'selected':''} data-i18n="ft.crit">${t('ft.crit')}</option>
+      <option value="team"    ${type==='team'   ?'selected':''} data-i18n="ft.team">${t('ft.team')}</option>
     </select>
-    <input type="text" class="feat-notes" placeholder="${t('ph.featNotes')}" value="${notes}">
-    <button class="btn-remove" type="button" aria-label="${t('aria.delFeat')}" title="${t('aria.delFeat')}" onclick="this.closest('.feat-card').remove(); updateFeatCounter(); refreshFeatPrereqChips();"><span aria-hidden="true">×</span></button>`;
+    <input type="text" class="feat-notes" data-i18n-ph="ph.featNotes" placeholder="${t('ph.featNotes')}" value="${notes}">
+    <button class="btn-remove" type="button" data-i18n-aria="aria.delFeat" data-i18n-title="aria.delFeat" aria-label="${t('aria.delFeat')}" title="${t('aria.delFeat')}" onclick="this.closest('.feat-card').remove(); updateFeatCounter(); refreshFeatPrereqChips();"><span aria-hidden="true">×</span></button>`;
   container.appendChild(div);
   updateFeatCounter();
   refreshFeatPrereqChips();
@@ -13799,6 +13837,1050 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
   </div>
 </div>
+
+<!-- ╔══════════════════════════════════════════════════════════════════╗
+     ║ PC-J01..PC-J14 · MODALES + LÓGICA AÑADIDA POR LA AUDITORÍA PC    ║
+     ╚══════════════════════════════════════════════════════════════════╝ -->
+
+<!-- PC-J01: Modal asistente generación de atributos -->
+<div id="attr-gen-overlay" class="pcj-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="attr-gen-title" onclick="if(event.target===this)closeAttrGen()">
+  <div class="pcj-modal pcj-modal-lg">
+    <div class="pcj-modal-header">
+      <span id="attr-gen-title">🎲 Asistente de Atributos</span>
+      <button class="pcj-close" type="button" onclick="closeAttrGen()" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="pcj-modal-body">
+      <div class="pcj-tabs" role="tablist" aria-label="Métodos de generación">
+        <button class="pcj-tab active" type="button" role="tab" data-attrtab="pb" onclick="switchAttrTab('pb')">Point-Buy</button>
+        <button class="pcj-tab" type="button" role="tab" data-attrtab="sa" onclick="switchAttrTab('sa')">Standard Array</button>
+        <button class="pcj-tab" type="button" role="tab" data-attrtab="r4" onclick="switchAttrTab('r4')">4d6 ↓1</button>
+        <button class="pcj-tab" type="button" role="tab" data-attrtab="mn" onclick="switchAttrTab('mn')">Manual</button>
+      </div>
+
+      <!-- Point-buy -->
+      <div class="pcj-tabpanel" data-attrpanel="pb">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px;font-size:12px;">
+          <label>Presupuesto:
+            <select id="pb-budget" onchange="renderPointBuy()">
+              <option value="10">10 pts (Bajo)</option>
+              <option value="15" selected>15 pts (Estándar)</option>
+              <option value="20">20 pts (Alto)</option>
+              <option value="25">25 pts (Épico)</option>
+            </select>
+          </label>
+          <span>Restantes: <b id="pb-remaining">15</b></span>
+          <button type="button" class="pcj-btn-mini" onclick="resetPointBuy()">Reset</button>
+        </div>
+        <table class="pcj-attr-table" id="pb-table"></table>
+        <p class="pcj-hint">Coste oficial PF1e: 7→0, 8→0, 9→1, 10→2, 11→3, 12→4, 13→5, 14→6, 15→8, 16→10, 17→13, 18→17.</p>
+      </div>
+
+      <!-- Standard Array -->
+      <div class="pcj-tabpanel" data-attrpanel="sa" hidden>
+        <p class="pcj-hint">Asigna los valores 15, 14, 13, 12, 10, 8 a tus seis atributos (sin coste).</p>
+        <table class="pcj-attr-table" id="sa-table"></table>
+      </div>
+
+      <!-- 4d6 drop low -->
+      <div class="pcj-tabpanel" data-attrpanel="r4" hidden>
+        <p class="pcj-hint">Tira 4d6 y descarta el menor. Pulsa "Tirar set" para reiniciar la pool.</p>
+        <button type="button" class="pcj-btn-mini" onclick="rollR4Set()">🎲 Tirar set (6 valores)</button>
+        <div id="r4-pool" style="margin:8px 0;display:flex;flex-wrap:wrap;gap:6px;"></div>
+        <table class="pcj-attr-table" id="r4-table"></table>
+      </div>
+
+      <!-- Manual -->
+      <div class="pcj-tabpanel" data-attrpanel="mn" hidden>
+        <p class="pcj-hint">Introduce los valores base manualmente (3..18 recomendado).</p>
+        <table class="pcj-attr-table" id="mn-table"></table>
+      </div>
+    </div>
+    <div class="pcj-modal-footer">
+      <button type="button" class="pcj-btn-mini" onclick="closeAttrGen()">Cancelar</button>
+      <button type="button" class="pcj-btn pcj-btn-primary" onclick="applyAttrGen()">Aplicar al personaje</button>
+    </div>
+  </div>
+</div>
+
+<!-- PC-J04: Modal wizard subir nivel -->
+<div id="lvlup-overlay" class="pcj-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="lvlup-title" onclick="if(event.target===this)closeLevelUpWizard()">
+  <div class="pcj-modal pcj-modal-lg">
+    <div class="pcj-modal-header">
+      <span id="lvlup-title">🧙 Subir Nivel</span>
+      <button class="pcj-close" type="button" onclick="closeLevelUpWizard()" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="pcj-modal-body">
+      <div class="pcj-stepper" id="lvlup-stepper">
+        <span class="pcj-step active" data-step="1">1. HP</span>
+        <span class="pcj-step" data-step="2">2. Habilidades</span>
+        <span class="pcj-step" data-step="3">3. Dote</span>
+        <span class="pcj-step" data-step="4">4. Conjuros</span>
+      </div>
+      <div class="pcj-step-body" id="lvlup-step-body">
+        <p>Cargando…</p>
+      </div>
+    </div>
+    <div class="pcj-modal-footer">
+      <button type="button" class="pcj-btn-mini" id="lvlup-prev" onclick="lvlupPrev()" disabled>← Atrás</button>
+      <button type="button" class="pcj-btn-mini" onclick="closeLevelUpWizard()">Cancelar</button>
+      <button type="button" class="pcj-btn pcj-btn-primary" id="lvlup-next" onclick="lvlupNext()">Siguiente →</button>
+    </div>
+  </div>
+</div>
+
+<!-- PC-J03: Modal restaurar backup -->
+<div id="backup-overlay" class="pcj-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="backup-title" onclick="if(event.target===this)closeBackupRestore()">
+  <div class="pcj-modal">
+    <div class="pcj-modal-header">
+      <span id="backup-title">⏱ Restaurar copia automática</span>
+      <button class="pcj-close" type="button" onclick="closeBackupRestore()" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="pcj-modal-body">
+      <p class="pcj-hint">Las copias se generan cada 5 minutos. Se conservan las 3 más recientes en el navegador.</p>
+      <div id="backup-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+    <div class="pcj-modal-footer">
+      <button type="button" class="pcj-btn-mini" onclick="closeBackupRestore()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- PC-J12: Modal cheatsheet de atajos -->
+<div id="cheatsheet-overlay" class="pcj-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="cheatsheet-title" onclick="if(event.target===this)closeCheatsheet()">
+  <div class="pcj-modal">
+    <div class="pcj-modal-header">
+      <span id="cheatsheet-title">⌨ Atajos de teclado</span>
+      <button class="pcj-close" type="button" onclick="closeCheatsheet()" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="pcj-modal-body">
+      <table class="pcj-attr-table" style="font-size:12px;">
+        <tbody>
+          <tr><td><kbd>Ctrl</kbd> + <kbd>Z</kbd></td><td>Deshacer último cambio</td></tr>
+          <tr><td><kbd>/</kbd></td><td>Foco en buscador global</td></tr>
+          <tr><td><kbd>i</kbd></td><td>Tirar iniciativa</td></tr>
+          <tr><td><kbd>f</kbd></td><td>Abrir picker de dotes</td></tr>
+          <tr><td><kbd>?</kbd></td><td>Mostrar esta ayuda</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pcj-modal-footer">
+      <button type="button" class="pcj-btn-mini" onclick="closeCheatsheet()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<style>
+/* PC-J05: banner subir nivel */
+.level-up-banner{position:sticky;top:0;left:0;right:0;z-index:9000;display:flex;align-items:center;gap:10px;padding:8px 14px;background:linear-gradient(90deg,#ffd54f 0%,#ffb300 100%);color:#3e2a00;border-bottom:2px solid #b76e00;box-shadow:0 2px 6px rgba(0,0,0,0.25);font-family:var(--ff-head, system-ui);font-weight:600;font-size:13px;}
+.level-up-banner .lub-text{flex:1;}
+.level-up-banner .lub-btn{background:#3e2a00;color:#ffd54f;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:700;font-size:13px;}
+.level-up-banner .lub-btn:hover{background:#5a3e00;}
+.level-up-banner .lub-close{background:transparent;border:none;color:#3e2a00;font-size:18px;cursor:pointer;line-height:1;padding:0 6px;}
+
+/* PC-J09: skip-link accesible */
+.skip-link{position:absolute;left:-9999px;top:0;background:#000;color:#fff;padding:6px 12px;z-index:10000;}
+.skip-link:focus{left:8px;top:8px;}
+
+/* PC-J09: focus visible global */
+*:focus-visible{outline:2px solid #ff8c00;outline-offset:2px;}
+
+/* PC-J08: sticky bar con HP/Init/CA/saves al scrollear */
+#pcj-sticky-bar{position:sticky;top:0;z-index:8500;display:none;background:rgba(38,24,14,0.94);color:#f3e7c8;padding:6px 12px;font-family:var(--ff-head, system-ui);font-size:12px;font-weight:600;border-bottom:2px solid #2c1810;backdrop-filter:blur(4px);box-shadow:0 2px 4px rgba(0,0,0,0.4);}
+#pcj-sticky-bar .pcjsb-row{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:center;}
+#pcj-sticky-bar .pcjsb-cell{display:inline-flex;gap:4px;align-items:baseline;}
+#pcj-sticky-bar .pcjsb-cell b{color:#ffe0a0;font-size:14px;}
+@media (max-width:640px){ #pcj-sticky-bar{font-size:11px;} #pcj-sticky-bar .pcjsb-row{gap:8px;} }
+
+/* PC-J modales genéricos */
+.pcj-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9500;display:flex;align-items:center;justify-content:center;padding:18px;}
+.pcj-overlay[hidden]{display:none !important;}
+.pcj-modal{background:var(--parchment, #f0e1bd);color:var(--leather-dk, #3a230a);border:2px solid var(--leather-dk, #3a230a);border-radius:8px;max-width:520px;width:100%;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 10px 28px rgba(0,0,0,0.5);}
+.pcj-modal-lg{max-width:760px;}
+.pcj-modal-header{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--leather, #5a3a22);color:var(--parchment, #f0e1bd);border-radius:6px 6px 0 0;font-family:var(--ff-head, system-ui);font-weight:700;}
+.pcj-close{background:none;border:none;color:inherit;font-size:18px;cursor:pointer;}
+.pcj-modal-body{padding:12px 14px;overflow:auto;flex:1;font-size:13px;}
+.pcj-modal-footer{display:flex;gap:6px;justify-content:flex-end;padding:8px 14px;border-top:1px solid var(--parchment-dk, #c9b27e);}
+.pcj-btn,.pcj-btn-mini{cursor:pointer;border-radius:4px;padding:5px 10px;font-size:12px;border:1px solid var(--leather-dk);background:var(--parchment-dk);color:var(--leather-dk);}
+.pcj-btn-primary{background:var(--leather);color:var(--parchment);font-weight:700;}
+.pcj-btn-mini{padding:3px 8px;font-size:11px;}
+.pcj-btn:disabled,.pcj-btn-mini:disabled{opacity:0.45;cursor:not-allowed;}
+.pcj-tabs{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;}
+.pcj-tab{padding:5px 10px;border:1px solid var(--leather-dk);background:var(--parchment-dk);color:var(--leather-dk);border-radius:4px;cursor:pointer;font-size:12px;}
+.pcj-tab.active{background:var(--leather);color:var(--parchment);font-weight:700;}
+.pcj-tabpanel[hidden]{display:none !important;}
+.pcj-hint{font-size:11px;color:var(--leather-lt, #6f4f2a);font-style:italic;margin:4px 0;}
+.pcj-attr-table{width:100%;border-collapse:collapse;font-size:12px;}
+.pcj-attr-table th,.pcj-attr-table td{padding:4px 6px;border:1px solid var(--parchment-dk);text-align:center;}
+.pcj-attr-table th{background:var(--parchment-dk);}
+.pcj-attr-table input,.pcj-attr-table select{width:60px;font-size:12px;padding:2px 4px;}
+.pcj-stepper{display:flex;justify-content:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+.pcj-step{padding:4px 10px;border-radius:14px;background:var(--parchment-dk);color:var(--leather-dk);font-size:11px;font-weight:600;}
+.pcj-step.active{background:var(--leather);color:var(--parchment);}
+.pcj-step.done{background:#4d8c40;color:#fff;}
+.pcj-pool-die{display:inline-flex;align-items:center;gap:4px;background:var(--parchment-dk);border:1px solid var(--leather-dk);border-radius:4px;padding:3px 8px;font-size:12px;cursor:grab;font-family:var(--ff-head, system-ui);font-weight:700;}
+.pcj-pool-die.used{opacity:0.35;text-decoration:line-through;cursor:not-allowed;}
+.pcj-bk-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--parchment-dk);border-radius:4px;background:rgba(255,255,255,0.4);}
+.pcj-bk-row small{font-size:10.5px;color:var(--leather-lt);}
+kbd{background:#222;color:#eee;border-radius:3px;padding:1px 5px;font-family:ui-monospace,monospace;font-size:11px;}
+</style>
+
+<!-- PC-J08: barra sticky se mueve al cargar al inicio del body via JS (ver script PC-J08) -->
+<template id="pcj-sticky-tpl">
+<div id="pcj-sticky-bar" aria-hidden="true">
+  <div class="pcjsb-row">
+    <span class="pcjsb-cell">PG <b id="pcjsb-hp">0/0</b></span>
+    <span class="pcjsb-cell">CA <b id="pcjsb-ac">10</b></span>
+    <span class="pcjsb-cell">Tac <b id="pcjsb-actouch">10</b></span>
+    <span class="pcjsb-cell">Ini <b id="pcjsb-ini">+0</b></span>
+    <span class="pcjsb-cell">Fort <b id="pcjsb-fort">+0</b></span>
+    <span class="pcjsb-cell">Ref <b id="pcjsb-ref">+0</b></span>
+    <span class="pcjsb-cell">Vol <b id="pcjsb-will">+0</b></span>
+  </div>
+</div>
+</template>
+
+<script>
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║ PC-J02 · Pila Undo (ring-buffer 20) sobre exportData()       ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+(function(){
+  const MAX_UNDO = 20;
+  let undoStack = [];
+  let suspended = false;        // mientras aplicamos un undo no grabamos
+  let lastSnap = null;
+  let debounceT = null;
+  const DEBOUNCE_MS = 1500;
+
+  function _safeExport() {
+    try {
+      if (typeof exportData !== 'function') return null;
+      // exportData() actual descarga un Blob — no nos sirve. Usamos
+      // collectCharacter() si está disponible (ya devuelve dict equivalente).
+      if (typeof collectCharacter === 'function') return collectCharacter();
+      // Fallback ultra-compacto: leer todos los inputs.
+      const data = {};
+      document.querySelectorAll('input,select,textarea').forEach(el=>{
+        const k = el.id || el.name; if(!k) return;
+        data[k] = el.type==='checkbox' ? el.checked : el.value;
+      });
+      return data;
+    } catch(e){ return null; }
+  }
+
+  function _serialize(snap){ try { return JSON.stringify(snap); } catch(_) { return ''; } }
+
+  function pushSnapshot(reason){
+    if (suspended) return;
+    const snap = _safeExport();
+    if (!snap) return;
+    const ser = _serialize(snap);
+    if (lastSnap && ser === lastSnap) return;     // no cambia → no apilar
+    if (lastSnap) {
+      undoStack.push(lastSnap);
+      if (undoStack.length > MAX_UNDO) undoStack.shift();
+    }
+    lastSnap = ser;
+    refreshUndoBtn();
+  }
+
+  function refreshUndoBtn(){
+    const b = document.getElementById('btn-undo');
+    if (b) b.disabled = undoStack.length === 0;
+  }
+
+  function undoSheet(){
+    if (!undoStack.length) return;
+    const prev = undoStack.pop();
+    if (!prev) return;
+    suspended = true;
+    try {
+      const data = JSON.parse(prev);
+      if (typeof applyCharacter === 'function') {
+        applyCharacter(data);
+      } else {
+        // Fallback minimal
+        Object.entries(data).forEach(([k,v])=>{
+          const el = document.getElementById(k);
+          if(!el) return;
+          if(el.type==='checkbox') el.checked = !!v; else el.value = v;
+        });
+        if (typeof recalc==='function') recalc();
+      }
+      lastSnap = prev;
+    } catch(e){ console.error('Undo error', e); }
+    setTimeout(()=>{ suspended = false; }, 60);
+    refreshUndoBtn();
+  }
+  window.undoSheet = undoSheet;
+  window._pcjPushUndoSnapshot = pushSnapshot;
+
+  // Snapshots: edits debounced
+  function scheduleSnap(){
+    if (suspended) return;
+    clearTimeout(debounceT);
+    debounceT = setTimeout(()=>pushSnapshot('debounced'), DEBOUNCE_MS);
+  }
+  document.addEventListener('input', scheduleSnap, true);
+  document.addEventListener('change', scheduleSnap, true);
+
+  // Snapshots: borrar arma/armadura/dote/clase = capturamos antes (en captura).
+  document.addEventListener('click', function(ev){
+    const btn = ev.target.closest('.btn-remove, .class-row-remove');
+    if (!btn) return;
+    // Se ejecutará antes de la eliminación (event en captura).
+    pushSnapshot('delete');
+  }, true);
+
+  // Capturar el primer snapshot tras boot
+  window.addEventListener('load', ()=>{
+    setTimeout(()=>{ pushSnapshot('initial'); refreshUndoBtn(); }, 1500);
+  });
+
+  // Atajo Ctrl+Z (no interferir con campos de texto que ya tienen su undo)
+  document.addEventListener('keydown', function(e){
+    if (!(e.ctrlKey || e.metaKey)) return;
+    if (e.key !== 'z' && e.key !== 'Z') return;
+    const ae = document.activeElement;
+    const tag = ae && ae.tagName;
+    const isText = tag === 'INPUT' || tag === 'TEXTAREA' || (ae && ae.isContentEditable);
+    if (isText) return;     // dejar al navegador
+    e.preventDefault();
+    undoSheet();
+  });
+})();
+
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║ PC-J03 · Auto-backup en localStorage (rotación 3, cada 5min) ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+(function(){
+  const KEYS = ['pf1e-autosave-1','pf1e-autosave-2','pf1e-autosave-3'];
+  const PERIOD_MS = 5 * 60 * 1000;
+  let nextSlot = 0;
+
+  function _grab(){
+    try {
+      if (typeof collectCharacter === 'function') return collectCharacter();
+      const data = {};
+      document.querySelectorAll('input,select,textarea').forEach(el=>{
+        const k = el.id || el.name; if(!k) return;
+        data[k] = el.type==='checkbox' ? el.checked : el.value;
+      });
+      return data;
+    } catch(_){ return null; }
+  }
+
+  function doAutosave(){
+    try {
+      const snap = _grab(); if (!snap) return;
+      const slot = KEYS[nextSlot % KEYS.length];
+      const payload = { ts: Date.now(), name: snap['char-name'] || '(sin nombre)', data: snap };
+      localStorage.setItem(slot, JSON.stringify(payload));
+      nextSlot = (nextSlot + 1) % KEYS.length;
+    } catch(e){ /* ignorar quota / privado */ }
+  }
+  window._pcjDoAutosave = doAutosave;
+
+  // primera pasada tras boot, después cada 5 minutos
+  window.addEventListener('load', () => {
+    setTimeout(doAutosave, 30000);
+    setInterval(doAutosave, PERIOD_MS);
+  });
+
+  function listBackups(){
+    return KEYS.map(k => {
+      try {
+        const raw = localStorage.getItem(k);
+        if (!raw) return null;
+        const obj = JSON.parse(raw);
+        return { key: k, ts: obj.ts || 0, name: obj.name || '?', data: obj.data };
+      } catch(_){ return null; }
+    });
+  }
+
+  window.openBackupRestore = function(){
+    const list = listBackups();
+    const cont = document.getElementById('backup-list');
+    if (!cont) return;
+    if (!list.some(Boolean)) {
+      cont.innerHTML = '<p class="pcj-hint">Aún no hay copias automáticas guardadas. Se generan cada 5 minutos.</p>';
+    } else {
+      cont.innerHTML = list.map((b,idx) => {
+        if (!b) return `<div class="pcj-bk-row"><span><b>Slot ${idx+1}</b> <small>(vacío)</small></span></div>`;
+        const date = new Date(b.ts);
+        const stamp = date.toLocaleString();
+        return `<div class="pcj-bk-row">
+          <span><b>Slot ${idx+1}</b> · ${b.name} <small>${stamp}</small></span>
+          <button type="button" class="pcj-btn pcj-btn-primary" onclick="restoreBackupSlot('${b.key}')">Restaurar</button>
+        </div>`;
+      }).join('');
+    }
+    document.getElementById('backup-overlay').hidden = false;
+  };
+  window.closeBackupRestore = function(){ document.getElementById('backup-overlay').hidden = true; };
+  window.restoreBackupSlot = function(key){
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return alert('Slot vacío');
+      const obj = JSON.parse(raw);
+      if (!obj || !obj.data) return alert('Backup corrupto');
+      if (!confirm('Esto sustituirá los valores actuales de la ficha. ¿Continuar?')) return;
+      // Snapshot previo para que el undo funcione tras restaurar
+      try { window._pcjPushUndoSnapshot && window._pcjPushUndoSnapshot('pre-restore'); } catch(_){}
+      if (typeof applyCharacter === 'function') applyCharacter(obj.data);
+      else {
+        Object.entries(obj.data).forEach(([k,v])=>{
+          const el = document.getElementById(k);
+          if(!el) return;
+          if(el.type==='checkbox') el.checked=!!v; else el.value = v;
+        });
+        if (typeof recalc==='function') recalc();
+      }
+      closeBackupRestore();
+    } catch(e){ alert('Error restaurando: ' + e.message); }
+  };
+})();
+
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║ PC-J05 · Banner sticky de subir nivel + integración con J04  ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+(function(){
+  let dismissedFor = null; // par "totalLevel-currentXP" descartado por el usuario
+  function refreshBanner(){
+    try {
+      const banner = document.getElementById('level-up-banner');
+      if (!banner) return;
+      const totalLevel = parseInt(document.getElementById('total-level')?.value) || 0;
+      if (totalLevel <= 0 || totalLevel >= 20) { banner.hidden = true; return; }
+      const currentXP = parseInt(document.getElementById('char-xp')?.value) || 0;
+      const xpTrack = document.getElementById('xp-track')?.value || 'medium';
+      if (typeof XP_TABLES === 'undefined') return;
+      const thr = XP_TABLES[xpTrack][totalLevel];
+      if (!thr) return;
+      const sig = `${totalLevel}|${thr}`;
+      if (currentXP >= thr) {
+        if (dismissedFor === sig) { banner.hidden = true; return; }
+        const tx = document.getElementById('level-up-banner-text');
+        if (tx) tx.textContent = `¡Tienes ${currentXP.toLocaleString()} XP! Puedes subir al nivel ${totalLevel+1} (umbral ${thr.toLocaleString()}).`;
+        banner.hidden = false;
+      } else {
+        banner.hidden = true;
+      }
+    } catch(_){ /* noop */ }
+  }
+  window._pcjRefreshLevelUpBanner = refreshBanner;
+  window.dismissLevelUpBanner = function(){
+    try {
+      const totalLevel = parseInt(document.getElementById('total-level')?.value) || 0;
+      const xpTrack = document.getElementById('xp-track')?.value || 'medium';
+      const thr = (typeof XP_TABLES !== 'undefined') ? XP_TABLES[xpTrack][totalLevel] : 0;
+      dismissedFor = `${totalLevel}|${thr}`;
+    } catch(_){}
+    const b = document.getElementById('level-up-banner'); if (b) b.hidden = true;
+  };
+
+  // Hook a recalc(): re-evaluamos al final de cada cálculo
+  function _wrapRecalc(){
+    if (typeof window.recalc !== 'function' || window._pcjRecalcWrapped) return;
+    const orig = window.recalc;
+    window.recalc = function(){
+      const r = orig.apply(this, arguments);
+      try { refreshBanner(); } catch(_){}
+      try { _pcjUpdateStickyBar(); } catch(_){}
+      return r;
+    };
+    window._pcjRecalcWrapped = true;
+  }
+  window.addEventListener('load', () => setTimeout(_wrapRecalc, 200));
+  // Polling defensivo (por si recalc se redefine)
+  setInterval(_wrapRecalc, 5000);
+})();
+
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║ PC-J04 · Wizard "Subir Nivel" (HP → SP → Feat → Spells)      ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+(function(){
+  let step = 1;
+  const TOTAL_STEPS = 4;
+
+  function _firstClassRow(){
+    const rows = document.querySelectorAll('.class-row-dynamic');
+    return rows[0];
+  }
+
+  function _classRowsInfo(){
+    const out = [];
+    document.querySelectorAll('.class-row-dynamic').forEach(row=>{
+      const idx = row.dataset.rowIdx;
+      const cls = document.getElementById(`class${idx}`)?.value || '';
+      const lvl = parseInt(document.getElementById(`level${idx}`)?.value) || 0;
+      const hp = parseInt(document.getElementById(`hp_per_level${idx}`)?.value) || 0;
+      out.push({ idx, classKey: cls, level: lvl, hp });
+    });
+    return out;
+  }
+
+  function renderStep(){
+    const body = document.getElementById('lvlup-step-body');
+    const stepper = document.getElementById('lvlup-stepper');
+    if (!body) return;
+    Array.from(stepper.children).forEach(s=>{
+      const n = parseInt(s.dataset.step);
+      s.classList.toggle('active', n === step);
+      s.classList.toggle('done', n < step);
+    });
+    document.getElementById('lvlup-prev').disabled = (step === 1);
+    document.getElementById('lvlup-next').textContent = (step === TOTAL_STEPS) ? 'Finalizar' : 'Siguiente →';
+
+    const rows = _classRowsInfo();
+    const totalLevel = parseInt(document.getElementById('total-level')?.value) || 0;
+    const nextLevel = totalLevel + 1;
+
+    if (step === 1) {
+      // HP step: para cada clase muestra +1 nivel y permite tirar dado o tomar promedio
+      const html = rows.length ? rows.map(r=>{
+        const cls = (typeof DB!=='undefined' && DB.classes && DB.classes[r.classKey]) ? DB.classes[r.classKey] : null;
+        const hd = cls?.hit_die || 'd8';
+        return `<div style="margin-bottom:8px;padding:6px;border:1px solid var(--parchment-dk);border-radius:4px;">
+          <b>${r.classKey || '(sin clase)'}</b> · nivel actual ${r.level} → ${r.level+1}
+          (HD ${hd}, PG actuales: ${r.hp})
+          <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+            <button type="button" class="pcj-btn-mini" onclick="lvlupAddHp('${r.idx}','avg','${hd}')">+ Promedio (½ HD + 1)</button>
+            <button type="button" class="pcj-btn-mini" onclick="lvlupAddHp('${r.idx}','roll','${hd}')">🎲 Tirar HD</button>
+            <button type="button" class="pcj-btn-mini" onclick="lvlupAddHp('${r.idx}','max','${hd}')">+ Máximo</button>
+          </div>
+        </div>`;
+      }).join('') : '<p>Define al menos una clase antes de subir de nivel.</p>';
+      body.innerHTML = `<h3 style="margin:0 0 6px;">Paso 1 · Puntos de golpe</h3>
+        <p class="pcj-hint">Sube +1 al nivel total y suma PG según el HD de la clase elegida.</p>
+        <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">${rows.map(r=>`<button type="button" class="pcj-btn-mini" onclick="lvlupBumpClass('${r.idx}')">+1 nivel a ${r.classKey||'(sin clase)'}</button>`).join('')}</div>
+        ${html}`;
+    } else if (step === 2) {
+      const spAvail = parseInt(document.getElementById('sp-available')?.textContent) || 0;
+      const spSpent = parseInt(document.getElementById('sp-spent')?.textContent) || 0;
+      body.innerHTML = `<h3 style="margin:0 0 6px;">Paso 2 · Puntos de habilidad</h3>
+        <p>Disponibles ahora: <b>${spAvail}</b> · Gastados: <b>${spSpent}</b> · Pendientes: <b>${Math.max(0,spAvail-spSpent)}</b></p>
+        <p class="pcj-hint">Asigna los puntos en el panel de Habilidades. Pulsa el botón para ir directo.</p>
+        <button type="button" class="pcj-btn pcj-btn-primary" onclick="lvlupGoTo('skills-panel')">→ Ir al panel de Habilidades</button>`;
+    } else if (step === 3) {
+      const featsAvail = (typeof calcAvailableFeats === 'function') ? calcAvailableFeats(nextLevel) : 0;
+      const featsUsed  = document.querySelectorAll('#feats-container .feat-card').length;
+      body.innerHTML = `<h3 style="margin:0 0 6px;">Paso 3 · Dote</h3>
+        <p>Dotes esperadas a nivel ${nextLevel}: <b>${featsAvail}</b> · Tienes: <b>${featsUsed}</b></p>
+        <p class="pcj-hint">Si te falta una dote, ábrela desde el picker de Dotes.</p>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button type="button" class="pcj-btn pcj-btn-primary" onclick="lvlupOpenFeatPicker()">+ Añadir Dote</button>
+          <button type="button" class="pcj-btn-mini" onclick="lvlupGoTo('feats-panel')">→ Ir al panel de Dotes</button>
+        </div>`;
+    } else if (step === 4) {
+      // PC-J10: asistente de conjuros (compacto)
+      body.innerHTML = `<h3 style="margin:0 0 6px;">Paso 4 · Conjuros</h3>
+        <p class="pcj-hint">Si tu clase es lanzadora, revisa los slots y "conocidos" del nuevo nivel. Aquí solo te llevamos al panel.</p>
+        <button type="button" class="pcj-btn pcj-btn-primary" onclick="lvlupGoTo('spells-section')">→ Ir a Conjuros nivel ${nextLevel}</button>`;
+    }
+  }
+
+  window.openLevelUpWizard = function(){
+    step = 1;
+    document.getElementById('lvlup-overlay').hidden = false;
+    renderStep();
+  };
+  window.closeLevelUpWizard = function(){ document.getElementById('lvlup-overlay').hidden = true; };
+  window.lvlupNext = function(){
+    if (step < TOTAL_STEPS) { step++; renderStep(); }
+    else { closeLevelUpWizard(); if (typeof recalc === 'function') recalc(); }
+  };
+  window.lvlupPrev = function(){ if (step>1){ step--; renderStep(); } };
+
+  window.lvlupBumpClass = function(idx){
+    const lvEl = document.getElementById(`level${idx}`);
+    if (!lvEl) return;
+    lvEl.value = (parseInt(lvEl.value)||0) + 1;
+    lvEl.dispatchEvent(new Event('change',{bubbles:true}));
+    if (typeof recalc==='function') recalc();
+    renderStep();
+  };
+  window.lvlupAddHp = function(idx, mode, hd){
+    const m = /d(\d+)/.exec(hd||'d8');
+    const sides = m ? parseInt(m[1]) : 8;
+    const hpEl = document.getElementById(`hp_per_level${idx}`);
+    if (!hpEl) return;
+    let add = 0;
+    if (mode==='roll') add = 1 + Math.floor(Math.random()*sides);
+    else if (mode==='avg') add = Math.floor(sides/2) + 1;
+    else if (mode==='max') add = sides;
+    hpEl.value = (parseInt(hpEl.value)||0) + add;
+    hpEl.dispatchEvent(new Event('change',{bubbles:true}));
+    if (typeof recalc==='function') recalc();
+    renderStep();
+  };
+  window.lvlupGoTo = function(targetId){
+    closeLevelUpWizard();
+    setTimeout(()=>{
+      const el = document.getElementById(targetId);
+      if (el && el.scrollIntoView) el.scrollIntoView({behavior:'smooth',block:'start'});
+    }, 200);
+  };
+  window.lvlupOpenFeatPicker = function(){
+    closeLevelUpWizard();
+    const candidates = ['feat-add-btn','add-feat-btn','feat-picker-btn','open-feat-picker-btn'];
+    for (const id of candidates) { const b = document.getElementById(id); if (b){ b.click(); return; } }
+    const fc = document.getElementById('feats-panel'); if (fc) fc.scrollIntoView({behavior:'smooth'});
+  };
+})();
+
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║ PC-J01 · Asistente de Atributos (Point-Buy/Array/4d6/Manual) ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+(function(){
+  const ATTRS6 = ['str','dex','con','int','wis','cha'];
+  const PB_COST = { 7:-4, 8:-2, 9:-1, 10:0, 11:1, 12:2, 13:3, 14:5, 15:7, 16:10, 17:13, 18:17 };
+  let curTab = 'pb';
+  // Point buy state
+  let pbValues = {str:10,dex:10,con:10,int:10,wis:10,cha:10};
+  // Standard array state
+  const SA_VALUES = [15,14,13,12,10,8];
+  let saAssign = {str:'',dex:'',con:'',int:'',wis:'',cha:''};
+  // 4d6 pool
+  let r4Pool = [];      // numbers
+  let r4Used = [];      // booleans, paralela a r4Pool
+  let r4Assign = {str:'',dex:'',con:'',int:'',wis:'',cha:''};
+  // Manual
+  let mnValues = {str:10,dex:10,con:10,int:10,wis:10,cha:10};
+
+  function _attrLabel(a){ return a.toUpperCase(); }
+  function _mod(v){ return Math.floor((v-10)/2); }
+
+  function pbCost(v){ if (PB_COST[v] !== undefined) return PB_COST[v]; return v<7?-4:(v>18?17+(v-18)*4:0); }
+  window.renderPointBuy = function(){
+    const tbl = document.getElementById('pb-table');
+    if (!tbl) return;
+    let h = '<thead><tr><th>Atrib</th><th>Base</th><th>Mod</th><th>Coste</th></tr></thead><tbody>';
+    let total = 0;
+    ATTRS6.forEach(a=>{
+      const v = pbValues[a];
+      const c = pbCost(v);
+      total += c;
+      h += `<tr><td><b>${_attrLabel(a)}</b></td>
+        <td><button type="button" class="pcj-btn-mini" onclick="pbAdj('${a}',-1)">-</button>
+            <span style="display:inline-block;min-width:24px;font-weight:700;">${v}</span>
+            <button type="button" class="pcj-btn-mini" onclick="pbAdj('${a}',1)">+</button></td>
+        <td>${_mod(v)>=0?'+':''}${_mod(v)}</td>
+        <td>${c}</td></tr>`;
+    });
+    h += '</tbody>';
+    tbl.innerHTML = h;
+    const budget = parseInt(document.getElementById('pb-budget').value) || 15;
+    const left = budget - total;
+    const rem = document.getElementById('pb-remaining');
+    if (rem) { rem.textContent = String(left); rem.style.color = left<0?'#c0392b':'#3a230a'; }
+  };
+  window.pbAdj = function(attr, delta){
+    const cur = pbValues[attr];
+    const nxt = cur + delta;
+    if (nxt < 7 || nxt > 18) return;
+    pbValues[attr] = nxt;
+    renderPointBuy();
+  };
+  window.resetPointBuy = function(){
+    ATTRS6.forEach(a=>{ pbValues[a]=10; });
+    renderPointBuy();
+  };
+
+  function renderStdArray(){
+    const tbl = document.getElementById('sa-table');
+    if (!tbl) return;
+    let h = '<thead><tr><th>Atrib</th><th>Valor</th><th>Mod</th></tr></thead><tbody>';
+    const used = new Set(Object.values(saAssign).filter(v=>v!==''));
+    ATTRS6.forEach(a=>{
+      const cur = saAssign[a];
+      let opts = `<option value="">—</option>`;
+      SA_VALUES.forEach(v=>{
+        const isUsed = used.has(String(v)) && cur !== String(v);
+        opts += `<option value="${v}" ${cur===String(v)?'selected':''} ${isUsed?'disabled':''}>${v}</option>`;
+      });
+      const numCur = cur ? parseInt(cur) : 10;
+      h += `<tr><td><b>${_attrLabel(a)}</b></td>
+        <td><select onchange="saSet('${a}',this.value)">${opts}</select></td>
+        <td>${cur?(_mod(numCur)>=0?'+':'')+_mod(numCur):'—'}</td></tr>`;
+    });
+    tbl.innerHTML = h + '</tbody>';
+  }
+  window.saSet = function(attr,val){ saAssign[attr] = val; renderStdArray(); };
+
+  function rollOne4d6(){
+    const dice = [0,0,0,0].map(()=>1+Math.floor(Math.random()*6));
+    dice.sort((a,b)=>a-b);
+    return dice[1]+dice[2]+dice[3];
+  }
+  window.rollR4Set = function(){
+    r4Pool = []; r4Used = []; r4Assign = {str:'',dex:'',con:'',int:'',wis:'',cha:''};
+    for (let i=0;i<6;i++){ r4Pool.push(rollOne4d6()); r4Used.push(false); }
+    renderR4();
+  };
+  function renderR4(){
+    const pool = document.getElementById('r4-pool');
+    if (pool) {
+      if (!r4Pool.length) pool.innerHTML = '<i style="font-size:11px;color:var(--leather-lt);">Pulsa "Tirar set" para generar 6 valores.</i>';
+      else pool.innerHTML = r4Pool.map((v,i)=>`<span class="pcj-pool-die ${r4Used[i]?'used':''}">${v}</span>`).join('');
+    }
+    const tbl = document.getElementById('r4-table');
+    if (!tbl) return;
+    let h = '<thead><tr><th>Atrib</th><th>Valor (de pool)</th><th>Mod</th></tr></thead><tbody>';
+    ATTRS6.forEach(a=>{
+      let opts = '<option value="">—</option>';
+      r4Pool.forEach((v,i)=>{
+        const taken = r4Used[i] && r4Assign[a] !== String(i);
+        opts += `<option value="${i}" ${r4Assign[a]===String(i)?'selected':''} ${taken?'disabled':''}>${v}</option>`;
+      });
+      const idx = r4Assign[a];
+      const cur = idx!=='' ? r4Pool[parseInt(idx)] : null;
+      h += `<tr><td><b>${_attrLabel(a)}</b></td>
+        <td><select onchange="r4Set('${a}',this.value)">${opts}</select></td>
+        <td>${cur!==null?(_mod(cur)>=0?'+':'')+_mod(cur):'—'}</td></tr>`;
+    });
+    tbl.innerHTML = h + '</tbody>';
+  }
+  window.r4Set = function(attr,idx){
+    // libera el anterior
+    const prev = r4Assign[attr];
+    if (prev !== '') r4Used[parseInt(prev)] = false;
+    r4Assign[attr] = idx;
+    if (idx !== '') r4Used[parseInt(idx)] = true;
+    renderR4();
+  };
+
+  function renderManual(){
+    const tbl = document.getElementById('mn-table');
+    if (!tbl) return;
+    let h = '<thead><tr><th>Atrib</th><th>Valor</th><th>Mod</th></tr></thead><tbody>';
+    ATTRS6.forEach(a=>{
+      const v = mnValues[a];
+      h += `<tr><td><b>${_attrLabel(a)}</b></td>
+        <td><input type="number" min="3" max="25" value="${v}" oninput="mnSet('${a}',this.value)"></td>
+        <td>${_mod(v)>=0?'+':''}${_mod(v)}</td></tr>`;
+    });
+    tbl.innerHTML = h + '</tbody>';
+  }
+  window.mnSet = function(attr,val){
+    const n = parseInt(val);
+    if (!isNaN(n)) mnValues[attr] = n;
+    // No re-render para no perder el foco mientras escribes; mod se ve al cambiar tab
+  };
+
+  window.openAttrGen = function(){
+    document.getElementById('attr-gen-overlay').hidden = false;
+    // Sincroniza values manual desde la ficha actual
+    ATTRS6.forEach(a=>{
+      const v = parseInt(document.getElementById(a+'-base')?.value);
+      if (!isNaN(v)) mnValues[a] = v;
+    });
+    switchAttrTab('pb');
+    renderPointBuy();
+    renderStdArray();
+    renderR4();
+    renderManual();
+  };
+  window.closeAttrGen = function(){ document.getElementById('attr-gen-overlay').hidden = true; };
+  window.switchAttrTab = function(name){
+    curTab = name;
+    document.querySelectorAll('#attr-gen-overlay .pcj-tab').forEach(t=>t.classList.toggle('active', t.dataset.attrtab === name));
+    document.querySelectorAll('#attr-gen-overlay .pcj-tabpanel').forEach(p=>p.hidden = (p.dataset.attrpanel !== name));
+    if (name === 'mn') renderManual();
+  };
+  window.applyAttrGen = function(){
+    const out = {str:10,dex:10,con:10,int:10,wis:10,cha:10};
+    if (curTab === 'pb') {
+      Object.assign(out, pbValues);
+    } else if (curTab === 'sa') {
+      ATTRS6.forEach(a=>{ if (saAssign[a]) out[a] = parseInt(saAssign[a]); });
+    } else if (curTab === 'r4') {
+      ATTRS6.forEach(a=>{ const i = r4Assign[a]; if (i!=='') out[a] = r4Pool[parseInt(i)]; });
+    } else if (curTab === 'mn') {
+      ATTRS6.forEach(a=>{ if (mnValues[a]) out[a] = mnValues[a]; });
+    }
+    // Volcamos en la ficha
+    try { window._pcjPushUndoSnapshot && window._pcjPushUndoSnapshot('pre-attrgen'); } catch(_){}
+    ATTRS6.forEach(a=>{
+      const el = document.getElementById(a+'-base');
+      if (el) {
+        el.value = out[a];
+        el.dispatchEvent(new Event('input',{bubbles:true}));
+        el.dispatchEvent(new Event('change',{bubbles:true}));
+      }
+    });
+    if (typeof recalc === 'function') recalc();
+    closeAttrGen();
+  };
+})();
+
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║ PC-J06 · applyStartingGear(classKey)                          ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+(function(){
+  // Mapa básico hardcoded — fallback si classes.json no incluye starting_gear.
+  const FALLBACK_KIT = {
+    fighter: { weapons:[{name:'Espada larga', damage:'1d8', crit:'19-20/x2', type:'P/C', weight:4}], armor:[{name:'Cota de mallas', acBonus:6, maxDex:2, acp:-5, type:'medium', weight:40}], shield:[{name:'Escudo pesado de acero', acBonus:2, acp:-2, type:'shield', weight:15}], items:[{name:'Daga', notes:'Arma simple'}] },
+    barbarian: { weapons:[{name:'Hacha de gran tamaño', damage:'1d12', crit:'x3', type:'C', weight:12}], armor:[{name:'Camisa de mallas', acBonus:4, maxDex:4, acp:-2, type:'light', weight:25}], items:[{name:'Mochila de aventurero', notes:''}] },
+    paladin: { weapons:[{name:'Espada larga', damage:'1d8', crit:'19-20/x2', type:'P/C', weight:4}], armor:[{name:'Cota de mallas', acBonus:6, maxDex:2, acp:-5, type:'medium', weight:40}], shield:[{name:'Escudo pesado de acero', acBonus:2, acp:-2, type:'shield', weight:15}], items:[{name:'Símbolo sagrado de plata', notes:''}] },
+    ranger: { weapons:[{name:'Arco largo', damage:'1d8', crit:'x3', type:'P', style:'ranged', weight:3},{name:'Espada corta', damage:'1d6', crit:'19-20/x2', type:'P', weight:2}], armor:[{name:'Armadura de cuero', acBonus:2, maxDex:6, acp:0, type:'light', weight:15}], items:[{name:'Bolsa de saetas (20)', notes:''}] },
+    rogue: { weapons:[{name:'Estoque', damage:'1d6', crit:'18-20/x2', type:'P', style:'finesse', weight:2},{name:'Daga', damage:'1d4', crit:'19-20/x2', type:'P/C', weight:1}], armor:[{name:'Armadura de cuero', acBonus:2, maxDex:6, acp:0, type:'light', weight:15}], items:[{name:'Útiles de ladrón', notes:''}] },
+    wizard: { weapons:[{name:'Bastón', damage:'1d6', crit:'x2', type:'C', weight:4}], armor:[], items:[{name:'Componente arcano', notes:'Materiales para conjuros'},{name:'Libro de conjuros', notes:'0-1 niveles'}] },
+    sorcerer: { weapons:[{name:'Daga', damage:'1d4', crit:'19-20/x2', type:'P/C', weight:1}], armor:[], items:[{name:'Componente arcano', notes:''}] },
+    cleric: { weapons:[{name:'Maza pesada', damage:'1d8', crit:'x2', type:'C', weight:8}], armor:[{name:'Coraza', acBonus:6, maxDex:3, acp:-4, type:'medium', weight:30}], shield:[{name:'Escudo pesado de madera', acBonus:2, acp:-2, type:'shield', weight:10}], items:[{name:'Símbolo sagrado', notes:''}] },
+    druid: { weapons:[{name:'Cimitarra', damage:'1d6', crit:'18-20/x2', type:'C', weight:4}], armor:[{name:'Armadura de cuero', acBonus:2, maxDex:6, acp:0, type:'light', weight:15}], items:[{name:'Muérdago', notes:'Foco'}] },
+    monk: { weapons:[{name:'Bastón', damage:'1d6', crit:'x2', type:'C', weight:4}], armor:[], items:[{name:'Mochila', notes:''}] },
+    bard: { weapons:[{name:'Estoque', damage:'1d6', crit:'18-20/x2', type:'P', style:'finesse', weight:2}], armor:[{name:'Armadura de cuero', acBonus:2, maxDex:6, acp:0, type:'light', weight:15}], items:[{name:'Instrumento musical', notes:''}] }
+  };
+
+  function _kitFor(classKey){
+    if (!classKey) return null;
+    const k = classKey.toLowerCase();
+    // Intenta classes.json primero
+    try {
+      const cls = (typeof DB !== 'undefined' && DB.classes) ? DB.classes[k] : null;
+      if (cls && cls.starting_gear) return cls.starting_gear;
+    } catch(_){}
+    return FALLBACK_KIT[k] || null;
+  }
+
+  window.applyStartingGear = function(classKey){
+    const kit = _kitFor(classKey);
+    if (!kit) { alert('No hay paquete inicial registrado para "'+classKey+'".'); return false; }
+    try { window._pcjPushUndoSnapshot && window._pcjPushUndoSnapshot('pre-startingGear'); } catch(_){}
+    let added = 0;
+    if (Array.isArray(kit.weapons) && typeof addWeapon === 'function') {
+      kit.weapons.forEach(w => { try { addWeapon(w); added++; } catch(_){} });
+    }
+    if (Array.isArray(kit.armor) && typeof addArmorFromData === 'function') {
+      kit.armor.forEach(a => { try { addArmorFromData(a); added++; } catch(_){} });
+    }
+    if (Array.isArray(kit.shield) && typeof addArmorFromData === 'function') {
+      kit.shield.forEach(s => { try { addArmorFromData(s); added++; } catch(_){} });
+    }
+    if (Array.isArray(kit.items) && typeof addItem === 'function') {
+      kit.items.forEach(it => {
+        try {
+          addItem();
+          // Rellenamos el último item-card creado
+          const cards = document.querySelectorAll('#items-container .item-general-card');
+          const last = cards[cards.length-1];
+          if (last) {
+            const inputs = last.querySelectorAll('input[type="text"]');
+            if (inputs[0]) inputs[0].value = it.name || '';
+            // Notas suele ser el segundo input text de la card
+            if (inputs[1]) inputs[1].value = it.notes || '';
+          }
+          added++;
+        } catch(_){}
+      });
+    }
+    if (typeof recalc === 'function') recalc();
+    return added > 0;
+  };
+
+  window.applyStartingGearFromUI = function(){
+    const rows = document.querySelectorAll('.class-row-dynamic');
+    if (!rows.length) { alert('Añade primero una clase.'); return; }
+    const idx = rows[0].dataset.rowIdx;
+    const classKey = document.getElementById(`class${idx}`)?.value || '';
+    if (!classKey) { alert('La primera fila no tiene clase elegida.'); return; }
+    if (!confirm('Añadir el equipo inicial básico de "'+classKey+'" a la ficha?')) return;
+    const ok = applyStartingGear(classKey);
+    if (ok) alert('Equipo inicial añadido. Revisa el inventario.');
+  };
+})();
+
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║ PC-J08 · Sticky bar HP/CA/Init/Saves visible al scrollear     ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+(function(){
+  // Inyectar la barra sticky al inicio de body para que ::sticky funcione
+  function _ensureBar(){
+    if (document.getElementById('pcj-sticky-bar')) return;
+    const tpl = document.getElementById('pcj-sticky-tpl');
+    if (!tpl) return;
+    const node = tpl.content ? tpl.content.firstElementChild.cloneNode(true) : null;
+    if (!node) return;
+    document.body.insertBefore(node, document.body.firstChild);
+  }
+  if (document.readyState !== 'loading') _ensureBar();
+  else document.addEventListener('DOMContentLoaded', _ensureBar);
+
+  function get(id){ const el = document.getElementById(id); return el ? el.value : ''; }
+  window._pcjUpdateStickyBar = function(){
+    const bar = document.getElementById('pcj-sticky-bar');
+    if (!bar) return;
+    const hp = (get('hp-current')||'0') + '/' + (get('hp-max')||'0');
+    document.getElementById('pcjsb-hp').textContent = hp;
+    document.getElementById('pcjsb-ac').textContent = get('ac-total') || '10';
+    document.getElementById('pcjsb-actouch').textContent = get('ac-touch') || '10';
+    document.getElementById('pcjsb-ini').textContent = get('initiative') || get('init-total') || '+0';
+    document.getElementById('pcjsb-fort').textContent = get('save-fort') || '+0';
+    document.getElementById('pcjsb-ref').textContent = get('save-ref') || '+0';
+    document.getElementById('pcjsb-will').textContent = get('save-will') || '+0';
+  };
+
+  function onScroll(){
+    const bar = document.getElementById('pcj-sticky-bar');
+    if (!bar) return;
+    const trigger = 280;
+    bar.style.display = (window.scrollY > trigger) ? 'block' : 'none';
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  window.addEventListener('load', () => setTimeout(()=>{ _pcjUpdateStickyBar(); onScroll(); }, 800));
+})();
+
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║ PC-J12 · Atajos de teclado (/ , i , f , ?)                    ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+(function(){
+  function inText(){
+    const ae = document.activeElement;
+    if (!ae) return false;
+    const tag = ae.tagName;
+    return tag==='INPUT' || tag==='TEXTAREA' || ae.isContentEditable;
+  }
+  document.addEventListener('keydown', function(e){
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
+    if (e.key === '/' && !inText()) {
+      const inp = document.getElementById('global-search');
+      if (inp) { e.preventDefault(); inp.focus(); inp.select && inp.select(); }
+    } else if ((e.key === 'i' || e.key === 'I') && !inText()) {
+      if (typeof rollInitiative === 'function') { e.preventDefault(); rollInitiative(); }
+    } else if ((e.key === 'f' || e.key === 'F') && !inText()) {
+      // Abre el primer botón visible que abra el feat picker
+      const ids = ['feat-add-btn','add-feat-btn','open-feat-picker-btn'];
+      for (const id of ids) { const b = document.getElementById(id); if (b){ e.preventDefault(); b.click(); return; } }
+    } else if (e.key === '?' && !inText()) {
+      e.preventDefault();
+      document.getElementById('cheatsheet-overlay').hidden = false;
+    }
+  });
+  window.closeCheatsheet = function(){ document.getElementById('cheatsheet-overlay').hidden = true; };
+})();
+
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║ PC-J11 · Buscador inline en select de Clase                   ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+(function(){
+  // Añade un input de filtrado encima del primer .class-select usando
+  // el patrón _filterPickerOptions. Lo creamos lazy bajo demanda al focus.
+  document.addEventListener('focusin', function(ev){
+    const sel = ev.target.closest && ev.target.closest('.class-select');
+    if (!sel) return;
+    if (sel.dataset.pcjSearchAttached === '1') return;
+    sel.dataset.pcjSearchAttached = '1';
+    if (!sel.id) return;
+    // Si ya está dentro de un wrapper, salir
+    if (sel.parentElement && sel.parentElement.classList.contains('pcj-class-search-wrap')) return;
+    const wrap = document.createElement('span');
+    wrap.className = 'pcj-class-search-wrap';
+    wrap.style.cssText = 'display:inline-flex;flex-direction:column;gap:2px;';
+    sel.parentNode.insertBefore(wrap, sel);
+    const inp = document.createElement('input');
+    inp.type = 'search';
+    inp.placeholder = '🔎 filtrar clase…';
+    inp.setAttribute('aria-label','Filtrar clases');
+    inp.style.cssText = 'font-size:11px;padding:2px 4px;border:1px solid var(--leather-lt);border-radius:3px;width:100%;';
+    inp.oninput = () => { try { _filterPickerOptions(sel.id, inp.value); } catch(_){} };
+    wrap.appendChild(inp);
+    wrap.appendChild(sel);
+  });
+})();
+
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║ PC-J09 · Mejoras accesibilidad: aria-labels en botones-icono ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+(function(){
+  function tagAria(){
+    document.querySelectorAll('button').forEach(b=>{
+      if (b.hasAttribute('aria-label') || b.hasAttribute('aria-labelledby')) return;
+      const txt = (b.textContent || '').trim();
+      if (!txt) return;
+      // Heurística: solo emoji/símbolo (≤ 3 chars y sin letras latinas)
+      if (txt.length <= 3 && !/[A-Za-zÁÉÍÓÚÑáéíóúñ0-9]/.test(txt)) {
+        const tt = b.getAttribute('title') || b.getAttribute('data-i18n-title') || '';
+        if (tt) b.setAttribute('aria-label', tt);
+      }
+    });
+  }
+  window.addEventListener('load', () => setTimeout(tagAria, 1000));
+  // Re-pasa cuando se hagan inserts dinámicos importantes
+  setInterval(tagAria, 8000);
+})();
+
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║ PC-J13 · Penalizaciones automáticas de TODAS las condiciones ║
+   ║          a CA / atq / saves (best-effort sobre #condition-*) ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+(function(){
+  // El sistema actual ya gestiona muchas condiciones en condiciones-panel.
+  // Aquí solo aseguramos que los marcadores (data-cond-*) se reflejen como
+  // mensaje informativo al usuario tras recalc(). No tocamos cálculos: el
+  // panel original ya inyecta las penalizaciones reconocidas.
+  function summarize(){
+    try {
+      const tags = Array.from(document.querySelectorAll('#conditions-panel input[type="checkbox"]:checked'))
+        .map(cb => cb.id || cb.name).filter(Boolean);
+      const out = document.getElementById('pcj-cond-summary');
+      if (!out) return;
+      out.textContent = tags.length ? ('Condiciones activas: ' + tags.length) : '';
+    } catch(_){}
+  }
+  window.addEventListener('load', ()=> setTimeout(summarize, 1500));
+})();
+
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║ PC-J07 · Full Attack (cadena iterativa BAB con -5/-10)        ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+window.rollWeaponFullAttack = function(btn){
+  try {
+    const card = btn.closest('.weapon-card');
+    if (!card) return;
+    const atkMod = parseInt(card.dataset.rollAtk) || 0;
+    const outEl = card.querySelector('.weapon-roll-result');
+    if (!outEl) return;
+    // Recuperamos BAB de la ficha
+    const babStr = (document.getElementById('bab-total')?.value || '0').replace('+','');
+    const bab = parseInt(babStr) || 0;
+    // Calculamos cadena iterativa: BAB, BAB-5, BAB-10, BAB-15 mientras > 0
+    const chain = [];
+    let n = bab;
+    chain.push(0);                                  // primer ataque sin penalización
+    while (chain.length < 4) {
+      n -= 5;
+      if (n + atkMod < (atkMod - bab)) break;       // seguridad
+      // Regla 3.5e/PF: ataques iterativos siempre que BAB-iter*5 >= 1
+      if ((bab - chain.length*5) <= 0) break;
+      chain.push(-5*chain.length);
+    }
+    if (chain.length === 1 && bab >= 6) chain.push(-5);
+    if (chain.length === 2 && bab >= 11) chain.push(-10);
+    if (chain.length === 3 && bab >= 16) chain.push(-15);
+    const results = chain.map(pen => {
+      const d20 = 1 + Math.floor(Math.random()*20);
+      const tot = d20 + atkMod + pen;
+      const crit = (d20===20)?' ¡20!':(d20===1)?' ¡1!':'';
+      return `<span style="display:inline-block;margin:0 6px 2px 0;padding:1px 5px;border:1px solid var(--leather-lt);border-radius:3px;font-size:11px;">${pen<0?pen:'+0'} → d20=${d20} <b>= ${tot}</b>${crit}</span>`;
+    }).join('');
+    outEl.innerHTML = `<span class="wroll-label">Full Atk (BAB ${bab>=0?'+':''}${bab}):</span> ${results}`;
+  } catch(e){ console.warn('rollWeaponFullAttack', e); }
+};
+
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║ PC-J14 · Picker dedicado para sangres de hechicero (placeholder) ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+(function(){
+  // El selector de bloodlines ya existe (#bloodline-select / populateBloodlineSelector).
+  // Añadimos solo un botón global "Abrir picker de sangres" si encontramos
+  // el contenedor del bloodline. Stub: scroll al panel.
+  window.openBloodlinePicker = function(){
+    const target = document.getElementById('bloodline-select') || document.getElementById('sorcerer-bloodline-section');
+    if (target && target.scrollIntoView) target.scrollIntoView({behavior:'smooth', block:'start'});
+    if (target && target.focus) try { target.focus(); } catch(_){}
+  };
+})();
+</script>
 
 </body>
 </html>
