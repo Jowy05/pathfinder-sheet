@@ -56742,7 +56742,7 @@ const FALLBACK_SPECIAL_ABILITIES = [
       </div>
       <!-- M-11: tracker de buffs activos en combate -->
       <div class="card" id="summary-buffs-card">
-        <h3 class="card-title"><span class="ornament">⏱</span><span>Buffs activos</span><span class="ornament">⏱</span></h3>
+        <h3 class="card-title"><span class="ornament">⏱</span><span>Buffs activos</span><span id="summary-round-label" style="font:600 11px system-ui;color:var(--accent);margin-left:8px">· Asalto 1</span><span class="ornament" style="margin-left:auto">⏱</span></h3>
         <div id="summary-buffs-list" style="display:grid;gap:6px;font:13px/1.4 system-ui">
           <div style="color:var(--ink-muted);font-style:italic">Sin buffs activos. Añade desde Combate &gt; Condiciones &gt; Buffs.</div>
         </div>
@@ -57316,10 +57316,11 @@ const FALLBACK_SPECIAL_ABILITIES = [
         <span class="more-icon"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></svg></span>
         <span class="over-info"><span class="over-label" data-i18n="ovRefrescar">Refrescar ficha</span><span class="over-desc" data-i18n="ovRefrescarD">Recalcular todos los modificadores</span></span>
       </button>
-      <button class="over-row" data-toast="sync">
-        <span class="more-icon"><svg viewBox="0 0 24 24"><path d="M4 4v6h6M20 20v-6h-6"/><path d="M20 8a8 8 0 0 0-14-3M4 16a8 8 0 0 0 14 3"/></svg></span>
-        <span class="over-info"><span class="over-label" data-i18n="ovSync">Sincronizar ficha</span><span class="over-desc" data-i18n="ovSyncD">Subir cambios a la nube</span></span>
-      </button>
+      <!-- UX-J06 Fase J: botón "Sincronizar ficha" eliminado.
+           Era un placeholder cosmético que solo emitía toast 'Sincronizando…'
+           sin sync real con cloud. Engañaba al usuario, mejor no mostrarlo
+           hasta que exista una implementación real (QR-share, cloud sync). -->
+      <!--<button class="over-row" data-toast="sync">…</button>-->
       <button class="over-row" data-confirm="exportar">
         <span class="more-icon"><svg viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg></span>
         <span class="over-info"><span class="over-label" data-i18n="ovExport">Exportar ficha</span><span class="over-desc" data-i18n="ovExportD">Descarga como JSON</span></span>
@@ -57866,6 +57867,18 @@ const FALLBACK_SPECIAL_ABILITIES = [
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <button class="btn-secondary" data-close>Cancelar</button>
         <button class="btn-primary" id="dh-apply">Aplicar</button>
+      </div>
+      <!-- UX-J02 Fase J: card "Estabilizar" visible solo cuando estás Muriendo (hp < 0).
+           Tira TS CON contra CD 10 + N (N = rondas en muriendo, acumulativo).
+           Éxito: estabiliza (quita Muriendo, mantiene Inconsciente, fija PG).
+           Fallo: pierde 1 PG y N+=1 para la próxima ronda. -->
+      <div id="dh-stabilize-card" style="display:none;margin-top:10px;padding:10px;border:1px dashed var(--negative);border-radius:8px;background:rgba(178,34,34,0.06)">
+        <div style="font:600 12px/1.3 system-ui;color:var(--negative);margin-bottom:6px">⚠️ Muriendo · CD 10 + <span id="dh-stab-count">0</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+          <button type="button" class="btn-secondary" id="dh-stab-self" style="font-size:11px">🎲 Tirar TS CON</button>
+          <button type="button" class="btn-secondary" id="dh-stab-heal" style="font-size:11px">🩹 Aliado Sanar (CD 15)</button>
+        </div>
+        <div id="dh-stab-result" style="font:11px/1.3 system-ui;color:var(--ink);min-height:14px;text-align:center"></div>
       </div>
     </div>
   </div>
@@ -60134,6 +60147,43 @@ function injectPickerSheets(){
 document.addEventListener('attr-changed', ()=>{
   rebuildSpellSystem();
   rebuildClassAutoFeatures();
+});
+/* UX-J01 Fase J: HP retroactivo al cambiar CON.
+   Cuando el modificador de CON cambia (subida de nivel, drenaje, buff
+   permanente), los DG previos quedan con cómputo viejo. Aquí trackeamos
+   el conMod aplicado por última vez y, al detectar delta, ajustamos cl.hp
+   de cada clase por (delta * cl.level) en TODAS las clases activas. */
+let _LAST_CON_MOD = null;
+document.addEventListener('attr-changed', (ev) => {
+  try{
+    const detail = ev && ev.detail;
+    if(!detail || detail.abbr !== 'CON') return;
+    const newCon = detail.mod|0;
+    if(_LAST_CON_MOD === null){ _LAST_CON_MOD = newCon; return; }
+    const delta = newCon - _LAST_CON_MOD;
+    if(delta === 0) return;
+    if(!Array.isArray(CLASSES_DATA) || !CLASSES_DATA.length){ _LAST_CON_MOD = newCon; return; }
+    let totalDelta = 0;
+    CLASSES_DATA.forEach(cl=>{
+      const lvl = parseInt(cl.level,10) || 0;
+      const userHP = parseInt(cl.hp,10);
+      if(!isNaN(userHP) && lvl > 0){
+        const adjust = delta * lvl;
+        cl.hp = Math.max(lvl, userHP + adjust); /* piso = lvl × 1 PG */
+        totalDelta += (cl.hp - userHP);
+      }
+    });
+    if(totalDelta !== 0){
+      const sign = totalDelta >= 0 ? '+' : '';
+      if(typeof toast === 'function'){
+        toast(`CON ${delta>=0?'+':''}${delta} → PG totales ${sign}${totalDelta}`);
+      }
+      if(typeof renderClasses === 'function') renderClasses();
+      if(typeof CombatEngine !== 'undefined' && CombatEngine.apply) CombatEngine.apply();
+      if(typeof saveStateDebounced === 'function') saveStateDebounced('con-retro-hp');
+    }
+    _LAST_CON_MOD = newCon;
+  }catch(e){ console.warn('CON retro HP', e); }
 });
 document.addEventListener('class-changed', ()=>{
   for(let i=SPELLS_DATA.length-1;i>=0;i--) if(SPELLS_DATA[i].id>=5000) SPELLS_DATA.splice(i,1);
@@ -62712,8 +62762,87 @@ function bindFormSheets(){
       if(b.dataset.dh==='dmg'){ b.classList.add('active','dmg'); }
     });
     document.getElementById('dh-amount').value='';
+    /* UX-J02 Fase J: mostrar la card de Estabilizar si estás Muriendo (hp < 0). */
+    try{
+      const stabCard = document.getElementById('dh-stabilize-card');
+      const cur = (typeof hp !== 'undefined') ? hp : parseInt((document.getElementById('hp-current')||{}).value,10) || 0;
+      const dying = cur < 0;
+      if(stabCard) stabCard.style.display = dying ? '' : 'none';
+      const cntEl = document.getElementById('dh-stab-count');
+      if(cntEl) cntEl.textContent = String(window._STAB_COUNT||0);
+      const resEl = document.getElementById('dh-stab-result');
+      if(resEl) resEl.textContent = '';
+    }catch(_){}
     openSheet('sheet-hp-edit');
   }
+  /* UX-J02: wire de los botones de estabilizar (TS CON / Heal CD 15).
+     `_STAB_COUNT` se incrementa en cada fallo, se resetea al estabilizar. */
+  window._STAB_COUNT = window._STAB_COUNT || 0;
+  function _resetStabilizeCount(){
+    window._STAB_COUNT = 0;
+    const cntEl = document.getElementById('dh-stab-count');
+    if(cntEl) cntEl.textContent = '0';
+  }
+  /* Auto-resetear el contador cuando los PG vuelven a >= 0 */
+  document.addEventListener('combat-changed', (ev)=>{
+    try{
+      if(ev && ev.detail && ev.detail.field === 'hp'){
+        const cur = ev.detail.value;
+        if(typeof cur === 'number' && cur >= 0 && window._STAB_COUNT > 0){
+          _resetStabilizeCount();
+        }
+      }
+    }catch(_){}
+  });
+  const stabSelf = document.getElementById('dh-stab-self');
+  if(stabSelf) stabSelf.addEventListener('click', ()=>{
+    try{
+      const mods = (typeof CombatEngine !== 'undefined' && CombatEngine.getMods) ? CombatEngine.getMods() : {con:0};
+      const conMod = mods.con|0;
+      const cd = 10 + (window._STAB_COUNT||0);
+      const d20 = 1 + Math.floor(Math.random()*20);
+      const total = d20 + conMod;
+      const ok = total >= cd;
+      const resEl = document.getElementById('dh-stab-result');
+      const sign = conMod >= 0 ? '+' : '';
+      if(ok){
+        if(resEl) resEl.innerHTML = `<span style="color:var(--positive);font-weight:700">✓ Estabilizado · 1d20(${d20}) ${sign}${conMod} = ${total} vs CD ${cd}</span>`;
+        /* Quitar Muriendo, mantener Inconsciente */
+        const mc = document.querySelector('.cond-chip[data-cond="Muriendo"]');
+        if(mc && mc.classList.contains('active')) mc.click();
+        _resetStabilizeCount();
+        if(typeof toast === 'function') toast('Estabilizado');
+      } else {
+        window._STAB_COUNT = (window._STAB_COUNT||0) + 1;
+        const cntEl = document.getElementById('dh-stab-count');
+        if(cntEl) cntEl.textContent = String(window._STAB_COUNT);
+        if(resEl) resEl.innerHTML = `<span style="color:var(--negative);font-weight:700">✗ Falla · 1d20(${d20}) ${sign}${conMod} = ${total} vs CD ${cd} · Pierdes 1 PG</span>`;
+        /* −1 PG */
+        const hpInp = document.getElementById('hp-current');
+        if(hpInp){ hpInp.value = String((parseInt(hpInp.value,10)||0) - 1); hpInp.dispatchEvent(new Event('input',{bubbles:true})); hpInp.dispatchEvent(new Event('change',{bubbles:true})); }
+      }
+    }catch(e){ console.warn('stab self', e); }
+  });
+  const stabHeal = document.getElementById('dh-stab-heal');
+  if(stabHeal) stabHeal.addEventListener('click', ()=>{
+    /* Aliado lanza Sanar CD 15. Lo simulamos como d20 + un mod manual mínimo (0).
+       Si cumple, estabiliza directamente sin perder PG. */
+    try{
+      const cd = 15;
+      const d20 = 1 + Math.floor(Math.random()*20);
+      const total = d20;
+      const ok = total >= cd;
+      const resEl = document.getElementById('dh-stab-result');
+      if(ok){
+        if(resEl) resEl.innerHTML = `<span style="color:var(--positive);font-weight:700">✓ Aliado estabiliza · 1d20(${d20}) vs CD 15 (sin mods)</span>`;
+        const mc = document.querySelector('.cond-chip[data-cond="Muriendo"]');
+        if(mc && mc.classList.contains('active')) mc.click();
+        _resetStabilizeCount();
+      } else {
+        if(resEl) resEl.innerHTML = `<span style="color:var(--negative);font-weight:700">✗ Aliado falla · 1d20(${d20}) vs CD 15 (añade mod Sanar a la tirada)</span>`;
+      }
+    }catch(_){}
+  });
   if(hpEdit) hpEdit.addEventListener('click',openHpEdit);
   if(hpEdit2) hpEdit2.addEventListener('click',openHpEdit);
   document.querySelectorAll('#dh-mode button').forEach(b=>{
@@ -63717,10 +63846,25 @@ if(__raza){
       if(inp){
         inp.addEventListener('click', e=>e.stopPropagation());
         inp.addEventListener('input', e=>{
-          const v = parseInt(e.target.value,10)||0;
-          ensureState(s.id).r = Math.max(0, v);
+          /* UX-L01 Fase L: enforce duro del cap de rangos por habilidad
+             (max = nivel total del PJ). Antes solo había warn visual.
+             Ahora también clampamos al teclear y mostramos toast solo la
+             primera vez que rebose para no spamear. */
+          const cap = getTotalLevel();
+          let v = parseInt(e.target.value,10)||0;
+          if(v < 0) v = 0;
+          if(cap > 0 && v > cap){
+            v = cap;
+            e.target.value = String(v);
+            if(typeof toast === 'function' && !window._SKILL_CAP_WARNED){
+              window._SKILL_CAP_WARNED = true;
+              toast(`Cap de rangos: máx ${cap} por habilidad (= nivel total)`);
+              setTimeout(()=>{ window._SKILL_CAP_WARNED = false; }, 4000);
+            }
+          }
+          ensureState(s.id).r = v;
           row.querySelector('.skill-total').textContent = fmtMod(calcSkillTotal(s));
-          row.classList.toggle('has-warn', ensureState(s.id).r > getTotalLevel());
+          row.classList.toggle('has-warn', false);
           renderSkillCounter();
           fireSkillsChanged();
         });
@@ -64249,10 +64393,19 @@ function D5_renderInventory(){
               </label>
             </div>
             ${(()=>{
-              /* UX-16 Fase G: detectar pociones (por nombre) y mostrar botón Beber */
+              /* UX-16 Fase G + UX-J03 Fase J: detectar pociones (por nombre)
+                 y mostrar botón Beber. Para items en 'potions' que NO son
+                 poción (pergamino, vial, antitoxina), añadir botón genérico
+                 "Usar (descontar 1)". */
+              if((it.qty||0) <= 0) return '';
               const isPotion = /poci[oó]n|elixir|potion/i.test(it.name||'');
-              if(!isPotion || (it.qty||0) <= 0) return '';
-              return `<button class="btn-secondary d5-drink-potion" data-d5-drink="${it.id}" style="width:100%;margin-top:6px;background:var(--accent-soft);color:var(--accent);border-color:var(--accent);font-size:12px">🧪 Beber (curar 1d8+1, descontar 1)</button>`;
+              if(isPotion){
+                return `<button class="btn-secondary d5-drink-potion" data-d5-drink="${it.id}" style="width:100%;margin-top:6px;background:var(--accent-soft);color:var(--accent);border-color:var(--accent);font-size:12px">🧪 Beber (curar 1d8+1, descontar 1)</button>`;
+              }
+              if(cat === 'potions'){
+                return `<button class="btn-secondary d5-use-item" data-d5-use="${it.id}" style="width:100%;margin-top:6px;font-size:12px">▶ Usar (descontar 1)</button>`;
+              }
+              return '';
             })()}
             ${it.magic ? (()=>{
               const max = parseInt(it.chargesMax,10) || 50;
@@ -64346,6 +64499,16 @@ function D5_renderInventory(){
     if(typeof D5_recompute === 'function') D5_recompute();
     if(typeof toast === 'function') toast(`🧪 ${it.name}: +${healed} PG (${formula}). Quedan ${it.qty}.`);
     if(typeof saveStateDebounced === 'function') saveStateDebounced('drink-potion');
+  }));
+  /* UX-J03 Fase J: handler genérico "Usar" para items consumibles no-poción */
+  c.querySelectorAll('.d5-use-item').forEach(b=>b.addEventListener('click',()=>{
+    const it = D5_INVENTORY.find(x=>x.id===+b.dataset.d5Use);
+    if(!it || (it.qty||0) <= 0) return;
+    it.qty = Math.max(0, (it.qty||0) - 1);
+    D5_renderInventory();
+    if(typeof D5_recompute === 'function') D5_recompute();
+    if(typeof toast === 'function') toast(`▶ ${it.name}: usado · quedan ${it.qty}`);
+    if(typeof saveStateDebounced === 'function') saveStateDebounced('use-item');
   }));
 }
 
@@ -66020,9 +66183,14 @@ function wireConfirmActions(){
 function wireSettingsClear(){
   const btn = document.querySelector('#sheet-settings [data-toast="datos-limpios"]');
   if(!btn) return;
-  btn.addEventListener('click', function(ev){
+  btn.addEventListener('click', async function(ev){
     ev.stopImmediatePropagation();
-    if(confirm(I18N_msg('settingsClearConfirm'))){
+    /* UX-L10 Fase L: sustituir confirm() nativo por appConfirm modal in-app
+       (CLAUDE.md prefiere modal in-app porque confirm() bloquea mal en WebView). */
+    const ok = (typeof appConfirm === 'function')
+      ? await appConfirm(I18N_msg('settingsClearConfirm'), {title:'Limpiar todos los datos', okText:'Borrar todo', cancelText:'Cancelar'})
+      : confirm(I18N_msg('settingsClearConfirm'));
+    if(ok){
       try{ localStorage.removeItem(STATE_KEY); }catch(e){}
       try{ localStorage.removeItem('ficha-theme'); localStorage.removeItem('ficha-lang'); localStorage.removeItem('ficha-tab'); }catch(e){}
       window.STATE = blankState();
@@ -66030,12 +66198,15 @@ function wireSettingsClear(){
       setTimeout(()=>location.reload(), 600);
     }
   }, true);
-  /* UX-01 Fase F: Botón "Nueva ficha" en menú overflow */
+  /* UX-01 Fase F + UX-L10 Fase L: Botón "Nueva ficha" — modal in-app. */
   const newBtn = document.getElementById('ov-new-character');
-  if(newBtn) newBtn.addEventListener('click', function(ev){
+  if(newBtn) newBtn.addEventListener('click', async function(ev){
     ev.stopImmediatePropagation();
     const msg = '¿Empezar una ficha desde cero?\n\nSe borrará TODO el personaje actual:\n• Nombre, raza, clases, atributos\n• Habilidades, dotes, conjuros\n• Armas, armadura, inventario\n• Buffs, condiciones, notas\n\nLa configuración (tema, idioma) se conserva.\n\n💾 Recomendado: Exporta antes la ficha actual si quieres conservarla.';
-    if(confirm(msg)){
+    const ok = (typeof appConfirm === 'function')
+      ? await appConfirm(msg, {title:'Empezar de cero', okText:'Empezar de cero', cancelText:'Cancelar'})
+      : confirm(msg);
+    if(ok){
       try{ localStorage.removeItem(STATE_KEY); }catch(e){}
       window.STATE = blankState();
       if(typeof toast==='function') toast('Ficha nueva creada. Empieza por elegir raza y clase.');
@@ -66429,6 +66600,47 @@ function performUndo(){
 }
 window.pushUndoSnapshot = pushUndoSnapshot;
 window.performUndo = performUndo;
+
+/* UX-L03 Fase L: cubrir ediciones críticas (no solo borrados).
+   Hookea inputs de stat-block (atributos, HP, XP, nivel) con debounce 1500ms.
+   Antes de cada edición captura el estado PREVIO (al primer cambio en ráfaga)
+   y, si pasan 1500ms sin más cambios, hace push del snapshot capturado.
+   De este modo Ctrl+Z restaura el valor anterior en lugar del valor recién tecleado. */
+(function _wireEditUndo(){
+  let pendingTimer = null;
+  let pendingSnap = null;
+  const CRITICAL_SELECTOR = [
+    '#hp-current','#xp-current','#xp-next','#hp-feat-bonus','#hp-temp',
+    '.class-level','.attr-card input',
+    '#in-nombre','#in-jugador','#in-raza','#in-deidad'
+  ].join(',');
+  const captureNow = (label)=>{
+    /* Toma snapshot inmediato del estado actual ANTES de aplicar la edición. */
+    try{
+      const snap = {label, ts: Date.now(), state: JSON.parse(JSON.stringify(window.STATE))};
+      pendingSnap = snap;
+    }catch(_){}
+  };
+  document.addEventListener('input', (ev)=>{
+    const el = ev.target;
+    if(!el || !el.matches || !el.matches(CRITICAL_SELECTOR)) return;
+    if(!pendingSnap){
+      const lblHint = el.id || el.className.split(' ')[0] || 'edit';
+      captureNow('Editar ' + lblHint);
+    }
+    if(pendingTimer){ clearTimeout(pendingTimer); }
+    pendingTimer = setTimeout(()=>{
+      if(pendingSnap){
+        _UNDO_STACK.push(pendingSnap);
+        while(_UNDO_STACK.length > _UNDO_MAX) _UNDO_STACK.shift();
+        const ind = document.getElementById('undo-indicator');
+        if(ind){ ind.style.opacity = '1'; setTimeout(()=>{ ind.style.opacity = '0.4'; }, 1500); }
+      }
+      pendingSnap = null;
+      pendingTimer = null;
+    }, 1500);
+  }, true);
+})();
 
 /* Atajo Ctrl+Z (web) / botón touch en topbar */
 document.addEventListener('keydown', (e)=>{
@@ -67207,7 +67419,20 @@ function nextRoundDecrement(){
   if(expired.length && typeof toast==='function') toast('Caducados: '+expired.join(', '));
   else if(typeof toast==='function') toast('Asalto siguiente');
   if(typeof saveStateDebounced==='function') saveStateDebounced('round-decrement');
+  /* UX-L09 Fase L: incrementar round counter visible en summary y read-only init */
+  if(typeof INIT_ROUND === 'number') INIT_ROUND++;
+  _refreshRoundLabels();
 }
+/* UX-L09 Fase L: refrescar etiqueta de asalto en summary card y card init read-only. */
+function _refreshRoundLabels(){
+  const r = (typeof INIT_ROUND === 'number') ? INIT_ROUND : 1;
+  const sumLbl = document.getElementById('summary-round-label');
+  if(sumLbl) sumLbl.textContent = '· Asalto ' + r;
+  const roLbl = document.getElementById('ro-round-label');
+  if(roLbl) roLbl.textContent = 'Asalto ' + r;
+}
+document.addEventListener('state-loaded', _refreshRoundLabels);
+setTimeout(_refreshRoundLabels, 400);
 
 function wireRoundButton(){
   const btn = document.getElementById('btn-next-round');
@@ -68094,7 +68319,18 @@ function refreshXPBar(){
       if(pctEl) pctEl.style.color = 'var(--positive)';
       if(pctEl && !pctEl.dataset.notified){
         pctEl.dataset.notified = '1';
-        if(typeof toast==='function') toast('¡Subes de nivel! Sube nivel en Identidad > Clases.');
+        if(typeof toast==='function') toast('¡Subes de nivel! Pulsa el banner para abrir el asistente.');
+        /* UX-J05 Fase J: disparar el banner de subida con CTA al wizard
+           directamente al cruzar XP, no solo cuando el usuario edita el
+           level a mano. El banner expone el botón "🧙 Asistente paso a paso". */
+        try{
+          if(typeof _showLevelUpBanner === 'function'){
+            const cls = (typeof CLASSES_DATA !== 'undefined' && CLASSES_DATA.length)
+              ? CLASSES_DATA.map(c=>c.name).join(' / ')
+              : 'tu clase';
+            _showLevelUpBanner('XP cruzado · ' + cls + ' puede subir nivel');
+          }
+        }catch(_){}
       }
     } else {
       if(pctEl){ pctEl.style.color = 'var(--accent)'; delete pctEl.dataset.notified; }
@@ -68294,6 +68530,17 @@ function init6(){
     try{ applyState(stored); }catch(e){ console.warn('apply stored state',e); }
   } else {
     document.dispatchEvent(new CustomEvent('state-loaded',{detail:window.STATE}));
+    /* UX-J04 Fase J: si no hay estado guardado y nunca se ha abierto wizard
+       (flag persistente), auto-abrir el wizard de creación de PJ a los 600ms.
+       Así el usuario virgen no tiene que descubrir el botón en el menú. */
+    try{
+      const seen = localStorage.getItem('ficha-wizard-seen') === '1';
+      if(!seen && typeof _openWizard === 'function'){
+        setTimeout(()=>{
+          try{ _openWizard(); localStorage.setItem('ficha-wizard-seen','1'); }catch(_){}
+        }, 600);
+      }
+    }catch(_){}
   }
   try{ updateTopbar(); }catch(e){}
   /* P-01: render inicial de rasgos raciales con la raza visible */
