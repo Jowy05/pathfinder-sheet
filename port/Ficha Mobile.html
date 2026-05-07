@@ -563,7 +563,9 @@ body.master-mode .avatar-btn::after{
 .char-name{
   font-family:'Cinzel',serif;font-weight:700;font-size:15px;
   color:var(--topbar-name);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  /* 2026-05-07: permitir wrap a 2 líneas en lugar de truncar a "Jo..." */
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;word-break:break-word;line-height:1.15;
   letter-spacing:.02em;
 }
 .char-sub{font:11px/1.2 system-ui;color:var(--topbar-sub);opacity:.85;margin-top:2px;
@@ -572,18 +574,29 @@ body.master-mode .avatar-btn::after{
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
   overflow:hidden;word-break:break-word}
 
-.topbar-actions{display:flex;gap:4px;flex-shrink:0}
+/* 2026-05-07: topbar-actions más compacta — gap reducido + iconos 34px en móvil
+   para evitar que squeeze el char-name/sub. Antes ocupaba ~260px de los ~360px
+   del viewport, dejando solo ~16px para el centro y truncando todo a "Jo..."  */
+.topbar-actions{display:flex;gap:2px;flex-shrink:0}
 .icon-btn{
-  width:40px;height:40px;border-radius:10px;
+  width:34px;height:34px;border-radius:9px;
   background:transparent;border:1px solid rgba(255,255,255,.1);
   color:#e8d5a8;
   display:grid;place-items:center;cursor:pointer;
   position:relative;
   transition:background .18s,transform .18s;
+  flex:0 0 auto;
 }
 .icon-btn:hover{background:rgba(255,255,255,.05)}
 .icon-btn:active{transform:scale(.92)}
 .icon-btn svg{width:18px;height:18px;stroke-width:1.8;fill:none;stroke:currentColor}
+/* Save indicator absoluto para no ocupar ancho cuando está oculto. */
+#save-indicator{position:absolute;top:50%;right:0;transform:translate(0,-50%);pointer-events:none}
+@media(min-width:420px){
+  .topbar-actions{gap:4px}
+  .icon-btn{width:40px;height:40px;border-radius:10px}
+  #save-indicator{position:relative;top:auto;right:auto;transform:none}
+}
 .lang-tag{
   position:absolute;bottom:2px;right:3px;
   font:700 8px/1 system-ui;letter-spacing:.04em;
@@ -62882,7 +62895,8 @@ function bindFormSheets(){
     if(form) form.hidden = true;
     const cat = document.getElementById('feat-mode-catalog');
     if(cat){
-      const ok = !!(window.DB && Array.isArray(DB.feats) && DB.feats.length);
+      /* 2026-05-07 BUGFIX: misma raíz que buildFeatPickerListMobile — DB es let. */
+      const ok = !!(typeof DB !== 'undefined' && Array.isArray(DB.feats) && DB.feats.length);
       cat.disabled = !ok;
       cat.style.opacity = ok ? '1' : '.55';
       cat.title = ok ? '' : (document.documentElement.dataset.lang==='en' ? 'Catalog not loaded' : 'Catálogo no cargado');
@@ -63002,7 +63016,10 @@ function bindFormSheets(){
     const meta = document.getElementById('feat-pick-meta');
     if(!list) return;
     _refreshFeatCounter();
-    const feats = (window.DB && Array.isArray(DB.feats)) ? DB.feats : [];
+    /* 2026-05-07 BUGFIX: usar DB directo, no window.DB. DB se declara con
+       `let` y NO se adjunta a window — era false siempre y el catálogo
+       quedaba vacío "Mostrando 0 / 0". */
+    const feats = (typeof DB !== 'undefined' && Array.isArray(DB.feats)) ? DB.feats : [];
     const q = _featNormalize(filter||'');
     const onlyMet = !!document.getElementById('feat-pick-only-met')?.checked;
     const lang = document.documentElement.dataset.lang || 'es';
