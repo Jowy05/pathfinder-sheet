@@ -4,10 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ficha de Personaje – Pathfinder RPG 1e</title>
+<!-- 2026-05-07: fuentes locales (Cinzel + EB Garamond) en fonts/. Funciona offline. -->
+<link href="fonts/fonts.css" rel="stylesheet">
 <!-- PERF: preconnect mejora handshake SSL antes de pedir la fuente -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- PERF: solo los pesos realmente usados (Cinzel 600/700, EB Garamond 400, Orbitron 700/900). Quitamos Rajdhani y JetBrains que no se usaban. -->
+<!-- Fallback Google Fonts (si hay red, también carga Orbitron — no incluido en local). -->
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css?v=14">
 <link rel="stylesheet" href="cyberpunk-loader.css?v=15">
@@ -3213,6 +3215,15 @@ async function init() {
       console.warn('witch_patrons.json no disponible.', e);
       DB.witch_patrons = (typeof FALLBACK_WITCH_PATRONS !== 'undefined') ? FALLBACK_WITCH_PATRONS : [];
     }
+    // 2026-05-07: spells PF1e (564 entradas Core). Fallback inline si falta.
+    try {
+      const spellsRes = await fetch('./spells.json').then(r => { if(!r.ok) throw new Error(r.status); return r.json(); });
+      DB.spells = Array.isArray(spellsRes) ? spellsRes : (Array.isArray(spellsRes.spells) ? spellsRes.spells : []);
+    } catch(e) {
+      console.warn('spells.json no disponible.', e);
+      const fb = (typeof FALLBACK_SPELLS !== 'undefined') ? FALLBACK_SPELLS : null;
+      DB.spells = !fb ? [] : (Array.isArray(fb) ? fb : (Array.isArray(fb.spells) ? fb.spells : []));
+    }
     // Animal companions templates non-fatal
     try {
       const animal_companions = await fetch('./animal_companions.json').then(r => { if(!r.ok) throw new Error(r.status); return r.json(); });
@@ -5291,7 +5302,10 @@ function buildSpellSlots() {
       <div class="sp-entries-section sp-prepared-section">
         <div class="sp-section-label" style="font-size:10px;font-weight:600;color:var(--leather-lt);margin:3px 0 2px;">${t('spell.prepLabel')}</div>
         <div class="spell-entries" id="spell-entries-${lv}"></div>
-        <button class="spell-add-btn" onclick="addSpellEntry(${lv})">${t('btn.addSpell')}</button>
+        <div style="display:flex;gap:4px;margin-top:4px">
+          <button class="spell-add-btn" onclick="addSpellEntry(${lv})">${t('btn.addSpell')}</button>
+          <button class="spell-add-btn" onclick="openSpellCatalogPC(${lv})" title="Catálogo PF1e (564 conjuros)" style="background:var(--accent-soft,#c89030);color:var(--leather-dk)">📚</button>
+        </div>
       </div>
       ${lv>0?`<div class="sp-entries-section sp-known-section" style="display:none;">
         <div class="sp-section-label" style="font-size:10px;font-weight:600;color:var(--leather-lt);margin:3px 0 2px;">${t('spell.knownLabel')}</div>
@@ -5783,6 +5797,115 @@ function addSpellEntry(level, name = '', school = '—', expended = false) {
   div.innerHTML = _spellRowHTML(cbHTML, name, school, schoolOpts);
   container.appendChild(div);
 }
+
+/* 2026-05-07: catálogo PF1e Core para PC.
+   Botón 📚 abre un overlay con 564 conjuros filtrables por clase, nivel y nombre.
+   Al seleccionar uno: addSpellEntry(level, name, school). */
+function openSpellCatalogPC(targetLvl) {
+  const all = (DB && Array.isArray(DB.spells)) ? DB.spells : [];
+  if(!all.length){ alert('Catálogo no cargado'); return; }
+  const SCHOOL_LABEL = {
+    abjuration:'Abj', conjuration:'Conj', divination:'Div', enchantment:'Encant',
+    evocation:'Evoc', illusion:'Ilu', necromancy:'Necro', transmutation:'Trans'
+  };
+  const SCHOOL_TO_PC = {
+    abjuration:'Abjuration', conjuration:'Conjuration', divination:'Divination',
+    enchantment:'Enchantment', evocation:'Evocation', illusion:'Illusion',
+    necromancy:'Necromancy', transmutation:'Transmutation'
+  };
+  const CLS_LABEL = { wiz:'Mago/Sor', sor:'Mago/Sor', clr:'Clérigo', drd:'Druida',
+    brd:'Bardo', pal:'Paladín', rgr:'Rgr', inq:'Inq', wit:'Bruja', magus:'Magus',
+    bloodrager:'Bloodrager', summoner:'Summ', alchemist:'Alq', oracle:'Oráculo' };
+  let overlay = document.getElementById('spell-catalog-pc-overlay');
+  if(overlay) overlay.remove();
+  overlay = document.createElement('div');
+  overlay.id = 'spell-catalog-pc-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  overlay.innerHTML = `
+    <div style="background:var(--parchment, #f4ead0);max-width:760px;width:100%;max-height:80vh;border-radius:10px;border:2px solid var(--leather, #5a3a22);display:flex;flex-direction:column;overflow:hidden">
+      <div style="background:var(--leather, #5a3a22);color:var(--parchment, #f4ead0);padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
+        <h3 style="margin:0;font-family:Cinzel,serif">📜 Catálogo PF1e — ${all.length} conjuros</h3>
+        <button id="spcat-close-pc" style="background:none;border:1px solid currentColor;color:inherit;padding:4px 10px;cursor:pointer;border-radius:4px">✕</button>
+      </div>
+      <div style="padding:10px;display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--leather, #5a3a22)">
+        <select id="spcat-cls" style="flex:1;min-width:120px;padding:4px"></select>
+        <select id="spcat-lvl" style="flex:1;min-width:80px;padding:4px"></select>
+        <input id="spcat-q" type="text" placeholder="Buscar nombre…" style="flex:2;min-width:160px;padding:4px">
+      </div>
+      <div id="spcat-meta" style="padding:6px 10px;font-size:11px;color:var(--leather-lt, #8a6a44)"></div>
+      <div id="spcat-list" style="flex:1;overflow-y:auto;padding:8px"></div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  document.getElementById('spcat-close-pc').onclick = close;
+  overlay.addEventListener('click', e => { if(e.target === overlay) close(); });
+  const clsSel = document.getElementById('spcat-cls');
+  const lvlSel = document.getElementById('spcat-lvl');
+  const qInp = document.getElementById('spcat-q');
+  const list = document.getElementById('spcat-list');
+  const meta = document.getElementById('spcat-meta');
+  clsSel.innerHTML = '<option value="">Todas</option>' +
+    Object.keys(CLS_LABEL).filter(k=>k!=='sor').map(k => `<option value="${k}">${CLS_LABEL[k]}</option>`).join('');
+  lvlSel.innerHTML = '<option value="">Todos</option>' +
+    [0,1,2,3,4,5,6,7,8,9].map(l => `<option value="${l}"${l===targetLvl?' selected':''}>Nivel ${l}</option>`).join('');
+  const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const render = () => {
+    const cf = clsSel.value;
+    const lf = lvlSel.value;
+    const q = norm(qInp.value);
+    const filtered = all.filter(sp => {
+      const lm = sp.level || {};
+      if(cf){
+        if(cf === 'wiz' || cf === 'sor'){ if(!('wiz' in lm) && !('sor' in lm)) return false; }
+        else if(!(cf in lm)) return false;
+      }
+      if(lf !== ''){
+        const lvl = parseInt(lf,10);
+        if(cf){
+          const l = (cf === 'wiz' || cf === 'sor') ? (lm.wiz ?? lm.sor) : lm[cf];
+          if(l !== lvl) return false;
+        } else if(!Object.values(lm).includes(lvl)) return false;
+      }
+      if(q){
+        const ne = sp.name_es || '', en = sp.name_en || '';
+        if(!norm(ne).includes(q) && !norm(en).includes(q)) return false;
+      }
+      return true;
+    });
+    meta.textContent = `${filtered.length} de ${all.length} conjuros`;
+    if(!filtered.length){
+      list.innerHTML = '<div style="text-align:center;color:#8a6a44;padding:20px">Sin resultados</div>';
+      return;
+    }
+    list.innerHTML = filtered.slice(0,200).map((sp,i) => {
+      const lm = sp.level || {};
+      const lvls = Object.entries(lm).map(([c,l])=>`${CLS_LABEL[c]||c} ${l}`).join(' · ');
+      return `<button data-spcat-pick="${i}" style="display:block;width:100%;text-align:left;padding:8px;margin-bottom:4px;border:1px solid var(--leather-lt,#8a6a44);border-radius:6px;background:transparent;cursor:pointer;font:inherit;color:inherit">
+        <div style="font-weight:700;font-family:Cinzel,serif">${sp.name_es||sp.name_en||sp.id}</div>
+        <div style="font-size:11px;color:#5a3a22">${SCHOOL_LABEL[sp.school]||sp.school||''} · ${lvls}</div>
+        <div style="font-size:11px;margin-top:2px">${sp.desc_es||sp.desc_en||''}</div>
+      </button>`;
+    }).join('');
+    list.querySelectorAll('[data-spcat-pick]').forEach(b => b.addEventListener('click', () => {
+      const sp = filtered[+b.dataset.spcatPick];
+      if(!sp) return;
+      const lvl = lf !== '' ? parseInt(lf,10) :
+        (cf ? (cf==='wiz'||cf==='sor' ? (sp.level.wiz ?? sp.level.sor) : sp.level[cf])
+            : Math.min.apply(null, Object.values(sp.level||{0:0}).filter(v=>typeof v==='number')));
+      const name = sp.name_es || sp.name_en || sp.id;
+      const school = SCHOOL_TO_PC[sp.school] || '—';
+      if(typeof addSpellEntry === 'function') addSpellEntry(lvl||0, name, school, false);
+      close();
+      if(typeof showToast === 'function') showToast(`Añadido: ${name} (Nv ${lvl||'?'})`, 2000);
+    }));
+  };
+  clsSel.onchange = render;
+  lvlSel.onchange = render;
+  qInp.oninput = render;
+  render();
+  qInp.focus();
+}
+window.openSpellCatalogPC = openSpellCatalogPC;
 
 function addKnownSpell(level, name = '', school = '—') {
   const container = document.getElementById(`spell-known-${level}`);

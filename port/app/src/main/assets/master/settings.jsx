@@ -402,12 +402,13 @@ function MstSettings({
             </>
           )}
 
+          {/* 2026-05-07: i18n separado para distinguir entre Limpiar plantillas/notas/niebla. */}
           {clearAllTemplates && (
             <div className="mst-settings-row">
               <div className="lbl">{t.lblTemplates || 'Plantillas'}</div>
               <button type="button" className="mst-modal-btn danger" onClick={clearAllTemplates}>
                 <window.MstIcon name="x" size={14}/>
-                <span style={{ marginLeft: 6 }}>{t.fogClear || 'Limpiar'}</span>
+                <span style={{ marginLeft: 6 }}>{t.tplClear || t.fogClear || 'Borrar plantillas'}</span>
               </button>
             </div>
           )}
@@ -417,7 +418,7 @@ function MstSettings({
               <div className="lbl">{t.lblNote || 'Notas'}</div>
               <button type="button" className="mst-modal-btn danger" onClick={clearAllNotes}>
                 <window.MstIcon name="x" size={14}/>
-                <span style={{ marginLeft: 6 }}>{t.fogClear || 'Limpiar'}</span>
+                <span style={{ marginLeft: 6 }}>{t.notesClear || t.fogClear || 'Borrar notas'}</span>
               </button>
             </div>
           )}

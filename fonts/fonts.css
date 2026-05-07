@@ -1,0 +1,27 @@
+/* Fuentes locales — sustituyen Google Fonts para funcionar bajo file://
+   sin necesidad de red. Subset 'latin' de Cinzel y EB Garamond.
+   Si el sistema no tiene WOFF2 local accesible, fallback al system-ui. */
+
+@font-face {
+  font-family: 'Cinzel';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('cinzel-600-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Cinzel';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('cinzel-700-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'EB Garamond';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('ebgaramond-latin.woff2') format('woff2');
+}
