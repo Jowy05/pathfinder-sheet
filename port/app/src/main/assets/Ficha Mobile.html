@@ -57321,7 +57321,7 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
   </div>
   <div class="sheet-content">
     <div class="overflow-list">
-      <button class="over-row" data-toast="refrescar">
+      <button class="over-row" id="ov-refrescar">
         <span class="more-icon"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></svg></span>
         <span class="over-info"><span class="over-label" data-i18n="ovRefrescar">Refrescar ficha</span><span class="over-desc" data-i18n="ovRefrescarD">Recalcular todos los modificadores</span></span>
       </button>
@@ -57370,7 +57370,10 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
     <button class="sheet-close" data-close>✕</button>
   </div>
   <div class="sheet-content">
-    <div class="id-photo">J</div>
+    <!-- 2026-05-07: id-photo ahora es <button> clicable que abre el file picker
+         (mismo handler que "Cambiar foto"). Antes era un <div> visualmente
+         clicable pero sin handler. -->
+    <button type="button" class="id-photo" data-avatar-action="change" aria-label="Cambiar foto" style="cursor:pointer;border:none;font:inherit;color:inherit">J</button>
     <div class="id-buttons">
       <button class="btn-secondary" data-avatar-action="change" data-i18n="btnCambiarFoto">Cambiar foto</button>
       <button class="btn-secondary" data-avatar-action="remove" data-i18n="btnQuitarFoto">Quitar foto</button>
@@ -57430,7 +57433,18 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
   <div class="drag-handle"></div>
   <div class="sheet-header"><div class="sheet-title">Elegir arquetipo</div><button class="sheet-close" data-close>✕</button></div>
   <div class="sheet-content">
-    <input class="field-input" id="archetype-search" placeholder="Buscar arquetipo…" style="margin-bottom:10px">
+    <input class="field-input" id="archetype-search" placeholder="Buscar arquetipo…" style="margin-bottom:8px">
+    <!-- 2026-05-07: chips de fuente (libro). Permite filtrar por línea de publicación. -->
+    <div id="archetype-src-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+      <button type="button" class="chip-cat is-active" data-arch-src="">Todas</button>
+      <button type="button" class="chip-cat" data-arch-src="APG">APG</button>
+      <button type="button" class="chip-cat" data-arch-src="UC">U.Combat</button>
+      <button type="button" class="chip-cat" data-arch-src="UM">U.Magic</button>
+      <button type="button" class="chip-cat" data-arch-src="ACG">ACG</button>
+      <button type="button" class="chip-cat" data-arch-src="OA">Occult</button>
+      <button type="button" class="chip-cat" data-arch-src="UI">U.Intrigue</button>
+      <button type="button" class="chip-cat" data-arch-src="UW">U.Wild</button>
+    </div>
     <div id="archetype-list" class="picker-list"></div>
   </div>
 </dialog>
@@ -59079,6 +59093,32 @@ document.addEventListener('DOMContentLoaded', function(){
   });
 });
 
+/* 2026-05-07: Refrescar ficha — handler real (antes era solo data-toast cosmético).
+   Recompone CombatEngine, fuerza re-render de clases/buffs/init/skills + recalc XP. */
+document.addEventListener('DOMContentLoaded', ()=>{
+  const refreshBtn = document.getElementById('ov-refrescar');
+  if(!refreshBtn) return;
+  refreshBtn.addEventListener('click', ()=>{
+    try{
+      if(typeof CombatEngine !== 'undefined' && CombatEngine.apply) CombatEngine.apply();
+      if(typeof renderClasses === 'function') renderClasses();
+      if(typeof renderWeapons === 'function') renderWeapons();
+      if(typeof renderArmor === 'function') renderArmor();
+      if(typeof renderBuffs === 'function') renderBuffs();
+      if(typeof renderInit === 'function') renderInit();
+      if(typeof window.D3_SKILLS === 'object' && window.D3_SKILLS.recalc) window.D3_SKILLS.recalc();
+      if(typeof refreshXPBar === 'function') refreshXPBar();
+      if(typeof updateTopbar === 'function') updateTopbar();
+      if(typeof renderTopbarFlags === 'function') renderTopbarFlags();
+      if(typeof renderConditionsSummary === 'function') renderConditionsSummary();
+      if(typeof renderWarnings === 'function') renderWarnings();
+      if(typeof saveStateDebounced === 'function') saveStateDebounced('refresh-manual');
+      const lang = document.documentElement.dataset.lang;
+      toast(lang === 'en' ? '✓ Sheet refreshed' : '✓ Ficha refrescada');
+    }catch(e){ console.warn('refresh failed', e); toast('Error al refrescar'); }
+  });
+});
+
 /* ─── TOASTS ─── */
 let toastTimer;
 function toast(msg){
@@ -60356,12 +60396,23 @@ function getArchetypePickerData(classKey) {
     ? entries.filter(([,a]) => a.class === classKey || a.class_key === classKey)
     : entries;
   const lang = document.documentElement.dataset.lang || 'es';
-  return [['—','Sin arquetipo (clase base)', '']].concat(
+  /* 2026-05-07: añadir source como 4º elemento de la tupla para filtro por chips. */
+  return [['—','Sin arquetipo (clase base)', '', '']].concat(
     filtered
       .sort((a,b) => (a[1].name||a[0]).localeCompare(b[1].name||b[0]))
-      .map(([k,a]) => [lang==='en'?(a.name_en||a.name||k):(a.name||k), a.description_es||a.description_en||'', k])
+      .map(([k,a]) => [lang==='en'?(a.name_en||a.name||k):(a.name||k), a.description_es||a.description_en||'', k, a.source||''])
   );
 }
+/* 2026-05-07: mapeo de chip-key → patrón de source. */
+const _ARCH_SRC_MATCH = {
+  'APG': /Advanced Player/i,
+  'UC': /Ultimate Combat/i,
+  'UM': /Ultimate Magic/i,
+  'ACG': /Advanced Class/i,
+  'OA': /Occult Adventures/i,
+  'UI': /Ultimate Intrigue/i,
+  'UW': /Ultimate Wilderness/i
+};
 
 function autoAddMobileClassFeatures(classKey, classNameEs, classNameEn, level, archetypeKey) {
   if (!DB.special_abilities || !DB.special_abilities.length) return;
@@ -60531,18 +60582,50 @@ function renderClasses(){
       const list = document.getElementById('archetype-list');
       const search = document.getElementById('archetype-search');
       const archData = getArchetypePickerData(cl.classKey||'');
-      fillPickerTriple(list, archData, ([n,,k])=>{
+      const chips = document.querySelectorAll('#archetype-src-chips .chip-cat');
+      let _archQuery = '';
+      let _archSrc = '';
+      const onPick = ([n,,k])=>{
         cl.archetype = n; cl.archetypeKey = k||'';
         renderClasses();
         closeSheet(document.getElementById('sheet-archetype-picker'));
         toast('Arquetipo: '+n);
         _triggerClassFeaturesFor(cl);
-        /* P-04 */
         document.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'archetype',id:classId,archetype:n}}));
         window.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'archetype',id:classId,archetype:n}}));
         if(typeof saveStateDebounced==='function') saveStateDebounced('archetype');
+      };
+      const applyArchFilters = ()=>{
+        const q = _archQuery.toLowerCase();
+        const m = _archSrc ? _ARCH_SRC_MATCH[_archSrc] : null;
+        const filtered = archData.filter(row=>{
+          const [n,d,k,src] = row;
+          if(k === '') return true; /* "Sin arquetipo" siempre visible */
+          if(q && !(n+(d||'')).toLowerCase().includes(q)) return false;
+          if(m && !m.test(src||'')) return false;
+          return true;
+        });
+        fillPickerTriple(list, filtered, onPick);
+      };
+      applyArchFilters();
+      if(search){
+        search.value = '';
+        _archQuery = '';
+        search.oninput = ()=>{ _archQuery = search.value; applyArchFilters(); };
+      }
+      /* Reset chips activos al abrir */
+      chips.forEach(c=>c.classList.remove('is-active'));
+      const allChip = document.querySelector('#archetype-src-chips .chip-cat[data-arch-src=""]');
+      if(allChip) allChip.classList.add('is-active');
+      _archSrc = '';
+      chips.forEach(ch=>{
+        ch.onclick = ()=>{
+          chips.forEach(c=>c.classList.remove('is-active'));
+          ch.classList.add('is-active');
+          _archSrc = ch.dataset.archSrc || '';
+          applyArchFilters();
+        };
       });
-      if(search){ search.value=''; search.oninput=()=>{ const q=search.value.toLowerCase(); fillPickerTriple(list, archData.filter(([n,d])=>(n+d).toLowerCase().includes(q)), ([n,,k])=>{ cl.archetype=n; cl.archetypeKey=k||''; renderClasses(); closeSheet(document.getElementById('sheet-archetype-picker')); toast('Arquetipo: '+n); _triggerClassFeaturesFor(cl); document.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'archetype',id:classId,archetype:n}})); window.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'archetype',id:classId,archetype:n}})); }); }; }
       openSheet('sheet-archetype-picker');
     });
   });
@@ -61935,18 +62018,28 @@ function _showSuggestedConditions(saveType, conds, total){
 }
 
 function bindNewSheets(){
-  // race picker
+  // race picker — 2026-05-07: añadido search funcional (antes #race-search no
+  // tenía listener, era cosmético).
   const raceBtn = document.getElementById('btn-raza-picker');
   if(raceBtn) raceBtn.addEventListener('click',()=>{
     const list = document.getElementById('race-list');
-    fillPicker(list, RACES_DATA, ([n])=>{
+    const search = document.getElementById('race-search');
+    const onPick = ([n])=>{
       document.getElementById('in-raza').value = n;
       updateCharSub();
       const s = document.getElementById('sheet-race-picker'); closeSheet(s);
-      /* P-01: aplicar ajustes raciales y rasgos automáticamente */
       try{ applyRaceFull(n); }catch(e){ console.warn(e); }
       toast('Raza: '+n);
-    });
+    };
+    fillPicker(list, RACES_DATA, onPick);
+    if(search){
+      search.value = '';
+      search.oninput = ()=>{
+        const q = search.value.toLowerCase();
+        const filtered = RACES_DATA.filter(([n,d])=>(n+(d||'')).toLowerCase().includes(q));
+        fillPicker(list, filtered, onPick);
+      };
+    }
     openSheet('sheet-race-picker');
   });
   // class picker (open via class-add button → opens picker, adds new class)
@@ -62026,9 +62119,10 @@ function bindNewSheets(){
     }
     function openDeityPicker(){
       const list = document.getElementById('deity-list');
+      const search = document.getElementById('deity-search');
       const items = [['— Personalizada (escribir libre) —','Permite teclear el nombre directamente']]
         .concat(DEITIES_DATA);
-      fillPicker(list, items, ([n])=>{
+      const onPick = ([n])=>{
         if(n.startsWith('— Personalizada')){
           deityInp.readOnly = false;
           deityInp.style.cursor = 'text';
@@ -62044,7 +62138,17 @@ function bindNewSheets(){
           if(typeof toast==='function') toast('Deidad: '+n);
         }
         if(typeof saveStateDebounced==='function') saveStateDebounced('deity');
-      });
+      };
+      fillPicker(list, items, onPick);
+      /* 2026-05-07: search funcional (antes era cosmético sin listener). */
+      if(search){
+        search.value = '';
+        search.oninput = ()=>{
+          const q = search.value.toLowerCase();
+          const filtered = items.filter(([n,d])=> (n+(d||'')).toLowerCase().includes(q));
+          fillPicker(list, filtered, onPick);
+        };
+      }
       openSheet('sheet-deity-picker');
     }
     /* Estado inicial: si vacío o en lista → readonly+picker; si custom → editable */
@@ -62277,27 +62381,96 @@ function bindNewSheets(){
   });
 }
 
+/* 2026-05-07: búsqueda global real. Antes era una lista hardcoded de demo
+   con `picker-row` sin handler. Ahora busca en datos reales del PJ + DB:
+   - Habilidades del PJ con rangos (D3_SKILLS)
+   - Dotes del personaje (FEATS)
+   - Hechizos del catálogo (DB.spells)
+   - Armas y armaduras (WEAPONS_DATA, ARMOR_DATA)
+   Cada resultado tiene handler que navega al sitio donde editarlo. */
 function renderSearchResults(q){
   const c = document.getElementById('search-results');
   if(!c) return;
   q = (q||'').toLowerCase().trim();
-  const equipNames = WEAPONS_DATA.map(w=>w.name).concat(ARMOR_DATA.map(a=>a.name));
-  const groups = [
-    ['Habilidades',['Acrobacias','Atletismo','Intimidar','Montar','Percepción','Sigilo']],
-    ['Dotes',['Soltura con arma (espada larga)','Ataque poderoso','Crítico mejorado','Iniciativa mejorada']],
-    ['Conjuros',['Curar heridas leves','Bendición','Escudo','Misil mágico']],
-    ['Equipo',equipNames],
-  ];
+  if(!q){
+    c.innerHTML = `<div style="text-align:center;padding:20px;color:var(--ink-muted);font:13px system-ui">Escribe para buscar habilidades, dotes, conjuros, armas, armaduras…</div>`;
+    return;
+  }
+  const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const qn = norm(q);
+  const sections = [];
+  /* Habilidades del PJ */
+  try{
+    const skills = (window.D3_SKILLS && window.D3_SKILLS.all) ? window.D3_SKILLS.all() : [];
+    const matches = skills.filter(s=>norm(s.n).includes(qn)).slice(0,8).map(s=>({
+      group:'Habilidades', label:s.n, sub:`Atributo: ${s.a}`, action:'skills'
+    }));
+    if(matches.length) sections.push(matches);
+  }catch(_){}
+  /* Dotes del PJ */
+  try{
+    const matches = (typeof FEATS!=='undefined' ? FEATS : []).filter(f=>norm(f.n).includes(qn)).slice(0,8).map(f=>({
+      group:'Mis Dotes', label:f.n, sub:f.notes||f.t||'', action:'feats'
+    }));
+    if(matches.length) sections.push(matches);
+  }catch(_){}
+  /* Hechizos del catálogo (564 PF1e) */
+  try{
+    const all = (typeof DB!=='undefined' && Array.isArray(DB.spells)) ? DB.spells : [];
+    const matches = all.filter(sp=>norm(sp.name_es||'').includes(qn) || norm(sp.name_en||'').includes(qn)).slice(0,12).map(sp=>{
+      const lvls = Object.entries(sp.level||{}).map(([c,l])=>`${c} ${l}`).join(' · ');
+      return { group:'Conjuros (PF1e)', label:sp.name_es||sp.name_en, sub:`${sp.school||''} ${lvls?'· '+lvls:''}`, action:'spells', spellId:sp.id };
+    });
+    if(matches.length) sections.push(matches);
+  }catch(_){}
+  /* Armas + armaduras del PJ */
+  try{
+    const wMatches = (typeof WEAPONS_DATA!=='undefined' ? WEAPONS_DATA : []).filter(w=>norm(w.name||'').includes(qn)).map(w=>({
+      group:'Armas', label:w.name, sub:`${w.atk||''} · ${w.dmg||''}`, action:'weapons'
+    }));
+    const aMatches = (typeof ARMOR_DATA!=='undefined' ? ARMOR_DATA : []).filter(a=>norm(a.name||'').includes(qn)).map(a=>({
+      group:'Armadura', label:a.name, sub:`CA +${a.ac||0}`, action:'armor'
+    }));
+    if(wMatches.length || aMatches.length) sections.push(wMatches.concat(aMatches));
+  }catch(_){}
+
   let html = '';
-  groups.forEach(([g,items])=>{
-    if(!items) return;
-    const filtered = items.filter(x=>!q || x.toLowerCase().includes(q));
-    if(filtered.length){
-      html += `<div class="search-group-h">${g}</div>`;
-      filtered.forEach(x=>{ html += `<button class="picker-row"><div><div class="pr-name">${x}</div></div></button>`; });
-    }
+  const flat = sections.flat();
+  if(!flat.length){
+    c.innerHTML = `<div style="text-align:center;padding:20px;color:var(--ink-muted);font:13px system-ui">Sin resultados para "${q}"</div>`;
+    return;
+  }
+  /* Agrupar por sección */
+  const byGroup = {};
+  flat.forEach(r => { (byGroup[r.group] = byGroup[r.group] || []).push(r); });
+  Object.entries(byGroup).forEach(([g, items])=>{
+    html += `<div class="search-group-h">${g}</div>`;
+    items.forEach((r,i)=>{
+      html += `<button class="picker-row" data-search-action="${r.action}" data-search-i="${i}" data-search-spell="${r.spellId||''}">
+        <div><div class="pr-name">${r.label}</div>${r.sub?`<div class="pr-desc">${r.sub}</div>`:''}</div>
+      </button>`;
+    });
   });
-  c.innerHTML = html || `<div style="text-align:center;padding:20px;color:var(--ink-muted);font:13px system-ui">Sin resultados</div>`;
+  c.innerHTML = html;
+  /* Wire results — cada uno navega al tab + subtab donde está. */
+  c.querySelectorAll('[data-search-action]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const action = b.dataset.searchAction;
+      try{ closeSheet(document.getElementById('sheet-search')); }catch(_){}
+      const navTo = (tab, sub)=>{
+        try{ if(typeof setTab === 'function') setTab(tab); }catch(_){}
+        if(sub){
+          const chip = document.querySelector(`.tab-page[data-tab="${tab}"] .subchip[data-sub="${sub}"]`);
+          if(chip) setTimeout(()=>chip.click(), 100);
+        }
+      };
+      if(action === 'skills') navTo('aptitudes','habilidades');
+      else if(action === 'feats') navTo('aptitudes','dotes');
+      else if(action === 'spells') navTo('aptitudes','conjuros');
+      else if(action === 'weapons') navTo('equipo','armas');
+      else if(action === 'armor') navTo('equipo','armadura');
+    });
+  });
 }
 
 
