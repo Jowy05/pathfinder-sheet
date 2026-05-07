@@ -57745,7 +57745,8 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
         <button class="btn-secondary wiz-attr-method" data-method="roll" style="font-size:12px;grid-column:span 2">🎲 4d6 quitar el más bajo</button>
       </div>
       <div id="wiz-attr-counter" style="text-align:center;font:600 12px system-ui;color:var(--accent);margin-bottom:8px">Elige un método</div>
-      <div id="wiz-attr-grid" style="display:grid;grid-template-columns:1fr 80px 60px;gap:8px;align-items:center"></div>
+      <!-- 2026-05-07: columna 2 ampliada (140px) para que el input numérico no quede aplastado entre +/−. -->
+      <div id="wiz-attr-grid" style="display:grid;grid-template-columns:1fr 140px 50px;gap:8px;align-items:center"></div>
     </div>
     <!-- Paso 5: Equipo inicial -->
     <div class="wiz-step" data-wiz-step="5" hidden>
@@ -67249,14 +67250,16 @@ function _wizRenderAttrs(){
   grid.innerHTML = ATTR_LIST.map(k=>{
     const v = _WIZ_STATE.attrs[k];
     const mod = Math.floor((v - 10) / 2);
+    /* 2026-05-07: input con width fijo 56px (cabe '99') y min-width:0 en wrapper
+       para que ningún flex anule el width del input. */
     return `
       <div style="font:600 13px 'Cinzel',serif">${k}</div>
-      <div style="display:flex;align-items:center;gap:4px">
-        <button class="btn-secondary wiz-attr-d" data-attr="${k}" data-d="-1" style="min-width:28px">−</button>
-        <input class="field-input wiz-attr-in" data-attr="${k}" type="number" value="${v}" style="text-align:center">
-        <button class="btn-secondary wiz-attr-d" data-attr="${k}" data-d="1" style="min-width:28px">+</button>
+      <div style="display:flex;align-items:center;gap:4px;min-width:0">
+        <button class="btn-secondary wiz-attr-d" data-attr="${k}" data-d="-1" style="min-width:36px;height:36px;flex:0 0 auto;font-size:16px;font-weight:700">−</button>
+        <input class="field-input wiz-attr-in" data-attr="${k}" type="number" inputmode="numeric" pattern="[0-9]*" value="${v}" style="width:56px;flex:0 0 auto;text-align:center;font-weight:700;font-size:15px;padding:6px 4px">
+        <button class="btn-secondary wiz-attr-d" data-attr="${k}" data-d="1" style="min-width:36px;height:36px;flex:0 0 auto;font-size:16px;font-weight:700">+</button>
       </div>
-      <div style="font:700 13px system-ui;color:${mod>=0?'var(--positive)':'var(--negative)'};text-align:center">${mod>=0?'+':''}${mod}</div>
+      <div style="font:700 14px system-ui;color:${mod>=0?'var(--positive)':'var(--negative)'};text-align:center">${mod>=0?'+':''}${mod}</div>
     `;
   }).join('');
   grid.querySelectorAll('.wiz-attr-d').forEach(b=>b.addEventListener('click',()=>{
