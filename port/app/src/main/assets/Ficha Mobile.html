@@ -66623,6 +66623,7 @@ function wireSettingsClear(){
       ? await appConfirm(msg, {title:'Empezar de cero', okText:'Empezar de cero', cancelText:'Cancelar'})
       : confirm(msg);
     if(ok){
+      clearTimeout(__saveTimer);
       try{ localStorage.removeItem(STATE_KEY); }catch(e){}
       window.STATE = blankState();
       if(typeof toast==='function') toast('Ficha nueva creada. Empieza por elegir raza y clase.');
