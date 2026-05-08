@@ -131,6 +131,7 @@ function DiceModal({ open, onClose, onRoll, lang, presetExpr, presetLabel }) {
       const r = rollDice(expr, { advantage });
       setLast(r);
       setRolling(false);
+      try { window.logAction && window.logAction('dado', last && expr === last.expr ? 're-tirada' : 'tirada', `${expr} = ${r.total}`); } catch(_){}
       onRoll && onRoll(r, presetLabel || expr);
     }, 380);
   };
@@ -317,7 +318,10 @@ function LogPanel({ entries, onClear, lang }) {
           >
             <window.MstIcon name="download" size={12}/> .md
           </button>
-          <button className="mst-chip mst-chip-ghost" onClick={onClear}>
+          <button className="mst-chip mst-chip-ghost" onClick={() => {
+            try { window.logAction && window.logAction('dado', 'log limpiado', String(entries.length) + ' entradas'); } catch(_){}
+            onClear && onClear();
+          }}>
             <window.MstIcon name="x" size={12}/> {t.clear || 'Limpiar'}
           </button>
         </div>

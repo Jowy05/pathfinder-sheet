@@ -1751,6 +1751,7 @@ function MasterApp({
     setTokens(ts => [...ts, tk]);
     setSelectedId(id);
     setCenterSignal({ x: tk.x, y: tk.y, ts: Date.now() });
+    try { window.logAction && window.logAction('init', 'combatiente añadido', tk.name); } catch(_){}
     log.push({ kind: 'add', actor: tk.name, text: `${tk.name} entra al encuentro` });
   };
 
@@ -1895,6 +1896,7 @@ function MasterApp({
   // -------- Export / Import / Reset / Clear saved --------
   const handleExport = () => {
     if (!window.MstPersist) return;
+    try { window.logAction && window.logAction('app', 'exportar estado', encounterKey); } catch(_){}
     window.MstPersist.exportJson({
       encounterKey, tokens, activeId, selectedId, round, actionsState, buffs,
       theme, lang, gridKind: gridType,
@@ -1906,6 +1908,7 @@ function MasterApp({
   };
   const handleImport = async (file) => {
     if (!window.MstPersist) return;
+    try { window.logAction && window.logAction('app', 'importar estado', (file && file.name) || ''); } catch(_){}
     const data = await window.MstPersist.importJsonFile(file);
     if (Array.isArray(data.tokens)) setTokens(data.tokens);
     if (data.activeId)   setActiveId(data.activeId);
@@ -1922,6 +1925,7 @@ function MasterApp({
     setSavedAt(Date.now());
   };
   const handleResetEncounter = () => {
+    try { window.logAction && window.logAction('app', 'settings reset', encounterKey); } catch(_){}
     const enc = window.MstData.ENCOUNTERS[encounterKey];
     setTokens(enc.tokens.map(x => ({...x})));
     setActiveId(enc.activeId);
@@ -1939,6 +1943,7 @@ function MasterApp({
   };
   const handleClearSaved = () => {
     if (!window.MstPersist) return;
+    try { window.logAction && window.logAction('app', 'settings reset', 'clear saved'); } catch(_){}
     window.MstPersist.clearState();
     setSavedAt(null);
   };
@@ -2054,6 +2059,7 @@ function MasterApp({
     return entry;
   };
   const handleLoadEncounter = (id) => {
+    try { window.logAction && window.logAction('app', 'encuentro cambiado', String(id)); } catch(_){}
     if (!window.MstPersist) return;
     const enc = window.MstPersist.getCustomEncounter(id);
     if (!enc || !enc.data) return;
@@ -2752,6 +2758,7 @@ function MasterApp({
   const onChangeHp = (id, delta) => {
     /* MST-J06: anti-misclick si vamos a dejar a un PJ a 0 PG con −1 directo */
     const targetTk = tokens.find(x => x.id === id);
+    try { window.logAction && window.logAction('app', 'PG ajustado', `${(targetTk && targetTk.name) || id} ${delta >= 0 ? '+' : ''}${delta}`); } catch(_){}
     if (targetTk) {
       const isPC = targetTk.kind === 'pj' || targetTk.kind === 'player' || targetTk.fromSheet;
       if (isPC && delta < 0 && targetTk.hp > 0 && (targetTk.hp + delta) <= 0) {
@@ -2856,6 +2863,7 @@ function MasterApp({
   const advanceTurn = () => {
     const order = initiativeOrder;
     const idx = order.findIndex(x => x.id === activeId);
+    try { window.logAction && window.logAction('init', 'turno avanzado', (order[(idx + 1) % order.length] || {}).name || ''); } catch(_){}
     /* MST-J09: saltar muertos y también los que están en delay (pero los
        delayed ya están al final del orden; vuelven a entrar al cambiar
        de ronda al limpiarse el flag). */
@@ -2914,6 +2922,7 @@ function MasterApp({
     const order = initiativeOrder;
     const idx = order.findIndex(x => x.id === activeId);
     const prev = order[(idx - 1 + order.length) % order.length];
+    try { window.logAction && window.logAction('init', 'turno atrás', (prev || {}).name || ''); } catch(_){}
     setActiveId(prev.id);
     setSelectedId(prev.id);
   };
@@ -3081,13 +3090,25 @@ function MasterApp({
               theme={theme}
               gridKind={gridType}
               savedAt={savedAt}
-              onSetLang={(v) => onSetLang && onSetLang(v)}
-              onSetTheme={(v) => onSetTheme && onSetTheme(v)}
-              onSetGrid={(v) => onSetGrid && onSetGrid(v)}
+              onSetLang={(v) => {
+                try { window.logAction && window.logAction('app', 'idioma', String(v)); } catch(_){}
+                onSetLang && onSetLang(v);
+              }}
+              onSetTheme={(v) => {
+                try { window.logAction && window.logAction('app', 'tema', String(v)); } catch(_){}
+                onSetTheme && onSetTheme(v);
+              }}
+              onSetGrid={(v) => {
+                try { window.logAction && window.logAction('app', 'cuadrícula', String(v)); } catch(_){}
+                onSetGrid && onSetGrid(v);
+              }}
               onResetEncounter={handleResetEncounter}
               onEmptyEncounter={handleEmptyEncounter}
               snapToGrid={snapToGrid}
-              onToggleSnapToGrid={setSnapToGrid}
+              onToggleSnapToGrid={(v) => {
+                try { window.logAction && window.logAction('app', 'snap', v ? 'on' : 'off'); } catch(_){}
+                setSnapToGrid(v);
+              }}
               onExport={handleExport}
               onImportFile={handleImport}
               onClearSaved={handleClearSaved}

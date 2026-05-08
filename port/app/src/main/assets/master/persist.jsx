@@ -60,7 +60,11 @@ function loadState() {
 }
 
 function clearState() {
-  try { localStorage.removeItem(MST_STORAGE_KEY); return true; }
+  try {
+    localStorage.removeItem(MST_STORAGE_KEY);
+    try { window.logAction && window.logAction('persist','reset', {}); } catch(_){}
+    return true;
+  }
   catch (e) { return false; }
 }
 
@@ -75,7 +79,8 @@ function getSavedAt() {
 
 function exportJson(s, filename) {
   const snap = snapshotState(s);
-  const blob = new Blob([JSON.stringify(snap, null, 2)], { type: 'application/json' });
+  const json = JSON.stringify(snap, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   const name = filename || ('master-' + (snap.encounterKey || 'encounter') + '-' +
@@ -88,6 +93,7 @@ function exportJson(s, filename) {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   }, 200);
+  try { window.logAction && window.logAction('persist','exportar JSON', { filename: name, byteSize: json.length, tokens: Array.isArray(snap.tokens) ? snap.tokens.length : 0 }); } catch(_){}
   return name;
 }
 
@@ -101,6 +107,7 @@ function importJsonFile(file) {
         if (!data || typeof data !== 'object') throw new Error('not an object');
         if (data.version !== MST_STATE_VERSION) throw new Error('version mismatch');
         if (!Array.isArray(data.tokens)) throw new Error('no tokens');
+        try { window.logAction && window.logAction('persist','importar JSON', { filename: file && file.name, byteSize: (reader.result || '').length, tokens: data.tokens.length }); } catch(_){}
         resolve(data);
       } catch (e) { reject(e); }
     };

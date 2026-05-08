@@ -20,6 +20,9 @@ function MstEditTokenModal({ open, token, onClose, onSubmit, onDuplicate, onRemo
 
   React.useEffect(() => {
     if (open && token) {
+      if (mode !== 'bestiary') {
+        try { window.logAction && window.logAction('token','abrir editor', { name: token.name, id: token.id }); } catch(_){}
+      }
       const baseAttacks = Array.isArray(token.attacks) && token.attacks.length
         ? token.attacks.map(a => ({ ...a }))
         : (window.MstData.defaultAttacksForKind(token.kind) || []).map(a => ({ ...a }));
@@ -117,6 +120,25 @@ function MstEditTokenModal({ open, token, onClose, onSubmit, onDuplicate, onRemo
     };
     // Si bajan hpMax por debajo de hp actual, recortar
     if (out.hp > out.hpMax) out.hp = out.hpMax;
+    // Logs de cambios en token (no en bestiario; allí ya se loggea desde bestiary.jsx)
+    if (mode !== 'bestiary' && token) {
+      try {
+        const oldName = token.name || '';
+        const newName = out.name;
+        if (oldName !== newName) {
+          window.logAction && window.logAction('token','renombrado', { from: oldName, to: newName, label: oldName + '→' + newName });
+        }
+        if ((token.hpMax ?? 0) !== out.hpMax) {
+          window.logAction && window.logAction('token','PG máx cambiado', { name: out.name, from: token.hpMax, to: out.hpMax });
+        }
+        if ((token.hp ?? 0) !== out.hp) {
+          window.logAction && window.logAction('token','PG ajustado', { name: out.name, delta: out.hp - (token.hp ?? 0), from: token.hp, to: out.hp });
+        }
+        if ((token.color || '') !== (out.color || '')) {
+          window.logAction && window.logAction('token','color', { name: out.name, value: out.color });
+        }
+      } catch(_){}
+    }
     if (mode === 'bestiary') {
       // Para entradas de bestiario no llevamos hp/short/x/y, sí cr/tag/notes
       delete out.hp;
@@ -340,7 +362,16 @@ function MstEditTokenModal({ open, token, onClose, onSubmit, onDuplicate, onRemo
                 <button
                   type="button"
                   className="mst-modal-btn"
-                  onClick={() => { onDuplicate(); onClose(); }}
+                  onClick={() => {
+                    try {
+                      if (mode === 'bestiary') {
+                        window.logAction && window.logAction('bestiario','custom añadido', { name: form.name, source: 'duplicate' });
+                      } else {
+                        window.logAction && window.logAction('token','duplicado', { name: form.name });
+                      }
+                    } catch(_){}
+                    onDuplicate(); onClose();
+                  }}
                   title={t.duplicate || 'Duplicar'}
                 >
                   <window.MstIcon name="copy" size={14}/>
@@ -351,7 +382,10 @@ function MstEditTokenModal({ open, token, onClose, onSubmit, onDuplicate, onRemo
                 <button
                   type="button"
                   className="mst-modal-btn"
-                  onClick={() => { onSaveToBestiary(); }}
+                  onClick={() => {
+                    try { window.logAction && window.logAction('bestiario','custom añadido', { name: form.name, source: 'token' }); } catch(_){}
+                    onSaveToBestiary();
+                  }}
                   title={t.saveAsCreature || 'Guardar en bestiario'}
                 >
                   <window.MstIcon name="book" size={14}/>
@@ -367,6 +401,13 @@ function MstEditTokenModal({ open, token, onClose, onSubmit, onDuplicate, onRemo
                       ? (t.confirmDeleteEntry || '¿Borrar a {n}?').replace('{n}', form.name)
                       : (t.confirmRemove || '¿Quitar a {n}?').replace('{n}', form.name);
                     if (window.confirm(msg)) {
+                      try {
+                        if (isBestiary) {
+                          window.logAction && window.logAction('bestiario','borrado', { name: form.name });
+                        } else {
+                          window.logAction && window.logAction('token','eliminado', { name: form.name });
+                        }
+                      } catch(_){}
                       onRemove();
                       onClose();
                     }

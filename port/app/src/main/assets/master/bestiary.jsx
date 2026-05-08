@@ -30,6 +30,11 @@ function MstBestiaryPanel({ lang, onAddToEncounter, onEditEntry, refreshKey }) {
     window.MstBestiary._cache = data;
   }, [refreshKey]);
 
+  // Log de apertura del bestiario (solo al montar)
+  React.useEffect(() => {
+    try { window.logAction && window.logAction('bestiario','abierto', {}); } catch(_){}
+  }, []);
+
   const persist = (next) => {
     setList(next);
     window.MstBestiary.saveBestiary(next);
@@ -48,6 +53,7 @@ function MstBestiaryPanel({ lang, onAddToEncounter, onEditEntry, refreshKey }) {
 
   const onDelete = (entry) => {
     if (!window.confirm((t.confirmDeleteEntry || '¿Borrar a {n} del bestiario?').replace('{n}', entry.name))) return;
+    try { window.logAction && window.logAction('bestiario','borrado', { name: entry.name, id: entry.id }); } catch(_){}
     persist(list.filter(e => e.id !== entry.id));
   };
   const onDuplicate = (entry) => {
@@ -56,6 +62,7 @@ function MstBestiaryPanel({ lang, onAddToEncounter, onEditEntry, refreshKey }) {
     let id = 'b_' + n.toString().padStart(3, '0');
     while (ids.has(id)) { n++; id = 'b_' + n.toString().padStart(3, '0'); }
     const copy = { ...entry, id, name: entry.name + ' (copia)' };
+    try { window.logAction && window.logAction('bestiario','custom añadido', { name: copy.name, id, source: 'duplicate' }); } catch(_){}
     persist([...list, copy]);
   };
   const onAddNew = () => {
@@ -70,11 +77,13 @@ function MstBestiaryPanel({ lang, onAddToEncounter, onEditEntry, refreshKey }) {
       fort: 0, ref: 0, will: 0, per: 0, spd: 30,
       cr: '', tag: '', notes: '',
     };
+    try { window.logAction && window.logAction('bestiario','custom añadido', { name: blank.name, id, source: 'new' }); } catch(_){}
     persist([...list, blank]);
     onEditEntry(blank);
   };
 
   const handleAdd = (entry) => {
+    try { window.logAction && window.logAction('bestiario','enemigo invocado', { name: entry.name, id: entry.id, kind: entry.kind }); } catch(_){}
     onAddToEncounter(window.MstBestiary.entryToToken(entry));
   };
 
@@ -89,6 +98,16 @@ function MstBestiaryPanel({ lang, onAddToEncounter, onEditEntry, refreshKey }) {
             placeholder={t.searchCreature || 'Buscar criatura…'}
             value={query}
             onChange={e => setQuery(e.target.value)}
+            onBlur={e => {
+              const q = (e.target.value || '').trim();
+              if (q) { try { window.logAction && window.logAction('bestiario','búsqueda', { query: q }); } catch(_){} }
+            }}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                const q = (e.target.value || '').trim();
+                if (q) { try { window.logAction && window.logAction('bestiario','búsqueda', { query: q }); } catch(_){} }
+              }
+            }}
           />
           {query && (
             <button type="button" className="clear-btn" onClick={() => setQuery('')} aria-label="clear">
@@ -119,7 +138,10 @@ function MstBestiaryPanel({ lang, onAddToEncounter, onEditEntry, refreshKey }) {
               key={f.key}
               type="button"
               className={"filter-chip " + (kind === f.key ? 'active' : '')}
-              onClick={() => setKind(f.key)}
+              onClick={() => {
+                try { window.logAction && window.logAction('bestiario','filtro', { value: f.key }); } catch(_){}
+                setKind(f.key);
+              }}
             >
               <span className="ic">{f.icon}</span>
               <span className="lbl">{lbl}</span>
@@ -144,7 +166,10 @@ function MstBestiaryPanel({ lang, onAddToEncounter, onEditEntry, refreshKey }) {
               entry={entry}
               t={t}
               onAdd={() => handleAdd(entry)}
-              onEdit={() => onEditEntry(entry)}
+              onEdit={() => {
+                try { window.logAction && window.logAction('bestiario','editado', { name: entry.name, id: entry.id }); } catch(_){}
+                onEditEntry(entry);
+              }}
               onDuplicate={() => onDuplicate(entry)}
               onDelete={() => onDelete(entry)}
             />

@@ -58203,6 +58203,29 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
   });
   window.logAction('app', 'log inicializado');
 
+  /* 2026-05-08: puente de log con el iframe del Modo Máster.
+     master/Modo Master.html postMessage'a {type:'mst-log', entry:{...}} —
+     lo aceptamos solo desde el iframe del overlay para que no entren mensajes
+     de otras fuentes. La cat ya viene prefijada con "mst-". */
+  window.addEventListener('message', (ev) => {
+    try {
+      const msg = ev.data;
+      if (!msg || msg.type !== 'mst-log' || !msg.entry) return;
+      const e = msg.entry;
+      const entry = {
+        ts: typeof e.ts === 'number' ? e.ts : Date.now(),
+        cat: String(e.cat || 'mst-?').slice(0, 24),
+        msg: String(e.msg || '').slice(0, 240),
+        det: e.det == null ? null : String(e.det).slice(0, 400)
+      };
+      buffer.push(entry);
+      if (buffer.length > MAX) buffer = buffer.slice(-MAX);
+      if (pendingFlush) clearTimeout(pendingFlush);
+      pendingFlush = setTimeout(flush, 400);
+      if (window.__aboutLogRender) try { window.__aboutLogRender(); } catch(_){}
+    } catch(_){}
+  });
+
   /* 2026-05-08: handler delegado de respaldo. Si init6/bindNewSheets falla y el
      wiring específico de #more-about no se registra, este capture-listener al
      nivel de document garantiza que el clic siga abriendo el sheet. */

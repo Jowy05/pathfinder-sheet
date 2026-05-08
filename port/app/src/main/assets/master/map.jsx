@@ -118,6 +118,7 @@ function MstMap({
   useEffect(() => {
     if (!resetSignal) return;
     fitCover();
+    try { window.logAction && window.logAction('mapa', 'vista reseteada'); } catch(_){}
   }, [resetSignal, fitCover]);
 
   // Center map on a given point (in grid coords) — driven by `centerSignal`
@@ -185,18 +186,27 @@ function MstMap({
       e.preventDefault();
       const pt = screenToGrid(e.clientX, e.clientY);
       onMeasureClick && onMeasureClick(pt);
+      try {
+        const prev = Array.isArray(measurePts) ? measurePts.length : 0;
+        const ftIfBoth = (prev === 1 && computeDistance)
+          ? (computeDistance(measurePts[0], pt) || {}).ft
+          : undefined;
+        window.logAction && window.logAction('mapa', 'medida punto', ftIfBoth != null ? { ft: ftIfBoth } : { x: Math.round(pt.x), y: Math.round(pt.y) });
+      } catch(_){}
       return;
     }
     if (pendingTemplate) {
       e.preventDefault();
       const pt = screenToGrid(e.clientX, e.clientY);
       onPlaceTemplate && onPlaceTemplate(pt);
+      try { window.logAction && window.logAction('mapa', 'plantilla colocada', { kind: pendingTemplate.kind, sizeFt: pendingTemplate.sizeFt }); } catch(_){}
       return;
     }
     if (pendingNote) {
       e.preventDefault();
       const pt = screenToGrid(e.clientX, e.clientY);
       onPlaceNote && onPlaceNote(pt);
+      try { window.logAction && window.logAction('mapa', 'nota añadida', { x: Math.round(pt.x), y: Math.round(pt.y) }); } catch(_){}
       return;
     }
     if (fogMode) {
@@ -207,6 +217,10 @@ function MstMap({
       const cx = Math.floor(pt.x / SQ);
       const cy = Math.floor(pt.y / SQ);
       onFogCellClick && onFogCellClick(cx, cy);
+      try {
+        const wasOn = Array.isArray(fogCells) && fogCells.some(c => c.x === cx && c.y === cy);
+        window.logAction && window.logAction('mapa', 'niebla toggle', { cx, cy, state: wasOn ? 'off' : 'on' });
+      } catch(_){}
       return;
     }
     if (e.target.closest('.mst-token')) return;
@@ -263,12 +277,23 @@ function MstMap({
   };
   const onPointerUp = (e) => {
     pointersRef.current.delete(e.pointerId);
+    const wasPinch = !!pinchRef.current;
     if (pointersRef.current.size < 2) pinchRef.current = null;
+    if (wasPinch && pointersRef.current.size < 2) {
+      try { window.logAction && window.logAction('mapa', 'zoom', { scale: +viewRef.current.scale.toFixed(2) }); } catch(_){}
+    }
     const d = dragState.current;
     if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current = null; }
-    if (d && d.type === 'note' && !d.moved) {
-      // Tap puro sobre nota: borrar
-      if (window.confirm('¿Borrar nota?')) onDeleteNote && onDeleteNote(d.noteId);
+    if (d && d.type === 'note') {
+      if (!d.moved) {
+        // Tap puro sobre nota: borrar
+        if (window.confirm('¿Borrar nota?')) {
+          onDeleteNote && onDeleteNote(d.noteId);
+          try { window.logAction && window.logAction('mapa', 'nota borrada', { id: d.noteId }); } catch(_){}
+        }
+      } else {
+        try { window.logAction && window.logAction('mapa', 'nota movida', { id: d.noteId }); } catch(_){}
+      }
     }
     dragState.current = null;
   };
@@ -304,6 +329,11 @@ function MstMap({
     // Shift+click: toggle multi-selección sin iniciar drag ni abrir drawer
     if ((e.shiftKey || e.ctrlKey || e.metaKey) && onToggleMultiSelect) {
       onToggleMultiSelect(t.id);
+      try {
+        const prev = (multiSelected && multiSelected.size) ? multiSelected.size : 0;
+        const has = !!(multiSelected && multiSelected.has && multiSelected.has(t.id));
+        window.logAction && window.logAction('mapa', 'multi-select', { name: t.name, count: prev + (has ? -1 : 1) });
+      } catch(_){}
       return;
     }
     onSelectToken(t.id);
@@ -321,6 +351,7 @@ function MstMap({
       if (d && !d.moved && d.tokenId === t.id) {
         onSelectToken(t.id, { openDrawer: true });
         try { navigator.vibrate && navigator.vibrate(20); } catch(err) {}
+        try { window.logAction && window.logAction('mapa', 'token long-press', { name: t.name }); } catch(_){}
       }
       longPressRef.current = null;
     }, 500);
@@ -336,13 +367,18 @@ function MstMap({
       const last = lastTapRef.current;
       if (last && last.id === t.id && (now - last.ts) < 320) {
         onSelectToken(t.id, { openDrawer: true });
+        try { window.logAction && window.logAction('mapa', 'token doble-tap', { name: t.name }); } catch(_){}
         lastTapRef.current = null;
       } else {
+        try { window.logAction && window.logAction('mapa', 'token seleccionado', { name: t.name }); } catch(_){}
         lastTapRef.current = { id: t.id, ts: now };
       }
     } else {
       // arrastre real → invalida la pareja de doble-tap
       lastTapRef.current = null;
+      if (d && d.type === 'token' && d.moved) {
+        try { window.logAction && window.logAction('mapa', 'token movido', { name: t.name, x: Math.round(t.x), y: Math.round(t.y) }); } catch(_){}
+      }
     }
     dragState.current = null;
   };
@@ -467,7 +503,10 @@ function MstMap({
               const cls = "mst-template-shape" + (lastPlacedTpl === tpl.id ? ' pulse' : '');
               const onClick = (e) => {
                 e.stopPropagation();
-                if (window.confirm('¿Quitar plantilla?')) onRemoveTemplate && onRemoveTemplate(tpl.id);
+                if (window.confirm('¿Quitar plantilla?')) {
+                  onRemoveTemplate && onRemoveTemplate(tpl.id);
+                  try { window.logAction && window.logAction('mapa', 'plantilla borrada', { kind: tpl.kind, sizeFt: tpl.sizeFt }); } catch(_){}
+                }
               };
               if (tpl.kind === 'circle') {
                 return (

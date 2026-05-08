@@ -88,6 +88,11 @@ function MstInitFull({
     setDragOver(null);
     setDraggingId(null);
     if (fromId && commitTargetId && fromId !== commitTargetId) {
+      try {
+        const fromIdx = ordered.findIndex(x => x.id === fromId);
+        const toIdx = ordered.findIndex(x => x.id === commitTargetId);
+        window.logAction && window.logAction('init', 'reordenado', fromIdx + '→' + toIdx);
+      } catch(_){}
       onReorder && onReorder(fromId, commitTargetId);
     }
     // Eliminar listeners globales
@@ -198,7 +203,10 @@ function MstInitFull({
 
       {/* TOOLBAR */}
       <div className="mst-initfull-toolbar">
-        <button className="mst-modal-btn" onClick={onRollAllInitiatives}>
+        <button className="mst-modal-btn" onClick={() => {
+          try { window.logAction && window.logAction('init', 'iniciativa tirada', String(ordered.length) + ' combatientes'); } catch(_){}
+          onRollAllInitiatives && onRollAllInitiatives();
+        }}>
           <window.MstIcon name="dice" size={14}/>
           <span style={{marginLeft:6}}>{t.rollAllIni || 'Tirar todas'}</span>
         </button>
@@ -333,6 +341,7 @@ function MstInitFull({
                     disabled={idx === 0}
                     onClick={() => {
                       const above = ordered[idx - 1];
+                      try { window.logAction && window.logAction('init', 'reordenado', idx + '→' + (idx - 1)); } catch(_){}
                       if (above && onReorder) onReorder(tk.id, above.id);
                     }}
                   >▲</button>
@@ -342,6 +351,7 @@ function MstInitFull({
                     disabled={idx >= ordered.length - 1}
                     onClick={() => {
                       const below = ordered[idx + 1];
+                      try { window.logAction && window.logAction('init', 'reordenado', idx + '→' + (idx + 1)); } catch(_){}
                       if (below && onReorder) onReorder(tk.id, below.id);
                     }}
                   >▼</button>
@@ -358,6 +368,7 @@ function MstInitFull({
                   title={t.removeToken || 'Quitar'}
                   onClick={() => {
                     if (window.confirm((t.confirmRemove || '¿Quitar a {n}?').replace('{n}', tk.name))) {
+                      try { window.logAction && window.logAction('init', 'combatiente borrado', tk.name); } catch(_){}
                       onRemoveToken && onRemoveToken(tk.id);
                     }
                   }}

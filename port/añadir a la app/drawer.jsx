@@ -66,6 +66,12 @@ function MstDrawer({ token, lang, layout, density, drawerHeight, onSetHeight, on
   const t = window.MstData.I18N[lang];
   const [tab, setTab] = useStateD("stats");
   const dragRef = useRefD(null);
+  const pickTab = (name) => {
+    if (name !== tab) {
+      try { window.logAction && window.logAction('drawer', 'tab', { name }); } catch(_){}
+    }
+    setTab(name);
+  };
 
   // Drag handle to resize drawer
   const onHandlePointerDown = (e) => {
@@ -84,14 +90,25 @@ function MstDrawer({ token, lang, layout, density, drawerHeight, onSetHeight, on
     let next = 'peek';
     if (ratio > 0.65) next = 'full';
     else if (ratio > 0.20) next = 'mid';
-    if (next !== drawerHeight) onSetHeight(next);
+    if (next !== drawerHeight) {
+      onSetHeight(next);
+      try { window.logAction && window.logAction('drawer', 'altura', { to: next, via: 'drag' }); } catch(_){}
+      if (next === 'peek') {
+        try { window.logAction && window.logAction('drawer', 'cerrado', { via: 'drag' }); } catch(_){}
+      }
+    }
   };
   const onHandlePointerUp = (e) => {
     const d = dragRef.current;
     // Tap (no movement) → cycle through states peek → mid → full → peek
     if (d && !d.moved) {
       const cycle = { peek: 'mid', mid: 'full', full: 'peek' };
-      onSetHeight(cycle[drawerHeight] || 'mid');
+      const next = cycle[drawerHeight] || 'mid';
+      onSetHeight(next);
+      try { window.logAction && window.logAction('drawer', 'altura', { to: next, via: 'tap' }); } catch(_){}
+      if (next === 'peek') {
+        try { window.logAction && window.logAction('drawer', 'cerrado', { via: 'tap' }); } catch(_){}
+      }
     }
     dragRef.current = null;
   };
@@ -426,11 +443,11 @@ function MstDrawer({ token, lang, layout, density, drawerHeight, onSetHeight, on
           <HpStepper />
           <ActionsSection />
           <div className="mst-drawer-tabs">
-            <button className={"mst-drawer-tab " + (tab==='stats'?'active':'')} onClick={()=>setTab('stats')}>{t.abilities}</button>
-            <button className={"mst-drawer-tab " + (tab==='att'?'active':'')} onClick={()=>setTab('att')}>{t.attacks}</button>
-            <button className={"mst-drawer-tab " + (tab==='buf'?'active':'')} onClick={()=>setTab('buf')}>{t.debuffs}</button>
+            <button className={"mst-drawer-tab " + (tab==='stats'?'active':'')} onClick={()=>pickTab('stats')}>{t.abilities}</button>
+            <button className={"mst-drawer-tab " + (tab==='att'?'active':'')} onClick={()=>pickTab('att')}>{t.attacks}</button>
+            <button className={"mst-drawer-tab " + (tab==='buf'?'active':'')} onClick={()=>pickTab('buf')}>{t.debuffs}</button>
             {Array.isArray(token.skills) && token.skills.length > 0 && (
-              <button className={"mst-drawer-tab " + (tab==='sk'?'active':'')} onClick={()=>setTab('sk')}>{t.skills || 'Habil.'}</button>
+              <button className={"mst-drawer-tab " + (tab==='sk'?'active':'')} onClick={()=>pickTab('sk')}>{t.skills || 'Habil.'}</button>
             )}
           </div>
           {tab === 'stats' && <StatsSection />}
@@ -457,11 +474,11 @@ function MstDrawer({ token, lang, layout, density, drawerHeight, onSetHeight, on
           {drawerHeight !== 'peek' && (
             <>
               <div className="mst-drawer-tabs" style={{marginTop: 10}}>
-                <button className={"mst-drawer-tab " + (tab==='stats'?'active':'')} onClick={()=>setTab('stats')}>{t.abilities}</button>
-                <button className={"mst-drawer-tab " + (tab==='att'?'active':'')} onClick={()=>setTab('att')}>{t.attacks}</button>
-                <button className={"mst-drawer-tab " + (tab==='buf'?'active':'')} onClick={()=>setTab('buf')}>{t.debuffs}</button>
+                <button className={"mst-drawer-tab " + (tab==='stats'?'active':'')} onClick={()=>pickTab('stats')}>{t.abilities}</button>
+                <button className={"mst-drawer-tab " + (tab==='att'?'active':'')} onClick={()=>pickTab('att')}>{t.attacks}</button>
+                <button className={"mst-drawer-tab " + (tab==='buf'?'active':'')} onClick={()=>pickTab('buf')}>{t.debuffs}</button>
                 {Array.isArray(token.skills) && token.skills.length > 0 && (
-                  <button className={"mst-drawer-tab " + (tab==='sk'?'active':'')} onClick={()=>setTab('sk')}>{t.skills || 'Habil.'}</button>
+                  <button className={"mst-drawer-tab " + (tab==='sk'?'active':'')} onClick={()=>pickTab('sk')}>{t.skills || 'Habil.'}</button>
                 )}
               </div>
               {tab === 'stats' && <StatsSection />}

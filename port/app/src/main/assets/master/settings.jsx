@@ -128,8 +128,8 @@ function MstSettings({
               <div className="hint">{t.themeAutoHelp || 'Tema oscuro de noche (20:00–08:00), claro de día'}</div>
             </div>
             <div className="mst-segmented">
-              <button type="button" className={"seg " + (themeAuto ? 'active' : '')} onClick={() => onToggleThemeAuto(true)}>{t.on || 'On'}</button>
-              <button type="button" className={"seg " + (!themeAuto ? 'active' : '')} onClick={() => onToggleThemeAuto(false)}>{t.off || 'Off'}</button>
+              <button type="button" className={"seg " + (themeAuto ? 'active' : '')} onClick={() => { try { window.logAction && window.logAction('settings','tema automático cambiado', { value: true }); } catch(_){} onToggleThemeAuto(true); }}>{t.on || 'On'}</button>
+              <button type="button" className={"seg " + (!themeAuto ? 'active' : '')} onClick={() => { try { window.logAction && window.logAction('settings','tema automático cambiado', { value: false }); } catch(_){} onToggleThemeAuto(false); }}>{t.off || 'Off'}</button>
             </div>
           </div>
         )}
@@ -142,7 +142,7 @@ function MstSettings({
                 key={th.key}
                 type="button"
                 className={"mst-theme-card " + (theme === th.key ? 'active' : '')}
-                onClick={() => onSetTheme(th.key)}
+                onClick={() => { try { window.logAction && window.logAction('settings','tema cambiado', { value: th.key }); } catch(_){} onSetTheme(th.key); }}
                 title={th.label}
               >
                 <div className="swatches">
@@ -164,7 +164,7 @@ function MstSettings({
                 key={l.key}
                 type="button"
                 className={"seg " + (lang === l.key ? 'active' : '')}
-                onClick={() => onSetLang(l.key)}
+                onClick={() => { try { window.logAction && window.logAction('settings','idioma cambiado', { value: l.key }); } catch(_){} onSetLang(l.key); }}
               >{l.label}</button>
             ))}
           </div>
@@ -177,8 +177,8 @@ function MstSettings({
               <div className="hint">{t.soundsHelp || 'Crit, KO y nueva ronda'}</div>
             </div>
             <div className="mst-segmented">
-              <button type="button" className={"seg " + (soundsOn ? 'active' : '')} onClick={() => onToggleSounds(true)}>{t.on || 'On'}</button>
-              <button type="button" className={"seg " + (!soundsOn ? 'active' : '')} onClick={() => onToggleSounds(false)}>{t.off || 'Off'}</button>
+              <button type="button" className={"seg " + (soundsOn ? 'active' : '')} onClick={() => { try { window.logAction && window.logAction('settings','sonidos cambiado', { value: true }); } catch(_){} onToggleSounds(true); }}>{t.on || 'On'}</button>
+              <button type="button" className={"seg " + (!soundsOn ? 'active' : '')} onClick={() => { try { window.logAction && window.logAction('settings','sonidos cambiado', { value: false }); } catch(_){} onToggleSounds(false); }}>{t.off || 'Off'}</button>
             </div>
           </div>
         )}
@@ -192,7 +192,7 @@ function MstSettings({
             <button
               type="button"
               className={"mst-modal-btn " + (streamMode ? 'primary' : '')}
-              onClick={() => onToggleStreamMode(!streamMode)}
+              onClick={() => { try { window.logAction && window.logAction('settings','modo stream cambiado', { value: !streamMode }); } catch(_){} onToggleStreamMode(!streamMode); }}
             >
               {streamMode ? (t.streamExit || 'Salir') : (t.streamEnter || 'Activar')}
             </button>
@@ -206,8 +206,8 @@ function MstSettings({
               <div className="hint">{t.notifsHelp || 'Avisos del navegador cuando la pestaña está oculta (KO, ronda nueva)'}</div>
             </div>
             <div className="mst-segmented">
-              <button type="button" className={"seg " + (notifsOn ? 'active' : '')} onClick={() => onToggleNotifs(true)}>{t.on || 'On'}</button>
-              <button type="button" className={"seg " + (!notifsOn ? 'active' : '')} onClick={() => onToggleNotifs(false)}>{t.off || 'Off'}</button>
+              <button type="button" className={"seg " + (notifsOn ? 'active' : '')} onClick={() => { try { window.logAction && window.logAction('settings','notificaciones cambiado', { value: true }); } catch(_){} onToggleNotifs(true); }}>{t.on || 'On'}</button>
+              <button type="button" className={"seg " + (!notifsOn ? 'active' : '')} onClick={() => { try { window.logAction && window.logAction('settings','notificaciones cambiado', { value: false }); } catch(_){} onToggleNotifs(false); }}>{t.off || 'Off'}</button>
             </div>
           </div>
         )}
@@ -225,7 +225,7 @@ function MstSettings({
                 key={g.key}
                 type="button"
                 className={"seg " + (gridKind === g.key ? 'active' : '')}
-                onClick={() => onSetGrid(g.key)}
+                onClick={() => { try { window.logAction && window.logAction('settings','cuadrícula cambiado', { value: g.key }); } catch(_){} onSetGrid(g.key); }}
               >{t[g.labelKey]}</button>
             ))}
           </div>
@@ -239,8 +239,8 @@ function MstSettings({
               <div className="hint">{t.snapToGridHelp || 'Los tokens se alinean al centro de la cuadrícula al moverlos'}</div>
             </div>
             <div className="mst-segmented">
-              <button type="button" className={"seg " + (snapToGrid ? 'active' : '')} onClick={() => onToggleSnapToGrid(true)}>{t.on || 'On'}</button>
-              <button type="button" className={"seg " + (!snapToGrid ? 'active' : '')} onClick={() => onToggleSnapToGrid(false)}>{t.off || 'Off'}</button>
+              <button type="button" className={"seg " + (snapToGrid ? 'active' : '')} onClick={() => { try { window.logAction && window.logAction('settings','snap a celda cambiado', { value: true }); } catch(_){} onToggleSnapToGrid(true); }}>{t.on || 'On'}</button>
+              <button type="button" className={"seg " + (!snapToGrid ? 'active' : '')} onClick={() => { try { window.logAction && window.logAction('settings','snap a celda cambiado', { value: false }); } catch(_){} onToggleSnapToGrid(false); }}>{t.off || 'Off'}</button>
             </div>
           </div>
         )}
@@ -255,6 +255,7 @@ function MstSettings({
             className="mst-modal-btn danger"
             onClick={() => {
               if (window.confirm(t.confirmReset || '¿Reiniciar?')) {
+                try { window.logAction && window.logAction('settings','reset encuentro', {}); } catch(_){}
                 onResetEncounter();
                 showFlash('ok', t.resetOk || 'Reiniciado');
               }
