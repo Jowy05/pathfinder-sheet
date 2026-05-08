@@ -61903,6 +61903,35 @@ const COMP_DEFAULTS = {
     sr:0,           // resistencia a conjuros
     senses:'',      // "Olfato, visión nocturna 60ft"
     specialQualities:'',
+    /* 2026-05-08 (audit pass): nuevos campos para combat/CA/condiciones/sync */
+    initMisc:0,
+    hpDmg:0,        // daño actual (max - dmg = current)
+    hpTemp:0,       // PG temporales
+    hpNonlethal:0,  // no letal
+    /* CA breakdown */
+    caBaseArmor:0,  // armadura barding
+    caShield:0,
+    caDodge:0,
+    caDeflect:0,
+    caMisc:0,
+    /* Equipamiento del compañero */
+    bardingName:'',
+    bardingMaxDex:99,
+    bardingAcp:0,
+    /* Condiciones marcadas {condId: true} */
+    conditions:{},
+    /* Habilidades de clase {skillId: true} → +3 si rangos≥1 */
+    classSkills:{},
+    /* Aumentos de atributo pendientes (lv 4/8/12/16/20) */
+    pendingStatBumps:0,
+    /* Asignaciones acumuladas FUE/DES/etc. */
+    statBumps:{},   // {str:0, dex:0, con:0, int:0, wis:0, cha:0}
+    /* Sincronización con clase del PJ */
+    syncWithClass:'',  // '' | 'druida' | 'explorador' | 'cavalier' | otros
+    syncOffset:0,      // p.ej. ranger usa lv-3
+    /* Foto + descripción */
+    photo:'',
+    desc:'',
     /* Compatibilidad legacy con la versión vieja */
     bonosNivel:'', trucos:'',
     atks:'', extra:''
@@ -61948,16 +61977,25 @@ const COMP_FIELDS = {
   animal: [
     /* Cabecera con nivel + botones rápidos */
     {special:'animalLevelHeader'},
+    {special:'animalPhotoDesc'},
+    {special:'animalSyncClass'},
     /* Tipo (picker) — autocompleta raza/stats si elige uno */
     {special:'animalTypePicker'},
+    /* AGENT_B_COUNTERS_SCHEMA */
+    {special:'animalCounters'},
     {row:[{k:'n', label:'Nombre', placeholder:'Lobo "Sombra"'},
           {k:'raza', label:'Raza/Tipo', placeholder:'Lobo, oso, halcón...'}]},
     {label:'PG y CA', divider:true},
+    {special:'animalHpRow'},
     {row:[{k:'hp', label:'PG (act/máx)', placeholder:'18/18'},
           {k:'ca', label:'CA total', type:'number', placeholder:'14'}]},
+    /* AGENT_B_CA_SCHEMA */
+    {special:'animalCaBreakdown'},
     {row:[{k:'naturalArmor', label:'Armadura natural', type:'number'},
           {k:'size', label:'Tamaño', placeholder:'Mediano'},
           {k:'speed', label:'Velocidad (ft)', type:'number'}]},
+    /* AGENT_B_CONDITIONS_SCHEMA */
+    {special:'animalConditions'},
     {label:'Atributos', divider:true},
     {row:[{k:'str', label:'FUE', type:'number'}, {k:'dex', label:'DES', type:'number'}, {k:'con', label:'CON', type:'number'}]},
     {row:[{k:'int', label:'INT', type:'number'}, {k:'wis', label:'SAB', type:'number'}, {k:'cha', label:'CAR', type:'number'}]},
@@ -61969,8 +62007,12 @@ const COMP_FIELDS = {
     {row:[{k:'saveFortMisc', label:'Fort misc', type:'number'},
           {k:'saveRefMisc', label:'Ref misc', type:'number'},
           {k:'saveWillMisc', label:'Vol misc', type:'number'}]},
+    {special:'animalSavesRow'},
+    {special:'animalInitRow'},
+    {special:'animalCmbCmdRow'},
     /* Tabla resumen de la progresión PF1e según el nivel */
     {special:'animalProgressionInfo'},
+    {special:'animalStatBumps'},
     /* Ataques estructurados (multi-fila editable) */
     {label:'Ataques', divider:true},
     {special:'animalAttacks'},
@@ -62232,6 +62274,26 @@ function _animalApplyProgression(d){
   d.feats_max = row.feats;
   d.skills_max = row.skills;
   d.specialFromTable = row.special;
+  // 2026-05-08: stat bumps en lvl 4,8,12,16,20
+  const STAT_BUMP_LEVELS = [4,8,12,16,20];
+  d.statBumps = d.statBumps || {};
+  if(!d._lastBumpLevel) d._lastBumpLevel = 0;
+  let pending = parseInt(d.pendingStatBumps,10) || 0;
+  STAT_BUMP_LEVELS.forEach(L => {
+    if(d.level >= L && d._lastBumpLevel < L){
+      pending += 1;
+    }
+  });
+  d.pendingStatBumps = pending;
+  d._lastBumpLevel = d.level;
+  // Auto-añadir Multiattack a lv 9
+  if(d.level >= 9){
+    const has = (d.feats||[]).some(f => /multiattack|multi[\s-]?ataque/i.test(f.n||''));
+    if(!has){
+      if(!Array.isArray(d.feats)) d.feats = [];
+      d.feats.push({n:'Multiattack', t:'combat', prereq:'3+ ataques naturales', d:'Reduces secondary attack penalty from -5 to -2 (PF1e auto a lv9).'});
+    }
+  }
 }
 
 function _animalApplyType(d, typeId){
@@ -62283,6 +62345,18 @@ function _compFieldDOM(spec, d){
   if(spec.special==='animalTricks')        return _acompTricksDOM(d);
   if(spec.special==='animalFeats')         return _acompFeatsDOM(d);
   if(spec.special==='animalSkills')        return _acompSkillsDOM(d);
+  if(spec.special==='animalHpRow')      return _acompHpRowDOM(d);
+  if(spec.special==='animalSavesRow')   return _acompSavesRowDOM(d);
+  if(spec.special==='animalInitRow')    return _acompInitRowDOM(d);
+  if(spec.special==='animalCmbCmdRow')  return _acompCmbCmdRowDOM(d);
+  /* AGENT_B_DISPATCH_INSERT */
+  if(spec.special==='animalCaBreakdown')  return _acompCaBreakdownDOM(d);
+  if(spec.special==='animalConditions')   return _acompConditionsDOM(d);
+  if(spec.special==='animalCounters')     return _acompCountersDOM(d);
+  /* AGENT_C_DISPATCH_INSERT */
+  if(spec.special==='animalPhotoDesc')  return _acompPhotoDescDOM(d);
+  if(spec.special==='animalSyncClass')  return _acompSyncClassDOM(d);
+  if(spec.special==='animalStatBumps')  return _acompStatBumpsDOM(d);
   return _compL(spec.label) + _compInput(spec.k, d[spec.k], spec.placeholder, spec.type||'text');
 }
 
@@ -62329,11 +62403,12 @@ function _acompTypePickerDOM(d){
 function _acompAttacksDOM(d){
   const lines = Array.isArray(d.attackLines) ? d.attackLines : [];
   const rows = lines.map((a,i)=>`
-    <div style="display:grid;grid-template-columns:1fr 60px 1fr 28px 28px;gap:4px;margin-bottom:4px">
+    <div style="display:grid;grid-template-columns:1fr 56px 1fr 26px 26px 26px;gap:3px;margin-bottom:4px">
       <input class="field-input" data-acomp-atk-field="name" data-acomp-atk-i="${i}" value="${(a.name||'').replace(/"/g,'&quot;')}" placeholder="Mordisco">
       <input class="field-input" data-acomp-atk-field="atk" data-acomp-atk-i="${i}" value="${(a.atk||'').replace(/"/g,'&quot;')}" placeholder="+5" style="text-align:center">
       <input class="field-input" data-acomp-atk-field="dmg" data-acomp-atk-i="${i}" value="${(a.dmg||'').replace(/"/g,'&quot;')}" placeholder="1d6+3">
-      <button class="btn-secondary" data-acomp-atk-roll="${i}" title="Tirar" style="padding:0;font-size:14px">🎲</button>
+      <button class="btn-secondary" data-acomp-atk-roll="${i}" title="Tirar ataque" style="padding:0;font-size:14px">🎲</button>
+      <button class="btn-secondary" data-acomp-atk-dmg="${i}" title="Tirar daño" style="padding:0;font-size:13px">🩸</button>
       <button class="btn-secondary" data-acomp-atk-del="${i}" title="Borrar" style="padding:0;color:var(--negative);font-weight:700">×</button>
     </div>
     ${a.notes?`<div style="font:10px/1.3 system-ui;color:var(--ink-muted);margin:-2px 0 6px 4px">${a.notes}</div>`:''}
@@ -62376,19 +62451,371 @@ function _acompSkillsDOM(d){
     {id:'fly',        name:'Volar',      attr:'dex'},
   ];
   d.skillRanks = d.skillRanks || {};
+  d.classSkills = d.classSkills || {};
   const mod = (attrVal) => Math.floor(((parseInt(attrVal,10)||10)-10)/2);
-  return `<div style="display:grid;grid-template-columns:1fr 50px 50px 28px;gap:4px;font:11px system-ui;color:var(--ink-muted);margin-bottom:4px">
-    <div>Habilidad</div><div style="text-align:center">Rangos</div><div style="text-align:center">Total</div><div></div>
+  return `<div style="display:grid;grid-template-columns:1fr 36px 50px 50px 28px;gap:4px;font:11px system-ui;color:var(--ink-muted);margin-bottom:4px">
+    <div>Habilidad</div><div style="text-align:center" title="Habilidad de clase">Cl.</div><div style="text-align:center">Rangos</div><div style="text-align:center">Total</div><div></div>
   </div>` + SKILLS.map(sk=>{
     const ranks = parseInt(d.skillRanks[sk.id],10)||0;
-    const total = ranks + mod(d[sk.attr]);
-    return `<div style="display:grid;grid-template-columns:1fr 50px 50px 28px;gap:4px;align-items:center;margin-bottom:3px">
+    const isClass = !!d.classSkills[sk.id];
+    const classBonus = (isClass && ranks >= 1) ? 3 : 0;
+    const total = ranks + mod(d[sk.attr]) + classBonus;
+    return `<div style="display:grid;grid-template-columns:1fr 36px 50px 50px 28px;gap:4px;align-items:center;margin-bottom:3px">
       <span style="font:12px 'EB Garamond',serif">${sk.name} <span style="color:var(--ink-muted);font-size:10px">(${sk.attr.toUpperCase()})</span></span>
+      <input type="checkbox" data-acomp-class-skill="${sk.id}" ${isClass?'checked':''} title="Habilidad de clase (+3 si rangos≥1)" style="margin:0 auto;display:block">
       <input class="field-input" type="number" data-acomp-skill="${sk.id}" value="${ranks}" style="text-align:center;padding:4px">
       <div style="text-align:center;font-weight:700">${total>=0?'+':''}${total}</div>
       <button class="btn-secondary" data-acomp-skill-roll="${sk.id}" title="Tirar" style="padding:0;font-size:14px">🎲</button>
     </div>`;
   }).join('');
+}
+
+/* ────────────────────────────────────────────────────────────────
+   2026-05-08 · Animal companion · Foto + descripción + sync clase
+   + aumentos de atributo (lvl 4/8/12/16/20). Render helpers
+   invocados desde _compFieldDOM via spec.special. Añadidos por AGENT_C.
+   ──────────────────────────────────────────────────────────────── */
+const _ACOMP_SYNC_OPTIONS = [
+  {id:'',label:'— Sin sincronizar —', offset:0},
+  {id:'druida',label:'Druida (lv = nivel)', offset:0},
+  {id:'explorador',label:'Explorador/Ranger (lv − 3)', offset:-3},
+  {id:'cavalier',label:'Cavalier (lv − 3)', offset:-3},
+  {id:'inquisidor',label:'Inquisidor (lv − 3)', offset:-3},
+  {id:'paladin',label:'Paladín (lv − 3)', offset:-3},
+  {id:'hunter',label:'Hunter (lv = nivel)', offset:0},
+];
+
+function _acompComputeSyncedLevel(d){
+  if(!d.syncWithClass || !window.CLASSES_DATA || !Array.isArray(window.CLASSES_DATA)) return null;
+  const target = String(d.syncWithClass).toLowerCase();
+  const offset = parseInt(d.syncOffset,10) || 0;
+  for(const cl of window.CLASSES_DATA){
+    const cn = String(cl.name||'').toLowerCase();
+    const ck = String(cl.classKey||'').toLowerCase();
+    if(cn === target || ck === target || cn.includes(target) || ck.includes(target)){
+      const lvl = parseInt(cl.level,10) || 0;
+      return Math.max(1, Math.min(20, lvl + offset));
+    }
+  }
+  return null;
+}
+
+function _acompPhotoDescDOM(d){
+  const hasPhoto = !!(d.photo && String(d.photo).indexOf('data:')===0);
+  const photoBlock = hasPhoto
+    ? `<div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+         <img src="${_compEsc(d.photo)}" alt="Foto del compañero" style="width:128px;height:128px;object-fit:cover;border-radius:10px;border:1px solid var(--leather);background:var(--surface-2)">
+         <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
+           <button class="btn-secondary" data-acomp-photo-pick style="font-size:11px;padding:6px 10px">Cambiar foto</button>
+           <button class="btn-secondary" data-acomp-photo-remove style="font-size:11px;padding:6px 10px">Quitar foto</button>
+         </div>
+       </div>`
+    : `<div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+         <div style="width:128px;height:128px;border-radius:10px;border:1px dashed var(--leather);background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--ink-muted);font:11px 'EB Garamond',serif;text-align:center;padding:8px">Sin foto</div>
+         <button class="btn-secondary" data-acomp-photo-pick style="font-size:11px;padding:6px 10px">Cambiar foto</button>
+       </div>`;
+  return `<div style="background:var(--surface);border:1px solid var(--leather);border-radius:8px;padding:10px;margin:6px 0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="font:700 11px 'Cinzel',serif;letter-spacing:.06em;color:var(--accent)">Foto y descripción</div>
+      <button class="btn-secondary" data-acomp-srd-link style="font-size:10px;padding:4px 8px">🔗 Ver SRD</button>
+    </div>
+    <input type="file" accept="image/*" data-acomp-photo-input style="display:none">
+    <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
+      ${photoBlock}
+      <div style="flex:1;min-width:180px">
+        ${_compL('Descripción / personalidad')}
+        <textarea class="field-input" data-comp-field="desc" rows="3" placeholder="Color de pelaje, cicatrices, comportamiento, lema del compañero..." style="margin-bottom:0">${_compEsc(d.desc||'')}</textarea>
+      </div>
+    </div>
+  </div>`;
+}
+
+function _acompSyncClassDOM(d){
+  const cur = d.syncWithClass || '';
+  const opts = _ACOMP_SYNC_OPTIONS.map(o=>`<option value="${_compEsc(o.id)}" data-offset="${o.offset}"${String(cur)===String(o.id)?' selected':''}>${o.label}</option>`).join('');
+  const synced = _acompComputeSyncedLevel(d);
+  let infoLine = '';
+  if(cur){
+    if(synced!=null){
+      let found = '';
+      const target = String(cur).toLowerCase();
+      for(const cl of (window.CLASSES_DATA||[])){
+        const cn = String(cl.name||'').toLowerCase();
+        const ck = String(cl.classKey||'').toLowerCase();
+        if(cn === target || ck === target || cn.includes(target) || ck.includes(target)){
+          found = `${cl.name||cur} nv ${cl.level||0}`;
+          break;
+        }
+      }
+      infoLine = `<div style="font:12px 'EB Garamond',serif;color:var(--ink-muted);margin-top:4px">Detectado: lv ${synced}${found?` (de tu ${found})`:''}</div>`;
+    } else {
+      infoLine = `<div style="font:12px 'EB Garamond',serif;color:var(--warn,#a55);margin-top:4px">No se encontró la clase "${_compEsc(cur)}" en tu PJ.</div>`;
+    }
+  }
+  return `<div style="background:var(--surface);border:1px solid var(--leather);border-radius:8px;padding:10px;margin:6px 0">
+    <div style="font:700 11px 'Cinzel',serif;letter-spacing:.06em;color:var(--accent);margin-bottom:6px">Sincronización con clase del PJ</div>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center">
+      <select class="field-select" data-acomp-sync-class style="margin-bottom:0">${opts}</select>
+      <button class="btn-primary" data-acomp-sync-apply style="font-size:11px;padding:6px 10px"${synced==null?' disabled':''}>Aplicar sync ahora</button>
+    </div>
+    ${infoLine}
+  </div>`;
+}
+
+function _acompStatBumpsDOM(d){
+  const pending = parseInt(d.pendingStatBumps,10) || 0;
+  d.statBumps = d.statBumps || {};
+  if(pending > 0){
+    const STATS = [
+      {k:'str', label:'FUE'},
+      {k:'dex', label:'DES'},
+      {k:'con', label:'CON'},
+      {k:'int', label:'INT'},
+      {k:'wis', label:'SAB'},
+      {k:'cha', label:'CAR'},
+    ];
+    const buttons = STATS.map(s=>`<button class="btn-secondary" data-acomp-bump data-stat="${s.k}" style="font-size:11px;padding:6px 8px">+1 ${s.label}</button>`).join('');
+    return `<div style="background:var(--surface-2);border:2px solid var(--accent);border-radius:8px;padding:10px;margin:6px 0;box-shadow:0 0 0 2px rgba(180,140,60,.18)">
+      <div style="font:700 12px 'Cinzel',serif;letter-spacing:.06em;color:var(--accent);margin-bottom:6px">🎯 Aumentos pendientes: ${pending}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${buttons}</div>
+    </div>`;
+  }
+  // Resumen compacto
+  const order = ['str','dex','con','int','wis','cha'];
+  const labels = {str:'FUE',dex:'DES',con:'CON',int:'INT',wis:'SAB',cha:'CAR'};
+  const parts = order.map(k=>{
+    const v = parseInt(d.statBumps[k],10)||0;
+    return `${labels[k]}+${v}`;
+  }).join(' · ');
+  return `<div style="font:11px 'EB Garamond',serif;color:var(--ink-muted);margin:4px 0 6px;padding:4px 8px;background:var(--surface);border-radius:6px">
+    Aumentos asignados: ${parts}
+  </div>`;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   2026-05-08 · Animal companion: helpers para CA, condiciones y
+   contadores de progresión. Añadidos por AGENT_B.
+   ──────────────────────────────────────────────────────────────── */
+const _ACOMP_SIZE_AC = {
+  'Minúsculo':+8,'Diminuto':+4,'Menudo':+2,'Pequeño':+1,'Mediano':0,'Grande':-1,'Enorme':-2,'Gargantuesco':-4,'Colosal':-8,
+  Fine:+8,Diminutive:+4,Tiny:+2,Small:+1,Medium:0,Large:-1,Huge:-2,Gargantuan:-4,Colossal:-8
+};
+function _acompSizeAC(size){ return _ACOMP_SIZE_AC[size] != null ? _ACOMP_SIZE_AC[size] : 0; }
+function _acompMod(attrVal){ return Math.floor(((parseInt(attrVal,10)||10)-10)/2); }
+const _ACOMP_CONDITIONS = [
+  {id:'shaken',label:'Sacudido'},{id:'fatigued',label:'Fatigado'},{id:'sickened',label:'Enfermo'},
+  {id:'frightened',label:'Asustado'},{id:'exhausted',label:'Exhausto'},{id:'dazed',label:'Aturdido'},
+  {id:'blinded',label:'Cegado'},{id:'confused',label:'Confundido'},{id:'grappled',label:'Agarrado'},
+  {id:'prone',label:'Tumbado'}
+];
+
+function _acompCaBreakdownDOM(d){
+  const baseArmor  = parseInt(d.caBaseArmor,10)||0;
+  const natural    = parseInt(d.naturalArmor,10)||0;
+  const shield     = parseInt(d.caShield,10)||0;
+  const deflect    = parseInt(d.caDeflect,10)||0;
+  const dodge      = parseInt(d.caDodge,10)||0;
+  const misc       = parseInt(d.caMisc,10)||0;
+  const dexRaw     = _acompMod(d.dex);
+  const maxDex     = (d.bardingMaxDex===''||d.bardingMaxDex==null) ? null : (parseInt(d.bardingMaxDex,10));
+  const dexMod     = (maxDex!=null && !isNaN(maxDex)) ? Math.min(dexRaw, maxDex) : dexRaw;
+  const sizeMod    = _acompSizeAC(d.size);
+  const total      = 10 + baseArmor + natural + dexMod + sizeMod + shield + deflect + dodge + misc;
+  const touch      = 10 + dexMod + sizeMod + deflect + dodge + misc;
+  const flatfooted = 10 + baseArmor + natural + sizeMod + shield + deflect + misc;
+  const cell = (lbl, val, key)=>`<div style="display:flex;flex-direction:column;align-items:center;min-width:54px">
+    <span style="font:9px 'Cinzel',serif;letter-spacing:.05em;text-transform:uppercase;color:var(--leather);margin-bottom:2px">${lbl}</span>
+    ${key
+      ? `<input class="field-input" data-comp-field="${key}" type="number" inputmode="numeric" value="${val}" style="width:46px;padding:4px;text-align:center">`
+      : `<div style="font:600 13px 'EB Garamond',serif;padding:5px 0;min-width:40px;text-align:center">${val>=0?'+':''}${val}</div>`}
+  </div>`;
+  return `<div style="background:var(--surface-2);border-radius:8px;padding:10px;margin:6px 0">
+    <div style="font:700 10px 'Cinzel',serif;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin-bottom:6px">Desglose de CA</div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-end">
+      ${cell('Base','10')}
+      ${cell('Armad.', baseArmor, 'caBaseArmor')}
+      ${cell('Nat.', natural, 'naturalArmor')}
+      ${cell('Escudo', shield, 'caShield')}
+      ${cell('Desv.', deflect, 'caDeflect')}
+      ${cell('Esquiva', dodge, 'caDodge')}
+      ${cell('DES', dexMod)}
+      ${cell('Tamaño', sizeMod)}
+      ${cell('Misc', misc, 'caMisc')}
+      <div style="margin-left:auto;display:flex;flex-direction:column;align-items:center;padding:4px 10px;background:var(--leather);color:#fff;border-radius:6px;min-width:60px">
+        <span style="font:9px 'Cinzel',serif;letter-spacing:.05em;text-transform:uppercase;opacity:.85">Total</span>
+        <span style="font:700 18px 'EB Garamond',serif">${total}</span>
+      </div>
+    </div>
+    <div style="margin-top:6px;font:11px 'EB Garamond',serif;color:var(--ink-muted)">Toque: <b>${touch}</b> · Desprevenido: <b>${flatfooted}</b></div>
+  </div>`;
+}
+
+function _acompConditionsDOM(d){
+  d.conditions = d.conditions || {};
+  return `<div style="margin:6px 0">
+    <div style="font:700 10px 'Cinzel',serif;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin-bottom:6px">Condiciones activas</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px">
+      ${_ACOMP_CONDITIONS.map(co=>{
+        const on = !!d.conditions[co.id];
+        return `<button type="button" data-acomp-cond="${co.id}" aria-pressed="${on}" style="font:11px 'EB Garamond',serif;padding:4px 10px;border-radius:14px;border:1px solid ${on?'var(--negative)':'var(--leather)'};background:${on?'var(--negative)':'transparent'};color:${on?'#fff':'var(--ink)'};cursor:pointer;transition:all .15s">${co.label}</button>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+function _acompCountersDOM(d){
+  d.tricksOn = d.tricksOn || {};
+  const tricksOn  = Object.values(d.tricksOn).filter(v=>v).length;
+  const tricksMax = parseInt(d.bonusTricksMax,10)||0;
+  const featsLen  = (Array.isArray(d.feats) ? d.feats : []).length;
+  const featsMax  = parseInt(d.feats_max,10)||0;
+  const ranksSum  = Object.values(d.skillRanks||{}).reduce((s,v)=>s+(parseInt(v,10)||0),0);
+  const skillsMax = (parseInt(d.skills_max,10)||0) * (parseInt(d.hd,10)||0);
+  const card = (lbl, cur, max)=>{
+    const over = max>0 && cur>max;
+    return `<div style="flex:1;min-width:90px;background:var(--surface-2);border-radius:8px;padding:8px;text-align:center">
+      <div style="font:9px 'Cinzel',serif;letter-spacing:.07em;text-transform:uppercase;color:var(--leather);margin-bottom:3px">${lbl}</div>
+      <div style="font:700 16px 'EB Garamond',serif;color:${over?'var(--negative)':'var(--ink)'}">
+        <span>${cur}</span><span style="color:var(--ink-muted);font-size:12px"> / ${max||'—'}</span>
+      </div>
+    </div>`;
+  };
+  return `<div style="display:flex;gap:6px;margin:6px 0">
+    ${card('Trucos', tricksOn, tricksMax)}
+    ${card('Dotes', featsLen, featsMax)}
+    ${card('Rangos hab.', ranksSum, skillsMax)}
+  </div>`;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   2026-05-08 · Animal companion: filas calculadas con botones de
+   tirada (HP, TS, iniciativa, CMB/CMD). Helpers de tamaño y de
+   parser de daño. AGENT_A.
+   ──────────────────────────────────────────────────────────────── */
+const _ACOMP_SIZE_CMB = {
+  'Minúsculo':-8,'Diminuto':-4,'Menudo':-2,'Pequeño':-1,'Mediano':0,'Grande':1,'Enorme':2,'Gargantuesco':4,'Colosal':8,
+  Fine:-8,Diminutive:-4,Tiny:-2,Small:-1,Medium:0,Large:1,Huge:2,Gargantuan:4,Colossal:8
+};
+function _acompSizeMod(size){ return _ACOMP_SIZE_CMB[size] != null ? _ACOMP_SIZE_CMB[size] : 0; }
+
+/* Parsea expresiones simples NdM o NdM±K → {n,sides,k}. */
+function _acompParseDmg(expr){
+  if(!expr) return null;
+  const m = String(expr).trim().match(/^\s*(\d+)d(\d+)\s*(?:([+\-])\s*(\d+))?\s*$/i);
+  if(!m) return null;
+  const n = parseInt(m[1],10)||0, sides = parseInt(m[2],10)||0;
+  let k = 0;
+  if(m[3] && m[4]){ k = (m[3]==='-'?-1:1) * (parseInt(m[4],10)||0); }
+  return {n, sides, k};
+}
+function _acompRollDmg(expr){
+  const p = _acompParseDmg(expr);
+  if(!p || p.n<=0 || p.sides<=0) return null;
+  let total = p.k, rolls = [];
+  for(let i=0;i<p.n;i++){ const r = Math.floor(Math.random()*p.sides)+1; rolls.push(r); total += r; }
+  return {total, rolls, k:p.k, n:p.n, sides:p.sides};
+}
+
+function _acompHpRowDOM(d){
+  const hpMax = parseInt(d.hpMax,10) || 0;
+  const hpDmg = parseInt(d.hpDmg,10) || 0;
+  const hpTemp = parseInt(d.hpTemp,10) || 0;
+  const hpNL = parseInt(d.hpNonlethal,10) || 0;
+  const useNew = hpMax > 0;
+  const legacyMax = useNew ? hpMax : (parseInt(d.hp,10) || 0);
+  const cur = legacyMax - hpDmg;
+  const display = useNew
+    ? `PG: <b>${cur}</b> / ${hpMax}${hpTemp>0?` <span style="color:var(--accent)">[Temp +${hpTemp}]</span>`:''}${hpNL>0?` <span style="color:var(--negative)">[No letal ${hpNL}]</span>`:''}`
+    : `PG: <b>${_compEsc(d.hp||'—')}</b> <span style="color:var(--ink-muted);font-size:11px">(define máx para usar daño/curación)</span>`;
+  return `${_compL('Puntos de Golpe')}
+    <div style="background:var(--surface-2);border-radius:8px;padding:8px;margin-bottom:8px">
+      <div style="font:13px/1.4 'EB Garamond',serif;margin-bottom:6px">${display}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+        <label style="font:10px 'Cinzel',serif;letter-spacing:.06em;text-transform:uppercase;color:var(--leather)">PG máx
+          <input class="field-input" data-comp-field="hpMax" type="number" inputmode="numeric" value="${hpMax}" style="margin-top:2px">
+        </label>
+        <label style="font:10px 'Cinzel',serif;letter-spacing:.06em;text-transform:uppercase;color:var(--leather)">PG actual (legacy)
+          <input class="field-input" data-comp-field="hp" type="text" value="${_compEsc(d.hp||'')}" placeholder="18/18" style="margin-top:2px">
+        </label>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr auto auto;gap:4px;align-items:center;margin-bottom:4px">
+        <input class="field-input" id="acomp-hp-amt" type="number" inputmode="numeric" min="0" value="" placeholder="Cantidad" style="text-align:center">
+        <button class="btn-secondary" data-acomp-hp-sub title="Aplicar daño" style="padding:6px 10px;font-size:12px">− Daño</button>
+        <button class="btn-secondary" data-acomp-hp-add title="Curar" style="padding:6px 10px;font-size:12px">+ Curar</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <label style="font:10px 'Cinzel',serif;letter-spacing:.06em;text-transform:uppercase;color:var(--leather)">Temp
+          <input class="field-input" data-acomp-hp-temp-set type="number" inputmode="numeric" value="${hpTemp}" style="margin-top:2px;text-align:center">
+        </label>
+        <label style="font:10px 'Cinzel',serif;letter-spacing:.06em;text-transform:uppercase;color:var(--leather)">No letal
+          <input class="field-input" data-acomp-hp-nonlethal-set type="number" inputmode="numeric" value="${hpNL}" style="margin-top:2px;text-align:center">
+        </label>
+      </div>
+    </div>`;
+}
+
+function _acompSavesRowDOM(d){
+  const ROWS = [
+    {id:'fort', label:'TS Fortaleza', base:'saveFortBase', misc:'saveFortMisc', attr:'con'},
+    {id:'ref',  label:'TS Reflejos',  base:'saveRefBase',  misc:'saveRefMisc',  attr:'dex'},
+    {id:'will', label:'TS Voluntad',  base:'saveWillBase', misc:'saveWillMisc', attr:'wis'}
+  ];
+  const rows = ROWS.map(r=>{
+    const base = parseInt(d[r.base],10)||0;
+    const misc = parseInt(d[r.misc],10)||0;
+    const attrMod = _acompMod(d[r.attr]);
+    const tot = base + attrMod + misc;
+    return `<div style="display:grid;grid-template-columns:1fr 50px 50px 50px 60px 28px;gap:4px;align-items:center;margin-bottom:3px">
+      <span style="font:12px 'EB Garamond',serif">${r.label} <span style="color:var(--ink-muted);font-size:10px">(${r.attr.toUpperCase()})</span></span>
+      <div style="text-align:center;font-size:11px;color:var(--ink-muted)">b ${base}</div>
+      <div style="text-align:center;font-size:11px;color:var(--ink-muted)">a ${attrMod>=0?'+':''}${attrMod}</div>
+      <div style="text-align:center;font-size:11px;color:var(--ink-muted)">m ${misc>=0?'+':''}${misc}</div>
+      <div style="text-align:center;font-weight:700">${tot>=0?'+':''}${tot}</div>
+      <button class="btn-secondary" data-acomp-save-roll="${r.id}" title="Tirar TS" style="padding:0;font-size:14px">🎲</button>
+    </div>`;
+  }).join('');
+  return `<div style="background:var(--surface-2);border-radius:8px;padding:8px;margin-bottom:8px">
+    <div style="font:600 10px 'Cinzel',serif;letter-spacing:.07em;text-transform:uppercase;color:var(--leather);margin-bottom:6px">Salvaciones — Total</div>
+    <div style="display:grid;grid-template-columns:1fr 50px 50px 50px 60px 28px;gap:4px;font:10px system-ui;color:var(--ink-muted);margin-bottom:3px">
+      <div></div><div style="text-align:center">base</div><div style="text-align:center">atr</div><div style="text-align:center">misc</div><div style="text-align:center">total</div><div></div>
+    </div>
+    ${rows}
+  </div>`;
+}
+
+function _acompInitRowDOM(d){
+  const dexMod = _acompMod(d.dex);
+  const misc = parseInt(d.initMisc,10)||0;
+  const tot = dexMod + misc;
+  return `<div style="background:var(--surface-2);border-radius:8px;padding:8px;margin-bottom:8px">
+    <div style="font:600 10px 'Cinzel',serif;letter-spacing:.07em;text-transform:uppercase;color:var(--leather);margin-bottom:6px">Iniciativa</div>
+    <div style="display:grid;grid-template-columns:1fr 70px 60px 28px;gap:6px;align-items:center">
+      <label style="font:11px system-ui;color:var(--ink-muted)">Misc <input class="field-input" data-comp-field="initMisc" type="number" inputmode="numeric" value="${misc}" style="margin-top:2px;text-align:center"></label>
+      <div style="text-align:center;font-size:11px;color:var(--ink-muted)">DES ${dexMod>=0?'+':''}${dexMod}</div>
+      <div style="text-align:center;font-weight:700;font-size:14px">${tot>=0?'+':''}${tot}</div>
+      <button class="btn-secondary" data-acomp-init-roll title="Tirar iniciativa" style="padding:0;font-size:14px">🎲</button>
+    </div>
+  </div>`;
+}
+
+function _acompCmbCmdRowDOM(d){
+  const bab = parseInt(d.bab,10)||0;
+  const strMod = _acompMod(d.str);
+  const dexMod = _acompMod(d.dex);
+  const sizeMod = _acompSizeMod(d.size);
+  const cmb = bab + strMod + sizeMod;
+  const cmd = 10 + bab + strMod + dexMod + sizeMod;
+  return `<div style="background:var(--surface-2);border-radius:8px;padding:8px;margin-bottom:8px">
+    <div style="font:600 10px 'Cinzel',serif;letter-spacing:.07em;text-transform:uppercase;color:var(--leather);margin-bottom:6px">CMB / CMD</div>
+    <div style="display:grid;grid-template-columns:1fr 60px 28px 1fr 60px;gap:6px;align-items:center">
+      <span style="font:12px 'EB Garamond',serif">CMB <span style="color:var(--ink-muted);font-size:10px">(BAB+FUE+tam)</span></span>
+      <div style="text-align:center;font-weight:700;font-size:14px">${cmb>=0?'+':''}${cmb}</div>
+      <button class="btn-secondary" data-acomp-cmb-roll title="Tirar CMB" style="padding:0;font-size:14px">🎲</button>
+      <span style="font:12px 'EB Garamond',serif">CMD <span style="color:var(--ink-muted);font-size:10px">(10+BAB+FUE+DES+tam)</span></span>
+      <div style="text-align:center;font-weight:700;font-size:14px">${cmd}</div>
+    </div>
+    <div style="font:10px system-ui;color:var(--ink-muted);margin-top:4px">BAB ${bab} · FUE ${strMod>=0?'+':''}${strMod} · DES ${dexMod>=0?'+':''}${dexMod} · tamaño ${sizeMod>=0?'+':''}${sizeMod}</div>
+  </div>`;
 }
 
 /* ────────────────────────────────────────────────────────────────
@@ -62586,7 +63013,7 @@ function renderComp(which='familiar', idx){
       const k = el.dataset.compField;
       if(k==='evolText'){
         d.evol = el.value.split('\n').map(s=>s.trim()).filter(Boolean);
-      } else if(['ca','str','dex','con','int','wis','cha','fort','ref','will','armaduraNatural','puntosEvolUsados','puntosEvolTotal','duracionRondas','rondaActual','fcbEidolonHP','fcbEidolonSkill','fcbHP','fcbSkill','level','hd','bab','saveFortBase','saveRefBase','saveWillBase','saveFortMisc','saveRefMisc','saveWillMisc','naturalArmor','speed','sr'].includes(k)){
+      } else if(['ca','str','dex','con','int','wis','cha','fort','ref','will','armaduraNatural','puntosEvolUsados','puntosEvolTotal','duracionRondas','rondaActual','fcbEidolonHP','fcbEidolonSkill','fcbHP','fcbSkill','level','hd','bab','saveFortBase','saveRefBase','saveWillBase','saveFortMisc','saveRefMisc','saveWillMisc','naturalArmor','speed','sr','initMisc','hpDmg','hpTemp','hpNonlethal','caBaseArmor','caShield','caDodge','caDeflect','caMisc','bardingMaxDex','bardingAcp','syncOffset'].includes(k)){
         d[k] = parseInt(el.value,10)||0;
       } else {
         d[k] = el.value;
@@ -62677,6 +63104,198 @@ function renderComp(which='familiar', idx){
       if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-feat-del');
     }));
     /* feat-add y los rolls los wire-ea otro agente (sheet-acomp-feat-pick + dado) */
+    /* AGENT_A handlers — botones de tirada y HP */
+    const _aSaveLabels = {fort:'Fortaleza', ref:'Reflejos', will:'Voluntad'};
+    const _aSaveCfg = {
+      fort:{base:'saveFortBase', misc:'saveFortMisc', attr:'con'},
+      ref :{base:'saveRefBase',  misc:'saveRefMisc',  attr:'dex'},
+      will:{base:'saveWillBase', misc:'saveWillMisc', attr:'wis'}
+    };
+    c.querySelectorAll('[data-acomp-save-roll]').forEach(b=>b.addEventListener('click',()=>{
+      const id = b.dataset.acompSaveRoll;
+      const cfg = _aSaveCfg[id]; if(!cfg) return;
+      const base = parseInt(d[cfg.base],10)||0;
+      const misc = parseInt(d[cfg.misc],10)||0;
+      const aMod = _acompMod(d[cfg.attr]);
+      const r = Math.floor(Math.random()*20)+1;
+      const total = r + base + aMod + misc;
+      const lbl = _aSaveLabels[id]||id;
+      if(typeof toast==='function') toast(`TS ${lbl}: 🎲${r} +${base+aMod+misc} = ${total}`);
+      try{ window.logAction && window.logAction('compAnimal','TS '+lbl, total); }catch(_){}
+    }));
+    c.querySelector('[data-acomp-init-roll]')?.addEventListener('click',()=>{
+      const dexMod = _acompMod(d.dex);
+      const misc = parseInt(d.initMisc,10)||0;
+      const r = Math.floor(Math.random()*20)+1;
+      const total = r + dexMod + misc;
+      if(typeof toast==='function') toast(`Iniciativa: 🎲${r} ${dexMod>=0?'+':''}${dexMod}${misc?(misc>=0?' +'+misc:' '+misc):''} = ${total}`);
+      try{ window.logAction && window.logAction('compAnimal','iniciativa', total); }catch(_){}
+    });
+    c.querySelector('[data-acomp-cmb-roll]')?.addEventListener('click',()=>{
+      const bab = parseInt(d.bab,10)||0;
+      const strMod = _acompMod(d.str);
+      const sizeMod = _acompSizeMod(d.size);
+      const cmb = bab + strMod + sizeMod;
+      const r = Math.floor(Math.random()*20)+1;
+      const total = r + cmb;
+      if(typeof toast==='function') toast(`CMB: 🎲${r} ${cmb>=0?'+':''}${cmb} = ${total}`);
+      try{ window.logAction && window.logAction('compAnimal','CMB', total); }catch(_){}
+    });
+    c.querySelectorAll('[data-acomp-atk-dmg]').forEach(b=>b.addEventListener('click',()=>{
+      const i = +b.dataset.acompAtkDmg;
+      const a = (Array.isArray(d.attackLines) ? d.attackLines[i] : null) || null;
+      if(!a){ return; }
+      const expr = a.dmg||'';
+      const res = _acompRollDmg(expr);
+      if(!res){
+        if(typeof toast==='function') toast(`Daño "${expr||'—'}": expresión no válida (usa NdM±K)`);
+        return;
+      }
+      const dice = `${res.n}d${res.sides}[${res.rolls.join(',')}]`;
+      const kStr = res.k===0 ? '' : (res.k>=0?` +${res.k}`:` ${res.k}`);
+      if(typeof toast==='function') toast(`${a.name||'Ataque'} 🩸 ${dice}${kStr} = ${res.total}`);
+      try{ window.logAction && window.logAction('compAnimal','daño', `${a.name||'?'} = ${res.total}`); }catch(_){}
+    }));
+    /* HP: + Curar / − Daño usan input #acomp-hp-amt */
+    const _hpAmtEl = c.querySelector('#acomp-hp-amt');
+    const _readHpAmt = ()=>{
+      const v = _hpAmtEl ? parseInt(_hpAmtEl.value,10) : NaN;
+      if(isFinite(v) && v>0) return v;
+      const s = (typeof prompt==='function') ? prompt('Cantidad:') : null;
+      const n = parseInt(s,10);
+      return (isFinite(n) && n>0) ? n : 0;
+    };
+    c.querySelector('[data-acomp-hp-sub]')?.addEventListener('click',()=>{
+      const amt = _readHpAmt();
+      if(!amt) return;
+      d.hpDmg = (parseInt(d.hpDmg,10)||0) + amt;
+      try{ window.logAction && window.logAction('compAnimal','daño aplicado', amt); }catch(_){}
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-hp-dmg');
+    });
+    c.querySelector('[data-acomp-hp-add]')?.addEventListener('click',()=>{
+      const amt = _readHpAmt();
+      if(!amt) return;
+      d.hpDmg = Math.max(0, (parseInt(d.hpDmg,10)||0) - amt);
+      try{ window.logAction && window.logAction('compAnimal','curar', amt); }catch(_){}
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-hp-heal');
+    });
+    c.querySelector('[data-acomp-hp-temp-set]')?.addEventListener('change',(e)=>{
+      d.hpTemp = parseInt(e.target.value,10)||0;
+      try{ window.logAction && window.logAction('compAnimal','PG temp', d.hpTemp); }catch(_){}
+      if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-hp-temp');
+    });
+    c.querySelector('[data-acomp-hp-nonlethal-set]')?.addEventListener('change',(e)=>{
+      d.hpNonlethal = parseInt(e.target.value,10)||0;
+      try{ window.logAction && window.logAction('compAnimal','PG no letal', d.hpNonlethal); }catch(_){}
+      if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-hp-nl');
+    });
+    /* AGENT_B_HANDLERS_INSERT */
+    /* Habilidades de clase (toggle +3 si rangos≥1) */
+    c.querySelectorAll('[data-acomp-class-skill]').forEach(chk=>chk.addEventListener('change',()=>{
+      const id = chk.dataset.acompClassSkill;
+      d.classSkills = d.classSkills || {};
+      if(chk.checked) d.classSkills[id] = true; else delete d.classSkills[id];
+      try{ window.logAction && window.logAction('compAnimal','hab. clase '+(chk.checked?'on':'off'), id); }catch(_){}
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-class-skill');
+    }));
+    /* Condiciones (chips toggleables) */
+    c.querySelectorAll('[data-acomp-cond]').forEach(btn=>btn.addEventListener('click',()=>{
+      const id = btn.dataset.acompCond;
+      d.conditions = d.conditions || {};
+      if(d.conditions[id]) delete d.conditions[id]; else d.conditions[id] = true;
+      try{ window.logAction && window.logAction('compAnimal','condición '+(d.conditions[id]?'on':'off'), id); }catch(_){}
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-cond');
+    }));
+    /* AGENT_C_HANDLERS_INSERT */
+    /* 2026-05-08 · Foto + descripción + sync clase + aumentos atributo */
+    /* Foto: abrir picker oculto */
+    c.querySelector('[data-acomp-photo-pick]')?.addEventListener('click',()=>{
+      const inp = c.querySelector('[data-acomp-photo-input]');
+      if(inp) inp.click();
+    });
+    /* Foto: lectura + redimensionado a 256×256 JPEG q=0.8 */
+    c.querySelector('[data-acomp-photo-input]')?.addEventListener('change',(ev)=>{
+      const file = ev.target && ev.target.files && ev.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = (e)=>{
+        const img = new Image();
+        img.onload = ()=>{
+          const MAX = 256;
+          let w = img.width, h = img.height;
+          if(w > h){ if(w > MAX){ h = Math.round(h * (MAX / w)); w = MAX; } }
+          else     { if(h > MAX){ w = Math.round(w * (MAX / h)); h = MAX; } }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          try {
+            d.photo = canvas.toDataURL('image/jpeg', 0.8);
+          } catch(_){
+            d.photo = e.target.result;
+          }
+          try{ window.logAction && window.logAction('compAnimal','foto cambiada', file.name); }catch(_){}
+          renderComp(which);
+          if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-photo');
+        };
+        img.onerror = ()=>{ if(typeof toast==='function') toast('No se pudo cargar la imagen'); };
+        img.src = e.target.result;
+      };
+      reader.onerror = ()=>{ if(typeof toast==='function') toast('Error leyendo el archivo'); };
+      reader.readAsDataURL(file);
+    });
+    /* Foto: quitar */
+    c.querySelector('[data-acomp-photo-remove]')?.addEventListener('click',()=>{
+      d.photo = '';
+      try{ window.logAction && window.logAction('compAnimal','foto quitada'); }catch(_){}
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-photo-rm');
+    });
+    /* Enlace SRD */
+    c.querySelector('[data-acomp-srd-link]')?.addEventListener('click',()=>{
+      try{ window.open('https://www.d20pfsrd.com/classes/core-classes/druid/animal-companions/', '_blank'); }catch(_){}
+    });
+    /* Sync: cambio de clase */
+    c.querySelector('[data-acomp-sync-class]')?.addEventListener('change',(ev)=>{
+      const sel = ev.target;
+      d.syncWithClass = sel.value || '';
+      const optEl = sel.options[sel.selectedIndex];
+      const off = optEl ? parseInt(optEl.getAttribute('data-offset'),10) : 0;
+      d.syncOffset = isNaN(off) ? 0 : off;
+      try{ window.logAction && window.logAction('compAnimal','sync clase', d.syncWithClass); }catch(_){}
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-sync-set');
+    });
+    /* Sync: aplicar nivel detectado */
+    c.querySelector('[data-acomp-sync-apply]')?.addEventListener('click',()=>{
+      const lvl = (typeof _acompComputeSyncedLevel==='function') ? _acompComputeSyncedLevel(d) : null;
+      if(lvl==null){ if(typeof toast==='function') toast('No se pudo calcular el nivel sincronizado'); return; }
+      d.level = lvl;
+      if(typeof _animalApplyProgression==='function') _animalApplyProgression(d);
+      try{ window.logAction && window.logAction('compAnimal','sync aplicado', lvl); }catch(_){}
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-sync-apply');
+    });
+    /* Aumentos de atributo */
+    c.querySelectorAll('[data-acomp-bump]').forEach(b=>b.addEventListener('click',()=>{
+      const stat = b.dataset.stat;
+      if(!stat) return;
+      const valid = ['str','dex','con','int','wis','cha'];
+      if(valid.indexOf(stat) < 0) return;
+      const pending = parseInt(d.pendingStatBumps,10) || 0;
+      if(pending <= 0) return;
+      d.statBumps = d.statBumps || {};
+      d.statBumps[stat] = (parseInt(d.statBumps[stat],10)||0) + 1;
+      d[stat] = (parseInt(d[stat],10)||0) + 1;
+      d.pendingStatBumps = pending - 1;
+      try{ window.logAction && window.logAction('compAnimal','bump '+stat, d[stat]); }catch(_){}
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-bump');
+    }));
   }
   /* M-21 · Eidolon evolution picker: validar prereqs/stacking y añadir a d.evol[] */
   if(which==='eidolon'){
