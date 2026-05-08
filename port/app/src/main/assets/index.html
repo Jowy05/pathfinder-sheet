@@ -57875,6 +57875,19 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
   </div>
 </dialog>
 
+<!-- 2026-05-08: PICKER de dotes para compañeros animales -->
+<dialog class="bottom-sheet" id="sheet-acomp-feat-pick" aria-label="Picker de dotes para compañero animal">
+  <div class="drag-handle"></div>
+  <div class="sheet-header">
+    <div class="sheet-title">📚 Catálogo de dotes (compañero)</div>
+    <button class="sheet-close" data-close>✕</button>
+  </div>
+  <div class="sheet-content">
+    <input class="field-input" id="acomp-feat-pick-search" placeholder="Buscar..." style="margin-bottom:10px">
+    <div id="acomp-feat-pick-list" class="picker-list"></div>
+  </div>
+</dialog>
+
 <!-- ─── DAÑO / CURACIÓN ESPECÍFICA ─── -->
 <!-- M-09: sheet de Avisos del personaje (validaciones dinámicas) -->
 <dialog class="bottom-sheet" id="sheet-warnings" aria-label="Avisos del personaje">
@@ -61869,9 +61882,28 @@ const COMP_DEFAULTS = {
     atks:'', habilidades:'', extra:''
   }),
   animal: ()=>({
-    id:_compId(), n:'', raza:'',
-    hp:'', ca:10,
+    id:_compId(), n:'', raza:'', typeId:'',
+    /* PF1e progression — set via _animalApplyProgression(d) */
+    level:1, hd:1, bab:1,
+    saveFortBase:2, saveRefBase:2, saveWillBase:0,
+    naturalArmor:0, statBonusTotal:0, bonusTricksMax:1,
+    feats_max:1, skills_max:1, specialFromTable:'Link, share spells',
+    /* Combat */
+    hp:'', hpMax:0, hpCurrent:0, ca:10, size:'Mediano', speed:30,
     str:10, dex:10, con:10, int:2, wis:12, cha:6,
+    saveFortMisc:0, saveRefMisc:0, saveWillMisc:0,
+    /* Listas estructuradas */
+    attackLines:[], // [{name, atk, dmg, notes}]
+    feats:[],       // [{n, t, prereq, d}]
+    tricksOn:{},    // {trickId: true}
+    skillsText:'',  // bonificadores de raza, p.ej. "Acrobacias +2, Sigilo +6"
+    skillRanks:{},  // {skillId: ranks}
+    /* Estado y notas */
+    dr:'',          // p.ej. "5/cold iron"
+    sr:0,           // resistencia a conjuros
+    senses:'',      // "Olfato, visión nocturna 60ft"
+    specialQualities:'',
+    /* Compatibilidad legacy con la versión vieja */
     bonosNivel:'', trucos:'',
     atks:'', extra:''
   }),
@@ -61914,16 +61946,50 @@ const COMP_FIELDS = {
     {label:'Notas adicionales', k:'extra', textarea:true, rows:2}
   ],
   animal: [
+    /* Cabecera con nivel + botones rápidos */
+    {special:'animalLevelHeader'},
+    /* Tipo (picker) — autocompleta raza/stats si elige uno */
+    {special:'animalTypePicker'},
     {row:[{k:'n', label:'Nombre', placeholder:'Lobo "Sombra"'},
-          {k:'raza', label:'Raza/Tipo', placeholder:'Lobo, oso, caballo, halcón...'}]},
+          {k:'raza', label:'Raza/Tipo', placeholder:'Lobo, oso, halcón...'}]},
+    {label:'PG y CA', divider:true},
     {row:[{k:'hp', label:'PG (act/máx)', placeholder:'18/18'},
-          {k:'ca', label:'CA', type:'number', placeholder:'14'}]},
+          {k:'ca', label:'CA total', type:'number', placeholder:'14'}]},
+    {row:[{k:'naturalArmor', label:'Armadura natural', type:'number'},
+          {k:'size', label:'Tamaño', placeholder:'Mediano'},
+          {k:'speed', label:'Velocidad (ft)', type:'number'}]},
     {label:'Atributos', divider:true},
     {row:[{k:'str', label:'FUE', type:'number'}, {k:'dex', label:'DES', type:'number'}, {k:'con', label:'CON', type:'number'}]},
     {row:[{k:'int', label:'INT', type:'number'}, {k:'wis', label:'SAB', type:'number'}, {k:'cha', label:'CAR', type:'number'}]},
-    {label:'Bonos por nivel (clase animal)', k:'bonosNivel', textarea:true, rows:2, placeholder:'+2 FUE/DES, +1 BAB, +1 TS, +2 Armadura natural...'},
-    {label:'Trucos (1 por línea)', k:'trucos', textarea:true, rows:4, placeholder:'Atacar\nDefender\nBuscar\nGuardia\nFurtivo'},
-    {label:'Ataques', k:'atks', textarea:true, rows:2, placeholder:'Mordisco +3 (1d6+1, derribo)'},
+    {label:'BAB y Salvaciones', divider:true},
+    {row:[{k:'bab', label:'BAB', type:'number'}, {k:'hd', label:'DV', type:'number'}]},
+    {row:[{k:'saveFortBase', label:'Fort base', type:'number'},
+          {k:'saveRefBase', label:'Ref base', type:'number'},
+          {k:'saveWillBase', label:'Vol base', type:'number'}]},
+    {row:[{k:'saveFortMisc', label:'Fort misc', type:'number'},
+          {k:'saveRefMisc', label:'Ref misc', type:'number'},
+          {k:'saveWillMisc', label:'Vol misc', type:'number'}]},
+    /* Tabla resumen de la progresión PF1e según el nivel */
+    {special:'animalProgressionInfo'},
+    /* Ataques estructurados (multi-fila editable) */
+    {label:'Ataques', divider:true},
+    {special:'animalAttacks'},
+    /* Trucos PF1e (checklist) */
+    {label:'Trucos', divider:true},
+    {special:'animalTricks'},
+    /* Habilidades (rangos) */
+    {label:'Habilidades', divider:true},
+    {special:'animalSkills'},
+    {label:'Bonos raciales (texto libre)', k:'skillsText', textarea:true, rows:2, placeholder:'Acrobacias +2, Sigilo +6, Percepción +5...'},
+    /* Dotes (lista propia, picker en sheet aparte) */
+    {label:'Dotes', divider:true},
+    {special:'animalFeats'},
+    /* Defensas y notas */
+    {label:'Defensas / sentidos', divider:true},
+    {row:[{k:'dr', label:'RD', placeholder:'5/cold iron'},
+          {k:'sr', label:'RC', type:'number'}]},
+    {label:'Sentidos', k:'senses', textarea:true, rows:2, placeholder:'Olfato, visión nocturna 60ft'},
+    {label:'Habilidades especiales', k:'specialQualities', textarea:true, rows:3, placeholder:'Olfato, derribo, evasión...'},
     {label:'Notas adicionales', k:'extra', textarea:true, rows:2}
   ],
   eidolon: [
@@ -61990,6 +62056,204 @@ function _compRowGrid(cells, d){
     }).join('')}
   </div>`;
 }
+/* ─── ANIMAL COMPANION DATA & HELPERS · 2026-05-08 ─── */
+const ACOMP_PROGRESSION = [
+  // index = effective druid level (1..20). Each: HD, BAB, Fort, Ref, Will, Skills, Feats, NatArmor, StrDexBonus, BonusTricks, Special
+  null, // index 0 unused
+  { hd:1,  bab:1,  fort:2, ref:2, will:0, skills:1, feats:1, nat:0, statBonus:0, bonusTricks:1, special:'Link, share spells' },
+  { hd:2,  bab:1,  fort:3, ref:3, will:0, skills:2, feats:1, nat:0, statBonus:0, bonusTricks:1, special:'' },
+  { hd:3,  bab:2,  fort:3, ref:3, will:1, skills:3, feats:2, nat:1, statBonus:0, bonusTricks:1, special:'Evasion' },
+  { hd:3,  bab:2,  fort:3, ref:3, will:1, skills:3, feats:2, nat:1, statBonus:1, bonusTricks:1, special:'Ability score increase' },
+  { hd:4,  bab:3,  fort:4, ref:4, will:1, skills:4, feats:2, nat:2, statBonus:1, bonusTricks:2, special:'' },
+  { hd:5,  bab:3,  fort:4, ref:4, will:1, skills:5, feats:3, nat:2, statBonus:1, bonusTricks:2, special:'Devotion' },
+  { hd:6,  bab:4,  fort:5, ref:5, will:2, skills:6, feats:3, nat:3, statBonus:1, bonusTricks:2, special:'' },
+  { hd:6,  bab:4,  fort:5, ref:5, will:2, skills:6, feats:3, nat:3, statBonus:2, bonusTricks:2, special:'Ability score increase' },
+  { hd:7,  bab:5,  fort:5, ref:5, will:2, skills:7, feats:4, nat:4, statBonus:2, bonusTricks:3, special:'Multiattack' },
+  { hd:8,  bab:6,  fort:6, ref:6, will:2, skills:8, feats:4, nat:4, statBonus:2, bonusTricks:3, special:'' },
+  { hd:9,  bab:6,  fort:6, ref:6, will:3, skills:9, feats:5, nat:5, statBonus:2, bonusTricks:3, special:'' },
+  { hd:9,  bab:6,  fort:6, ref:6, will:3, skills:9, feats:5, nat:5, statBonus:3, bonusTricks:3, special:'Ability score increase' },
+  { hd:10, bab:7,  fort:7, ref:7, will:3, skills:10, feats:5, nat:6, statBonus:3, bonusTricks:4, special:'' },
+  { hd:11, bab:8,  fort:7, ref:7, will:3, skills:11, feats:6, nat:6, statBonus:3, bonusTricks:4, special:'Improved evasion' },
+  { hd:12, bab:9,  fort:8, ref:8, will:4, skills:12, feats:6, nat:7, statBonus:3, bonusTricks:4, special:'' },
+  { hd:12, bab:9,  fort:8, ref:8, will:4, skills:12, feats:6, nat:7, statBonus:4, bonusTricks:4, special:'Ability score increase' },
+  { hd:13, bab:9,  fort:8, ref:8, will:4, skills:13, feats:7, nat:8, statBonus:4, bonusTricks:5, special:'' },
+  { hd:14, bab:10, fort:9, ref:9, will:4, skills:14, feats:7, nat:8, statBonus:4, bonusTricks:5, special:'' },
+  { hd:15, bab:11, fort:9, ref:9, will:5, skills:15, feats:8, nat:9, statBonus:4, bonusTricks:5, special:'' },
+  { hd:15, bab:11, fort:9, ref:9, will:5, skills:15, feats:8, nat:9, statBonus:5, bonusTricks:5, special:'Ability score increase' },
+];
+
+const ACOMP_TRICKS = [
+  { id:'attack',     label:'Atacar',         dc:20, complex:false, desc:'Ataca a humanoides u objetos.' },
+  { id:'attack_all', label:'Atacar (todo)',  dc:20, complex:true,  desc:'Como Atacar pero permite a todas las criaturas, no solo humanoides.' },
+  { id:'come',       label:'Venir',          dc:15, complex:false, desc:'Acude al amo, aunque normalmente no haría caso.' },
+  { id:'defend',     label:'Defender',       dc:20, complex:false, desc:'Defiende al amo, atacando a quien lo amenace.' },
+  { id:'down',       label:'Echarse',        dc:15, complex:false, desc:'Para de atacar y se queda inmóvil.' },
+  { id:'fetch',      label:'Buscar',         dc:15, complex:false, desc:'Busca un objeto concreto.' },
+  { id:'guard',      label:'Guardia',        dc:20, complex:false, desc:'Vigila un área, atacando intrusos.' },
+  { id:'heel',       label:'Talón',          dc:15, complex:false, desc:'Sigue al amo de cerca, incluso por terreno difícil.' },
+  { id:'hunt',       label:'Cazar',          dc:20, complex:true,  desc:'Caza presas y las trae.' },
+  { id:'perform',    label:'Actuar',         dc:15, complex:false, desc:'Hace una pirueta o truco simple.' },
+  { id:'seek',       label:'Buscar (área)',  dc:15, complex:false, desc:'Recorre un área buscando algo.' },
+  { id:'stay',       label:'Quieto',         dc:15, complex:false, desc:'Permanece en su sitio.' },
+  { id:'track',      label:'Rastrear',       dc:20, complex:false, desc:'Rastrea un olor.' },
+  { id:'work',       label:'Trabajar',       dc:15, complex:false, desc:'Tira de cargas, ara, etc.' },
+  { id:'flank',      label:'Flanquear',      dc:20, complex:false, desc:'Se posiciona para flanquear con el amo.' },
+];
+
+const ACOMP_TYPES = [
+  { id:'wolf', name:'Lobo', size:'Mediano', speed:50,
+    str:13, dex:15, con:15, int:2, wis:12, cha:6,
+    bab:1, fort:5, ref:5, will:1, natArmor:2,
+    attacks:[ {name:'Mordisco', atk:'+2', dmg:'1d6+1 (×2)', notes:'Derribo'} ],
+    skills:'Acrobacias +2, Percepción +5, Sigilo +6, Supervivencia +1 (+5 olfato)',
+    feats:['Iniciativa Mejorada'],
+    abilities:'Olfato, derribo' },
+  { id:'dog', name:'Perro', size:'Pequeño', speed:40,
+    str:9, dex:13, con:15, int:2, wis:12, cha:6,
+    bab:1, fort:5, ref:4, will:1, natArmor:2,
+    attacks:[ {name:'Mordisco', atk:'+2', dmg:'1d4 (×2)', notes:''} ],
+    skills:'Acrobacias +1, Percepción +8, Sigilo +5, Supervivencia +1 (+5 olfato)',
+    feats:['Alerta'],
+    abilities:'Olfato' },
+  { id:'big_cat', name:'Felino grande', size:'Mediano', speed:40,
+    str:13, dex:17, con:13, int:2, wis:15, cha:10,
+    bab:1, fort:3, ref:5, will:2, natArmor:1,
+    attacks:[
+      {name:'Mordisco', atk:'+2', dmg:'1d6+1 (×2)', notes:''},
+      {name:'2 garras', atk:'+2', dmg:'1d4+1 (×2)', notes:''}
+    ],
+    skills:'Acrobacias +3, Percepción +6, Sigilo +7',
+    feats:['Iniciativa Mejorada'],
+    abilities:'Olfato' },
+  { id:'bear', name:'Oso', size:'Pequeño', speed:30,
+    str:11, dex:15, con:13, int:2, wis:12, cha:6,
+    bab:1, fort:3, ref:4, will:1, natArmor:2,
+    attacks:[
+      {name:'Mordisco', atk:'+1', dmg:'1d3 (×2)', notes:''},
+      {name:'2 garras', atk:'+1', dmg:'1d2 (×2)', notes:''}
+    ],
+    skills:'Percepción +5, Natación +4, Supervivencia +1 (+5 olfato)',
+    feats:['Soltura con un arma (garra)'],
+    abilities:'Olfato' },
+  { id:'horse', name:'Caballo', size:'Grande', speed:50,
+    str:16, dex:13, con:15, int:2, wis:12, cha:6,
+    bab:1, fort:5, ref:4, will:1, natArmor:3,
+    attacks:[
+      {name:'Mordisco', atk:'+2', dmg:'1d4+3 (×2)', notes:''},
+      {name:'2 cascos', atk:'-3', dmg:'1d6+1 (×2)', notes:'Secundario'}
+    ],
+    skills:'Acrobacias +1, Percepción +5',
+    feats:['Correr'],
+    abilities:'Olfato' },
+  { id:'hawk', name:'Halcón', size:'Pequeño', speed:'10 ft, vuelo 80 ft (med.)',
+    str:7, dex:17, con:11, int:2, wis:14, cha:6,
+    bab:1, fort:2, ref:5, will:2, natArmor:1,
+    attacks:[ {name:'2 garras', atk:'+4', dmg:'1d3-2 (×2)', notes:''} ],
+    skills:'Acrobacias +3, Percepción +10 (+14 vista), Vuelo +5',
+    feats:['Soltura con un arma (garra)'],
+    abilities:'Vista aguda' },
+  { id:'eagle', name:'Águila', size:'Pequeño', speed:'10 ft, vuelo 80 ft (med.)',
+    str:8, dex:15, con:10, int:2, wis:14, cha:7,
+    bab:1, fort:2, ref:4, will:2, natArmor:1,
+    attacks:[
+      {name:'Mordisco', atk:'+1', dmg:'1d4-1 (×2)', notes:''},
+      {name:'2 garras', atk:'+1', dmg:'1d3-1 (×2)', notes:''}
+    ],
+    skills:'Acrobacias +2, Percepción +10 (+14 vista), Vuelo +4',
+    feats:['Iniciativa Mejorada'],
+    abilities:'Vista aguda' },
+  { id:'snake', name:'Serpiente (constrictora)', size:'Pequeño', speed:'20 ft, trepar 20 ft, nadar 20 ft',
+    str:11, dex:17, con:13, int:1, wis:12, cha:2,
+    bab:1, fort:3, ref:5, will:1, natArmor:2,
+    attacks:[ {name:'Mordisco', atk:'+2', dmg:'1d3 más presa (×2)', notes:'Constreñir 1d3'} ],
+    skills:'Acrobacias +3, Trepar +8, Percepción +5, Sigilo +7, Natación +8',
+    feats:['Iniciativa Mejorada'],
+    abilities:'Olfato, presa, constreñir' },
+  { id:'boar', name:'Jabalí', size:'Pequeño', speed:40,
+    str:11, dex:13, con:15, int:2, wis:12, cha:4,
+    bab:1, fort:5, ref:3, will:1, natArmor:3,
+    attacks:[ {name:'Embestida', atk:'+2', dmg:'1d6 (×2)', notes:''} ],
+    skills:'Acrobacias +1, Percepción +5',
+    feats:['Alerta'],
+    abilities:'Olfato' },
+  { id:'ape', name:'Simio', size:'Mediano', speed:'30 ft, trepar 30 ft',
+    str:13, dex:17, con:10, int:2, wis:12, cha:7,
+    bab:1, fort:2, ref:5, will:1, natArmor:1,
+    attacks:[
+      {name:'Mordisco', atk:'+2', dmg:'1d4+1 (×2)', notes:''},
+      {name:'2 garras', atk:'+2', dmg:'1d3+1 (×2)', notes:''}
+    ],
+    skills:'Acrobacias +3, Trepar +9, Percepción +5',
+    feats:['Iniciativa Mejorada'],
+    abilities:'Visión nocturna' },
+  { id:'lizard', name:'Lagarto monitor', size:'Pequeño', speed:'30 ft, nadar 30 ft',
+    str:11, dex:15, con:13, int:1, wis:12, cha:2,
+    bab:1, fort:3, ref:4, will:1, natArmor:3,
+    attacks:[ {name:'Mordisco', atk:'+2', dmg:'1d6 (×2)', notes:''} ],
+    skills:'Acrobacias +2, Trepar +8, Percepción +5, Sigilo +6, Natación +8',
+    feats:['Iniciativa Mejorada'],
+    abilities:'Olfato' },
+  { id:'pony', name:'Poni', size:'Mediano', speed:40,
+    str:13, dex:13, con:12, int:2, wis:11, cha:4,
+    bab:1, fort:3, ref:4, will:0, natArmor:2,
+    attacks:[ {name:'2 cascos', atk:'+2', dmg:'1d3+1 (×2)', notes:''} ],
+    skills:'Acrobacias +1, Percepción +4',
+    feats:['Correr'],
+    abilities:'Olfato' },
+  { id:'owl', name:'Búho', size:'Pequeño', speed:'10 ft, vuelo 80 ft (med.)',
+    str:7, dex:15, con:10, int:2, wis:15, cha:6,
+    bab:1, fort:2, ref:4, will:2, natArmor:1,
+    attacks:[ {name:'2 garras', atk:'+3', dmg:'1d3-2 (×2)', notes:''} ],
+    skills:'Acrobacias +2, Percepción +10 (+14 vista), Sigilo +6, Vuelo +4',
+    feats:['Soltura con un arma (garra)'],
+    abilities:'Visión nocturna, vista aguda' },
+];
+
+function _animalProgressionRow(level){
+  const lv = Math.max(1, Math.min(20, parseInt(level,10) || 1));
+  return ACOMP_PROGRESSION[lv];
+}
+
+function _animalApplyProgression(d){
+  // Sets d.hd, d.bab, d.saveFortBase, d.saveRefBase, d.saveWillBase, d.naturalArmor
+  // Does NOT touch d.str/dex/con/etc. (statBonus is informational; user assigns).
+  // Does NOT touch attack lines, feats, tricks (preserves user data).
+  const row = _animalProgressionRow(d.level);
+  if (!row) return;
+  d.hd = row.hd;
+  d.bab = row.bab;
+  d.saveFortBase = row.fort;
+  d.saveRefBase = row.ref;
+  d.saveWillBase = row.will;
+  d.naturalArmor = row.nat;
+  // Stat bonus pending (informational): d.statBonusTotal = row.statBonus;
+  d.statBonusTotal = row.statBonus;
+  d.bonusTricksMax = row.bonusTricks;
+  d.feats_max = row.feats;
+  d.skills_max = row.skills;
+  d.specialFromTable = row.special;
+}
+
+function _animalApplyType(d, typeId){
+  const t = (ACOMP_TYPES||[]).find(x => x.id === typeId);
+  if (!t) return;
+  d.raza = t.name;
+  d.size = t.size;
+  d.speed = t.speed;
+  d.str = t.str; d.dex = t.dex; d.con = t.con;
+  d.int = t.int; d.wis = t.wis; d.cha = t.cha;
+  d.bab = t.bab;
+  d.saveFortBase = t.fort;
+  d.saveRefBase = t.ref;
+  d.saveWillBase = t.will;
+  d.naturalArmor = t.natArmor;
+  d.attackLines = (t.attacks || []).map(a => ({...a}));
+  d.skillsText = t.skills || '';
+  d.feats = (t.feats || []).map(name => ({n:name, t:'general'}));
+  d.specialQualities = t.abilities || '';
+  d.typeId = t.id;
+}
+/* ─── /ANIMAL COMPANION DATA & HELPERS ─── */
 function _compFieldDOM(spec, d){
   if(spec.divider){
     return `<div style="font:700 10px 'Cinzel',serif;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin:8px 0 4px;border-top:1px solid var(--leather);padding-top:6px;opacity:.85">${spec.label}</div>`;
@@ -62012,7 +62276,119 @@ function _compFieldDOM(spec, d){
     if(spec.special==='evol' && Array.isArray(d.evol)) val = d.evol.join('\n');
     return _compL(spec.label) + _compTextarea(spec.k, val, spec.rows||2, spec.placeholder);
   }
+  if(spec.special==='animalLevelHeader')   return _acompLevelHeaderDOM(d);
+  if(spec.special==='animalProgressionInfo') return _acompProgressionInfoDOM(d);
+  if(spec.special==='animalTypePicker')    return _acompTypePickerDOM(d);
+  if(spec.special==='animalAttacks')       return _acompAttacksDOM(d);
+  if(spec.special==='animalTricks')        return _acompTricksDOM(d);
+  if(spec.special==='animalFeats')         return _acompFeatsDOM(d);
+  if(spec.special==='animalSkills')        return _acompSkillsDOM(d);
   return _compL(spec.label) + _compInput(spec.k, d[spec.k], spec.placeholder, spec.type||'text');
+}
+
+/* ────────────────────────────────────────────────────────────────
+   2026-05-08 · Animal companion: render helpers para las
+   secciones especiales del editor (nivel, progresión, tipo,
+   ataques, trucos, dotes y habilidades). Los handlers viven
+   dentro de renderComp() bajo el bloque `which==='animal'`.
+   ──────────────────────────────────────────────────────────────── */
+function _acompLevelHeaderDOM(d){
+  const lv = parseInt(d.level,10)||1;
+  return `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;background:var(--surface-2);border-radius:8px;padding:10px;margin:6px 0">
+    <div style="font:600 11px 'Cinzel',serif;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);flex:1">Nivel efectivo</div>
+    <input class="field-input" data-comp-field="level" type="number" min="1" max="20" value="${lv}" style="width:64px;text-align:center">
+    <button class="btn-secondary" data-acomp-lvlup style="font-size:11px;padding:6px 10px">▲ Subir nivel</button>
+    <button class="btn-primary" data-acomp-applylvl style="font-size:11px;padding:6px 10px">Aplicar progresión</button>
+  </div>`;
+}
+
+function _acompProgressionInfoDOM(d){
+  const row = (typeof _animalProgressionRow==='function') ? _animalProgressionRow(d.level) : null;
+  if(!row) return '';
+  return `<div style="background:var(--surface);border:1px dashed var(--leather);border-radius:8px;padding:10px;margin:6px 0;font:12px/1.5 'EB Garamond',serif">
+    <div style="font:700 11px 'Cinzel',serif;letter-spacing:.06em;color:var(--accent);margin-bottom:6px">Progresión PF1e — Nv ${d.level}</div>
+    <div>DV ${row.hd} · BAB ${row.bab} · TS ${row.fort}/${row.ref}/${row.will} · CA nat +${row.nat}</div>
+    <div>Habilidades ${row.skills} · Dotes ${row.feats} · Trucos extra ${row.bonusTricks}</div>
+    ${row.statBonus?`<div>Aumentos atributos acumulados: ${row.statBonus}</div>`:''}
+    ${row.special?`<div style="color:var(--accent)"><b>Especial:</b> ${row.special}</div>`:''}
+  </div>`;
+}
+
+function _acompTypePickerDOM(d){
+  const types = (typeof ACOMP_TYPES!=='undefined') ? ACOMP_TYPES : [];
+  if(!types.length) return '';
+  const cur = d.typeId || '';
+  const opts = ['<option value="">— Personalizado —</option>'].concat(
+    types.map(t=>`<option value="${t.id}"${t.id===cur?' selected':''}>${t.name} (${t.size})</option>`)
+  ).join('');
+  return _compL('Tipo de animal') +
+    `<div style="display:flex;gap:6px"><select class="field-select" id="acomp-type-select" style="flex:1">${opts}</select>
+     <button class="btn-secondary" data-acomp-applytype style="font-size:11px;padding:6px 10px">Aplicar tipo</button></div>`;
+}
+
+function _acompAttacksDOM(d){
+  const lines = Array.isArray(d.attackLines) ? d.attackLines : [];
+  const rows = lines.map((a,i)=>`
+    <div style="display:grid;grid-template-columns:1fr 60px 1fr 28px 28px;gap:4px;margin-bottom:4px">
+      <input class="field-input" data-acomp-atk-field="name" data-acomp-atk-i="${i}" value="${(a.name||'').replace(/"/g,'&quot;')}" placeholder="Mordisco">
+      <input class="field-input" data-acomp-atk-field="atk" data-acomp-atk-i="${i}" value="${(a.atk||'').replace(/"/g,'&quot;')}" placeholder="+5" style="text-align:center">
+      <input class="field-input" data-acomp-atk-field="dmg" data-acomp-atk-i="${i}" value="${(a.dmg||'').replace(/"/g,'&quot;')}" placeholder="1d6+3">
+      <button class="btn-secondary" data-acomp-atk-roll="${i}" title="Tirar" style="padding:0;font-size:14px">🎲</button>
+      <button class="btn-secondary" data-acomp-atk-del="${i}" title="Borrar" style="padding:0;color:var(--negative);font-weight:700">×</button>
+    </div>
+    ${a.notes?`<div style="font:10px/1.3 system-ui;color:var(--ink-muted);margin:-2px 0 6px 4px">${a.notes}</div>`:''}
+  `).join('');
+  return `${rows||'<div style="font:11px italic system-ui;color:var(--ink-muted);margin-bottom:6px">Sin ataques. Añade uno.</div>'}
+    <button class="btn-add" data-acomp-atk-add style="margin-top:4px">＋ Añadir ataque</button>`;
+}
+
+function _acompTricksDOM(d){
+  const tricks = (typeof ACOMP_TRICKS!=='undefined') ? ACOMP_TRICKS : [];
+  if(!tricks.length) return '';
+  d.tricksOn = d.tricksOn || {};
+  return `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:4px">
+    ${tricks.map(t=>`<label style="display:flex;align-items:center;gap:6px;font:12px/1.3 system-ui;cursor:pointer;padding:4px;border-radius:4px" title="DC ${t.dc}: ${t.desc}">
+      <input type="checkbox" data-acomp-trick="${t.id}" ${d.tricksOn[t.id]?'checked':''}>
+      <span>${t.label}${t.complex?' <span style="color:var(--accent);font-size:10px">[complejo]</span>':''}</span>
+    </label>`).join('')}
+  </div>`;
+}
+
+function _acompFeatsDOM(d){
+  const feats = Array.isArray(d.feats) ? d.feats : [];
+  const rows = feats.map((f,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:var(--surface-2);border-radius:6px;margin-bottom:4px">
+    <span style="font:13px 'EB Garamond',serif">${(f.n||'?').replace(/</g,'&lt;')}</span>
+    <button class="btn-secondary" data-acomp-feat-del="${i}" title="Borrar" style="padding:2px 8px;color:var(--negative);font-weight:700">×</button>
+  </div>`).join('');
+  return `${rows||'<div style="font:11px italic system-ui;color:var(--ink-muted);margin-bottom:6px">Sin dotes.</div>'}
+    <button class="btn-add" data-acomp-feat-add style="margin-top:4px">＋ Añadir dote</button>`;
+}
+
+function _acompSkillsDOM(d){
+  const SKILLS = [
+    {id:'acrobatics', name:'Acrobacias', attr:'dex'},
+    {id:'climb',      name:'Trepar',     attr:'str'},
+    {id:'intimidate', name:'Intimidar',  attr:'cha'},
+    {id:'perception', name:'Percepción', attr:'wis'},
+    {id:'stealth',    name:'Sigilo',     attr:'dex'},
+    {id:'survival',   name:'Supervivencia', attr:'wis'},
+    {id:'swim',       name:'Nadar',      attr:'str'},
+    {id:'fly',        name:'Volar',      attr:'dex'},
+  ];
+  d.skillRanks = d.skillRanks || {};
+  const mod = (attrVal) => Math.floor(((parseInt(attrVal,10)||10)-10)/2);
+  return `<div style="display:grid;grid-template-columns:1fr 50px 50px 28px;gap:4px;font:11px system-ui;color:var(--ink-muted);margin-bottom:4px">
+    <div>Habilidad</div><div style="text-align:center">Rangos</div><div style="text-align:center">Total</div><div></div>
+  </div>` + SKILLS.map(sk=>{
+    const ranks = parseInt(d.skillRanks[sk.id],10)||0;
+    const total = ranks + mod(d[sk.attr]);
+    return `<div style="display:grid;grid-template-columns:1fr 50px 50px 28px;gap:4px;align-items:center;margin-bottom:3px">
+      <span style="font:12px 'EB Garamond',serif">${sk.name} <span style="color:var(--ink-muted);font-size:10px">(${sk.attr.toUpperCase()})</span></span>
+      <input class="field-input" type="number" data-acomp-skill="${sk.id}" value="${ranks}" style="text-align:center;padding:4px">
+      <div style="text-align:center;font-weight:700">${total>=0?'+':''}${total}</div>
+      <button class="btn-secondary" data-acomp-skill-roll="${sk.id}" title="Tirar" style="padding:0;font-size:14px">🎲</button>
+    </div>`;
+  }).join('');
 }
 
 /* ────────────────────────────────────────────────────────────────
@@ -62210,7 +62586,7 @@ function renderComp(which='familiar', idx){
       const k = el.dataset.compField;
       if(k==='evolText'){
         d.evol = el.value.split('\n').map(s=>s.trim()).filter(Boolean);
-      } else if(['ca','str','dex','con','int','wis','cha','fort','ref','will','armaduraNatural','puntosEvolUsados','puntosEvolTotal','duracionRondas','rondaActual','fcbEidolonHP','fcbEidolonSkill','fcbHP','fcbSkill'].includes(k)){
+      } else if(['ca','str','dex','con','int','wis','cha','fort','ref','will','armaduraNatural','puntosEvolUsados','puntosEvolTotal','duracionRondas','rondaActual','fcbEidolonHP','fcbEidolonSkill','fcbHP','fcbSkill','level','hd','bab','saveFortBase','saveRefBase','saveWillBase','saveFortMisc','saveRefMisc','saveWillMisc','naturalArmor','speed','sr'].includes(k)){
         d[k] = parseInt(el.value,10)||0;
       } else {
         d[k] = el.value;
@@ -62225,6 +62601,83 @@ function renderComp(which='familiar', idx){
     el.addEventListener('input', handler);
     el.addEventListener('change', handler);
   });
+  /* 2026-05-08 · Animal companion: handlers para las acciones especiales */
+  if(which === 'animal'){
+    /* Subir nivel */
+    c.querySelector('[data-acomp-lvlup]')?.addEventListener('click',()=>{
+      d.level = Math.min(20, (parseInt(d.level,10)||1) + 1);
+      if(typeof _animalApplyProgression==='function') _animalApplyProgression(d);
+      try{ window.logAction && window.logAction('compAnimal','subir nivel', d.level); }catch(_){}
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-lvlup');
+    });
+    /* Aplicar progresión */
+    c.querySelector('[data-acomp-applylvl]')?.addEventListener('click',()=>{
+      if(typeof _animalApplyProgression==='function') _animalApplyProgression(d);
+      try{ window.logAction && window.logAction('compAnimal','aplicar progresión', d.level); }catch(_){}
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-apply');
+    });
+    /* Aplicar tipo */
+    c.querySelector('[data-acomp-applytype]')?.addEventListener('click',()=>{
+      const sel = c.querySelector('#acomp-type-select');
+      const id = sel ? sel.value : '';
+      if(!id){ if(typeof toast==='function') toast('Selecciona un tipo'); return; }
+      if(typeof _animalApplyType==='function') _animalApplyType(d, id);
+      try{ window.logAction && window.logAction('compAnimal','aplicar tipo', id); }catch(_){}
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-type');
+    });
+    /* Ataques */
+    c.querySelectorAll('[data-acomp-atk-field]').forEach(el=>{
+      el.addEventListener('input',()=>{
+        const i = +el.dataset.acompAtkI;
+        const k = el.dataset.acompAtkField;
+        if(!Array.isArray(d.attackLines)) d.attackLines = [];
+        if(!d.attackLines[i]) d.attackLines[i] = {};
+        d.attackLines[i][k] = el.value;
+        if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-atk-edit');
+      });
+    });
+    c.querySelector('[data-acomp-atk-add]')?.addEventListener('click',()=>{
+      if(!Array.isArray(d.attackLines)) d.attackLines = [];
+      d.attackLines.push({name:'Ataque', atk:'+0', dmg:'1d4', notes:''});
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-atk-add');
+    });
+    c.querySelectorAll('[data-acomp-atk-del]').forEach(b=>b.addEventListener('click',()=>{
+      const i = +b.dataset.acompAtkDel;
+      d.attackLines.splice(i,1);
+      try{ window.logAction && window.logAction('compAnimal','ataque borrado', i); }catch(_){}
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-atk-del');
+    }));
+    /* Trucos */
+    c.querySelectorAll('[data-acomp-trick]').forEach(chk=>chk.addEventListener('change',()=>{
+      const id = chk.dataset.acompTrick;
+      d.tricksOn = d.tricksOn || {};
+      if(chk.checked) d.tricksOn[id] = true; else delete d.tricksOn[id];
+      try{ window.logAction && window.logAction('compAnimal','truco '+(chk.checked?'on':'off'), id); }catch(_){}
+      if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-trick');
+    }));
+    /* Habilidades */
+    c.querySelectorAll('[data-acomp-skill]').forEach(inp=>inp.addEventListener('change',()=>{
+      const id = inp.dataset.acompSkill;
+      d.skillRanks = d.skillRanks || {};
+      d.skillRanks[id] = parseInt(inp.value,10)||0;
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-skill');
+    }));
+    /* Dotes */
+    c.querySelectorAll('[data-acomp-feat-del]').forEach(b=>b.addEventListener('click',()=>{
+      const i = +b.dataset.acompFeatDel;
+      d.feats.splice(i,1);
+      try{ window.logAction && window.logAction('compAnimal','dote borrada', i); }catch(_){}
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-feat-del');
+    }));
+    /* feat-add y los rolls los wire-ea otro agente (sheet-acomp-feat-pick + dado) */
+  }
   /* M-21 · Eidolon evolution picker: validar prereqs/stacking y añadir a d.evol[] */
   if(which==='eidolon'){
     const addBtn = c.querySelector('[data-eid-evo-add]');
@@ -63557,6 +64010,145 @@ function bindFormSheets(){
     if(search){ try{ setTimeout(()=>search.focus(),120); }catch(e){} }
   }
   window.openFeatPickerMobile = openFeatPickerMobile;
+
+  /* 2026-05-08: picker de dotes para compañeros animales — escribe en
+     d.feats[] del compañero activo (no en FEATS globales). Filtra el catálogo
+     a dotes generales/combat sin prereqs imposibles para un animal. */
+  function _acompList(){
+    /* En este codebase la lista vive en COMP_DATA[type]. Robusto si no existe. */
+    try{
+      if(typeof COMP_DATA!=='undefined' && COMP_DATA && Array.isArray(COMP_DATA.animal)) return COMP_DATA.animal;
+    }catch(_){}
+    try{
+      if(typeof COMP_LISTS!=='undefined' && COMP_LISTS && Array.isArray(COMP_LISTS.animal)) return COMP_LISTS.animal;
+    }catch(_){}
+    return null;
+  }
+  function _buildAcompFeatPickerList(query){
+    const list = document.getElementById('acomp-feat-pick-list');
+    if(!list) return;
+    const lang = (document.documentElement.dataset.lang === 'en') ? 'en' : 'es';
+    const all = (typeof DB !== 'undefined' && Array.isArray(DB.feats)) ? DB.feats : [];
+    /* Animales suelen poder coger feats sin INT requirements ni de hechicería */
+    const blocked = /metam[áa]gic|conjuro|hechic|spellcraft|wizard|magic|ritual|familiar/i;
+    const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    const q = norm(query);
+    const filtered = all.filter(f=>{
+      const name = (lang==='en' ? (f.name_en||f.name) : (f.name||f.name_en)) || '';
+      const cat = String(f.category||'').toLowerCase();
+      /* Permitir General y Combat. Excluir Item Creation, Metamagic, Heritage. */
+      if(/item|metam|herencia|heritage|leadership|crafting/i.test(cat)) return false;
+      /* Excluir feats con palabras clave que no aplican a un animal */
+      if(blocked.test(name) || blocked.test(String(f.description||''))) return false;
+      if(q){
+        const hay = norm(name) + ' ' + norm(f.description||'') + ' ' + norm(f.description_en||'');
+        if(!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    if(!filtered.length){
+      list.innerHTML = '<div style="text-align:center;color:var(--ink-muted);padding:14px;font:12px system-ui">Sin resultados</div>';
+      return;
+    }
+    list.innerHTML = filtered.slice(0,120).map((f,i)=>{
+      const name = lang==='en' ? (f.name_en||f.name) : (f.name||f.name_en);
+      const prereq = lang==='en' ? (f.prerequisites_en||f.prerequisites) : (f.prerequisites||f.prerequisites_en);
+      const cat = f.category || '';
+      return `<button class="picker-row" data-acomp-feat-i="${i}" style="display:block;width:100%;text-align:left;padding:8px;margin-bottom:5px;border:1px solid var(--line);border-radius:6px;background:transparent">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <span style="font-weight:700;font-family:'Cinzel',serif">${name||'?'}</span>
+          <span style="font:10px system-ui;color:var(--accent)">${cat}</span>
+        </div>
+        ${prereq?`<div style="font:11px/1.3 system-ui;color:var(--ink-muted)">Prereq: ${prereq}</div>`:''}
+      </button>`;
+    }).join('');
+    list.querySelectorAll('[data-acomp-feat-i]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const f = filtered[+btn.dataset.acompFeatI];
+        if(!f) return;
+        const name = lang==='en' ? (f.name_en||f.name) : (f.name||f.name_en);
+        const prereq = lang==='en' ? (f.prerequisites_en||f.prerequisites) : (f.prerequisites||f.prerequisites_en);
+        const desc = lang==='en' ? (f.description_en||f.description) : (f.description||f.description_en);
+        /* Encontrar el compañero activo */
+        const lst = _acompList();
+        if(!lst || typeof CURRENT_COMP_IDX!=='number' || CURRENT_COMP_IDX < 0) return;
+        const d = lst[CURRENT_COMP_IDX];
+        if(!d) return;
+        if(!Array.isArray(d.feats)) d.feats = [];
+        d.feats.push({n:name, t:'general', prereq:prereq||'', d:desc||''});
+        try{ window.logAction && window.logAction('compAnimal','dote añadida', name); }catch(_){}
+        if(typeof closeSheet==='function') closeSheet(document.getElementById('sheet-acomp-feat-pick'));
+        if(typeof renderComp==='function') renderComp('animal');
+        if(typeof toast==='function') toast('Dote añadida: '+name);
+        if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-feat-add');
+      });
+    });
+  }
+
+  function openAcompFeatPicker(){
+    const search = document.getElementById('acomp-feat-pick-search');
+    if(search) search.value = '';
+    _buildAcompFeatPickerList('');
+    if(typeof openSheet==='function') openSheet('sheet-acomp-feat-pick');
+  }
+  window.openAcompFeatPicker = openAcompFeatPicker;
+
+  /* Wiring del input de búsqueda — registra una sola vez al cargar */
+  (function(){
+    function _wire(){
+      const inp = document.getElementById('acomp-feat-pick-search');
+      if(!inp || inp.dataset.wired) return;
+      inp.dataset.wired = '1';
+      let _t;
+      inp.addEventListener('input',()=>{
+        clearTimeout(_t);
+        _t = setTimeout(()=>_buildAcompFeatPickerList(inp.value), 180);
+      });
+    }
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', _wire);
+    else _wire();
+  })();
+
+  /* Delegación a nivel documento para los botones del editor de animal:
+     - data-acomp-feat-add → abre el picker
+     - data-acomp-atk-roll → tirada de ataque (1d20+atk, plus daño aparte)
+     - data-acomp-skill-roll → tirada de habilidad (1d20 + total) */
+  document.addEventListener('click',(e)=>{
+    const t = e.target;
+    if(!t || !t.closest) return;
+    const featAdd = t.closest('[data-acomp-feat-add]');
+    if(featAdd){ openAcompFeatPicker(); return; }
+    const atkRoll = t.closest('[data-acomp-atk-roll]');
+    if(atkRoll){
+      const i = +atkRoll.dataset.acompAtkRoll;
+      const lst = _acompList();
+      const d = (lst && typeof CURRENT_COMP_IDX==='number' && CURRENT_COMP_IDX >= 0) ? lst[CURRENT_COMP_IDX] : null;
+      if(!d || !Array.isArray(d.attackLines) || !d.attackLines[i]) return;
+      const a = d.attackLines[i];
+      const atkMod = parseInt((a.atk||'').replace(/[^\-\d]/g,''),10) || 0;
+      const roll = Math.floor(Math.random()*20)+1;
+      const total = roll + atkMod;
+      if(typeof toast==='function') toast(`${a.name||'Ataque'}: 🎲${roll}${atkMod>=0?'+':''}${atkMod} = ${total}${a.dmg?'  ·  daño '+a.dmg:''}`);
+      try{ window.logAction && window.logAction('compAnimal','ataque tirado', `${a.name} = ${total}`); }catch(_){}
+      return;
+    }
+    const skRoll = t.closest('[data-acomp-skill-roll]');
+    if(skRoll){
+      const id = skRoll.dataset.acompSkillRoll;
+      const lst = _acompList();
+      const d = (lst && typeof CURRENT_COMP_IDX==='number' && CURRENT_COMP_IDX >= 0) ? lst[CURRENT_COMP_IDX] : null;
+      if(!d) return;
+      const ATTR = {acrobatics:'dex',climb:'str',intimidate:'cha',perception:'wis',stealth:'dex',survival:'wis',swim:'str',fly:'dex'};
+      const ranks = parseInt((d.skillRanks||{})[id],10) || 0;
+      const attrVal = parseInt(d[ATTR[id]||'dex'],10) || 10;
+      const mod = Math.floor((attrVal - 10)/2);
+      const total = (Math.floor(Math.random()*20)+1) + ranks + mod;
+      if(typeof toast==='function') toast(`Habilidad ${id}: total=${total} (rangos ${ranks}, mod ${mod>=0?'+':''}${mod})`);
+      try{ window.logAction && window.logAction('compAnimal','habilidad tirada', `${id} = ${total}`); }catch(_){}
+      return;
+    }
+  });
+
   const featPickSearch = document.getElementById('feat-pick-search');
   if(featPickSearch){
     let _featSearchTO=null;
