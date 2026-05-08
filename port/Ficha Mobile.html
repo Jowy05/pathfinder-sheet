@@ -59389,12 +59389,36 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
 /* ─── TOASTS ─── */
 let toastTimer;
+/* 2026-05-08: cuando hay un <dialog open> con showModal(), el dialog está
+   en el "top layer" del DOM y NADA fuera de él puede renderizarse por encima
+   (ni con z-index 9999). El toast acababa oculto bajo el popup → el usuario
+   veía la ficha tras el dialog pero no el resultado del dado. Fix: si hay
+   un dialog abierto, parkear el toast como hijo del dialog para que herede
+   la capa superior. Tras desvanecer, devolverlo al body. */
+let _toastParkedIn = null;
 function toast(msg){
   const t = document.getElementById('toast');
+  if(!t) return;
   t.textContent = msg;
+  const openDlg = document.querySelector('dialog[open]');
+  if(openDlg){
+    if(t.parentNode !== openDlg) openDlg.appendChild(t);
+    _toastParkedIn = openDlg;
+  } else if(_toastParkedIn){
+    document.body.appendChild(t);
+    _toastParkedIn = null;
+  }
   t.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>t.classList.remove('show'),1800);
+  toastTimer = setTimeout(()=>{
+    t.classList.remove('show');
+    setTimeout(()=>{
+      if(_toastParkedIn && t.parentNode === _toastParkedIn){
+        document.body.appendChild(t);
+        _toastParkedIn = null;
+      }
+    }, 350);
+  }, 1800);
 }
 document.querySelectorAll('[data-toast]').forEach(b=>{
   b.addEventListener('click',()=>{
@@ -61991,9 +62015,12 @@ const COMP_FIELDS = {
           {k:'ca', label:'CA total', type:'number', placeholder:'14'}]},
     /* AGENT_B_CA_SCHEMA */
     {special:'animalCaBreakdown'},
-    {row:[{k:'naturalArmor', label:'Armadura natural', type:'number'},
+    /* 2026-05-08: label "Armadura natural" no cabía en 33% de pantalla y se
+       desplazaba bajo Tamaño/Velocidad. Acortado a "Arm. nat." (cabe en 1 línea
+       a 10px Cinzel uppercase). */
+    {row:[{k:'naturalArmor', label:'Arm. nat.', type:'number'},
           {k:'size', label:'Tamaño', placeholder:'Mediano'},
-          {k:'speed', label:'Velocidad (ft)', type:'number'}]},
+          {k:'speed', label:'Vel. (ft)', type:'number'}]},
     /* AGENT_B_CONDITIONS_SCHEMA */
     {special:'animalConditions'},
     {label:'Atributos', divider:true},
@@ -62483,6 +62510,9 @@ const _ACOMP_SYNC_OPTIONS = [
   {id:'inquisidor',label:'Inquisidor (lv − 3)', offset:-3},
   {id:'paladin',label:'Paladín (lv − 3)', offset:-3},
   {id:'hunter',label:'Hunter (lv = nivel)', offset:0},
+  /* 2026-05-08: añadidos por petición usuario */
+  {id:'samurai',label:'Samurái (lv − 3)', offset:-3},
+  {id:'mammoth_rider',label:'Mammoth Rider (lv = nivel)', offset:0},
 ];
 
 function _acompComputeSyncedLevel(d){
@@ -63212,8 +63242,54 @@ function renderComp(which='familiar', idx){
     }));
     /* AGENT_C_HANDLERS_INSERT */
     /* 2026-05-08 · Foto + descripción + sync clase + aumentos atributo */
-    /* Foto: abrir picker oculto */
+    /* Foto: abrir picker.
+       2026-05-08: en Android, AndroidBridge.pickPhoto() abre el SAF/galería
+       nativa (en lugar del file explorer crudo que abría <input type="file">).
+       Reusamos el mismo flujo del PJ pero con un override one-shot de
+       window.applyPhoto para que el dataURL caiga en el compañero activo
+       en vez de la foto del PJ. Si la app no es Android, fallback al input. */
     c.querySelector('[data-acomp-photo-pick]')?.addEventListener('click',()=>{
+      const _applyAcompPhoto = (dataUrl)=>{
+        try {
+          /* Redimensionar a 256×256 JPEG q=0.8 igual que el flujo previo */
+          const img = new Image();
+          img.onload = ()=>{
+            const MAX = 256;
+            let w = img.width, h = img.height;
+            if(w > h){ if(w > MAX){ h = Math.round(h * (MAX / w)); w = MAX; } }
+            else     { if(h > MAX){ w = Math.round(w * (MAX / h)); h = MAX; } }
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            try { d.photo = canvas.toDataURL('image/jpeg', 0.8); }
+            catch(_){ d.photo = dataUrl; }
+            try{ window.logAction && window.logAction('compAnimal','foto cambiada', 'bridge'); }catch(_){}
+            if(typeof renderComp==='function') renderComp(which);
+            if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-photo');
+          };
+          img.onerror = ()=>{ d.photo = dataUrl; if(typeof renderComp==='function') renderComp(which); };
+          img.src = dataUrl;
+        } catch(_){
+          d.photo = dataUrl;
+          if(typeof renderComp==='function') renderComp(which);
+          if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-photo');
+        }
+      };
+      const isAnd = (typeof isAndroid==='function' && isAndroid());
+      if(isAnd){
+        try {
+          /* One-shot intercept de window.applyPhoto */
+          const _orig = window.applyPhoto;
+          window.applyPhoto = function(dataUrl){
+            window.applyPhoto = _orig;
+            _applyAcompPhoto(dataUrl);
+          };
+          AndroidBridge.pickPhoto();
+          return;
+        } catch(e){ /* fallback al input DOM */ }
+      }
+      /* Fallback web/sin bridge: input type=file del DOM */
       const inp = c.querySelector('[data-acomp-photo-input]');
       if(inp) inp.click();
     });
