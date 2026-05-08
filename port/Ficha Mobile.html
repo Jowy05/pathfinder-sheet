@@ -58804,6 +58804,7 @@ function bindCondChips(){
     c.addEventListener('click',()=>{
       if(longPressed){ longPressed=false; return; }
       c.classList.toggle('active');
+      try{ window.logAction && window.logAction('combate', c.classList.contains('active')?'condición activada':'condición desactivada', c.dataset.cond); }catch(_){}
       updateCondBadge();
       updateSummaryConds();
       /* C-05: aplicar/quitar mods de la condición a stats */
@@ -58950,6 +58951,7 @@ function renderDice(){
   grid.innerHTML = dice.map(d=>`<button class="dice-chip" data-die="${d}">${d}</button>`).join('');
   function rollDie(d){
     grid.querySelectorAll('.dice-chip').forEach(c=>c.classList.toggle('active',c.dataset.die===d));
+    try{ window.logAction && window.logAction('dado','dado tirado', d); }catch(_){}
     if(d==='d%'){
       performRoll({expr:'1d100',label:'d%'});
     } else {
@@ -59005,8 +59007,10 @@ function renderThemes(){
     r.addEventListener('click',e=>{
       if(e.target.matches('[data-theme-del]')) return;
       if(r.dataset.real==='1'){
+        const _prevTheme = document.documentElement.dataset.theme || 'pergamino';
         document.documentElement.dataset.theme = r.dataset.theme;
         try{localStorage.setItem('ficha-theme',r.dataset.theme);}catch(e){}
+        try{ window.logAction && window.logAction('ajustes','tema cambiado', _prevTheme+'→'+r.dataset.theme); }catch(_){}
         applyDarkClass();
         if(typeof applyLoaderTheme==='function') applyLoaderTheme();
         refresh();
@@ -59118,7 +59122,9 @@ function setHP(v){
 document.querySelectorAll('[data-hp]').forEach(b=>{
   b.addEventListener('click',()=>{
     const v = b.dataset.hp;
-    setHP(hp + parseInt(v,10));
+    const n = parseInt(v,10);
+    try{ if(window.logAction){ if(n<0) window.logAction('combate','daño aplicado', Math.abs(n)); else window.logAction('combate','curación aplicada', n); } }catch(_){}
+    setHP(hp + n);
     /* X-01: autosave HP/temp/nonlethal */
     if(typeof saveStateDebounced==='function') saveStateDebounced('hp-action');
   });
@@ -59185,7 +59191,7 @@ document.querySelectorAll('.bottom-sheet').forEach(s=>{
   }
 });
 
-document.getElementById('fab-dice').addEventListener('click',()=>openSheet('sheet-dice'));
+document.getElementById('fab-dice').addEventListener('click',()=>{ try{ window.logAction && window.logAction('dado','FAB dado abierto'); }catch(_){} openSheet('sheet-dice'); });
 document.getElementById('btn-theme').addEventListener('click',()=>openSheet('sheet-theme'));
 document.getElementById('btn-overflow').addEventListener('click',()=>openSheet('sheet-overflow'));
 document.getElementById('avatar').addEventListener('click',()=>{
@@ -59218,6 +59224,7 @@ document.getElementById('more-dice').addEventListener('click',()=>openSheet('she
 document.getElementById('master-toggle').addEventListener('change',e=>{
   document.body.classList.toggle('master-mode',e.target.checked);
   try{ localStorage.setItem('pf1e-master-mode', e.target.checked?'1':'0'); }catch(_){}
+  try{ window.logAction && window.logAction('master', e.target.checked?'modo máster activado':'modo máster desactivado'); }catch(_){}
   toast(e.target.checked?(document.documentElement.dataset.lang==='en'?'Master mode ON':'Modo Máster activado'):(document.documentElement.dataset.lang==='en'?'Master mode OFF':'Modo Máster desactivado'));
 });
 /* Persistencia inicial del flag al cargar */
@@ -59244,6 +59251,7 @@ document.addEventListener('DOMContentLoaded', function(){
      y lo aplica como tema inicial. */
   const _currentTheme = ()=> document.documentElement.dataset.theme || 'pergamino';
   btn.addEventListener('click', function(){
+    try{ window.logAction && window.logAction('master','overlay abierto'); }catch(_){}
     if(!frm.src){
       frm.src = MST_URL + '?theme=' + encodeURIComponent(_currentTheme());
     } else {
@@ -59254,6 +59262,7 @@ document.addEventListener('DOMContentLoaded', function(){
     else dlg.setAttribute('open','');
   });
   if(cls) cls.addEventListener('click', function(){
+    try{ window.logAction && window.logAction('master','overlay cerrado'); }catch(_){}
     if(typeof dlg.close === 'function') dlg.close();
     else dlg.removeAttribute('open');
   });
@@ -59332,6 +59341,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const refreshBtn = document.getElementById('ov-refrescar');
   if(!refreshBtn) return;
   refreshBtn.addEventListener('click', ()=>{
+    try{ window.logAction && window.logAction('ajustes','refrescar ficha'); }catch(_){}
     try{
       _fullRefresh();
       if(typeof saveStateDebounced === 'function') saveStateDebounced('refresh-manual');
@@ -59406,7 +59416,9 @@ function applyLang(lang){
 }
 document.getElementById('btn-lang').addEventListener('click',()=>{
   const cur = document.documentElement.dataset.lang || 'es';
-  applyLang(cur==='es'?'en':'es');
+  const next = cur==='es'?'en':'es';
+  try{ window.logAction && window.logAction('ajustes','idioma cambiado', cur+'→'+next); }catch(_){}
+  applyLang(next);
 });
 
 /* ─── SKILL SEARCH ─── */
@@ -60523,8 +60535,13 @@ document.addEventListener('click',e=>{
 
 window.PathfinderSpells = {
   computeSpellSlots, rebuildSpellSystem, rebuildClassAutoFeatures,
-  CASTING_MODE: ()=>CASTING_MODE, classId: ()=>CURRENT_CLASS_ID
+  CASTING_MODE: ()=>CASTING_MODE, classId: ()=>CURRENT_CLASS_ID,
+  /* 2026-05-08: exponer helpers que código fuera del IIFE necesitaba */
+  canonicalClassId
 };
+/* 2026-05-08: alias global para que _openSpellsCatalog (que vive fuera del
+   IIFE) pueda llamar a canonicalClassId sin ReferenceError. */
+window.canonicalClassId = canonicalClassId;
 
 })();
 /* ─── /DOMINIO 4 · CONJUROS Y APTITUDES ─── */
@@ -60764,8 +60781,10 @@ function renderClasses(){
       const i = CLASSES_DATA.findIndex(x=>x.id===id);
       if(i>=0){
         if(typeof pushUndoSnapshot === 'function') pushUndoSnapshot('Eliminar clase ' + (CLASSES_DATA[i].name||''));
+        const _delName = CLASSES_DATA[i].name||'';
         CLASSES_DATA.splice(i,1);
         renderClasses();
+        try{ window.logAction && window.logAction('clase','clase eliminada', _delName); }catch(_){}
         /* P-04: notificar al resto del sistema */
         document.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'remove',id}}));
         window.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'remove',id}}));
@@ -60791,6 +60810,7 @@ function renderClasses(){
         renderClasses();
         closeSheet(document.getElementById('sheet-class-picker'));
         toast('Clase: '+n);
+        try{ window.logAction && window.logAction('clase','clase cambiada', n); }catch(_){}
         _triggerClassFeaturesFor(cl);
         document.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'name',id:classId,name:n}}));
         window.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'name',id:classId,name:n}}));
@@ -60853,6 +60873,7 @@ function renderClasses(){
         renderClasses();
         closeSheet(document.getElementById('sheet-archetype-picker'));
         toast('Arquetipo: '+n);
+        try{ window.logAction && window.logAction('clase','arquetipo seleccionado', (cl.name||'?')+' / '+n); }catch(_){}
         _triggerClassFeaturesFor(cl);
         document.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'archetype',id:classId,archetype:n}}));
         window.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'archetype',id:classId,archetype:n}}));
@@ -60927,6 +60948,7 @@ function renderClasses(){
       const newLvl = Math.max(1,Math.min(_capLvl,+inp.value||1));
       const oldLvl = cl.level;
       cl.level = newLvl; inp.value = newLvl;
+      try{ if(newLvl!==oldLvl) window.logAction && window.logAction('clase','nivel cambiado', (cl.name||'?')+' '+oldLvl+'→'+newLvl); }catch(_){}
       _triggerClassFeaturesFor(cl);
       /* P-04: dispara recálculo de TODO al cambiar nivel */
       document.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'level',id:classId,oldLvl,newLvl}}));
@@ -61307,6 +61329,7 @@ function renderWeapons(){
     b.addEventListener('click',()=>{
       const i = WEAPONS_DATA.findIndex(x=>x.id===+b.dataset.weapDel);
       if(i>=0){
+        try{ window.logAction && window.logAction('equipo','arma borrada', WEAPONS_DATA[i].name||''); }catch(_){}
         if(typeof pushUndoSnapshot === 'function') pushUndoSnapshot('Eliminar arma ' + (WEAPONS_DATA[i].name||'')); WEAPONS_DATA.splice(i,1); renderWeapons(); rebindRolls();
         /* E-01: peso recalculado al eliminar arma */
         if(typeof D5_recompute==='function') D5_recompute();
@@ -61349,6 +61372,18 @@ function renderWeapons(){
       if(typeof saveStateDebounced==='function') saveStateDebounced('weap-dtype');
     });
   });
+  /* Log weapon rolls (ataque/daño) */
+  c.querySelectorAll('.weap-actions button[data-roll]').forEach(b=>{
+    if(b.__weapLogBound) return; b.__weapLogBound = true;
+    b.addEventListener('click',()=>{
+      try{
+        const lbl = b.dataset.rollLabel || '';
+        const expr = b.dataset.roll || '';
+        const isAtk = / Ataque/i.test(lbl);
+        window.logAction && window.logAction('equipo', isAtk?'ataque arma':'daño arma', lbl+' . '+expr);
+      }catch(_){}
+    });
+  });
 }
 
 function renderArmor(){
@@ -61371,11 +61406,15 @@ function renderArmor(){
   c.querySelectorAll('[data-armor-del]').forEach(b=>{
     b.addEventListener('click',()=>{
       const i = ARMOR_DATA.findIndex(x=>x.id===+b.dataset.armorDel);
-      if(i>=0){ if(typeof pushUndoSnapshot === 'function') pushUndoSnapshot('Eliminar armadura ' + (ARMOR_DATA[i].name||'')); ARMOR_DATA.splice(i,1); renderArmor(); if(typeof D5_recompute==='function') D5_recompute(); }
+      if(i>=0){
+        try{ window.logAction && window.logAction('equipo','armadura borrada', ARMOR_DATA[i].name||''); }catch(_){}
+        if(typeof pushUndoSnapshot === 'function') pushUndoSnapshot('Eliminar armadura ' + (ARMOR_DATA[i].name||'')); ARMOR_DATA.splice(i,1); renderArmor(); if(typeof D5_recompute==='function') D5_recompute();
+      }
     });
   });
   c.querySelectorAll('[data-armor-eq]').forEach(chk=>{
     chk.addEventListener('change',()=>{
+      try{ var _a = ARMOR_DATA.find(x=>x.id===+chk.dataset.armorEq); if(_a) window.logAction && window.logAction('equipo', chk.checked?'armadura equipada':'armadura desequipada', _a.name||''); }catch(_){}
       if(typeof D5_setArmorEquipped==='function') D5_setArmorEquipped(+chk.dataset.armorEq, chk.checked);
     });
   });
@@ -61414,14 +61453,18 @@ function renderClassFeatures(){
     b.addEventListener('click',()=>{
       const f = CLASS_FEATURES_DATA.find(x=>x.id===+b.dataset.cfToggle);
       const i = +b.dataset.cfI;
+      const _prev = f.curr;
       f.curr = (i<f.curr) ? i : i+1;
+      try{ window.logAction && window.logAction('aptitud', f.curr<_prev?'uso de aptitud gastado':'uso de aptitud restaurado', (f.name||f.label||'?')+' '+f.curr+'/'+f.max); }catch(_){}
       renderClassFeatures();
     });
   });
   c.querySelectorAll('[data-cf-reset]').forEach(b=>{
     b.addEventListener('click',()=>{
       const f = CLASS_FEATURES_DATA.find(x=>x.id===+b.dataset.cfReset);
-      f.curr = f.max; renderClassFeatures();
+      f.curr = f.max;
+      try{ window.logAction && window.logAction('aptitud','aptitud reseteada al máximo', (f.name||f.label||'?')+' '+f.curr+'/'+f.max); }catch(_){}
+      renderClassFeatures();
     });
   });
   c.querySelectorAll('[data-cf-max]').forEach(inp=>{
@@ -61435,6 +61478,7 @@ function renderClassFeatures(){
   c.querySelectorAll('[data-rage-toggle]').forEach(btn=>{
     btn.addEventListener('click',()=>{
       _RAGE_ACTIVE = !_RAGE_ACTIVE;
+      try{ window.logAction && window.logAction('aptitud','rabia '+(_RAGE_ACTIVE?'activada':'desactivada')); }catch(_){}
       renderClassFeatures();
       if(typeof CombatEngine!=='undefined') CombatEngine.apply();
       toast(_RAGE_ACTIVE ? '🔥 ¡Rabia activa! +4 FUE/CON, +2 TS Vol, −2 CA' : 'Rabia desactivada. Fatiga 1 min.');
@@ -61490,17 +61534,18 @@ function renderSlots(){
   document.querySelectorAll('[data-slot-d]').forEach(b=>{
     b.addEventListener('click',()=>{
       const i=+b.dataset.slotD;
-      if(SLOT_STATE[i].used<SLOT_STATE[i].max){ SLOT_STATE[i].used++; renderSlots(); renderSpells(); }
+      if(SLOT_STATE[i].used<SLOT_STATE[i].max){ SLOT_STATE[i].used++; try{ window.logAction && window.logAction('conjuro','slot Nv '+i+' gastado', (SLOT_STATE[i].max-SLOT_STATE[i].used)+'/'+SLOT_STATE[i].max); }catch(_){} renderSlots(); renderSpells(); }
     });
   });
   document.querySelectorAll('[data-slot-u]').forEach(b=>{
     b.addEventListener('click',()=>{
       const i=+b.dataset.slotU;
-      if(SLOT_STATE[i].used>0) SLOT_STATE[i].used--;
+      if(SLOT_STATE[i].used>0){ SLOT_STATE[i].used--; try{ window.logAction && window.logAction('conjuro','slot Nv '+i+' recuperado', (SLOT_STATE[i].max-SLOT_STATE[i].used)+'/'+SLOT_STATE[i].max); }catch(_){} }
       else if(SLOT_STATE[i].max<99){
         SLOT_STATE[i].max++;
         /* MB-4 Fase B: subir max manualmente activa override */
         SLOT_STATE[i].userOverride = true;
+        try{ window.logAction && window.logAction('conjuro','slot Nv '+i+' max ampliado', 'max='+SLOT_STATE[i].max); }catch(_){}
       }
       renderSlots(); renderSpells();
     });
@@ -61585,13 +61630,14 @@ function renderSpells(){
   c.innerHTML = html;
   c.querySelectorAll('[data-spell-prep]').forEach(b=>b.addEventListener('click',()=>{
     const sp = SPELLS_DATA.find(x=>x.id===+b.dataset.spellPrep);
-    if(sp){ sp.prepared = !sp.prepared; renderSpells(); }
+    if(sp){ sp.prepared = !sp.prepared; try{ window.logAction && window.logAction('conjuro','conjuro preparado '+(sp.prepared?'on':'off'), sp.name); }catch(_){} renderSpells(); }
   }));
   c.querySelectorAll('[data-spell-cast]').forEach(b=>b.addEventListener('click',()=>{
     const sp = SPELLS_DATA.find(x=>x.id===+b.dataset.spellCast);
     if(sp && !sp.cast){
       sp.cast = true;
       if(SLOT_STATE[sp.lvl] && SLOT_STATE[sp.lvl].used<SLOT_STATE[sp.lvl].max) SLOT_STATE[sp.lvl].used++;
+      try{ window.logAction && window.logAction('conjuro','conjuro lanzado', sp.name+' (Nv '+sp.lvl+')'); }catch(_){}
       renderSlots(); renderSpells();
       toast('Lanzado: '+sp.name);
     }
@@ -62074,6 +62120,7 @@ function renderComp(which='familiar', idx){
       const next = COMP_DEFAULTS[which]();
       list.push(next);
       CURRENT_COMP_IDX = list.length - 1;
+      try{ window.logAction && window.logAction('ajustes','compañero añadido', which); }catch(_){}
       renderComp(which);
       if(typeof saveStateDebounced==='function') saveStateDebounced('comp-add');
     });
@@ -62089,8 +62136,10 @@ function renderComp(which='familiar', idx){
         e.stopPropagation();
         const i = +b.dataset.compDel;
         if(!list[i]) return;
-        if(!confirm(`¿Eliminar "${list[i].n||'sin nombre'}"?`)) return;
+        const _delName = list[i].n||'sin nombre';
+        if(!confirm(`¿Eliminar "${_delName}"?`)) return;
         list.splice(i,1);
+        try{ window.logAction && window.logAction('ajustes','compañero eliminado', which+': '+_delName); }catch(_){}
         CURRENT_COMP_IDX = -1;
         renderComp(which);
         if(typeof saveStateDebounced==='function') saveStateDebounced('comp-del');
@@ -62192,7 +62241,10 @@ function renderNotes(){
   c.querySelectorAll('[data-note-del]').forEach(b=>{
     b.addEventListener('click',(e)=>{
       e.stopPropagation();
-      NOTES_LIST.splice(+b.dataset.noteDel,1);
+      const _delIdx = +b.dataset.noteDel;
+      const _delTitle = (NOTES_LIST[_delIdx]||{}).t || '(sin título)';
+      NOTES_LIST.splice(_delIdx,1);
+      try{ window.logAction && window.logAction('ajustes','nota eliminada', _delTitle); }catch(_){}
       renderNotes();
       if(typeof saveStateDebounced==='function') saveStateDebounced('note-del');
     });
@@ -62257,6 +62309,7 @@ function bindSaveRolls(){
       const total = roll + mod;
       const sign = mod>=0?`+${mod}`:String(mod);
       const nat = roll===20?' 🎯 ¡NAT 20!':roll===1?' 💀 Pifia':'';
+      try{ window.logAction && window.logAction('combate','TS '+label, total); }catch(_){}
       document.dispatchEvent(new CustomEvent('roll-result',{detail:{
         label:`TS ${label}`,
         dice:`1d20${sign}`,
@@ -62330,6 +62383,7 @@ function bindNewSheets(){
       updateCharSub();
       const s = document.getElementById('sheet-race-picker'); closeSheet(s);
       try{ applyRaceFull(n); }catch(e){ console.warn(e); }
+      try{ window.logAction && window.logAction('personaje','raza seleccionada', n); }catch(_){}
       toast('Raza: '+n);
     };
     fillPicker(list, RACES_DATA, onPick);
@@ -62369,6 +62423,7 @@ function bindNewSheets(){
       renderClasses();
       closeSheet(document.getElementById('sheet-class-picker'));
       toast('Clase añadida: '+n);
+      try{ window.logAction && window.logAction('clase','clase añadida', n); }catch(_){}
       _triggerClassFeaturesFor(cl);
       /* P-03/P-04: notificar al sistema */
       document.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'add',id:newId,name:n}}));
@@ -62437,6 +62492,7 @@ function bindNewSheets(){
           deityInp.style.cursor = 'pointer';
           closeSheet(document.getElementById('sheet-deity-picker'));
           if(typeof toast==='function') toast('Deidad: '+n);
+          try{ window.logAction && window.logAction('personaje','deidad seleccionada', n); }catch(_){}
         }
         if(typeof saveStateDebounced==='function') saveStateDebounced('deity');
       };
@@ -62474,7 +62530,17 @@ function bindNewSheets(){
     openSheet('sheet-search');
   });
   const searchInp = document.getElementById('search-input');
-  if(searchInp) searchInp.addEventListener('input',()=>renderSearchResults(searchInp.value));
+  if(searchInp){
+    let _searchLogTimer = null;
+    searchInp.addEventListener('input',()=>{
+      renderSearchResults(searchInp.value);
+      clearTimeout(_searchLogTimer);
+      _searchLogTimer = setTimeout(()=>{
+        const q = (searchInp.value||'').trim();
+        if(q.length >= 2){ try{ window.logAction && window.logAction('ajustes','búsqueda', q); }catch(_){} }
+      }, 600);
+    });
+  }
   // settings
   const setBtn = document.getElementById('more-settings');
   if(setBtn) setBtn.addEventListener('click',()=>openSheet('sheet-settings'));
@@ -62544,8 +62610,10 @@ function bindNewSheets(){
       NOTES_LIST[editingIdx] = {t:t||'Sin título',body:b||'(vacío)'};
       delete noteSave.dataset.editingIdx;
       noteSave.textContent = '💾 Guardar nota';
+      try{ window.logAction && window.logAction('ajustes','nota editada', t||'Sin título'); }catch(_){}
     } else {
       NOTES_LIST.unshift({t:t||'Sin título',body:b||'(vacío)'});
+      try{ window.logAction && window.logAction('ajustes','nota guardada', t||'Sin título'); }catch(_){}
     }
     document.getElementById('note-title').value='';
     document.getElementById('note-body').value='';
@@ -62568,6 +62636,7 @@ function bindNewSheets(){
     const ac    = parseInt(document.getElementById('init-ac')?.value,10)||null;
     const type  = (document.getElementById('init-type')?.value)||'enemy';
     if(!n){ toast('Falta nombre'); return; }
+    try{ window.logAction && window.logAction('iniciativa','combatiente añadido', n+' ('+v+')'); }catch(_){}
     INIT_LIST.push({n, v, active:false, hp: hpMax, hpMax, ac, type, isPC: type==='pc', conds:[]});
     INIT_LIST.sort((a,b)=>b.v-a.v);
     document.getElementById('init-name').value='';
@@ -62594,6 +62663,7 @@ function bindNewSheets(){
     const hpMax = (typeof HP_MAX === 'number' && HP_MAX > 0) ? HP_MAX : null;
     const hpCur = (typeof hp === 'number') ? hp : hpMax;
     INIT_LIST.push({n:nombre, v:total, active:false, hp:hpCur, hpMax, isPC:true, initBonus:initVal, roll, conds:[]});
+    try{ window.logAction && window.logAction('iniciativa','PJ añadido (auto)', nombre+': '+roll+'+'+initVal+'='+total); }catch(_){}
     INIT_LIST.sort((a,b)=>b.v-a.v);
     if(!INIT_LIST.find(x=>x.active)) INIT_LIST[0].active=true;
     toast(`${nombre}: 🎲${roll}${initVal>=0?'+':''}${initVal} = ${total}`);
@@ -62607,6 +62677,7 @@ function bindNewSheets(){
     INIT_LIST.forEach(x=>x.active=false);
     const next = (i+1) % INIT_LIST.length;
     INIT_LIST[next].active = true;
+    try{ window.logAction && window.logAction('iniciativa','siguiente turno', INIT_LIST[next].n); }catch(_){}
     if(next === 0) { INIT_ROUND++; const r=document.getElementById('init-round'); if(r) r.textContent='Asalto '+INIT_ROUND; toast('Asalto '+INIT_ROUND); }
     renderInit();
   });
@@ -62615,6 +62686,7 @@ function bindNewSheets(){
     /* UX-14 Fase G: modal in-app */
     const ok = await appConfirm('Borra todos los combatientes y vuelve al asalto 1.', {title:'¿Resetear tracker?', okText:'Resetear', cancelText:'Cancelar', danger:true});
     if(!ok) return;
+    try{ window.logAction && window.logAction('iniciativa','tracker reseteado', INIT_LIST.length); }catch(_){}
     INIT_LIST.length = 0;
     INIT_ROUND = 1;
     renderInit();
@@ -62624,6 +62696,7 @@ function bindNewSheets(){
   const initSort = document.getElementById('init-sort');
   if(initSort) initSort.addEventListener('click',()=>{
     if(!INIT_LIST.length) return;
+    try{ window.logAction && window.logAction('iniciativa','ordenado por iniciativa', INIT_LIST.length); }catch(_){}
     INIT_LIST.sort((a,b)=>(+b.v||0)-(+a.v||0));
     /* mantener el active en su posición tras orden */
     renderInit();
@@ -62647,8 +62720,10 @@ function bindNewSheets(){
       const n = (eq && Array.isArray(eq.weapons)) ? eq.weapons.length : (Array.isArray(eq)?eq.length:0);
       window.logAction && window.logAction('arma','clic catálogo armas','items='+n);
     }catch(_){}
-    try{ _openWeaponCatalog(); }
-    catch(e){ try{ window.logAction && window.logAction('error','_openWeaponCatalog falló', e.message); }catch(_){} }
+    try{
+      if (typeof window._openWeaponCatalog === 'function') window._openWeaponCatalog();
+      else throw new Error('window._openWeaponCatalog no expuesto todavía');
+    } catch(e){ try{ window.logAction && window.logAction('error','_openWeaponCatalog falló', e.message); }catch(_){} }
   });
   const armorCat = document.getElementById('armor-add-catalog');
   if(armorCat) armorCat.addEventListener('click',()=>{
@@ -62657,8 +62732,10 @@ function bindNewSheets(){
       const n = (eq && Array.isArray(eq.armors)) ? eq.armors.length : 0;
       window.logAction && window.logAction('armadura','clic catálogo armaduras','items='+n);
     }catch(_){}
-    try{ _openArmorCatalog(); }
-    catch(e){ try{ window.logAction && window.logAction('error','_openArmorCatalog falló', e.message); }catch(_){} }
+    try{
+      if (typeof window._openArmorCatalog === 'function') window._openArmorCatalog();
+      else throw new Error('window._openArmorCatalog no expuesto todavía');
+    } catch(e){ try{ window.logAction && window.logAction('error','_openArmorCatalog falló', e.message); }catch(_){} }
   });
   const weapSave = document.getElementById('weap-save');
   if(weapSave) weapSave.addEventListener('click',()=>{
@@ -62739,7 +62816,11 @@ function bindNewSheets(){
     const school = (document.getElementById('spell-add-school')||{}).value||'';
     const comp   = (document.getElementById('spell-add-comp')||{}).value?.trim()||'';
     const id = Date.now();
-    SPELLS_DATA.push({id, name, lvl, school, comp, prepared: CASTING_MODE==='spont', cast:false, custom:true});
+    /* 2026-05-08: CASTING_MODE vive dentro del IIFE de PathfinderSpells —
+       acceder al global crudo lanza ReferenceError. Usar getter expuesto. */
+    let _castMode = 'none';
+    try { if (window.PathfinderSpells && PathfinderSpells.CASTING_MODE) _castMode = PathfinderSpells.CASTING_MODE(); } catch(_){}
+    SPELLS_DATA.push({id, name, lvl, school, comp, prepared: _castMode==='spont', cast:false, custom:true});
     // Ensure slot max covers this level if needed
     if(SLOT_STATE[lvl] && SLOT_STATE[lvl].max===0) SLOT_STATE[lvl].max = 1;
     /* 2026-05-07: reset filter a "Todos" para que el conjuro recién añadido
@@ -62858,6 +62939,7 @@ const BUFFS_LIST = [];
 const ADJUSTS_LIST = [];
 const BUFF_COUNTABLE = new Set(['Asaltos','Minutos','Horas']);
 function _buffRemove(i){
+  try{ const _b = BUFFS_LIST[i]; window.logAction && window.logAction('combate','buff eliminado', _b && _b.name); }catch(_){}
   BUFFS_LIST.splice(i,1);
   rebuildBuffModTotals();
   renderBuffs();
@@ -62922,7 +63004,9 @@ function renderAdjusts(){
     </div>`).join('');
   c.querySelectorAll('[data-adj-del]').forEach(btn=>{
     btn.addEventListener('click',()=>{
-      ADJUSTS_LIST.splice(+btn.dataset.adjDel,1);
+      const _idx = +btn.dataset.adjDel;
+      try{ const _a = ADJUSTS_LIST[_idx]; window.logAction && window.logAction('combate','ajuste eliminado', _a && _a.name); }catch(_){}
+      ADJUSTS_LIST.splice(_idx,1);
       rebuildBuffModTotals();
       renderAdjusts();
       if(typeof CombatEngine!=='undefined') CombatEngine.apply();
@@ -63035,8 +63119,10 @@ function renderFeatsCrud(){
     b.addEventListener('click',e=>{
       e.stopPropagation();
       const idx = +b.dataset.featDel;
+      const _delName = FEATS[idx] && FEATS[idx].n;
       if(typeof pushUndoSnapshot === 'function' && FEATS[idx]) pushUndoSnapshot('Eliminar dote ' + FEATS[idx].n);
       FEATS.splice(idx,1);
+      try{ window.logAction && window.logAction('dote','dote eliminada', _delName||'?'); }catch(_){}
       renderFeatsCrud();
     });
   });
@@ -63138,6 +63224,7 @@ function bindCustomAdds(){
       const name = lgIn.value.trim();
       if(!name) return;
       if(typeof addCustomLanguage==='function') addCustomLanguage(name);
+      try{ window.logAction && window.logAction('personaje','idioma añadido', name); }catch(_){}
       lgIn.value='';
       if(typeof toast==='function') toast('Idioma añadido');
     });
@@ -63202,6 +63289,7 @@ function bindFormSheets(){
     if(!n){ toast('Falta nombre'); return; }
     const qtyN = parseInt(qty,10)||0;
     BUFFS_LIST.push({name:n,mod:m,dur,qty:qtyN,remaining:qtyN,notes});
+    try{ window.logAction && window.logAction('combate','buff añadido', n); }catch(_){}
     ['buff-name','buff-mod','buff-notes'].forEach(id=>document.getElementById(id).value='');
     rebuildBuffModTotals();
     renderBuffs();
@@ -63218,6 +63306,7 @@ function bindFormSheets(){
     const notes = document.getElementById('adj-notes').value.trim();
     if(!n){ toast('Falta nombre'); return; }
     ADJUSTS_LIST.push({name:n,mod:m,notes});
+    try{ window.logAction && window.logAction('combate','ajuste añadido', n); }catch(_){}
     ['adj-name','adj-mod','adj-notes'].forEach(id=>document.getElementById(id).value='');
     rebuildBuffModTotals();
     renderAdjusts();
@@ -63595,6 +63684,7 @@ function bindFormSheets(){
     if(!t.trim() && !b.trim()){ if(typeof toast==='function') toast('Vacío'); return; }
     if(typeof COMBAT_NOTES === 'undefined') window.COMBAT_NOTES = [];
     COMBAT_NOTES.push({t:t.trim()||'(sin título)', body:b.trim(), at:Date.now()});
+    try{ window.logAction && window.logAction('ajustes','nota de combate guardada', t.trim()||'(sin título)'); }catch(_){}
     document.getElementById('combat-note-title').value='';
     document.getElementById('combat-note-body').value='';
     renderCombatNotesList();
@@ -63603,11 +63693,17 @@ function bindFormSheets(){
   });
   // Sync inputs PG temp / no letales con overlays visuales
   const pgTempInput = document.getElementById('pg-temp');
+  if(pgTempInput) pgTempInput.addEventListener('change',()=>{
+    try{ window.logAction && window.logAction('combate','PG temporales cambiados', pgTempInput.value); }catch(_){}
+  });
   if(pgTempInput) pgTempInput.addEventListener('input',()=>{
     hpTemp = Math.max(0, parseInt(pgTempInput.value,10)||0);
     refreshHP();
   });
   const pgNlInput = document.getElementById('pg-nonlethal');
+  if(pgNlInput) pgNlInput.addEventListener('change',()=>{
+    try{ window.logAction && window.logAction('combate','PG no letales cambiados', pgNlInput.value); }catch(_){}
+  });
   if(pgNlInput) pgNlInput.addEventListener('input',()=>{
     hpNonlethal = Math.max(0, parseInt(pgNlInput.value,10)||0);
     refreshHP();
@@ -63617,6 +63713,7 @@ function bindFormSheets(){
   if(rest) rest.addEventListener('click',()=>{
     SLOT_STATE.forEach(s=>{ s.used=0; });
     SPELLS_DATA.forEach(s=>s.cast=false);
+    try{ window.logAction && window.logAction('conjuro','descanso 8h: slots restaurados'); }catch(_){}
     renderSlots(); renderSpells();
     toast('8h descansadas. Slots restaurados.');
   });
@@ -63625,6 +63722,7 @@ function bindFormSheets(){
     b.addEventListener('click',()=>{
       spellFilter = b.dataset.sf;
       document.querySelectorAll('#spell-filter button').forEach(x=>x.classList.toggle('active',x===b));
+      try{ window.logAction && window.logAction('conjuro','filtro conjuros', spellFilter); }catch(_){}
       renderSpells();
     });
   });
@@ -63737,6 +63835,7 @@ function saveChromancerTheme(){
   const css = (cssInp.value||'').trim();
   if(!css){ toast('Pega el CSS primero'); return; }
   const parsed = parseChromancerCss(css, nameInp.value.trim());
+  try{ window.logAction && window.logAction('ajustes','tema personalizado guardado', parsed.name||parsed.slug); }catch(_){}
   injectChromancerTheme(parsed.slug, parsed.css);
   // persist
   let lib = [];
@@ -63856,6 +63955,17 @@ function bindAttrInputs(){
     const card = inp.closest('.attr-card');
     recalcAttrCard(card);
   });
+  /* Log de cambios de atributo al terminar la edición (change real del usuario).
+     _applyAttrMethod dispatcha 'change' programáticamente; lo filtramos vía isTrusted. */
+  grid.addEventListener('change', (e)=>{
+    const inp = e.target;
+    if(!(inp && inp.matches('input[data-mod]'))) return;
+    if(!e.isTrusted) return;
+    const slot = inp.dataset.mod;
+    if(slot === 'age') return;
+    const abbr = inp.dataset.attr || inp.closest('.attr-card')?.dataset.attr || '?';
+    try{ window.logAction && window.logAction('atributo', abbr+' · '+slot+' cambiado', inp.value); }catch(_){}
+  });
   __attrInputsBound = true;
 }
 
@@ -63919,6 +64029,7 @@ function bindAgeCat(){
       s.addEventListener('change',()=>{
         CURRENT_AGE_CAT = s.value;
         renderAttrs();
+        try{ window.logAction && window.logAction('personaje','categoría de edad', s.value); }catch(_){}
         toast('Categoría de edad: '+s.value);
       });
     }
@@ -64469,6 +64580,7 @@ if(__raza){
         if(!b) return;
         SKILL_FILTER = b.dataset.skFilter;
         bar.querySelectorAll('.sk-chip').forEach(x=>x.classList.toggle('active', x===b));
+        try{ window.logAction && window.logAction('aptitud','filtro habilidades', SKILL_FILTER); }catch(_){}
         renderD3Skills();
       });
     }
@@ -64550,11 +64662,13 @@ if(__raza){
               setTimeout(()=>{ window._SKILL_CAP_WARNED = false; }, 4000);
             }
           }
+          const _prevR = parseInt(ensureState(s.id).r,10)||0;
           ensureState(s.id).r = v;
           row.querySelector('.skill-total').textContent = fmtMod(calcSkillTotal(s));
           row.classList.toggle('has-warn', false);
           renderSkillCounter();
           fireSkillsChanged();
+          try{ if(_prevR!==v) window.logAction && window.logAction('aptitud','rango habilidad', s.n+' '+_prevR+'→'+v); }catch(_){}
         });
       }
     });
@@ -64681,6 +64795,7 @@ if(__raza){
       CUSTOM_SKILLS.push({slug, name, attr:chosen, cls, acp});
       saveCustomSkills();
       ensureState('custom_'+slug);
+      try{ window.logAction && window.logAction('aptitud','habilidad personalizada añadida', name+' ('+chosen+(cls?', clase':'')+')'); }catch(_){}
       try{ dlg.close(); }catch(_){ dlg.removeAttribute('open'); }
       dlg.querySelector('#d3-cs-name').value='';
       dlg.querySelector('#d3-cs-cls').checked=false;
@@ -65120,11 +65235,18 @@ function D5_renderInventory(){
   c.querySelectorAll('[data-d5-del]').forEach(b=>b.addEventListener('click',()=>{
     const id = +b.dataset.d5Del;
     const i = D5_INVENTORY.findIndex(x=>x.id===id);
-    if(i>=0){ D5_INVENTORY.splice(i,1); D5_renderInventory(); D5_recompute(); }
+    if(i>=0){
+      try{ window.logAction && window.logAction('equipo','objeto borrado', D5_INVENTORY[i].name||''); }catch(_){}
+      D5_INVENTORY.splice(i,1); D5_renderInventory(); D5_recompute();
+    }
   }));
   c.querySelectorAll('[data-d5-qty]').forEach(b=>b.addEventListener('click',()=>{
     const it = D5_INVENTORY.find(x=>x.id===+b.dataset.d5Qty);
-    if(it){ it.qty = Math.max(0,(it.qty||0)+(+b.dataset.d5D)); D5_renderInventory(); D5_recompute(); }
+    if(it){
+      it.qty = Math.max(0,(it.qty||0)+(+b.dataset.d5D));
+      try{ window.logAction && window.logAction('equipo','cantidad objeto', (it.name||'')+' x'+it.qty); }catch(_){}
+      D5_renderInventory(); D5_recompute();
+    }
   }));
   c.querySelectorAll('[data-d5-qtyin]').forEach(inp=>inp.addEventListener('change',()=>{
     const it = D5_INVENTORY.find(x=>x.id===+inp.dataset.d5Qtyin);
@@ -65205,7 +65327,10 @@ function D5_renderCoins(){
     inp.value = D5_COINS[inp.dataset.coin]||0;
     if(inp.__d5b) return; inp.__d5b=1;
     inp.addEventListener('input',()=>{
-      D5_COINS[inp.dataset.coin] = Math.max(0,parseInt(inp.value,10)||0);
+      const _coin = inp.dataset.coin;
+      const _v = Math.max(0,parseInt(inp.value,10)||0);
+      D5_COINS[_coin] = _v;
+      try{ if(window._coinLogTimer) clearTimeout(window._coinLogTimer); window._coinLogTimer = setTimeout(function(){ try{ window.logAction && window.logAction('equipo','dinero cambiado', _coin+'='+_v); }catch(_){} }, 600); }catch(_){}
       D5_recompute();
     });
   });
@@ -65321,6 +65446,7 @@ function D5_bindAddSheet(){
     if(!name){ if(typeof toast==='function') toast('Falta nombre'); return; }
     const id = (D5_INVENTORY[D5_INVENTORY.length-1]?.id||0)+1;
     D5_INVENTORY.push({id,cat,name,qty,weight,value,desc});
+    try{ window.logAction && window.logAction('equipo','objeto añadido', name+(qty>1?' x'+qty:'')); }catch(_){}
     if(typeof closeSheet==='function') closeSheet(document.getElementById('sheet-inv-add'));
     if(typeof toast==='function') toast('Objeto añadido');
     D5_renderInventory();
@@ -65353,8 +65479,9 @@ function D5_bindExternalEvents(){
 
   ['weight-override','enc-quadruped','enc-muleback'].forEach(id=>{
     const el = document.getElementById(id);
-    if(el) el.addEventListener('input',()=>D5_renderWeight());
-    if(el && el.type==='checkbox') el.addEventListener('change',()=>D5_renderWeight());
+    const _logWt = ()=>{ try{ if(window._wtLogTimer) clearTimeout(window._wtLogTimer); window._wtLogTimer = setTimeout(function(){ try{ window.logAction && window.logAction('equipo','peso ajuste manual', id+'='+(el.type==='checkbox'?(el.checked?'on':'off'):el.value)); }catch(_){} }, 600); }catch(_){} };
+    if(el) el.addEventListener('input',()=>{ _logWt(); D5_renderWeight(); });
+    if(el && el.type==='checkbox') el.addEventListener('change',()=>{ _logWt(); D5_renderWeight(); });
   });
   const speedBase = document.getElementById('speed-base');
   if(speedBase) speedBase.addEventListener('input', ()=>D5_calcEffSpeed());
@@ -66723,6 +66850,7 @@ window._androidDeliverCharacter = function(){
 };
 
 function printSheet(){
+  try{ window.logAction && window.logAction('ajustes','imprimir ficha'); }catch(_){}
   /* M-08: preparar la vista antes de imprimir
      - Abrir todos los <details>
      - Forzar render de todas las tabs (con CSS @media print, suficiente) */
@@ -66775,6 +66903,7 @@ function bindPhotoButtons(){
   document.querySelectorAll('[data-avatar-action="change"]').forEach(b=>{
     b.addEventListener('click', ev=>{
       ev.stopImmediatePropagation();
+      try{ window.logAction && window.logAction('foto','abrir selector de foto'); }catch(_){}
       if(isAndroid()){
         try{ AndroidBridge.pickPhoto(); return; }catch(e){}
       }
@@ -66782,6 +66911,7 @@ function bindPhotoButtons(){
       inp.type='file'; inp.accept='image/*';
       inp.addEventListener('change', e=>{
         const f = e.target.files && e.target.files[0]; if(!f) return;
+        try{ window.logAction && window.logAction('foto','foto cargada', f.name||'(archivo)'); }catch(_){}
         const r = new FileReader();
         r.onload = ()=> applyPhoto(String(r.result||''));
         r.readAsDataURL(f);
@@ -66790,7 +66920,7 @@ function bindPhotoButtons(){
     }, true);
   });
   document.querySelectorAll('[data-avatar-action="remove"]').forEach(b=>{
-    b.addEventListener('click', ()=>{ removePhoto(); }, true);
+    b.addEventListener('click', ()=>{ try{ window.logAction && window.logAction('foto','foto borrada'); }catch(_){} removePhoto(); }, true);
   });
 }
 
@@ -66900,7 +67030,9 @@ function wireSettingsClear(){
     const ok = (typeof appConfirm === 'function')
       ? await appConfirm(I18N_msg('settingsClearConfirm'), {title:'Limpiar todos los datos', okText:'Borrar todo', cancelText:'Cancelar'})
       : confirm(I18N_msg('settingsClearConfirm'));
+    try{ window.logAction && window.logAction('ajustes','confirmación', 'limpiar datos = '+(ok?'ok':'cancel')); }catch(_){}
     if(ok){
+      try{ window.logAction && window.logAction('ajustes','datos limpiados'); }catch(_){}
       try{ localStorage.removeItem(STATE_KEY); }catch(e){}
       try{ localStorage.removeItem('ficha-theme'); localStorage.removeItem('ficha-lang'); localStorage.removeItem('ficha-tab'); }catch(e){}
       window.STATE = blankState();
@@ -66916,7 +67048,9 @@ function wireSettingsClear(){
     const ok = (typeof appConfirm === 'function')
       ? await appConfirm(msg, {title:'Empezar de cero', okText:'Empezar de cero', cancelText:'Cancelar'})
       : confirm(msg);
+    try{ window.logAction && window.logAction('ajustes','confirmación', 'nueva ficha = '+(ok?'ok':'cancel')); }catch(_){}
     if(ok){
+      try{ window.logAction && window.logAction('ajustes','nueva ficha'); }catch(_){}
       try{ localStorage.removeItem(STATE_KEY); }catch(e){}
       window.STATE = blankState();
       if(typeof toast==='function') toast('Ficha nueva creada. Empieza por elegir raza y clase.');
@@ -66935,6 +67069,21 @@ function wireAutosave(){
     if(e.target.matches('input,select,textarea')) saveStateDebounced('change');
     /* M-14: cualquier cambio de input/select que dispare 'change' (selects de alineamiento) */
     if(e.target.id==='al-1'||e.target.id==='al-2'||e.target.id==='al-r') try{updateTopbar();}catch(_){}
+    /* Log de cambios de identidad (solo USER-iniciados via change) */
+    try{
+      const _idMap = {
+        'in-nombre':'cambiar nombre',
+        'in-jugador':'cambiar jugador',
+        'in-raza':'cambiar raza',
+        'in-deidad':'cambiar deidad',
+        'al-1':'cambiar alineamiento (orden)',
+        'al-2':'cambiar alineamiento (moral)',
+        'm-size':'cambiar tamaño'
+      };
+      if(e.target && _idMap[e.target.id]){
+        window.logAction && window.logAction('personaje', _idMap[e.target.id], e.target.value);
+      }
+    }catch(_){}
   }, true);
   ['attr-changed','class-changed','armor-equipped','feat-changed','skill-changed',
    'weapon-changed','item-changed','cond-changed','buff-changed','adjust-changed',
@@ -67235,7 +67384,13 @@ function _openSpellsCatalog(targetLvl){
   const classSel = document.getElementById('sp-cat-class-filter');
   const lvlSel = document.getElementById('sp-cat-lvl-filter');
   const cls = (CLASSES_DATA||[])[0];
-  const cid = cls ? canonicalClassId(cls.name) : '';
+  /* 2026-05-08 BUGFIX: canonicalClassId vive dentro del IIFE de DOMINIO 4
+     y no es accesible directamente desde aquí (DOMINIO 6). Acceder vía
+     window.canonicalClassId expuesto al final del IIFE de DOMINIO 4. */
+  const _cci = (typeof window.canonicalClassId === 'function')
+                ? window.canonicalClassId
+                : (n => (n||'').toLowerCase());
+  const cid = cls ? _cci(cls.name) : '';
   const dominantKey = PJ_CLASS_TO_SPELL_KEY[cid] || 'wiz';
   classSel.innerHTML = '<option value="">Todas</option>' + Object.keys(SPELL_CLASS_LABELS).map(k=>
     `<option value="${k}"${k===dominantKey?' selected':''}>${SPELL_CLASS_LABELS[k]}</option>`
@@ -67303,8 +67458,8 @@ function _openSpellsCatalog(targetLvl){
       dlg.close();
     }));
   };
-  classSel.onchange = render;
-  lvlSel.onchange = render;
+  classSel.onchange = ()=>{ try{ window.logAction && window.logAction('conjuro','catálogo: filtro clase', classSel.value||'todas'); }catch(_){} render(); };
+  lvlSel.onchange = ()=>{ try{ window.logAction && window.logAction('conjuro','catálogo: filtro nivel', lvlSel.value===''?'todos':lvlSel.value); }catch(_){} render(); };
   search.value = '';
   search.oninput = render;
   render();
@@ -67312,6 +67467,12 @@ function _openSpellsCatalog(targetLvl){
   else dlg.showModal();
 }
 window._openSpellsCatalog = _openSpellsCatalog;
+/* 2026-05-08: BUGFIX log: _openWeaponCatalog y _openArmorCatalog viven en
+   este IIFE, así que tampoco son accesibles desde bindNewSheets (ámbito
+   global). Exponerlos también en window. */
+window._openWeaponCatalog = _openWeaponCatalog;
+window._openArmorCatalog = _openArmorCatalog;
+window._openCatalogPicker = _openCatalogPicker;
 
 /* UX-19 Fase H: pila de undo simple basada en snapshots del STATE.
    Push antes de operaciones críticas (borrar clase/dote/arma/conjuro).
@@ -67335,6 +67496,7 @@ function performUndo(){
     return false;
   }
   const snap = _UNDO_STACK.pop();
+  try{ window.logAction && window.logAction('ajustes','undo', snap.label||'cambio'); }catch(_){}
   try{
     if(typeof applyState === 'function'){
       applyState(snap.state);
@@ -67476,6 +67638,7 @@ function wireAttrGenerator(){
     const ok = await appConfirm(`Esto sobrescribirá los valores Base de los 6 atributos con el método elegido. ¿Aplicar?`, {title:labels[m] || 'Generar atributos', okText:'Aplicar', cancelText:'Cancelar'});
     if(!ok) return;
     const values = _applyAttrMethod(m);
+    try{ window.logAction && window.logAction('atributo','método aplicado', (labels[m]||m)+(m==='roll'?' ['+values.join(',')+']':'')); }catch(_){}
     const fb = document.getElementById('attr-gen-feedback');
     if(fb){
       const ATTR_LIST = ['FUE','DES','CON','INT','SAB','CAR'];
@@ -67559,6 +67722,7 @@ const _WIZ_STATE = {
 function _wizGoTo(step){
   step = Math.max(1, Math.min(6, step));
   _WIZ_STATE.step = step;
+  try{ window.logAction && window.logAction('wizard','paso '+step, 'step='+step); }catch(_){}
   document.querySelectorAll('.wiz-step').forEach(el=>{
     el.hidden = parseInt(el.dataset.wizStep,10) !== step;
   });
@@ -67755,6 +67919,7 @@ function _wizApply(){
   /* Capturar nombre + jugador */
   _WIZ_STATE.name = document.getElementById('wiz-name')?.value?.trim() || '';
   _WIZ_STATE.player = document.getElementById('wiz-player')?.value?.trim() || '';
+  try{ window.logAction && window.logAction('wizard','creación completa', _WIZ_STATE.name||'(sin nombre)'); }catch(_){}
   /* 1. Limpiar estado actual */
   try{
     if(typeof CLASSES_DATA!=='undefined') CLASSES_DATA.length = 0;
@@ -68085,10 +68250,12 @@ function _openQuickAttackSheet(weapons){
     const a = atks[i];
     const multi = atks.length>1;
     const lbl = `${w.name}${multi?' ('+(i+1)+'º atq)':''} · Ataque`;
+    try{ window.logAction && window.logAction('equipo','clic ataque rápido', lbl+' . 1d20'+a); }catch(_){}
     if(typeof performRoll==='function') performRoll({expr:'1d20'+a, label:lbl, isAttack:true});
   }));
   list.querySelectorAll('[data-qa-dmg]').forEach(b=>b.addEventListener('click',()=>{
     const w = weapons.find(x=>x.id===+b.dataset.qaDmg); if(!w) return;
+    try{ window.logAction && window.logAction('equipo','clic daño rápido', (w.name||'')+' . '+w.dmg); }catch(_){}
     if(typeof performRoll==='function') performRoll({expr:w.dmg, label:`${w.name} · Daño`, isAttack:false});
   }));
   if(typeof openSheet==='function') openSheet('sheet-quick-attack');
@@ -68203,6 +68370,7 @@ function renderSummaryBuffs(){
 }
 
 function nextRoundDecrement(){
+  try{ window.logAction && window.logAction('combate','siguiente asalto', (typeof INIT_ROUND==='number'?INIT_ROUND:'?')); }catch(_){}
   if(typeof BUFFS_LIST==='undefined') return;
   const expired = [];
   BUFFS_LIST.forEach((b,i)=>{
@@ -68256,6 +68424,7 @@ function wireRoundButton(){
       ? await appConfirm('¿Reiniciar combate? Vuelve al asalto 1 y restaura duraciones de buffs.', {title:'Reset asalto', okText:'Reset', cancelText:'Cancelar'})
       : confirm('¿Reiniciar combate?');
     if(!ok) return;
+    try{ window.logAction && window.logAction('combate','combate reiniciado', 'asalto 1'); }catch(_){}
     if(typeof INIT_ROUND === 'number') INIT_ROUND = 1;
     /* Restaurar duraciones de buffs activos a su valor original si existe */
     if(Array.isArray(BUFFS_LIST)){
@@ -68447,11 +68616,13 @@ function _mythicSurge(){
   const roll = Math.floor(Math.random()*sides) + 1;
   _MYTHIC_STATE.powerCurrent = cur - 1;
   _MYTHIC_STATE.surgesUsed = (_MYTHIC_STATE.surgesUsed || 0) + 1;
+  try{ window.logAction && window.logAction('mythic','surge gastado', '1d'+sides+'='+roll); }catch(_){}
   if(log) log.textContent = `1d${sides} = ${roll} · Power ${_MYTHIC_STATE.powerCurrent}/${_MYTHIC_STATE.powerMax}`;
   _mythicRefreshUi();
   if(typeof saveStateDebounced === 'function') saveStateDebounced('mythic-surge');
 }
 function _mythicRestDay(){
+  try{ window.logAction && window.logAction('mythic','power recargado', _MYTHIC_STATE.powerMax); }catch(_){}
   _MYTHIC_STATE.powerCurrent = _MYTHIC_STATE.powerMax;
   _MYTHIC_STATE.surgesUsed = 0;
   _mythicRefreshUi();
@@ -68587,6 +68758,7 @@ function wireMythic(){
   const cb = document.getElementById('mythic-active');
   if(cb) cb.addEventListener('change', ()=>{
     _MYTHIC_STATE.active = cb.checked;
+    try{ window.logAction && window.logAction('mythic', cb.checked?'mythic activado':'mythic desactivado', null); }catch(_){}
     _mythicRefreshUi();
     if(typeof saveStateDebounced === 'function') saveStateDebounced('mythic-active');
   });
@@ -68598,6 +68770,7 @@ function wireMythic(){
       const v = parse ? parse(el.value) : el.value;
       _MYTHIC_STATE[key] = v;
       if(key === 'tier'){
+        try{ window.logAction && window.logAction('mythic','tier cambiado', v); }catch(_){}
         const newMax = _mythicMaxPower(v);
         _MYTHIC_STATE.powerMax = newMax;
         if(_MYTHIC_STATE.powerCurrent > newMax) _MYTHIC_STATE.powerCurrent = newMax;
@@ -69004,6 +69177,7 @@ function wireRestPF1e(){
     const baseHp = Math.max(1, lvl + con);
     const healed = Math.max(1, Math.round(baseHp * mult));
     const healedNL = Math.max(1, Math.round(baseHp * 2 * mult));
+    try{ window.logAction && window.logAction('descanso','reposo largo aplicado', _REST_QUALITY+' +'+healed+' PG'); }catch(_){}
     setHP(hp + healed);
     if(typeof hpNonlethal!=='undefined'){ hpNonlethal = Math.max(0, hpNonlethal - healedNL); refreshHP(); }
     if(typeof toast==='function') toast('Reposo: +'+healed+' PG, −'+healedNL+' no letal');
@@ -69015,6 +69189,7 @@ function wireRestPF1e(){
   /* MC-1 Fase C: Descanso corto (1h) — solo recarga pools 'short' (ki, panache, grit, etc.) */
   const shortBtn = document.getElementById('btn-rest-short');
   if(shortBtn) shortBtn.addEventListener('click', ()=>{
+    try{ window.logAction && window.logAction('descanso','descanso corto'); }catch(_){}
     document.dispatchEvent(new CustomEvent('rest-short'));
     if(typeof toast==='function') toast('Descanso corto: pools de encuentro restaurados');
     if(typeof closeSheet==='function') closeSheet(document.getElementById('sheet-rest'));
@@ -69265,7 +69440,16 @@ function wireCombatTacticals(){
     try{ if(typeof D5_refreshWeaponRolls==='function') D5_refreshWeaponRolls(); }catch(e){}
   };
   document.querySelectorAll('.combat-tactical').forEach(el=>{
-    el.addEventListener('change', trigger);
+    el.addEventListener('change', ()=>{
+      try{
+        if(window.logAction){
+          const _id = el.id || '';
+          const _val = (el.type==='checkbox') ? (el.checked?'on':'off') : (el.value||'');
+          window.logAction('combate','táctica de combate', _id+'='+_val);
+        }
+      }catch(_){}
+      trigger();
+    });
   });
   /* Las condiciones también deben re-disparar el motor y armas para
      que condAtk/condAC propaguen a las cards. */
@@ -69284,6 +69468,16 @@ function wireCAAutoFill(){
   ['armor-equipped','armor-removed','attr-changed','size-changed','class-changed'].forEach(ev=>{
     document.addEventListener(ev, recomputeCAAuto);
     window.addEventListener(ev, recomputeCAAuto);
+  });
+  /* Log manual edits a las filas de CA y al campo de iniciativa misc */
+  document.querySelectorAll('#m-ca-rows input[data-ca]').forEach(inp=>{
+    inp.addEventListener('change', ()=>{
+      try{ window.logAction && window.logAction('combate','CA fila editada', inp.dataset.ca+'='+inp.value); }catch(_){}
+    });
+  });
+  const initMisc = document.getElementById('m-init-misc');
+  if(initMisc) initMisc.addEventListener('change', ()=>{
+    try{ window.logAction && window.logAction('combate','iniciativa misc cambiada', initMisc.value); }catch(_){}
   });
   /* Marcar visualmente los inputs auto */
   const css = `
