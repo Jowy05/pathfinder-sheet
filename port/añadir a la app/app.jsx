@@ -619,7 +619,9 @@ function TemplateModal({ open, onClose, onConfirm, lang }) {
   const [sizeFt, setSizeFt] = React.useState(20);
   const [angle, setAngle] = React.useState(0); // 0=norte, 90=este
   const [color, setColor] = React.useState('#a64545');
-  const [snap, setSnap] = React.useState(true); // PF1e: ajustar a casillas exactas
+  /* 2026-05-08: snap por defecto OFF — el usuario espera ver un cono triangular,
+     no una rejilla de casillas. Si quiere casillas exactas PF1e, las activa. */
+  const [snap, setSnap] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
@@ -627,7 +629,7 @@ function TemplateModal({ open, onClose, onConfirm, lang }) {
       setSizeFt(20);
       setAngle(0);
       setColor('#a64545');
-      setSnap(true);
+      setSnap(false);
     }
   }, [open]);
 
@@ -1304,12 +1306,15 @@ function MasterApp({
   // Regla PF1e 5/10/5: la 1ª diagonal cuenta 5ft, la 2ª 10, la 3ª 5...
   const GRID_PX_PER_SQUARE = 50;
   const FT_PER_SQUARE = 5;
-  /* 2026-05-08: para hex pointy-top, distancia entre centros adyacentes = SQ (alineado).
-     Convertimos coords a axiales (q,r) y usamos cube distance. Así 2 hex contiguos = 5ft. */
+  /* 2026-05-08: hex FLAT-TOP — distancia entre centros adyacentes = SQ.
+     Cube distance via axial coords. Para flat-top:
+       q = (2/3 * x) / s
+       r = (-x/3 + sqrt(3)/3 * y) / s
+     Con s = SQ/sqrt(3) ≈ 28.87. Tap en celda directamente arriba/abajo = 1 step = 5ft. */
   const _pxToAxial = (x, y) => {
-    const s = GRID_PX_PER_SQUARE / Math.sqrt(3); // mismo s que en map.jsx
-    const q = (Math.sqrt(3)/3 * x - 1/3 * y) / s;
-    const r = (2/3 * y) / s;
+    const s = GRID_PX_PER_SQUARE / Math.sqrt(3);
+    const q = (2/3 * x) / s;
+    const r = (-x/3 + Math.sqrt(3)/3 * y) / s;
     return { q, r };
   };
   const _axialRound = (q, r) => {

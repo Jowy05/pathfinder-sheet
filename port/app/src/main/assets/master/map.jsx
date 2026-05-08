@@ -415,27 +415,35 @@ function MstMap({
           <div className="mst-map-bg-image" style={{ backgroundImage: `url(${mapBg.value})` }}/>
         )}
         {gridType === 'hex' && (() => {
-          // 2026-05-08: hex pointy-top alineado a SQ (5ft = SQ px).
-          // Para que la distancia entre centros adyacentes sea SQ (5ft),
-          // necesitamos w = SQ → s = SQ/sqrt(3). Antes era s=30 fijo y los
-          // tokens (basados en SQ=50px) no encajaban con los hexágonos.
-          const s = SQ / Math.sqrt(3);         // ~28.87 si SQ=50
-          const w = SQ;                        // distancia horizontal entre centros = SQ (5ft)
-          const h = 2 * s;                     // ~57.74
-          const vstep = 1.5 * s;               // ~43.30
-          const cols = Math.ceil(encounter.grid.w / w) + 2;
+          // 2026-05-08: hex FLAT-TOP (lado plano arriba/abajo).
+          // Antes era pointy-top: el usuario tocaba 2 hex que se veían
+          // alineados verticalmente y la métrica devolvía 10ft (era 2 cells
+          // por el zigzag). En flat-top hay vecinos directos arriba/abajo
+          // → tap "celda de arriba" siempre = 5ft.
+          //
+          // Geometría flat-top, side s, neighbor distance = sqrt(3)*s:
+          //   ⇒ para neighbor=SQ: s = SQ/sqrt(3) ≈ 28.87
+          //   width  = 2*s        ≈ 57.74  (de vértice izq a vértice der)
+          //   height = sqrt(3)*s  = SQ     (50)
+          //   hstep  = 1.5*s      ≈ 43.30  (col→col)
+          //   vstep  = sqrt(3)*s  = SQ     (row→row, misma col)
+          //   columnas impares offset por vstep/2
+          const s = SQ / Math.sqrt(3);
+          const hstep = 1.5 * s;
+          const vstep = SQ;
+          const cols = Math.ceil(encounter.grid.w / hstep) + 2;
           const rows = Math.ceil(encounter.grid.h / vstep) + 2;
           const points = (cx, cy) =>
             [0,1,2,3,4,5].map(i => {
-              const a = (Math.PI / 180) * (60 * i - 30); // pointy-top
+              const a = (Math.PI / 180) * (60 * i); // flat-top: 0°, 60°, …
               return (cx + s * Math.cos(a)).toFixed(2) + ',' + (cy + s * Math.sin(a)).toFixed(2);
             }).join(' ');
           const polys = [];
-          for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-              const cx = c * w + (r % 2 ? w / 2 : 0);
-              const cy = r * vstep;
-              polys.push(<polygon key={r+'-'+c} points={points(cx, cy)} fill="none" stroke="currentColor" strokeWidth="1"/>);
+          for (let c = 0; c < cols; c++) {
+            for (let r = 0; r < rows; r++) {
+              const cx = c * hstep;
+              const cy = r * vstep + (c % 2 ? vstep / 2 : 0);
+              polys.push(<polygon key={c+'-'+r} points={points(cx, cy)} fill="none" stroke="currentColor" strokeWidth="1"/>);
             }
           }
           return (
