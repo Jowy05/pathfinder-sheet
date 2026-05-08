@@ -58202,6 +58202,45 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
       e.reason && (e.reason.message || String(e.reason))); } catch(_){}
   });
   window.logAction('app', 'log inicializado');
+
+  /* 2026-05-08: handler delegado de respaldo. Si init6/bindNewSheets falla y el
+     wiring específico de #more-about no se registra, este capture-listener al
+     nivel de document garantiza que el clic siga abriendo el sheet. */
+  document.addEventListener('click', (e) => {
+    const t = e.target && e.target.closest && e.target.closest('#more-about');
+    if (!t) return;
+    try { window.logAction('ui', 'clic Acerca de (delegado)'); } catch(_){}
+    const dlg = document.getElementById('sheet-about');
+    if (!dlg) {
+      try { window.logAction('error', 'sheet-about no existe en DOM'); } catch(_){}
+      return;
+    }
+    // Refrescar info y log antes de mostrar
+    try {
+      const info = document.getElementById('about-build-info');
+      if (info) {
+        const stats = window.__DB_STATS && window.__DB_STATS.counts;
+        const parts = ['Build 2026-05-08'];
+        if (stats) {
+          parts.push('clases: ' + stats.classes);
+          parts.push('feats: ' + stats.feats);
+          parts.push('spells: ' + (window.DB && window.DB.spells ? window.DB.spells.length : '?'));
+        }
+        info.textContent = parts.join(' · ');
+      }
+      const list = document.getElementById('about-log-list');
+      if (list) list.textContent = window.formatActionLog ? window.formatActionLog() : '(log vacío)';
+    } catch(_){}
+    if (typeof dlg.showModal === 'function') {
+      try { dlg.showModal(); }
+      catch (err) {
+        try { window.logAction('error', 'showModal sheet-about falló', err.message); } catch(_){}
+        dlg.setAttribute('open', '');
+      }
+    } else {
+      dlg.setAttribute('open', '');
+    }
+  }, true);
 })();
 </script>
 
