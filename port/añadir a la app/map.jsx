@@ -72,18 +72,22 @@ function MstMap({
   const lastTapRef = useRef(null);
   // Timer de long-press (500ms)
   const longPressRef = useRef(null);
+  // 2026-05-08: punteros activos para pinch-zoom móvil
+  const pointersRef = useRef(new Map()); // id → {x,y}
+  const pinchRef = useRef(null);          // {dist, mid:{x,y}, scale}
 
   const gw = encounter.grid.w;
   const gh = encounter.grid.h;
 
-  // Clamp helper — pure function of rect + view + grid
+  // Clamp helper — pure function of rect + view + grid.
+  // 2026-05-08: maxScale subido de 1.8 a 4 para permitir zoom mayor en móvil.
   const clamp = useCallback((v) => {
     const el = containerRef.current;
     if (!el) return v;
     const rect = el.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return v;
     const minScale = Math.max(rect.width / gw, rect.height / gh);
-    const scale = Math.max(minScale, Math.min(1.8, v.scale));
+    const scale = Math.max(minScale, Math.min(4, v.scale));
     const scaledW = gw * scale;
     const scaledH = gh * scale;
     const minX = rect.width - scaledW;   // <= 0
@@ -155,6 +159,28 @@ function MstMap({
   };
 
   const onPointerDown = (e) => {
+    /* 2026-05-08: registrar puntero para detectar pinch-zoom */
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    /* Si ya hay 2+ punteros, iniciar pinch — se interrumpe pan/token-drag */
+    if (pointersRef.current.size >= 2) {
+      const pts = [...pointersRef.current.values()];
+      const dx = pts[0].x - pts[1].x;
+      const dy = pts[0].y - pts[1].y;
+      const dist = Math.hypot(dx, dy);
+      const rect = containerRef.current.getBoundingClientRect();
+      pinchRef.current = {
+        dist,
+        midX: (pts[0].x + pts[1].x) / 2 - rect.left,
+        midY: (pts[0].y + pts[1].y) / 2 - rect.top,
+        scale: viewRef.current.scale,
+        vx: viewRef.current.x,
+        vy: viewRef.current.y,
+      };
+      /* Cancelar cualquier drag/long-press en curso */
+      if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current = null; }
+      dragState.current = null;
+      return;
+    }
     if (measureMode) {
       e.preventDefault();
       const pt = screenToGrid(e.clientX, e.clientY);
@@ -192,6 +218,29 @@ function MstMap({
     };
   };
   const onPointerMove = (e) => {
+    /* 2026-05-08: si pinch activo, recomputar scale + pan en vivo */
+    if (pointersRef.current.has(e.pointerId)) {
+      pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
+    if (pinchRef.current && pointersRef.current.size >= 2) {
+      const pts = [...pointersRef.current.values()];
+      const dx = pts[0].x - pts[1].x;
+      const dy = pts[0].y - pts[1].y;
+      const dist = Math.hypot(dx, dy);
+      const p = pinchRef.current;
+      const k = dist / Math.max(1, p.dist);
+      const newScale = p.scale * k;
+      // mantener el midpoint del pinch como punto fijo del zoom
+      setView(v => {
+        const ns = newScale;
+        const mx = p.midX, my = p.midY;
+        const ratio = ns / p.scale;
+        const nx = mx - (mx - p.vx) * ratio;
+        const ny = my - (my - p.vy) * ratio;
+        return clamp({ scale: ns, x: nx, y: ny });
+      });
+      return;
+    }
     const d = dragState.current;
     if (!d || d.id !== e.pointerId) return;
     if (d.type === 'pan') {
@@ -213,6 +262,8 @@ function MstMap({
     }
   };
   const onPointerUp = (e) => {
+    pointersRef.current.delete(e.pointerId);
+    if (pointersRef.current.size < 2) pinchRef.current = null;
     const d = dragState.current;
     if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current = null; }
     if (d && d.type === 'note' && !d.moved) {
@@ -229,7 +280,7 @@ function MstMap({
     setView(v => {
       const rect = containerRef.current.getBoundingClientRect();
       const minScale = Math.max(rect.width / gw, rect.height / gh);
-      const ns = Math.max(minScale, Math.min(1.8, v.scale * factor));
+      const ns = Math.max(minScale, Math.min(4, v.scale * factor));
       const mx = e.clientX - rect.left;
       const my = e.clientY - rect.top;
       const k = ns / v.scale;
@@ -328,14 +379,14 @@ function MstMap({
           <div className="mst-map-bg-image" style={{ backgroundImage: `url(${mapBg.value})` }}/>
         )}
         {gridType === 'hex' && (() => {
-          // Clean pointy-top honeycomb. Hex with side s=30:
-          // width = sqrt(3)*s ≈ 51.96, height = 2*s = 60.
-          // Vertical spacing between rows = 1.5*s = 45.
-          // Odd rows offset by w/2.
-          const s = 30;
-          const w = Math.sqrt(3) * s;          // 51.96
-          const h = 2 * s;                     // 60
-          const vstep = 1.5 * s;               // 45
+          // 2026-05-08: hex pointy-top alineado a SQ (5ft = SQ px).
+          // Para que la distancia entre centros adyacentes sea SQ (5ft),
+          // necesitamos w = SQ → s = SQ/sqrt(3). Antes era s=30 fijo y los
+          // tokens (basados en SQ=50px) no encajaban con los hexágonos.
+          const s = SQ / Math.sqrt(3);         // ~28.87 si SQ=50
+          const w = SQ;                        // distancia horizontal entre centros = SQ (5ft)
+          const h = 2 * s;                     // ~57.74
+          const vstep = 1.5 * s;               // ~43.30
           const cols = Math.ceil(encounter.grid.w / w) + 2;
           const rows = Math.ceil(encounter.grid.h / vstep) + 2;
           const points = (cx, cy) =>

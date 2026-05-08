@@ -994,9 +994,11 @@ function MasterApp({
   const [buffPickerOpen, setBuffPickerOpen] = useStateA(false);
   const [buffPickerTarget, setBuffPickerTarget] = useStateA(null);
   const [editTokenId, setEditTokenId] = useStateA(null);
-  /* MST-J05: snap-to-grid opcional al mover tokens */
+  /* MST-J05: snap-to-grid opcional al mover tokens.
+     2026-05-08: por defecto OFF — los tokens se mueven libres por el mapa.
+     El usuario puede activarlo desde ajustes si quiere alinear a casilla. */
   const [snapToGrid, setSnapToGrid] = useStateA(() => {
-    try { return localStorage.getItem('mst-snap-to-grid') !== '0'; } catch (_) { return true; }
+    try { return localStorage.getItem('mst-snap-to-grid') === '1'; } catch (_) { return false; }
   });
   useEffectA(() => {
     try { localStorage.setItem('mst-snap-to-grid', snapToGrid ? '1' : '0'); } catch (_) {}
@@ -1302,20 +1304,44 @@ function MasterApp({
   // Regla PF1e 5/10/5: la 1ª diagonal cuenta 5ft, la 2ª 10, la 3ª 5...
   const GRID_PX_PER_SQUARE = 50;
   const FT_PER_SQUARE = 5;
+  /* 2026-05-08: para hex pointy-top, distancia entre centros adyacentes = SQ (alineado).
+     Convertimos coords a axiales (q,r) y usamos cube distance. Así 2 hex contiguos = 5ft. */
+  const _pxToAxial = (x, y) => {
+    const s = GRID_PX_PER_SQUARE / Math.sqrt(3); // mismo s que en map.jsx
+    const q = (Math.sqrt(3)/3 * x - 1/3 * y) / s;
+    const r = (2/3 * y) / s;
+    return { q, r };
+  };
+  const _axialRound = (q, r) => {
+    const x = q, z = r, y = -x - z;
+    let rx = Math.round(x), ry = Math.round(y), rz = Math.round(z);
+    const dx = Math.abs(rx - x), dy = Math.abs(ry - y), dz = Math.abs(rz - z);
+    if (dx > dy && dx > dz) rx = -ry - rz;
+    else if (dy > dz) ry = -rx - rz;
+    else rz = -rx - ry;
+    return { q: rx, r: rz };
+  };
   const computePathfinderDistance = (a, b) => {
     if (!a || !b) return null;
+    const euclideanFt = Math.round(Math.hypot(b.x - a.x, b.y - a.y) / GRID_PX_PER_SQUARE * FT_PER_SQUARE);
+    if (gridType === 'hex') {
+      const A = _axialRound(_pxToAxial(a.x, a.y).q, _pxToAxial(a.x, a.y).r);
+      const B = _axialRound(_pxToAxial(b.x, b.y).q, _pxToAxial(b.x, b.y).r);
+      const dq = A.q - B.q, dr = A.r - B.r;
+      const hexDist = (Math.abs(dq) + Math.abs(dq + dr) + Math.abs(dr)) / 2;
+      return { squares: hexDist, ft: hexDist * FT_PER_SQUARE, euclideanFt };
+    }
     const dx = Math.abs(b.x - a.x) / GRID_PX_PER_SQUARE;
     const dy = Math.abs(b.y - a.y) / GRID_PX_PER_SQUARE;
     const diag = Math.min(dx, dy);
     const orth = Math.max(dx, dy) - diag;
-    // 5/10/5: cada par de diagonales cuesta 15ft (=3 cuadros)
     const diagCost = Math.floor(diag) + Math.floor(diag / 2);
     const fractional = (diag - Math.floor(diag));
     const totalSquares = orth + diagCost + fractional;
     return {
       squares: totalSquares,
       ft: Math.round(totalSquares * FT_PER_SQUARE),
-      euclideanFt: Math.round(Math.hypot(b.x - a.x, b.y - a.y) / GRID_PX_PER_SQUARE * FT_PER_SQUARE),
+      euclideanFt,
     };
   };
   const onMeasureClick = (point) => {

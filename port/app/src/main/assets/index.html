@@ -56681,7 +56681,7 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
         <h3 class="card-title"><span class="ornament">🎲</span><span>Generador de atributos</span><span class="ornament">🎲</span></h3>
         <div style="font:11px/1.4 system-ui;color:var(--ink-muted);margin-bottom:8px">Aplica un método de generación al campo Base de cada atributo.</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-          <button class="btn-secondary attr-gen-btn" data-gen="standard" style="font-size:11px">Standard Array (15,14,13,12,10,8)</button>
+          <button class="btn-secondary attr-gen-btn" data-gen="custom" style="font-size:11px">✏ Personalizado</button>
           <button class="btn-secondary attr-gen-btn" data-gen="pb15" style="font-size:11px">Point-Buy 15</button>
           <button class="btn-secondary attr-gen-btn" data-gen="pb20" style="font-size:11px">Point-Buy 20</button>
           <button class="btn-secondary attr-gen-btn" data-gen="pb25" style="font-size:11px">Point-Buy 25</button>
@@ -60628,24 +60628,58 @@ function renderClasses(){
     inp.addEventListener('click',()=>{
       const classId = +inp.dataset.classId;
       const list = document.getElementById('class-list');
-      fillPickerTriple(list, getClassPickerData(), ([n,,k])=>{
+      const search = document.getElementById('class-search');
+      const allData = getClassPickerData();
+      const onPick = ([n,,k])=>{
         const cl = CLASSES_DATA.find(x=>x.id===classId);
         if(!cl) return;
         cl.name = n; cl.classKey = k||'';
-        // Auto-fill HD from DB
         const dbCls = k && DB.classes?.[k];
         if(dbCls) cl.hd = `1d${dbCls.hit_die||8}`;
-        // Reset archetype when class changes
         cl.archetype = '—'; cl.archetypeKey = '';
         renderClasses();
         closeSheet(document.getElementById('sheet-class-picker'));
         toast('Clase: '+n);
-        // Auto-add class features
         _triggerClassFeaturesFor(cl);
-        /* P-04: dispara recálculo de BAB/HP/saves/skills/conjuros */
         document.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'name',id:classId,name:n}}));
         window.dispatchEvent(new CustomEvent('class-changed',{detail:{action:'name',id:classId,name:n}}));
         if(typeof saveStateDebounced==='function') saveStateDebounced('class-name');
+      };
+      /* 2026-05-07 BUGFIX: cuando tap en class-name (cambiar clase existente),
+         antes solo se abría fillPickerTriple sin wiring del search ni chips.
+         Ahora aplica el mismo flow que class-add (filtros completos). */
+      let _ccFilter = 'all';
+      let _ccQuery = '';
+      const apply = ()=>{
+        const q = _ccQuery.toLowerCase();
+        const filtered = allData.filter(([n,d,k])=>{
+          if(_ccFilter !== 'all'){
+            const cat = (DB.classes?.[k]?.category || 'base').toLowerCase();
+            if(cat !== _ccFilter) return false;
+          }
+          if(q && !(n+(d||'')).toLowerCase().includes(q)) return false;
+          return true;
+        });
+        fillPickerTriple(list, filtered, onPick);
+      };
+      apply();
+      if(search){
+        search.value = '';
+        _ccQuery = '';
+        search.oninput = ()=>{ _ccQuery = search.value; apply(); };
+      }
+      const chips = document.querySelectorAll('#class-cat-chips .chip-cat');
+      chips.forEach(c=>c.classList.remove('is-active'));
+      const allChip = document.querySelector('#class-cat-chips .chip-cat[data-cat="all"]');
+      if(allChip) allChip.classList.add('is-active');
+      _ccFilter = 'all';
+      chips.forEach(ch=>{
+        ch.onclick = ()=>{
+          chips.forEach(c=>c.classList.remove('is-active'));
+          ch.classList.add('is-active');
+          _ccFilter = ch.dataset.cat || 'all';
+          apply();
+        };
       });
       openSheet('sheet-class-picker');
     });
@@ -60705,6 +60739,29 @@ function renderClasses(){
         };
       });
       openSheet('sheet-archetype-picker');
+    });
+  });
+
+  /* 2026-05-07 BUGFIX: el input "PG total" no tenía handler. El usuario tecleaba
+     un número y al pasar 5s el auto-refresh re-renderizaba con el valor viejo
+     de cl.hp y la edición se perdía. Ahora el change persiste a cl.hp y
+     marca el campo como user-edited para que calcHPMax respete el override. */
+  c.querySelectorAll('.class-card input[type="number"][data-class-id]').forEach(inp=>{
+    /* Solo el input que NO es .class-level (ya tiene su listener) ni .field-input genérico
+       — el de PG total. Identificarlo por su label hermano. */
+    const lbl = inp.closest('.field')?.querySelector('.field-label')?.textContent || '';
+    if(!/PG\s*total/i.test(lbl)) return;
+    inp.addEventListener('change', ()=>{
+      const classId = +inp.dataset.classId;
+      const cl = CLASSES_DATA.find(x=>x.id===classId);
+      if(!cl) return;
+      const lvl = parseInt(cl.level,10) || 1;
+      const v = Math.max(lvl, parseInt(inp.value,10) || lvl);
+      cl.hp = v;
+      cl._auto = false; /* user edit takes precedence over auto-calc */
+      inp.value = v;
+      if(typeof CombatEngine!=='undefined' && CombatEngine.apply) CombatEngine.apply();
+      if(typeof saveStateDebounced==='function') saveStateDebounced('class-hp');
     });
   });
 
@@ -62987,6 +63044,9 @@ function bindFormSheets(){
     FEATS.push({n,t,prereq:p,d:d||'(sin descripción)'});
     ['feat-name','feat-prereq','feat-desc'].forEach(id=>document.getElementById(id).value='');
     renderFeatsCrud();
+    /* 2026-05-08: forzar recalculo de saves/AC/init para aplicar bonos de la dote */
+    try{ if(typeof CombatEngine!=='undefined' && CombatEngine.apply) CombatEngine.apply(); }catch(_){}
+    try{ if(typeof recalc==='function') recalc(); }catch(_){}
     if(typeof saveStateDebounced==='function') saveStateDebounced('feat-add-custom');
     closeSheet(document.getElementById('sheet-feat-add'));
     toast('Dote añadida');
@@ -63126,6 +63186,9 @@ function bindFormSheets(){
         const t = _featTypeMap(f.type);
         FEATS.push({n:name, t, prereq:prereq||'', d:desc||'(sin descripción)'});
         renderFeatsCrud();
+        /* 2026-05-08: forzar recalculo para que la dote afecte a saves/AC/init */
+        try{ if(typeof CombatEngine!=='undefined' && CombatEngine.apply) CombatEngine.apply(); }catch(_){}
+        try{ if(typeof recalc==='function') recalc(); }catch(_){}
         if(typeof saveStateDebounced==='function') saveStateDebounced('feat-add-catalog');
         closeSheet(document.getElementById('sheet-feat-pick'));
         toast((lang==='en'?'Feat added: ':'Dote añadida: ')+name);
@@ -65349,8 +65412,8 @@ const CombatEngine = (function(){
        Versiones mejoradas (Improved) acumulan +2 más (en PF1e dan re-roll, simplificado). */
     const featFort = (hasFeatByName(/gran\s+fortaleza|great\s+fortitude/i) ? 2 : 0)
                    + (hasFeatByName(/gran\s+fortaleza\s+mejorada|improved\s+great\s+fortitude/i) ? 2 : 0);
-    const featRef  = (hasFeatByName(/reflejos?\s+felinos?|lightning\s+reflexes/i) ? 2 : 0)
-                   + (hasFeatByName(/reflejos?\s+felinos?\s+mejorad|improved\s+lightning\s+reflexes/i) ? 2 : 0);
+    const featRef  = (hasFeatByName(/reflejos?\s+r[áa]pidos?|lightning\s+reflexes/i) ? 2 : 0)
+                   + (hasFeatByName(/reflejos?\s+r[áa]pidos?\s+mejorad|improved\s+lightning\s+reflexes/i) ? 2 : 0);
     const featWill = (hasFeatByName(/voluntad\s+de\s+hierro|iron\s+will/i) ? 2 : 0)
                    + (hasFeatByName(/voluntad\s+de\s+hierro\s+mejorada|improved\s+iron\s+will/i) ? 2 : 0);
     return {
@@ -67145,8 +67208,10 @@ function _populateBuffTemplates(){
 function _applyAttrMethod(method){
   const ATTR_LIST = ['FUE','DES','CON','INT','SAB','CAR'];
   let values = [];
-  if(method === 'standard'){
-    values = [15,14,13,12,10,8];
+  if(method === 'custom' || method === 'standard'){
+    /* 2026-05-07: 'custom' (antes standard) — todos a 10. El usuario edita
+       manualmente sin restricciones de budget ni Standard Array fijo. */
+    values = [10,10,10,10,10,10];
   } else if(method === 'pb15' || method === 'pb20' || method === 'pb25'){
     /* Point-buy: empezar todos a 10, el usuario reparte después */
     values = [10,10,10,10,10,10];
@@ -67172,7 +67237,7 @@ function _applyAttrMethod(method){
 function wireAttrGenerator(){
   document.querySelectorAll('.attr-gen-btn').forEach(b=>b.addEventListener('click', async ()=>{
     const m = b.dataset.gen;
-    const labels = {standard:'Standard Array', pb15:'Point-Buy 15', pb20:'Point-Buy 20', pb25:'Point-Buy 25', roll:'4d6 drop lowest'};
+    const labels = {custom:'Personalizado', standard:'Personalizado', pb15:'Point-Buy 15', pb20:'Point-Buy 20', pb25:'Point-Buy 25', roll:'4d6 drop lowest'};
     const ok = await appConfirm(`Esto sobrescribirá los valores Base de los 6 atributos con el método elegido. ¿Aplicar?`, {title:labels[m] || 'Generar atributos', okText:'Aplicar', cancelText:'Cancelar'});
     if(!ok) return;
     const values = _applyAttrMethod(m);
