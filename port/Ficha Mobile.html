@@ -57241,9 +57241,10 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
     </div>
     <div style="height:8px"></div>
     <div class="more-list">
-      <button class="more-row" style="cursor:default;pointer-events:none;opacity:.7">
+      <button class="more-row" id="more-about">
         <span class="more-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg></span>
         <span class="more-label">Acerca de · v1.0</span>
+        <span class="more-chev">›</span>
       </button>
     </div>
   </section>
@@ -57379,6 +57380,31 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
         <span class="switch"><input type="checkbox" id="master-toggle"><span class="slider"></span></span>
       </label>
     </div>
+  </div>
+</dialog>
+
+<!-- 2026-05-08: sheet "Acerca de" con log de acciones para depuración / debug del usuario.
+     El log se llena vía window.logAction(category, msg) llamado desde los handlers. -->
+<dialog class="bottom-sheet" id="sheet-about" aria-label="Acerca de y log de acciones">
+  <div class="drag-handle"></div>
+  <div class="sheet-header">
+    <div class="sheet-title">Acerca de · v1.0</div>
+    <button class="sheet-close" data-close>✕</button>
+  </div>
+  <div class="sheet-content">
+    <div style="display:grid;gap:6px;font:13px/1.4 system-ui;color:var(--ink);margin-bottom:14px">
+      <div><b>Pathfinder 1e — Hoja móvil</b></div>
+      <div style="color:var(--ink-muted);font-size:12px">SPA estática · sin servidor · datos en JSON local + fallback inline.</div>
+      <div style="color:var(--ink-muted);font-size:12px" id="about-build-info">Build: ?</div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="font-weight:600;font-family:'Cinzel',serif">📋 Log de acciones</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn-secondary" id="about-log-copy" style="font-size:11px;padding:4px 8px">Copiar</button>
+        <button class="btn-secondary" id="about-log-clear" style="font-size:11px;padding:4px 8px">Limpiar</button>
+      </div>
+    </div>
+    <div id="about-log-list" style="max-height:55vh;overflow:auto;font:11px/1.4 ui-monospace,Consolas,monospace;background:rgba(0,0,0,.18);border:1px solid var(--line);border-radius:6px;padding:8px;white-space:pre-wrap;word-break:break-word"></div>
   </div>
 </dialog>
 
@@ -58107,6 +58133,77 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
 </dialog>
 
 <div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* 2026-05-08: log de acciones global accesible desde "Acerca de · v1.0".
+   - window.logAction(category, msg, details?) — registra evento timestamped.
+   - capped a 500 entradas; exceso se descarta por la cabeza.
+   - persistente en localStorage entre sesiones (para depurar bugs reportados).
+   - también espeja a console.debug para verlo en chrome://inspect. */
+(function(){
+  'use strict';
+  if (window.logAction) return; // ya inicializado
+  const KEY = 'ficha-action-log';
+  const MAX = 500;
+  let buffer;
+  try {
+    const raw = localStorage.getItem(KEY);
+    buffer = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(buffer)) buffer = [];
+  } catch (_) { buffer = []; }
+  let pendingFlush = null;
+  function flush(){
+    pendingFlush = null;
+    try { localStorage.setItem(KEY, JSON.stringify(buffer.slice(-MAX))); } catch(_){}
+  }
+  function fmtTime(ts){
+    const d = new Date(ts);
+    const pad = n => String(n).padStart(2,'0');
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${String(d.getMilliseconds()).padStart(3,'0')}`;
+  }
+  window.logAction = function(category, msg, details){
+    try {
+      const entry = {
+        ts: Date.now(),
+        cat: String(category || '?').slice(0, 24),
+        msg: String(msg || '').slice(0, 240),
+        det: (details === undefined || details === null) ? null
+            : (typeof details === 'string' ? details.slice(0, 400)
+            : JSON.stringify(details).slice(0, 400))
+      };
+      buffer.push(entry);
+      if (buffer.length > MAX) buffer = buffer.slice(-MAX);
+      if (pendingFlush) clearTimeout(pendingFlush);
+      pendingFlush = setTimeout(flush, 400);
+      try { console.debug('[log]', entry.cat, entry.msg, entry.det || ''); } catch(_){}
+      // Si el sheet about está abierto, refrescar en vivo
+      if (window.__aboutLogRender) try { window.__aboutLogRender(); } catch(_){}
+    } catch(_){}
+  };
+  window.getActionLog = function(){ return buffer.slice(); };
+  window.clearActionLog = function(){
+    buffer = [];
+    try { localStorage.removeItem(KEY); } catch(_){}
+    if (window.__aboutLogRender) try { window.__aboutLogRender(); } catch(_){}
+  };
+  window.formatActionLog = function(){
+    if (!buffer.length) return '(log vacío)';
+    return buffer.slice().reverse().map(e =>
+      `[${fmtTime(e.ts)}] ${e.cat.padEnd(10)} · ${e.msg}${e.det?'  →  '+e.det:''}`
+    ).join('\n');
+  };
+  // Captura de errores no manejados → aparecen también en el log
+  window.addEventListener('error', e => {
+    try { window.logAction('error', e.message || 'unhandled error',
+      (e.filename ? (e.filename.split('/').pop() + ':' + e.lineno) : null)); } catch(_){}
+  });
+  window.addEventListener('unhandledrejection', e => {
+    try { window.logAction('error', 'promise rejected',
+      e.reason && (e.reason.message || String(e.reason))); } catch(_){}
+  });
+  window.logAction('app', 'log inicializado');
+})();
+</script>
 
 <script>
 /* ═══════════════════════════════════════════════════════════════
@@ -58911,6 +59008,7 @@ function renderThemes(){
 
 /* ─── TABS / SUBTABS ─── */
 function setTab(name){
+  try{ window.logAction && window.logAction('nav','cambiar pestaña', name); }catch(_){}
   document.querySelectorAll('.tab-page').forEach(p=>p.classList.toggle('active',p.dataset.tab===name));
   document.querySelectorAll('.tab-btn').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===name));
   document.body.classList.toggle('tab-mas',name==='mas');
@@ -58993,10 +59091,17 @@ document.querySelectorAll('[data-hp]').forEach(b=>{
 let __sheetReturnFocus = null;
 function openSheet(id){
   const s = document.getElementById(id);
-  if(!s) return;
+  if(!s){
+    try{ window.logAction && window.logAction('sheet','openSheet FALLÓ - id no existe', id); }catch(_){}
+    return;
+  }
+  try{ window.logAction && window.logAction('sheet','openSheet', id); }catch(_){}
   __sheetReturnFocus = document.activeElement;
   if(typeof s.showModal==='function'){
-    try{ s.showModal(); }catch(e){ s.setAttribute('open',''); }
+    try{ s.showModal(); }catch(e){
+      try{ window.logAction && window.logAction('error','showModal falló: '+id, e.message); }catch(_){}
+      s.setAttribute('open','');
+    }
   } else {
     s.setAttribute('open','');
   }
@@ -60458,6 +60563,13 @@ async function loadDB() {
   };
   console.log('[loadDB]', counts, failed.length?'FALLOS: '+failed.join(', '):'OK');
   window.__DB_STATS = {counts, failed};
+  try{
+    const eqW = (DB.equipment && Array.isArray(DB.equipment.weapons)) ? DB.equipment.weapons.length : '?';
+    const eqA = (DB.equipment && Array.isArray(DB.equipment.armors)) ? DB.equipment.armors.length : '?';
+    window.logAction && window.logAction('db','DB cargado',
+      'classes='+counts.classes+' feats='+counts.feats+' spells='+(DB.spells?DB.spells.length:0)+
+      ' weapons='+eqW+' armors='+eqA+(failed.length?(' FALLOS:'+failed.join(',')):''));
+  }catch(_){}
 }
 
 function getClassPickerData() {
@@ -62330,6 +62442,55 @@ function bindNewSheets(){
   /* M-09: warnings sheet */
   const warnBtn = document.getElementById('more-warnings');
   if(warnBtn) warnBtn.addEventListener('click',()=>{ if(typeof renderWarnings==='function') renderWarnings(); openSheet('sheet-warnings'); });
+  /* 2026-05-08: "Acerca de · v1.0" abre sheet con log de acciones */
+  const aboutBtn = document.getElementById('more-about');
+  if(aboutBtn){
+    const list = document.getElementById('about-log-list');
+    const renderAboutLog = ()=>{
+      if(!list) return;
+      const txt = (typeof window.formatActionLog==='function') ? window.formatActionLog() : '(no disponible)';
+      list.textContent = txt;
+    };
+    window.__aboutLogRender = renderAboutLog;
+    aboutBtn.addEventListener('click',()=>{
+      try{ if(typeof window.logAction==='function') window.logAction('ui','abrir Acerca de'); }catch(_){}
+      const info = document.getElementById('about-build-info');
+      if(info){
+        const lang = (document.documentElement.dataset.lang==='en') ? 'en' : 'es';
+        const dbStats = window.__DB_STATS && window.__DB_STATS.counts;
+        const parts = ['Build 2026-05-08'];
+        if(dbStats){
+          parts.push((lang==='en'?'classes':'clases')+': '+dbStats.classes);
+          parts.push('feats: '+dbStats.feats);
+          parts.push('spells: '+(window.DB && window.DB.spells ? window.DB.spells.length : '?'));
+        }
+        info.textContent = parts.join(' · ');
+      }
+      renderAboutLog();
+      openSheet('sheet-about');
+    });
+    const copyBtn = document.getElementById('about-log-copy');
+    if(copyBtn) copyBtn.addEventListener('click', async ()=>{
+      try{
+        const txt = window.formatActionLog ? window.formatActionLog() : '';
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          await navigator.clipboard.writeText(txt);
+          if(typeof toast==='function') toast('Log copiado al portapapeles');
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = txt; document.body.appendChild(ta);
+          ta.select(); document.execCommand('copy'); ta.remove();
+          if(typeof toast==='function') toast('Log copiado');
+        }
+      }catch(e){ if(typeof toast==='function') toast('No se pudo copiar'); }
+    });
+    const clrBtn = document.getElementById('about-log-clear');
+    if(clrBtn) clrBtn.addEventListener('click',()=>{
+      if(typeof window.clearActionLog==='function') window.clearActionLog();
+      if(typeof toast==='function') toast('Log limpiado');
+      renderAboutLog();
+    });
+  }
   // notes
   const notesBtn = document.getElementById('more-notes');
   if(notesBtn) notesBtn.addEventListener('click',()=>{ renderNotes(); openSheet('sheet-notes'); });
@@ -62433,6 +62594,7 @@ function bindNewSheets(){
   // weapon/armor add (stubs that add a placeholder card)
   const weapAdd = document.getElementById('weap-add');
   if(weapAdd) weapAdd.addEventListener('click',()=>{
+    try{ window.logAction && window.logAction('arma','abrir formulario personalizada'); }catch(_){}
     // Clear form and open sheet
     ['weap-name','weap-notes'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
     ['weap-enh','weap-misc','weap-weight'].forEach((id,i)=>{ const el=document.getElementById(id); if(el) el.value=[0,0,4][i]; });
@@ -62440,9 +62602,25 @@ function bindNewSheets(){
   });
   /* UX-10 Fase G: catálogo de armas desde DB.equipment */
   const weapCat = document.getElementById('weap-add-catalog');
-  if(weapCat) weapCat.addEventListener('click', _openWeaponCatalog);
+  if(weapCat) weapCat.addEventListener('click',()=>{
+    try{
+      const eq = (typeof DB!=='undefined') ? DB.equipment : null;
+      const n = (eq && Array.isArray(eq.weapons)) ? eq.weapons.length : (Array.isArray(eq)?eq.length:0);
+      window.logAction && window.logAction('arma','clic catálogo armas','items='+n);
+    }catch(_){}
+    try{ _openWeaponCatalog(); }
+    catch(e){ try{ window.logAction && window.logAction('error','_openWeaponCatalog falló', e.message); }catch(_){} }
+  });
   const armorCat = document.getElementById('armor-add-catalog');
-  if(armorCat) armorCat.addEventListener('click', _openArmorCatalog);
+  if(armorCat) armorCat.addEventListener('click',()=>{
+    try{
+      const eq = (typeof DB!=='undefined') ? DB.equipment : null;
+      const n = (eq && Array.isArray(eq.armors)) ? eq.armors.length : 0;
+      window.logAction && window.logAction('armadura','clic catálogo armaduras','items='+n);
+    }catch(_){}
+    try{ _openArmorCatalog(); }
+    catch(e){ try{ window.logAction && window.logAction('error','_openArmorCatalog falló', e.message); }catch(_){} }
+  });
   const weapSave = document.getElementById('weap-save');
   if(weapSave) weapSave.addEventListener('click',()=>{
     const n = document.getElementById('weap-name').value.trim();
@@ -62471,10 +62649,12 @@ function bindNewSheets(){
     /* E-01: peso recalculado al añadir arma */
     if(typeof D5_recompute==='function') D5_recompute();
     closeSheet(document.getElementById('sheet-weapon-add'));
+    try{ window.logAction && window.logAction('arma','arma personalizada añadida', n); }catch(_){}
     toast('Arma añadida');
   });
   const armorAdd = document.getElementById('armor-add');
   if(armorAdd) armorAdd.addEventListener('click',()=>{
+    try{ window.logAction && window.logAction('armadura','abrir formulario personalizada'); }catch(_){}
     ['armor-name'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
     const chk=document.getElementById('armor-equipped'); if(chk) chk.checked=false;
     openSheet('sheet-armor-add');
@@ -62508,6 +62688,7 @@ function bindNewSheets(){
     /* E-01: peso recalculado al añadir armadura */
     if(typeof D5_recompute==='function') D5_recompute();
     closeSheet(document.getElementById('sheet-armor-add'));
+    try{ window.logAction && window.logAction('armadura','armadura personalizada añadida', n); }catch(_){}
     toast('Armadura añadida');
   });
   // ─── Spell add
@@ -62534,6 +62715,7 @@ function bindNewSheets(){
     closeSheet(document.getElementById('sheet-spell-add'));
     // Clear fields for next use
     ['spell-add-name','spell-add-comp'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+    try{ window.logAction && window.logAction('conjuro','conjuro personalizado añadido', name+' (Nv '+lvl+')'); }catch(_){}
     toast('Conjuro añadido: '+name);
     if(typeof saveStateDebounced==='function') saveStateDebounced('spell-add');
   });
@@ -63047,6 +63229,7 @@ function bindFormSheets(){
     /* 2026-05-08: forzar recalculo de saves/AC/init para aplicar bonos de la dote */
     try{ if(typeof CombatEngine!=='undefined' && CombatEngine.apply) CombatEngine.apply(); }catch(_){}
     try{ if(typeof recalc==='function') recalc(); }catch(_){}
+    try{ window.logAction && window.logAction('dote','dote personalizada añadida', n); }catch(_){}
     if(typeof saveStateDebounced==='function') saveStateDebounced('feat-add-custom');
     closeSheet(document.getElementById('sheet-feat-add'));
     toast('Dote añadida');
@@ -63189,6 +63372,7 @@ function bindFormSheets(){
         /* 2026-05-08: forzar recalculo para que la dote afecte a saves/AC/init */
         try{ if(typeof CombatEngine!=='undefined' && CombatEngine.apply) CombatEngine.apply(); }catch(_){}
         try{ if(typeof recalc==='function') recalc(); }catch(_){}
+        try{ window.logAction && window.logAction('dote','dote del catálogo añadida', name); }catch(_){}
         if(typeof saveStateDebounced==='function') saveStateDebounced('feat-add-catalog');
         closeSheet(document.getElementById('sheet-feat-pick'));
         toast((lang==='en'?'Feat added: ':'Dote añadida: ')+name);
@@ -66440,6 +66624,7 @@ function suggestedFilename(){
   return 'ficha-'+n+'.json';
 }
 function exportCharacter(){
+  try{ window.logAction && window.logAction('export','exportar ficha JSON'); }catch(_){}
   try{
     snapshotState();
     const json = JSON.stringify(window.STATE, null, 2);
@@ -66461,11 +66646,18 @@ function importCharacter(jsonStr){
   try{
     const obj = typeof jsonStr==='string'?JSON.parse(jsonStr):jsonStr;
     const migrated = migrateState(obj);
-    if(!migrated){ if(typeof toast==='function') toast(I18N_msg('importFail')); return; }
+    if(!migrated){
+      try{ window.logAction && window.logAction('import','migración de ficha falló'); }catch(_){}
+      if(typeof toast==='function') toast(I18N_msg('importFail')); return;
+    }
     applyState(migrated);
     saveStateDebounced('imported');
+    try{ window.logAction && window.logAction('import','ficha importada', (obj.identidad && (obj.identidad.nombre||obj.nombre))||'?'); }catch(_){}
     if(typeof toast==='function') toast(I18N_msg('importOk'));
-  }catch(e){ console.warn(e); if(typeof toast==='function') toast(I18N_msg('importFail')); }
+  }catch(e){
+    try{ window.logAction && window.logAction('error','importCharacter falló', e.message); }catch(_){}
+    console.warn(e); if(typeof toast==='function') toast(I18N_msg('importFail'));
+  }
 }
 window.exportCharacter = exportCharacter;
 window.importCharacter = importCharacter;
@@ -66957,6 +67149,10 @@ const _SPELLS_CLASS_MAP = {
 };
 
 function _openSpellsCatalog(targetLvl){
+  try{
+    const all = (typeof DB!=='undefined' && Array.isArray(DB.spells)) ? DB.spells.length : 0;
+    window.logAction && window.logAction('conjuro','_openSpellsCatalog','spells='+all+' lvl='+(targetLvl??'-'));
+  }catch(_){}
   let dlg = document.getElementById('sheet-spells-catalog');
   if(!dlg){
     dlg = document.createElement('dialog');
@@ -67631,6 +67827,7 @@ function wireNewCharWizard(){
   }));
 }
 function _openWizard(){
+  try{ window.logAction && window.logAction('wizard','abrir wizard nuevo PJ'); }catch(_){}
   /* Reset state */
   _WIZ_STATE.step = 1;
   _WIZ_STATE.name = '';
@@ -67659,6 +67856,8 @@ function _openWeaponCatalog(){
   const eq = (typeof DB!=='undefined') ? DB.equipment : null;
   const arr = (eq && Array.isArray(eq.weapons)) ? eq.weapons
             : (Array.isArray(eq) ? eq : []);
+  try{ window.logAction && window.logAction('arma','_openWeaponCatalog',
+    'DB='+(typeof DB!=='undefined' ? 'def' : 'undef')+' eq='+(eq?'def':'null')+' arr='+arr.length); }catch(_){}
   if(!arr.length){ if(typeof toast==='function') toast('Catálogo de armas no disponible'); return; }
   _openCatalogPicker('Catálogo de armas', arr, (it)=>{
     const id = ((WEAPONS_DATA||[])[(WEAPONS_DATA||[]).length-1]?.id || 0) + 1;
@@ -67703,6 +67902,8 @@ function _openArmorCatalog(){
   const eq = (typeof DB!=='undefined') ? DB.equipment : null;
   const arr = (eq && Array.isArray(eq.armors)) ? eq.armors
             : ((eq && Array.isArray(eq.armor)) ? eq.armor : []);
+  try{ window.logAction && window.logAction('armadura','_openArmorCatalog',
+    'DB='+(typeof DB!=='undefined' ? 'def' : 'undef')+' eq='+(eq?'def':'null')+' arr='+arr.length); }catch(_){}
   if(!arr.length){ if(typeof toast==='function') toast('Catálogo de armaduras no disponible'); return; }
   _openCatalogPicker('Catálogo de armaduras', arr, (it)=>{
     const id = ((ARMOR_DATA||[])[(ARMOR_DATA||[]).length-1]?.id || 0) + 1;
@@ -67739,6 +67940,7 @@ function _openArmorCatalog(){
 
 /* UX-10 Fase G: bottom-sheet genérico para listar items con búsqueda */
 function _openCatalogPicker(title, items, onPick){
+  try{ window.logAction && window.logAction('catalogo','_openCatalogPicker', title+' · items='+(items?items.length:0)); }catch(_){}
   let sheet = document.getElementById('sheet-catalog-picker');
   if(!sheet){
     sheet = document.createElement('dialog');
@@ -69117,10 +69319,14 @@ function init6(){
   /* UX-17 Fase H: botón catálogo desde sheet-spell-add */
   const spCatBtn = document.getElementById('spell-add-from-catalog');
   if(spCatBtn) spCatBtn.addEventListener('click', ()=>{
+    try{ window.logAction && window.logAction('conjuro','clic catálogo conjuros'); }catch(_){}
     const lvlEl = document.getElementById('spell-add-lvl');
     const targetLvl = lvlEl ? parseInt(lvlEl.value, 10) : null;
     if(typeof closeSheet === 'function') closeSheet(document.getElementById('sheet-spell-add'));
-    setTimeout(()=>_openSpellsCatalog(targetLvl), 150);
+    setTimeout(()=>{
+      try{ _openSpellsCatalog(targetLvl); }
+      catch(e){ try{ window.logAction && window.logAction('error','_openSpellsCatalog falló', e.message); }catch(_){} }
+    }, 150);
   });
 
   const stored = loadStoredState();
