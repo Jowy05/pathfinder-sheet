@@ -60539,12 +60539,23 @@ window.PathfinderSpells = {
   /* 2026-05-08: exponer helpers que código fuera del IIFE necesitaba */
   canonicalClassId
 };
-/* 2026-05-08: alias global para que _openSpellsCatalog (que vive fuera del
-   IIFE) pueda llamar a canonicalClassId sin ReferenceError. */
+/* 2026-05-08: aliases globales para que código fuera del IIFE
+   (_openSpellsCatalog, calcSpellDC, renderSpellDC, etc.) los pueda
+   ver sin ReferenceError — antes lanzaban PF1E_CASTER_INFO is not defined
+   spam-eando el log y bloqueando el render de conjuros. */
 window.canonicalClassId = canonicalClassId;
+window.PF1E_CASTER_INFO = PF1E_CASTER_INFO;
 
 })();
 /* ─── /DOMINIO 4 · CONJUROS Y APTITUDES ─── */
+
+/* 2026-05-08: aliases en módulo global para que el código entre DOMINIO 4
+   y DOMINIO 6 (funciones top-level como _lvlupGoTo, btn-spell-penetration,
+   calcSpellDC, etc.) pueda usar canonicalClassId y PF1E_CASTER_INFO sin
+   prefijo window. — exactamente lo que ya hacían cuando estaban dentro
+   del IIFE original. Sin esto, ReferenceError spam en el log. */
+var canonicalClassId = window.canonicalClassId;
+var PF1E_CASTER_INFO = window.PF1E_CASTER_INFO;
 const RACES_DATA = [
   ['Humano','+2 a un atributo, dote extra, +1 punto de habilidad/nivel'],
   ['Elfo','+2 DES, +2 INT, −2 CON. Inmunidad sueño, +2 vs encantamientos'],
@@ -61649,15 +61660,23 @@ function renderSpells(){
 }
 
 /* ─── SPELL DC ─── */
+/* 2026-05-08: PF1E_CASTER_INFO + CURRENT_CLASS_ID viven dentro del IIFE
+   de DOMINIO 4. Acceder vía window.PF1E_CASTER_INFO + PathfinderSpells.classId(). */
+function _csi(){
+  const TBL = (typeof window !== 'undefined' && window.PF1E_CASTER_INFO) || {};
+  const cid = (window.PathfinderSpells && window.PathfinderSpells.classId)
+              ? window.PathfinderSpells.classId() : null;
+  return TBL[cid] || {};
+}
 function calcSpellDC(spellLvl){
-  const info = PF1E_CASTER_INFO[CURRENT_CLASS_ID] || {};
+  const info = _csi();
   if(!info.attr || info.mode==='none') return null;
   return 10 + (spellLvl|0) + getAttrModD4(info.attr);
 }
 function renderSpellDC(){
   const bar = document.getElementById('spell-dc-bar');
   if(!bar) return;
-  const info = PF1E_CASTER_INFO[CURRENT_CLASS_ID] || {};
+  const info = _csi();
   if(!info.attr || info.mode==='none'){ bar.classList.add('hidden'); return; }
   bar.classList.remove('hidden');
   const attr = info.attr;
@@ -65083,6 +65102,20 @@ function D5_computeTotalWeight(){
   WEAPONS_DATA.forEach(x=>{ w += parseFloat(x.weight)||0; });
   ARMOR_DATA.forEach(x=>{ w += parseFloat(x.weight)||0; });
   D5_INVENTORY.forEach(it=>{ w += (parseFloat(it.weight)||0) * (parseInt(it.qty,10)||0); });
+  /* 2026-05-08 BUGFIX: la lista vieja "Mochila de aventurero" usa <li> DOM
+     con dataset.qty/weight (no se persiste en D5_INVENTORY). Sumar también
+     esos items al peso total — antes el usuario añadía "Antorchas (3) · 1lb"
+     y el peso total no cambiaba. */
+  try {
+    const oldList = document.getElementById('inv-list');
+    if (oldList) {
+      oldList.querySelectorAll('li').forEach(li => {
+        const q = parseInt(li.dataset.qty, 10) || 1;
+        const wt = parseFloat(li.dataset.weight) || 0;
+        w += q * wt;
+      });
+    }
+  } catch(_) {}
   const coinCount = (D5_COINS.pp||0)+(D5_COINS.po||0)+(D5_COINS.pe||0)+(D5_COINS.pc||0);
   w += coinCount/50;
   return w;
@@ -65716,7 +65749,12 @@ const CombatEngine = (function(){
     }catch(e){}
     const buff = parseInt((document.getElementById('pg-buff')||{}).value,10)||0;
     const miscPerLvl = parseInt((document.getElementById('pg-misc-lvl')||{}).value,10)||0;
-    return total + buff + miscPerLvl * totalLvl + (_BUFF_MOD_TOTALS.hp||0);
+    /* 2026-05-08: dote Dureza (Toughness) — +3 PG en nv1-3, +1 PG por DV
+       a partir del 4.º. Reportado por usuario: añadía Dureza y no subía PG. */
+    const featHP = hasFeatByName(/^dureza$|^toughness$/i)
+                   ? Math.max(3, totalLvl)
+                   : 0;
+    return total + buff + miscPerLvl * totalLvl + (_BUFF_MOD_TOTALS.hp||0) + featHP;
   }
 
   function calcBAB(){
@@ -66027,6 +66065,18 @@ const CombatEngine = (function(){
 /* ─── DOMINIO 6 · DATOS Y PERSISTENCIA ─── */
 (function(){
 'use strict';
+
+/* 2026-05-08: alias locales para nombres que viven en el IIFE de DOMINIO 4
+   y este módulo necesita usar bare (sin prefijo window.). Si DOMINIO 4 aún
+   no terminó cuando esto se evalúa, fallarían — pero como este IIFE arranca
+   tras ese, en la práctica window.* ya están disponibles. Si no lo están,
+   usamos un fallback safe. */
+const canonicalClassId = (typeof window !== 'undefined' && typeof window.canonicalClassId === 'function')
+  ? window.canonicalClassId
+  : (n => String(n||'').toLowerCase());
+const PF1E_CASTER_INFO = (typeof window !== 'undefined' && window.PF1E_CASTER_INFO)
+  ? window.PF1E_CASTER_INFO
+  : {};
 
 window.RACES_DATA_FULL = [
   {id:'humano',     name:{es:'Humano',en:'Human'},        size:'Mediano', speed:30, langs:['Común'], bonuses:'+2 a un atributo a elección', traits:['Dote extra a 1.º nivel','+1 punto de habilidad por nivel','Idioma extra a elegir']},
