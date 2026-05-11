@@ -57018,7 +57018,43 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
             <input type="checkbox" id="combat-expertise" class="combat-tactical" disabled> <span style="flex:1">Pericia de combate</span>
             <span style="font:11px/1 system-ui;color:var(--ink-muted)">−1/+1 CA dodge por cada 4 BAB (máx ±5)</span>
           </label>
+          <!-- /* G2-FULLATK */ Toggle full attack vs single attack -->
+          <label style="display:flex;align-items:center;gap:10px;padding:8px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--surface-2)" id="combat-full-attack-label" title="Si está activado, las armas muestran todos los ataques iterativos (full attack). Si está apagado, sólo 1 ataque (acción estándar).">
+            <input type="checkbox" id="combat-full-attack" class="combat-tactical" checked> <span style="flex:1">Acción completa (ataques iterativos)</span>
+            <span style="font:11px/1 system-ui;color:var(--ink-muted)">OFF = 1 atq · ON = full attack</span>
+          </label>
         </div>
+      </div>
+
+      <!-- /* G2-MANEUVER */ Card de maniobras de combate -->
+      <div class="card" id="combat-maneuvers-card">
+        <h3 class="card-title"><span class="ornament">❦</span><span>🤼 Maniobras de combate</span><span class="ornament">❦</span></h3>
+        <div style="font:11px/1.3 system-ui;color:var(--ink-muted);margin-bottom:8px">Tira 1d20 + CMB vs CMD del enemigo. Modificadores especiales por dotes "mejoradas".</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+          <button class="btn-secondary" data-maneuver="trip">Derribar</button>
+          <button class="btn-secondary" data-maneuver="disarm">Desarmar</button>
+          <button class="btn-secondary" data-maneuver="sunder">Romper</button>
+          <button class="btn-secondary" data-maneuver="grapple">Presa</button>
+          <button class="btn-secondary" data-maneuver="bullrush">Embestir</button>
+          <button class="btn-secondary" data-maneuver="overrun">Atropellar</button>
+          <button class="btn-secondary" data-maneuver="reposition">Reposicionar</button>
+          <button class="btn-secondary" data-maneuver="steal">Robar</button>
+          <button class="btn-secondary" data-maneuver="dirty">Truco sucio</button>
+        </div>
+        <div id="maneuver-output" style="margin-top:8px;font:13px/1.4 system-ui;color:var(--ink-muted)"></div>
+      </div>
+
+      <!-- /* G2-CLEAVE */ Card de ataques especiales -->
+      <div class="card" id="combat-cleave-card">
+        <h3 class="card-title"><span class="ornament">❦</span><span>⚔ Ataques especiales</span><span class="ornament">❦</span></h3>
+        <div style="font:11px/1.3 system-ui;color:var(--ink-muted);margin-bottom:8px">Cleave / Gran Cleave / Whirlwind Attack. Sólo se muestran las dotes que tengas.</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px" id="combat-cleave-btns">
+          <button class="btn-secondary" data-special="cleave" hidden>Cleave</button>
+          <button class="btn-secondary" data-special="greatcleave" hidden>Gran Cleave</button>
+          <button class="btn-secondary" data-special="whirlwind" hidden>Whirlwind</button>
+        </div>
+        <div id="combat-cleave-empty" style="font:12px/1.3 system-ui;color:var(--ink-muted);padding:8px;text-align:center" hidden>Sin dotes especiales detectadas (Cleave / Great Cleave / Whirlwind Attack).</div>
+        <div id="combat-special-output" style="margin-top:8px;font:13px/1.4 system-ui;color:var(--ink-muted)"></div>
       </div>
 
       <!-- Card "Carga" eliminada de Combate>Ofensiva.  Fuente única: Equipo > Peso. -->
@@ -57075,6 +57111,8 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
         <p style="font:13px/1.4 'EB Garamond',serif;color:var(--ink-muted);margin:0 0 10px">Bendiciones, conjuros activos y otros bonificadores con duración limitada.</p>
         <div id="buffs-list"></div>
         <button class="btn-add" id="buff-add" style="margin-top:6px">＋ Añadir buff temporal</button>
+        <!-- G5-BUFF-PACKS-BTN: abre sheet de paquetes pre-armados -->
+        <button class="btn-secondary" id="buff-packs-btn" style="margin-top:6px;width:100%">📦 Buff packs</button>
       </div>
 
       <div class="card">
@@ -57082,6 +57120,28 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
         <p style="font:13px/1.4 'EB Garamond',serif;color:var(--ink-muted);margin:0 0 10px">Modificadores permanentes definidos por el Máster.</p>
         <div id="adjusts-list"></div>
         <button class="btn-add" id="adjust-add" style="margin-top:6px">＋ Añadir ajuste permanente</button>
+      </div>
+
+      <!-- G5-SAVES-ITEMS-CARD: bonos de objeto a salvaciones (Capa de Resistencia, anillos, etc.) -->
+      <div class="card">
+        <h3 class="card-title"><span class="ornament">🛡</span><span>Items de salvación</span><span class="ornament">🛡</span></h3>
+        <p style="font:13px/1.4 'EB Garamond',serif;color:var(--ink-muted);margin:0 0 10px">Bonos de objetos mágicos a tus salvaciones. La "Resistencia genérica" se suma a los tres TS (Capa de Resistencia +N). Los específicos solo al TS indicado.</p>
+        <div class="form-grid">
+          <div class="field"><label class="field-label">Resistencia genérica (los 3 TS)</label>
+            <input class="field-input" id="g5-saves-item-resist" type="number" inputmode="numeric" value="0">
+          </div>
+          <div class="field-row">
+            <div class="field"><label class="field-label">Fortaleza</label>
+              <input class="field-input" id="g5-saves-item-fort" type="number" inputmode="numeric" value="0">
+            </div>
+            <div class="field"><label class="field-label">Reflejos</label>
+              <input class="field-input" id="g5-saves-item-ref" type="number" inputmode="numeric" value="0">
+            </div>
+            <div class="field"><label class="field-label">Voluntad</label>
+              <input class="field-input" id="g5-saves-item-will" type="number" inputmode="numeric" value="0">
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -57719,6 +57779,16 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
         <button class="btn-primary" id="buff-save">Añadir buff</button>
       </div>
     </div>
+  </div>
+</dialog>
+
+<!-- G5-BUFF-PACKS-SHEET: catálogo de packs (Heroes' Feast, Bless, etc.) -->
+<dialog class="bottom-sheet" id="sheet-buff-packs" aria-label="Buff packs">
+  <div class="drag-handle"></div>
+  <div class="sheet-header"><div class="sheet-title">📦 Buff packs</div><button class="sheet-close" data-close>✕</button></div>
+  <div class="sheet-content">
+    <p style="font:13px/1.4 'EB Garamond',serif;color:var(--ink-muted);margin:0 0 10px">Aplica varios bonos a la vez. La duración se calcula según tu nivel total (las que escalan por nivel).</p>
+    <div id="buff-packs-list"></div>
   </div>
 </dialog>
 
@@ -62281,11 +62351,26 @@ function renderSpells(){
         const focusDiff = (typeof spellDc === 'number' && typeof dc === 'number') ? (spellDc - dc) : 0;
         const dcChip = (typeof spellDc === 'number')
           ? `<small style="opacity:.85;color:var(--ink-muted)" title="DC con Spell Focus aplicable"> · DC ${spellDc}${focusDiff>0?` (+${focusDiff})`:''}</small>` : '';
+        /* G1-FAMILIAR-SHARESPELLS — botón "Lanzar en familiar" si hay familiar
+           y el conjuro tiene rango "Personal". Lookup contra SPELLS_CATALOG
+           por nombre para detectar el rango (SPELLS_DATA solo trae nombre/lvl/school). */
+        let shareBtn = '';
+        try{
+          const _hasFamiliar = (typeof COMP_DATA!=='undefined' && Array.isArray(COMP_DATA.familiar) && COMP_DATA.familiar.length > 0);
+          if(_hasFamiliar && typeof SPELLS_CATALOG!=='undefined' && Array.isArray(SPELLS_CATALOG)){
+            const _ref = SPELLS_CATALOG.find(x => x && (x.n||'').toLowerCase() === (s.name||'').toLowerCase());
+            const _rng = _ref && _ref.range ? String(_ref.range).toLowerCase() : '';
+            if(_rng.includes('personal')){
+              shareBtn = `<button class="cast-btn" data-spell-share-familiar="${s.id}" title="Share Spells: lanzar en el familiar como toque" style="background:var(--accent);color:#fff">🐾 Familiar</button>`;
+            }
+          }
+        }catch(_){}
         html += `<div class="spell-row ${s.cast?'cast':''}" data-spell="${s.id}">
           <span class="lvl-badge">Nv ${s.lvl}</span>
           <div class="name">${s.name}<small>${s.school||''} ${s.comp?'· '+s.comp:''}</small>${dcChip}</div>
           <button class="prep-toggle ${s.prepared?'active':''}" data-spell-prep="${s.id}" aria-label="Preparado">✓</button>
           <button class="cast-btn" data-spell-cast="${s.id}" ${s.cast?'disabled':''}>${s.cast?'✓':'Lanzar'}</button>
+          ${shareBtn}
         </div>`;
       });
     } else {
@@ -62317,6 +62402,15 @@ function renderSpells(){
   c.querySelectorAll('[data-spell-add-lvl]').forEach(b=>b.addEventListener('click',()=>{
     const lvlEl = document.getElementById('spell-add-lvl'); if(lvlEl) lvlEl.value = b.dataset.spellAddLvl;
     openSheet('sheet-spell-add');
+  }));
+  /* G1-FAMILIAR-SHARESPELLS-HANDLER — registra Share Spells en familiar. 2026-05-11 */
+  c.querySelectorAll('[data-spell-share-familiar]').forEach(b=>b.addEventListener('click',()=>{
+    const sp = SPELLS_DATA.find(x=>x.id===+b.dataset.spellShareFamiliar);
+    if(!sp) return;
+    const fam = (typeof COMP_DATA!=='undefined' && Array.isArray(COMP_DATA.familiar) && COMP_DATA.familiar[0]) ? COMP_DATA.familiar[0] : null;
+    const famName = fam ? (fam.n||'familiar') : 'familiar';
+    if(typeof toast==='function') toast(`Share Spells: ${sp.name} → ${famName}`);
+    try{ window.logAction && window.logAction('conjuro','Share Spells en familiar', `${sp.name} → ${famName} (rango Personal → Toque)`); }catch(_){}
   }));
 }
 
@@ -62523,10 +62617,13 @@ function _compId(){
 const COMP_DEFAULTS = {
   familiar: ()=>({
     id:_compId(), n:'', tipo:'',
-    hp:'', ca:10,
+    hp:'', hpMax:0, ca:10,
     str:8, dex:13, con:10, int:6, wis:12, cha:6,
     fort:0, ref:0, will:0,
-    atks:'', habilidades:'', extra:''
+    atks:'', habilidades:'', extra:'',
+    /* G1-FAMILIAR-DEFAULTS — auto INT, Alertness flag, master class link. 2026-05-11 */
+    masterClass:'', masterLevel:0,
+    alertnessActive:false
   }),
   animal: ()=>({
     id:_compId(), n:'', raza:'', typeId:'',
@@ -62593,7 +62690,9 @@ const COMP_DEFAULTS = {
     puntosEvolUsados:0, puntosEvolTotal:0,
     /* FCB (Favored Class Bonus) — Half-elf/Human Summoner */
     fcbEidolonHP:0, fcbEidolonSkill:0, fcbHP:0, fcbSkill:0,
-    evol:[], atks:'', extra:''
+    evol:[], atks:'', extra:'',
+    /* G1-EID-DEFAULTS — nivel propio + sync con invocador. 2026-05-11 */
+    level:1, syncWithSummoner:false
   }),
   invocadas: ()=>({
     id:_compId(), n:'',
@@ -62614,6 +62713,10 @@ const COMP_FIELDS = {
     {special:'compPhoto'},
     {row:[{k:'n', label:'Nombre', placeholder:'Cuervo "Tinta"'},
           {k:'tipo', label:'Tipo', placeholder:'Cuervo, búho, gato, rata, mochuelo...'}]},
+    /* G1-FAMILIAR-SCHEMA — auto INT/HP/Alertness UI. 2026-05-11 */
+    {special:'familiarMasterPicker'},
+    {special:'familiarAlertness'},
+    {special:'familiarHpSync'},
     {row:[{k:'hp', label:'PG (act/máx)', placeholder:'4/4'},
           {k:'ca', label:'CA', type:'number', placeholder:'14'}]},
     {row:[{k:'str', label:'FUE', type:'number'}, {k:'dex', label:'DES', type:'number'}, {k:'con', label:'CON', type:'number'}]},
@@ -62621,6 +62724,7 @@ const COMP_FIELDS = {
     {row:[{k:'fort', label:'TS Fort', type:'number'}, {k:'ref', label:'TS Ref', type:'number'}, {k:'will', label:'TS Vol', type:'number'}]},
     {label:'Ataques', k:'atks', textarea:true, rows:2, placeholder:'Picotazo +5 (1d2−5)'},
     {label:'Habilidades especiales', k:'habilidades', textarea:true, rows:3, placeholder:'Alerta, comparte conjuros con el amo, vínculo empático, otorga +3 a Avistar...'},
+    {special:'familiarEmpathicTip'},
     {label:'Notas adicionales', k:'extra', textarea:true, rows:2}
   ],
   animal: [
@@ -62693,6 +62797,8 @@ const COMP_FIELDS = {
           {select:{k:'subtipo', label:'Subtipo Unchained', options:['','Agatión','Ángel','Archon','Azata','Daemon','Demonio','Diablo','Div','Elemental','Inevitable','Protean','Psicopompo']}}]},
     {row:[{select:{k:'elementoElemental', label:'Elemento (si Elemental)', options:['','Aire','Tierra','Fuego','Agua']}},
           {select:{k:'tamano', label:'Tamaño', options:['Diminuto','Pequeño','Mediano','Grande','Enorme']}}]},
+    /* G1-EID-LEVEL — sync con invocador + nivel propio + puntos auto. 2026-05-11 */
+    {special:'eidLevelSync'},
     {row:[{k:'armaduraNatural', label:'Armadura natural', type:'number'},
           {k:'ca', label:'CA', type:'number', placeholder:'16'}]},
     {row:[{k:'hp', label:'PG (act/máx)', placeholder:'24/24'}]},
@@ -62701,6 +62807,8 @@ const COMP_FIELDS = {
     {row:[{k:'int', label:'INT', type:'number'}, {k:'wis', label:'SAB', type:'number'}, {k:'cha', label:'CAR', type:'number'}]},
     {row:[{k:'puntosEvolUsados', label:'Puntos evol. usados', type:'number'},
           {k:'puntosEvolTotal', label:'Puntos evol. totales', type:'number'}]},
+    /* G1-EID-POINTS — botón aplicar puntos auto según nivel invocador. 2026-05-11 */
+    {special:'eidPointsAuto'},
     {label:'Class Features / Bonos clase favorecida', divider:true},
     {row:[{k:'fcbEidolonHP', label:'Bonus Eidolon HP', type:'number'},
           {k:'fcbEidolonSkill', label:'Bonus Eidolon Skill Rank', type:'number'}]},
@@ -62708,6 +62816,8 @@ const COMP_FIELDS = {
           {k:'fcbSkill', label:'Bonus Skill Rank (invocador)', type:'number'}]},
     /* M-21: forma base del eidolón (Unchained) — usada para validar prereqs de evoluciones */
     {special:'baseForm'},
+    /* G1-EID-NATATKS — contador de ataques naturales vs tope por base form. 2026-05-11 */
+    {special:'eidNaturalAtkCounter'},
     {label:'Evoluciones (1 por línea)', k:'evolText', textarea:true, rows:5, special:'evol', placeholder:'Garras\nResistencia (frío)\nNadar\nBrazos extra\nInteligencia +2'},
     /* M-21: selector estructurado para añadir evoluciones validando prereqs y stacking */
     {special:'evolPicker'},
@@ -63015,6 +63125,15 @@ function _compFieldDOM(spec, d){
   if(spec.special==='animalStatBumps')  return _acompStatBumpsDOM(d);
   /* #ANCHOR:COMP-PHOTO-V1 — foto genérica reutilizando _acompPhotoDescDOM y sus handlers. 2026-05-11 */
   if(spec.special==='compPhoto')        return _acompPhotoDescDOM(d);
+  /* G1-FAMILIAR-DISPATCH — familiar auto INT/Alertness/HP/empathic UI. 2026-05-11 */
+  if(spec.special==='familiarMasterPicker') return _familiarMasterPickerDOM(d);
+  if(spec.special==='familiarAlertness')    return _familiarAlertnessDOM(d);
+  if(spec.special==='familiarHpSync')       return _familiarHpSyncDOM(d);
+  if(spec.special==='familiarEmpathicTip')  return _familiarEmpathicTipDOM(d);
+  /* G1-EID-DISPATCH — eidolon sync/points/natural attacks UI. 2026-05-11 */
+  if(spec.special==='eidLevelSync')         return _eidLevelSyncDOM(d);
+  if(spec.special==='eidPointsAuto')        return _eidPointsAutoDOM(d);
+  if(spec.special==='eidNaturalAtkCounter') return _eidNaturalAtkCounterDOM(d);
   return _compL(spec.label) + _compInput(spec.k, d[spec.k], spec.placeholder, spec.type||'text');
 }
 
@@ -63591,6 +63710,214 @@ function _eidEvolPickerDOM(d){
     </div>`;
 }
 
+/* ────────────────────────────────────────────────────────────────
+   G1-FAMILIAR-HELPERS · auto INT por nivel del amo, Alertness flag,
+   HP = ½ amo, Share Spells (Personal → Toque) y vínculo empático.
+   PF1e: INT del familiar = 5 + nivel efectivo del amo (mín 6 a lv1).
+   2026-05-11
+   ──────────────────────────────────────────────────────────────── */
+const _FAMILIAR_MASTER_CLASSES = [
+  /* id (canónico) → etiqueta legible. Subconjunto que otorga familiar PF1e. */
+  {id:'', label:'— Sin amo asignado —'},
+  {id:'mago',     label:'Mago / Wizard'},
+  {id:'witch',    label:'Bruja / Witch'},
+  {id:'brujo',    label:'Brujo / Warlock'},
+  {id:'hechicero',label:'Hechicero / Sorcerer'},
+  {id:'arcanista',label:'Arcanista'},
+  {id:'magus',    label:'Magus'},
+  {id:'alquimista',label:'Alquimista (homúnculo)'},
+  {id:'invocador',label:'Invocador (variantes)'},
+];
+
+/* Localiza el nivel efectivo del amo en CLASSES_DATA buscando por nombre/clave
+   canónica. Devuelve null si no se encuentra. */
+function _familiarComputeMasterLevel(d){
+  if(!d || !d.masterClass) return null;
+  if(typeof CLASSES_DATA === 'undefined' || !Array.isArray(CLASSES_DATA)) return null;
+  const target = String(d.masterClass).toLowerCase().trim();
+  for(const cl of CLASSES_DATA){
+    const cn = String(cl.name||'').toLowerCase().trim();
+    const ck = String(cl.classKey||'').toLowerCase().trim();
+    if(cn === target || ck === target || cn.includes(target) || ck.includes(target)){
+      const lvl = parseInt(cl.level,10) || 0;
+      return Math.max(0, Math.min(20, lvl));
+    }
+  }
+  return null;
+}
+
+/* PF1e: INT = 5 + nivel del amo (mínimo 6 a lv 1). */
+function _familiarAutoInt(masterLevel){
+  const lvl = Math.max(1, parseInt(masterLevel,10) || 1);
+  return Math.max(6, 5 + lvl);
+}
+
+function _familiarMasterPickerDOM(d){
+  const cur = d.masterClass || '';
+  const detected = _familiarComputeMasterLevel(d);
+  const opts = _FAMILIAR_MASTER_CLASSES.map(o=>
+    `<option value="${_compEsc(o.id)}"${String(cur)===String(o.id)?' selected':''}>${o.label}</option>`
+  ).join('');
+  const lvlStored = parseInt(d.masterLevel,10) || 0;
+  const effective = (detected != null) ? detected : lvlStored;
+  const autoInt = effective > 0 ? _familiarAutoInt(effective) : null;
+  let infoLine = '';
+  if(cur){
+    if(detected != null){
+      infoLine = `<div style="font:12px 'EB Garamond',serif;color:var(--ink-muted);margin-top:4px">Detectado en tu PJ: nivel ${detected}${autoInt?` → INT auto = ${autoInt}`:''}</div>`;
+    } else {
+      infoLine = `<div style="font:12px 'EB Garamond',serif;color:var(--warn,#a55);margin-top:4px">No se encontró "${_compEsc(cur)}" en tu PJ. Usa nivel manual abajo.</div>`;
+    }
+  }
+  return `<div style="background:var(--surface);border:1px solid var(--leather);border-radius:8px;padding:10px;margin:6px 0">
+    <div style="font:700 11px 'Cinzel',serif;letter-spacing:.06em;color:var(--accent);margin-bottom:6px">Vínculo con amo (auto INT)</div>
+    <div style="display:grid;grid-template-columns:1fr;gap:6px">
+      ${_compL('Clase del amo')}
+      <select class="field-select" data-fam-master-class style="margin-bottom:0">${opts}</select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;align-items:end">
+      <div>${_compL('Nivel efectivo')}<input class="field-input" type="number" min="0" max="20" data-fam-master-level value="${effective}" style="margin-bottom:0"></div>
+      <button class="btn-primary" data-fam-int-apply style="font-size:11px;padding:8px 10px"${effective<=0?' disabled':''}>Aplicar INT auto${autoInt?` (${autoInt})`:''}</button>
+    </div>
+    ${infoLine}
+  </div>`;
+}
+
+function _familiarAlertnessDOM(d){
+  const active = !!d.alertnessActive;
+  return `<div style="display:flex;gap:8px;align-items:center;background:var(--surface-2);border-radius:8px;padding:8px 10px;margin:6px 0;border:1px solid ${active?'var(--accent)':'var(--leather)'}">
+    <button class="btn-secondary" data-fam-alertness style="font-size:11px;padding:6px 10px;background:${active?'var(--accent)':'transparent'};color:${active?'#fff':'inherit'}">${active?'● Alertness activo':'○ Alertness inactivo'}</button>
+    <div style="font:11px/1.3 'EB Garamond',serif;color:var(--ink-muted);flex:1">Familiar a ≤5 ft: el amo gana <b>Alertness</b> (+2 a Percepción y Avistar). Flavor (no aplicado al motor).</div>
+  </div>`;
+}
+
+function _familiarHpSyncDOM(d){
+  /* Lee HP_MAX global del PJ. */
+  const masterMax = (typeof HP_MAX === 'number' && HP_MAX > 0) ? HP_MAX : 0;
+  const halfMax   = masterMax > 0 ? Math.floor(masterMax / 2) : 0;
+  return `<div style="background:var(--surface);border:1px dashed var(--leather);border-radius:8px;padding:8px 10px;margin:6px 0">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div style="font:700 11px 'Cinzel',serif;letter-spacing:.06em;color:var(--accent);flex:1">PG = ½ del amo</div>
+      <div style="font:12px 'EB Garamond',serif;color:var(--ink-muted)">Amo PG ${masterMax||'—'} → familiar ${halfMax||'—'}</div>
+      <button class="btn-primary" data-fam-hp-sync style="font-size:11px;padding:6px 10px"${halfMax<=0?' disabled':''}>Sincronizar HP</button>
+    </div>
+  </div>`;
+}
+
+function _familiarEmpathicTipDOM(d){
+  return `<div style="background:var(--surface-2);border-radius:8px;padding:6px 10px;margin:6px 0;font:11px/1.4 'EB Garamond',serif;color:var(--ink-muted);border-left:3px solid var(--accent)" title="PF1e: el amo y el familiar pueden comunicar emociones simples a 1 milla de distancia.">
+    ❤ <b>Vínculo empático:</b> a 1 milla, el amo y el familiar comparten emociones simples (flavor PF1e).
+  </div>`;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   G1-EID-HELPERS · puntos evolución por nivel, sync con invocador,
+   tope de ataques naturales por base form. PF1e Summoner Unchained.
+   2026-05-11
+   ──────────────────────────────────────────────────────────────── */
+/* Tabla SRD simplificada (lv 1..20 → puntos de evolución totales). */
+const _EID_EVO_POINTS_TABLE = [
+  /* idx 0 unused; idx i = puntos a nivel i */
+  0, 2, 4, 4, 6, 8, 8, 10, 11, 13, 15, 16, 18, 20, 22, 23, 25, 26, 28, 29, 29
+];
+function _eidolonPointsForLevel(lvl){
+  const l = Math.max(1, Math.min(20, parseInt(lvl,10) || 1));
+  return _EID_EVO_POINTS_TABLE[l] || 0;
+}
+
+/* Nivel del invocador (alias para _eidGetSummonerHd que ya existe). */
+function _eidGetSummonerLevel(){
+  return (typeof _eidGetSummonerHd==='function') ? _eidGetSummonerHd() : 0;
+}
+
+/* Tope de ataques naturales por forma base (Unchained, simplificado). */
+const _EID_MAX_ATKS = {
+  biped:6, quadruped:5, serpentine:6, aquatic:5, avian:5, tauric:6
+};
+/* Palabras clave que se cuentan como ataque natural en d.evol[] (texto libre).
+   Si la línea trae [slug] tras la introducción de M-21, también detectamos
+   los slugs típicos. */
+const _EID_NAT_ATK_KEYWORDS = [
+  'garra','garras','mordisco','mordiscos','cola','azote de cola','pinza','pinzas',
+  'cuerno','cuernos','aleta','aletas','pisotón','pisoton','pisotones',
+  'pico','picotazo','lengua','baba','escupit','azote','espolón','espolones',
+  'claw','claws','bite','tail','slap','sting','gore','wing','wings','slam','tentacle','tentaculo'
+];
+const _EID_NAT_ATK_SLUGS = [
+  'bite','bite_attack','claws','claws_attack','sting','tail','tail_slap','wings',
+  'gore','pincers','slam','tentacle','hoof','hooves','rake','rend','natural_attack'
+];
+function _eidCountNaturalAttacks(d){
+  if(!d || !Array.isArray(d.evol)) return 0;
+  let n = 0;
+  for(const raw of d.evol){
+    if(typeof raw !== 'string') continue;
+    const txt = raw.toLowerCase();
+    const slugMatch = txt.match(/^\s*\[([a-z_][a-z0-9_]*)\]/i);
+    if(slugMatch){
+      const slug = slugMatch[1].toLowerCase();
+      if(_EID_NAT_ATK_SLUGS.includes(slug)){ n++; continue; }
+    }
+    if(_EID_NAT_ATK_KEYWORDS.some(kw=>txt.includes(kw))) n++;
+  }
+  return n;
+}
+
+function _eidLevelSyncDOM(d){
+  const synced = !!d.syncWithSummoner;
+  const summonerLvl = _eidGetSummonerLevel();
+  const effectiveLvl = synced && summonerLvl>0 ? summonerLvl : (parseInt(d.level,10)||1);
+  let info = '';
+  if(synced){
+    if(summonerLvl > 0){
+      info = `<div style="font:12px 'EB Garamond',serif;color:var(--ink-muted);margin-top:4px">Sincronizado: nivel ${summonerLvl} (de tu Invocador)</div>`;
+    } else {
+      info = `<div style="font:12px 'EB Garamond',serif;color:var(--warn,#a55);margin-top:4px">No se encontró clase "Invocador / Summoner" en tu PJ.</div>`;
+    }
+  }
+  return `<div style="background:var(--surface);border:1px solid var(--leather);border-radius:8px;padding:10px;margin:6px 0">
+    <div style="font:700 11px 'Cinzel',serif;letter-spacing:.06em;color:var(--accent);margin-bottom:6px">Sincronización con invocador</div>
+    <div style="display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center">
+      <label style="display:flex;align-items:center;gap:6px;font:12px 'EB Garamond',serif;cursor:pointer">
+        <input type="checkbox" data-eid-sync-summoner ${synced?'checked':''}>
+        <span>Sincronizar con invocador</span>
+      </label>
+      <div>${_compL('Nivel eidolón')}<input class="field-input" type="number" min="1" max="20" data-eid-level value="${effectiveLvl}" ${synced?'disabled':''} style="margin-bottom:0"></div>
+      <button class="btn-secondary" data-eid-sync-apply style="font-size:11px;padding:8px 10px"${(synced && summonerLvl>0)?'':' disabled'}>Aplicar nivel</button>
+    </div>
+    ${info}
+  </div>`;
+}
+
+function _eidPointsAutoDOM(d){
+  const lvl = parseInt(d.level,10) || (_eidGetSummonerLevel() || 1);
+  const auto = _eidolonPointsForLevel(lvl);
+  const cur = parseInt(d.puntosEvolTotal,10) || 0;
+  return `<div style="background:var(--surface-2);border-radius:8px;padding:8px 10px;margin:6px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+    <div style="font:700 11px 'Cinzel',serif;letter-spacing:.06em;color:var(--accent);flex:1">Puntos evolución auto</div>
+    <div style="font:12px 'EB Garamond',serif;color:var(--ink-muted)">Nv ${lvl} → ${auto} pts ${cur===auto?'✓':`(actual: ${cur})`}</div>
+    <button class="btn-primary" data-eid-points-apply style="font-size:11px;padding:6px 10px">Aplicar puntos auto</button>
+  </div>`;
+}
+
+function _eidNaturalAtkCounterDOM(d){
+  const form = d.baseForm || '';
+  if(!form){
+    return `<div style="font:11px italic 'EB Garamond',serif;color:var(--ink-muted);margin:6px 0;padding:6px 10px;background:var(--surface-2);border-radius:6px">Selecciona una forma base para ver el tope de ataques naturales.</div>`;
+  }
+  const max = _EID_MAX_ATKS[form] || 0;
+  const cur = _eidCountNaturalAttacks(d);
+  const over = max > 0 && cur > max;
+  const badge = over
+    ? `<span style="background:var(--negative,#c33);color:#fff;padding:2px 8px;border-radius:99px;font:700 10px system-ui">⚠ EXCEDE ${cur-max}</span>`
+    : `<span style="background:var(--accent);color:#fff;padding:2px 8px;border-radius:99px;font:700 10px system-ui">${cur}/${max}</span>`;
+  return `<div style="background:var(--surface);border-radius:8px;padding:8px 10px;margin:6px 0;border:1px solid ${over?'var(--negative,#c33)':'var(--leather)'};display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <div style="font:700 11px 'Cinzel',serif;letter-spacing:.06em;color:var(--accent)">Ataques naturales</div>
+    ${badge}
+    <div style="font:12px 'EB Garamond',serif;color:var(--ink-muted);flex:1">Forma ${_eidBaseFormLabelMobile(form)} · tope ${max}</div>
+  </div>`;
+}
+
 function renderComp(which='familiar', idx){
   if(typeof which !== 'string' || !COMP_DATA[which]) which = 'familiar';
   CURRENT_COMP_TYPE = which;
@@ -64129,6 +64456,101 @@ function renderComp(which='familiar', idx){
         renderComp(which);
       });
     }
+    /* G1-EID-HANDLERS — sync con invocador, puntos auto. 2026-05-11 */
+    c.querySelector('[data-eid-sync-summoner]')?.addEventListener('change',(ev)=>{
+      d.syncWithSummoner = !!ev.target.checked;
+      if(d.syncWithSummoner){
+        const lvl = _eidGetSummonerLevel();
+        if(lvl > 0){ d.level = lvl; }
+        else if(typeof toast==='function') toast('No se encontró Invocador en tu PJ. Activado pero sin nivel detectado.');
+      }
+      try{ window.logAction && window.logAction('compEidolon','sync invocador '+(d.syncWithSummoner?'on':'off'), d.level); }catch(_){}
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('eid-sync-summoner');
+    });
+    c.querySelector('[data-eid-level]')?.addEventListener('change',(ev)=>{
+      if(d.syncWithSummoner) return; /* bloqueado cuando está sincronizado */
+      const v = parseInt(ev.target.value,10);
+      d.level = Math.max(1, Math.min(20, isFinite(v)?v:1));
+      try{ window.logAction && window.logAction('compEidolon','nivel manual', d.level); }catch(_){}
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('eid-level');
+    });
+    c.querySelector('[data-eid-sync-apply]')?.addEventListener('click',()=>{
+      const lvl = _eidGetSummonerLevel();
+      if(lvl <= 0){
+        if(typeof toast==='function') toast('No se encontró nivel de Invocador.');
+        return;
+      }
+      d.level = lvl;
+      if(typeof toast==='function') toast('Nivel aplicado: '+lvl);
+      try{ window.logAction && window.logAction('compEidolon','sync aplicado', lvl); }catch(_){}
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('eid-sync-apply');
+    });
+    c.querySelector('[data-eid-points-apply]')?.addEventListener('click',()=>{
+      const lvl = parseInt(d.level,10) || _eidGetSummonerLevel() || 1;
+      const pts = _eidolonPointsForLevel(lvl);
+      d.puntosEvolTotal = pts;
+      if(typeof toast==='function') toast(`Puntos evolución: ${pts} (Nv ${lvl})`);
+      try{ window.logAction && window.logAction('compEidolon','puntos auto aplicados', pts); }catch(_){}
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('eid-points-apply');
+    });
+  }
+  /* G1-FAMILIAR-HANDLERS — auto INT, Alertness toggle, HP sync. 2026-05-11 */
+  if(which==='familiar'){
+    c.querySelector('[data-fam-master-class]')?.addEventListener('change',(ev)=>{
+      d.masterClass = ev.target.value || '';
+      const detected = _familiarComputeMasterLevel(d);
+      if(detected != null) d.masterLevel = detected;
+      try{ window.logAction && window.logAction('compFamiliar','clase amo', d.masterClass); }catch(_){}
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('fam-master-class');
+    });
+    c.querySelector('[data-fam-master-level]')?.addEventListener('change',(ev)=>{
+      const v = parseInt(ev.target.value,10);
+      d.masterLevel = Math.max(0, Math.min(20, isFinite(v)?v:0));
+      try{ window.logAction && window.logAction('compFamiliar','nivel amo manual', d.masterLevel); }catch(_){}
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('fam-master-level');
+    });
+    c.querySelector('[data-fam-int-apply]')?.addEventListener('click',()=>{
+      const detected = _familiarComputeMasterLevel(d);
+      const lvl = (detected != null) ? detected : (parseInt(d.masterLevel,10) || 0);
+      if(lvl <= 0){
+        if(typeof toast==='function') toast('Define la clase y nivel del amo primero.');
+        return;
+      }
+      const newInt = _familiarAutoInt(lvl);
+      d.int = newInt;
+      d.masterLevel = lvl;
+      if(typeof toast==='function') toast(`INT del familiar: ${newInt} (amo nv ${lvl})`);
+      try{ window.logAction && window.logAction('compFamiliar','INT auto aplicada', newInt); }catch(_){}
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('fam-int-apply');
+    });
+    c.querySelector('[data-fam-alertness]')?.addEventListener('click',()=>{
+      d.alertnessActive = !d.alertnessActive;
+      try{ window.logAction && window.logAction('compFamiliar','Alertness '+(d.alertnessActive?'on':'off')); }catch(_){}
+      if(typeof toast==='function') toast(d.alertnessActive ? 'Alertness activo (+2 Percepción al amo)' : 'Alertness inactivo');
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('fam-alertness');
+    });
+    c.querySelector('[data-fam-hp-sync]')?.addEventListener('click',()=>{
+      const masterMax = (typeof HP_MAX === 'number' && HP_MAX > 0) ? HP_MAX : 0;
+      if(masterMax <= 0){
+        if(typeof toast==='function') toast('PG del amo no disponibles aún.');
+        return;
+      }
+      const half = Math.floor(masterMax / 2);
+      d.hpMax = half;
+      d.hp = `${half}/${half}`;
+      if(typeof toast==='function') toast(`PG familiar = ${half} (½ del amo ${masterMax})`);
+      try{ window.logAction && window.logAction('compFamiliar','HP sync', half); }catch(_){}
+      renderComp(which);
+      if(typeof saveStateDebounced==='function') saveStateDebounced('fam-hp-sync');
+    });
   }
 }
 
@@ -64791,94 +65213,225 @@ function bindNewSheets(){
   });
 }
 
-/* 2026-05-07: búsqueda global real. Antes era una lista hardcoded de demo
-   con `picker-row` sin handler. Ahora busca en datos reales del PJ + DB:
-   - Habilidades del PJ con rangos (D3_SKILLS)
-   - Dotes del personaje (FEATS)
-   - Hechizos del catálogo (DB.spells)
-   - Armas y armaduras (WEAPONS_DATA, ARMOR_DATA)
-   Cada resultado tiene handler que navega al sitio donde editarlo. */
+/* G5-SEARCH-GLOBAL: búsqueda real sobre todas las fuentes del PJ + DB
+   (reescritura 2026-05-11). Match en nombre + descripción + meta.
+   Resultados clicables que navegan a tab/subtab. Debounce 300ms. */
+let _G5_SEARCH_DEBOUNCE = null;
 function renderSearchResults(q){
+  if(_G5_SEARCH_DEBOUNCE){ clearTimeout(_G5_SEARCH_DEBOUNCE); _G5_SEARCH_DEBOUNCE = null; }
+  _G5_SEARCH_DEBOUNCE = setTimeout(()=>{ _G5_SEARCH_DEBOUNCE = null; _g5DoSearch(q); }, 300);
+}
+function _g5DoSearch(q){
   const c = document.getElementById('search-results');
   if(!c) return;
   q = (q||'').toLowerCase().trim();
   if(!q){
-    c.innerHTML = `<div style="text-align:center;padding:20px;color:var(--ink-muted);font:13px system-ui">Escribe para buscar habilidades, dotes, conjuros, armas, armaduras…</div>`;
+    c.innerHTML = `<div style="text-align:center;padding:20px;color:var(--ink-muted);font:13px system-ui">Escribe para buscar dotes, conjuros, habilidades, items, buffs, notas…</div>`;
     return;
   }
-  const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const norm = s => String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
   const qn = norm(q);
-  const sections = [];
+  const hit = (...fields) => fields.some(f => norm(f).includes(qn));
+
+  /* G5-SEARCH-RESULTS: array unificado de {type,label,meta,onClick} */
+  const results = [];
+  const navTo = (tab, sub)=>{
+    try{ if(typeof setTab === 'function') setTab(tab); }catch(_){}
+    if(sub){
+      const chip = document.querySelector(`.tab-page[data-tab="${tab}"] .subchip[data-sub="${sub}"]`);
+      if(chip) setTimeout(()=>chip.click(), 100);
+    }
+  };
+
+  /* Dotes del PJ */
+  try{
+    (typeof FEATS!=='undefined' ? FEATS : []).forEach(f=>{
+      if(hit(f.n, f.d, f.t, f.notes, f.prereq)){
+        results.push({type:'feat', label:f.n||'(sin nombre)', meta:`Dote · ${f.t||'general'}`,
+          onClick:()=> navTo('aptitudes','dotes')});
+      }
+    });
+  }catch(_){}
+
+  /* Conjuros del PJ */
+  try{
+    (typeof SPELLS_DATA!=='undefined' ? SPELLS_DATA : []).forEach(sp=>{
+      if(hit(sp.n, sp.name, sp.desc, sp.school, sp.notes)){
+        const nm = sp.n || sp.name || '(sin nombre)';
+        const lvl = (sp.lvl!=null) ? `Nv ${sp.lvl}` : '';
+        results.push({type:'spell', label:nm,
+          meta:`Conjuro · ${sp.school||''}${lvl?' · '+lvl:''}`.trim(),
+          onClick:()=> navTo('aptitudes','conjuros')});
+      }
+    });
+  }catch(_){}
+
+  /* Armas del PJ */
+  try{
+    (typeof WEAPONS_DATA!=='undefined' ? WEAPONS_DATA : []).forEach(w=>{
+      if(hit(w.name, w.notes, w.atk, w.dmg)){
+        results.push({type:'weapon', label:w.name||'(arma)',
+          meta:`Arma · ${w.atk||''}${w.dmg?' / '+w.dmg:''}`.trim(),
+          onClick:()=> navTo('equipo','armas')});
+      }
+    });
+  }catch(_){}
+
+  /* Armaduras del PJ */
+  try{
+    (typeof ARMOR_DATA!=='undefined' ? ARMOR_DATA : []).forEach(a=>{
+      if(hit(a.name, a.armor_type, a.notes)){
+        results.push({type:'armor', label:a.name||'(armadura)',
+          meta:`Armadura · CA +${a.ac_bonus||a.ac||0}`,
+          onClick:()=> navTo('equipo','armadura')});
+      }
+    });
+  }catch(_){}
+
   /* Habilidades del PJ */
   try{
     const skills = (window.D3_SKILLS && window.D3_SKILLS.all) ? window.D3_SKILLS.all() : [];
-    const matches = skills.filter(s=>norm(s.n).includes(qn)).slice(0,8).map(s=>({
-      group:'Habilidades', label:s.n, sub:`Atributo: ${s.a}`, action:'skills'
-    }));
-    if(matches.length) sections.push(matches);
-  }catch(_){}
-  /* Dotes del PJ */
-  try{
-    const matches = (typeof FEATS!=='undefined' ? FEATS : []).filter(f=>norm(f.n).includes(qn)).slice(0,8).map(f=>({
-      group:'Mis Dotes', label:f.n, sub:f.notes||f.t||'', action:'feats'
-    }));
-    if(matches.length) sections.push(matches);
-  }catch(_){}
-  /* Hechizos del catálogo (564 PF1e) */
-  try{
-    const all = (typeof DB!=='undefined' && Array.isArray(DB.spells)) ? DB.spells : [];
-    const matches = all.filter(sp=>norm(sp.name_es||'').includes(qn) || norm(sp.name_en||'').includes(qn)).slice(0,12).map(sp=>{
-      const lvls = Object.entries(sp.level||{}).map(([c,l])=>`${c} ${l}`).join(' · ');
-      return { group:'Conjuros (PF1e)', label:sp.name_es||sp.name_en, sub:`${sp.school||''} ${lvls?'· '+lvls:''}`, action:'spells', spellId:sp.id };
+    skills.forEach(s=>{
+      if(hit(s.n, s.a)){
+        results.push({type:'skill', label:s.n, meta:`Habilidad · ${s.a||''}`,
+          onClick:()=> navTo('aptitudes','habilidades')});
+      }
     });
-    if(matches.length) sections.push(matches);
-  }catch(_){}
-  /* Armas + armaduras del PJ */
-  try{
-    const wMatches = (typeof WEAPONS_DATA!=='undefined' ? WEAPONS_DATA : []).filter(w=>norm(w.name||'').includes(qn)).map(w=>({
-      group:'Armas', label:w.name, sub:`${w.atk||''} · ${w.dmg||''}`, action:'weapons'
-    }));
-    const aMatches = (typeof ARMOR_DATA!=='undefined' ? ARMOR_DATA : []).filter(a=>norm(a.name||'').includes(qn)).map(a=>({
-      group:'Armadura', label:a.name, sub:`CA +${a.ac||0}`, action:'armor'
-    }));
-    if(wMatches.length || aMatches.length) sections.push(wMatches.concat(aMatches));
   }catch(_){}
 
-  let html = '';
-  const flat = sections.flat();
-  if(!flat.length){
-    c.innerHTML = `<div style="text-align:center;padding:20px;color:var(--ink-muted);font:13px system-ui">Sin resultados para "${q}"</div>`;
+  /* Class features (auto + manuales) */
+  try{
+    (typeof CLASS_FEATURES_DATA!=='undefined' ? CLASS_FEATURES_DATA : []).forEach(f=>{
+      if(hit(f.name, f.desc, f.source)){
+        results.push({type:'feature', label:f.name||'(rasgo)',
+          meta:`Rasgo de clase${f.source?' · '+f.source:''}${f.auto?' · auto':''}`,
+          onClick:()=> navTo('aptitudes','aptclase')});
+      }
+    });
+  }catch(_){}
+
+  /* Buffs activos */
+  try{
+    (typeof BUFFS_LIST!=='undefined' ? BUFFS_LIST : []).forEach(b=>{
+      if(hit(b.name, b.mod, b.notes)){
+        results.push({type:'buff', label:b.name||'(buff)',
+          meta:`Buff temporal · ${b.mod||''}`,
+          onClick:()=> navTo('combate','condiciones')});
+      }
+    });
+  }catch(_){}
+
+  /* Ajustes permanentes */
+  try{
+    (typeof ADJUSTS_LIST!=='undefined' ? ADJUSTS_LIST : []).forEach(b=>{
+      if(hit(b.name, b.mod, b.notes)){
+        results.push({type:'buff', label:b.name||'(ajuste)',
+          meta:`Ajuste de campaña · ${b.mod||''}`,
+          onClick:()=> navTo('combate','condiciones')});
+      }
+    });
+  }catch(_){}
+
+  /* Notas guardadas */
+  try{
+    (typeof NOTES_LIST!=='undefined' ? NOTES_LIST : []).forEach(n=>{
+      if(hit(n.t, n.body)){
+        const body = String(n.body||'').slice(0,80);
+        results.push({type:'note', label:n.t||'(sin título)',
+          meta:`Nota · ${body}${body.length>=80?'…':''}`,
+          onClick:()=> navTo('herramientas','notas')});
+      }
+    });
+  }catch(_){}
+
+  /* Notas de combate */
+  try{
+    (window.COMBAT_NOTES || []).forEach(n=>{
+      if(hit(n.t, n.body)){
+        const body = String(n.body||'').slice(0,80);
+        results.push({type:'note', label:n.t||'(sin título)',
+          meta:`Nota de combate · ${body}${body.length>=80?'…':''}`,
+          onClick:()=> navTo('combate','condiciones')});
+      }
+    });
+  }catch(_){}
+
+  /* DB.feats — top 8 matches (catálogo) */
+  try{
+    if(typeof DB!=='undefined' && Array.isArray(DB.feats)){
+      let added = 0;
+      for(const f of DB.feats){
+        if(added >= 8) break;
+        const en = f.name_en||'', es = f.name_es||f.name||'', desc = f.description_es||f.description_en||f.description||'';
+        if(hit(en, es, desc, f.type)){
+          results.push({type:'db-feat', label:es || en || '(feat)',
+            meta:`Catálogo dotes · ${f.type||''}`,
+            onClick:()=>{
+              navTo('aptitudes','dotes');
+              setTimeout(()=>{ try{ if(typeof openFeatPickerMobile==='function') openFeatPickerMobile(); }catch(_){} }, 250);
+            }});
+          added++;
+        }
+      }
+    }
+  }catch(_){}
+
+  /* DB.spells — top 8 matches (catálogo) */
+  try{
+    if(typeof DB!=='undefined' && Array.isArray(DB.spells)){
+      let added = 0;
+      for(const sp of DB.spells){
+        if(added >= 8) break;
+        const en = sp.name_en||'', es = sp.name_es||'';
+        if(hit(en, es, sp.school, sp.description_es, sp.description_en)){
+          const lvls = Object.entries(sp.level||{}).map(([cls,l])=>`${cls} ${l}`).join(' · ');
+          results.push({type:'db-spell', label:es || en || '(spell)',
+            meta:`Catálogo conjuros · ${sp.school||''}${lvls?' · '+lvls:''}`,
+            onClick:()=> navTo('aptitudes','conjuros')});
+          added++;
+        }
+      }
+    }
+  }catch(_){}
+
+  if(!results.length){
+    const safeQ = String(q).replace(/[<>&]/g,ch=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[ch]));
+    c.innerHTML = `<div style="text-align:center;padding:20px;color:var(--ink-muted);font:13px system-ui">Sin resultados para "${safeQ}"</div>`;
     return;
   }
-  /* Agrupar por sección */
-  const byGroup = {};
-  flat.forEach(r => { (byGroup[r.group] = byGroup[r.group] || []).push(r); });
-  Object.entries(byGroup).forEach(([g, items])=>{
-    html += `<div class="search-group-h">${g}</div>`;
-    items.forEach((r,i)=>{
-      html += `<button class="picker-row" data-search-action="${r.action}" data-search-i="${i}" data-search-spell="${r.spellId||''}">
-        <div><div class="pr-name">${r.label}</div>${r.sub?`<div class="pr-desc">${r.sub}</div>`:''}</div>
+
+  /* G5-SEARCH-RENDER: render agrupado por type */
+  const GROUPS = {
+    feat:'Mis dotes', spell:'Mis conjuros', weapon:'Armas',
+    armor:'Armaduras', skill:'Habilidades', feature:'Rasgos de clase',
+    buff:'Buffs / Ajustes', note:'Notas',
+    'db-feat':'Catálogo · Dotes', 'db-spell':'Catálogo · Conjuros'
+  };
+  const byType = {};
+  results.forEach(r => { (byType[r.type] = byType[r.type] || []).push(r); });
+  let html = '';
+  Object.keys(GROUPS).forEach(t=>{
+    const list = byType[t];
+    if(!list || !list.length) return;
+    html += `<div class="search-group-h">${GROUPS[t]} (${list.length})</div>`;
+    list.slice(0,20).forEach((r,i)=>{
+      const safeLbl = String(r.label).replace(/[<>&]/g,ch=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[ch]));
+      const safeMeta = String(r.meta||'').replace(/[<>&]/g,ch=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[ch]));
+      html += `<button class="picker-row" data-g5-search="${t}" data-g5-i="${i}">
+        <div><div class="pr-name">${safeLbl}</div>${safeMeta?`<div class="pr-desc">${safeMeta}</div>`:''}</div>
       </button>`;
     });
   });
   c.innerHTML = html;
-  /* Wire results — cada uno navega al tab + subtab donde está. */
-  c.querySelectorAll('[data-search-action]').forEach(b=>{
+  /* G5-SEARCH-WIRE: cada botón ejecuta onClick + cierra sheet */
+  c.querySelectorAll('[data-g5-search]').forEach(b=>{
     b.addEventListener('click', ()=>{
-      const action = b.dataset.searchAction;
+      const t = b.dataset.g5Search;
+      const i = +b.dataset.g5I;
+      const list = byType[t];
+      if(!list || !list[i]) return;
       try{ closeSheet(document.getElementById('sheet-search')); }catch(_){}
-      const navTo = (tab, sub)=>{
-        try{ if(typeof setTab === 'function') setTab(tab); }catch(_){}
-        if(sub){
-          const chip = document.querySelector(`.tab-page[data-tab="${tab}"] .subchip[data-sub="${sub}"]`);
-          if(chip) setTimeout(()=>chip.click(), 100);
-        }
-      };
-      if(action === 'skills') navTo('aptitudes','habilidades');
-      else if(action === 'feats') navTo('aptitudes','dotes');
-      else if(action === 'spells') navTo('aptitudes','conjuros');
-      else if(action === 'weapons') navTo('equipo','armas');
-      else if(action === 'armor') navTo('equipo','armadura');
+      try{ list[i].onClick(); }catch(_){}
     });
   });
 }
@@ -64888,6 +65441,100 @@ function renderSearchResults(q){
 const BUFFS_LIST = [];
 const ADJUSTS_LIST = [];
 const BUFF_COUNTABLE = new Set(['Asaltos','Minutos','Horas']);
+
+/* G5-BUFF-PACKS: catálogo de paquetes pre-armados.
+   Click sobre un pack añade TODOS sus mods a BUFFS_LIST con qty = duración en rondas. */
+const BUFF_PACKS = [
+  { id:'heroes-feast',  name:'Festín de los Héroes', mods:'+2 atq, +1 mor a saves vs miedo, +1d8+nv hp', dur:'24h' },
+  { id:'bless',         name:'Bendecir',             mods:'+1 atq, +1 mor vs miedo',                       dur:'1 min/nv' },
+  { id:'bulls-strength',name:'Fuerza de Toro',       mods:'+4 FUE',                                        dur:'1 min/nv' },
+  { id:'cats-grace',    name:'Gracia Felina',        mods:'+4 DES',                                        dur:'1 min/nv' },
+  { id:'bears-endurance',name:'Resistencia de Oso',  mods:'+4 CON',                                        dur:'1 min/nv' },
+  { id:'haste',         name:'Premura',              mods:'+1 atq extra, +1 atq, +1 ref, +1 CA',           dur:'1 round/nv' },
+  { id:'good-hope',     name:'Buena Esperanza',      mods:'+2 atq, +2 dmg, +2 skill',                      dur:'1 min/nv' },
+  { id:'prayer',        name:'Plegaria',             mods:'+1 atq, +1 ref, +1 will, +1 dmg',               dur:'1 round/nv' },
+  { id:'heroism',       name:'Heroísmo',             mods:'+2 atq, +2 saves, +2 skill',                    dur:'10 min/nv' },
+];
+
+/* G5-BUFF-PACKS-LEVEL: estima nivel total del PJ para calcular duración. */
+function _g5LevelTotal(){
+  try{
+    if(typeof CLASSES_DATA !== 'undefined' && Array.isArray(CLASSES_DATA)){
+      return Math.max(1, CLASSES_DATA.reduce((s,c)=>s+(parseInt(c.level,10)||0),0));
+    }
+  }catch(_){}
+  return 1;
+}
+
+/* G5-BUFF-PACKS-DUR: convierte la duración "1 min/nv", "1 round/nv", "10 min/nv",
+   "24h" → {dur, qty} compatible con BUFFS_LIST (siempre devolvemos rondas si
+   countable, o el label literal si no). Reglas PF1e: 1 round=6s, 1 min=10 rondas,
+   1 hora=600 rondas. */
+function _g5PackDuration(pack){
+  const lvl = _g5LevelTotal();
+  const d = (pack.dur||'').toLowerCase();
+  if(/round\/nv|round\s*\/\s*nv|asalto\/nv/.test(d)){
+    return { dur:'Asaltos', qty: lvl };
+  }
+  if(/1\s*min\/nv|min\s*\/\s*nv/.test(d) && !/10\s*min\/nv/.test(d)){
+    return { dur:'Asaltos', qty: lvl * 10 };
+  }
+  if(/10\s*min\/nv/.test(d)){
+    return { dur:'Minutos', qty: lvl * 10 };
+  }
+  if(/24h|24\s*h/.test(d)){
+    return { dur:'Horas', qty: 24 };
+  }
+  if(/1\s*min\b/.test(d)){
+    return { dur:'Minutos', qty: 1 };
+  }
+  return { dur:'Hasta descansar', qty: 0 };
+}
+
+/* G5-BUFF-PACKS-APPLY: añade el pack a BUFFS_LIST como UN buff (mods se acumulan
+   por parseMod en rebuildBuffModTotals). */
+function applyBuffPack(pack){
+  if(!pack) return;
+  const { dur, qty } = _g5PackDuration(pack);
+  BUFFS_LIST.push({
+    name: pack.name,
+    mod: pack.mods,
+    dur, qty,
+    remaining: BUFF_COUNTABLE.has(dur) ? qty : 0,
+    notes: `Pack: ${pack.id} (dur. base: ${pack.dur})`
+  });
+  try{ window.logAction && window.logAction('combate','buff pack aplicado', pack.name); }catch(_){}
+  try{ rebuildBuffModTotals(); }catch(_){}
+  try{ renderBuffs(); }catch(_){}
+  try{ if(typeof CombatEngine!=='undefined') CombatEngine.apply(); }catch(_){}
+  try{ if(typeof saveStateDebounced==='function') saveStateDebounced('buff-pack-add'); }catch(_){}
+  try{ if(typeof toast==='function') toast('📦 '+pack.name+' aplicado'); }catch(_){}
+}
+
+/* G5-BUFF-PACKS-RENDER: render del listado dentro del sheet sheet-buff-packs */
+function renderBuffPacksSheet(){
+  const c = document.getElementById('buff-packs-list');
+  if(!c) return;
+  c.innerHTML = BUFF_PACKS.map((p,i)=>{
+    const safeName = String(p.name).replace(/[<>&]/g,ch=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[ch]));
+    const safeMods = String(p.mods).replace(/[<>&]/g,ch=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[ch]));
+    return `<button class="picker-row" data-g5-pack="${i}" style="display:block;width:100%;text-align:left;padding:10px;margin-bottom:6px;border:1px solid var(--line);border-radius:8px;background:var(--surface)">
+      <div style="font-weight:700;font-family:'Cinzel',serif;margin-bottom:3px">${safeName}</div>
+      <div style="font:12px/1.3 system-ui;color:var(--ink-muted)">${safeMods}</div>
+      <div style="font:11px system-ui;color:var(--accent);margin-top:3px">Duración: ${p.dur}</div>
+    </button>`;
+  }).join('');
+  c.querySelectorAll('[data-g5-pack]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const idx = +b.dataset.g5Pack;
+      const pack = BUFF_PACKS[idx];
+      if(!pack) return;
+      applyBuffPack(pack);
+      try{ closeSheet(document.getElementById('sheet-buff-packs')); }catch(_){}
+    });
+  });
+}
+
 function _buffRemove(i){
   try{ const _b = BUFFS_LIST[i]; window.logAction && window.logAction('combate','buff eliminado', _b && _b.name); }catch(_){}
   BUFFS_LIST.splice(i,1);
@@ -65373,6 +66020,12 @@ function bindCustomAdds(){
 function bindFormSheets(){
   const buffAdd = document.getElementById('buff-add');
   if(buffAdd) buffAdd.addEventListener('click',()=>openSheet('sheet-buff'));
+  /* G5-BUFF-PACKS-WIRE: abre sheet con catálogo de packs */
+  const buffPacksBtn = document.getElementById('buff-packs-btn');
+  if(buffPacksBtn) buffPacksBtn.addEventListener('click',()=>{
+    try{ renderBuffPacksSheet(); }catch(_){}
+    try{ openSheet('sheet-buff-packs'); }catch(_){}
+  });
   const buffSave = document.getElementById('buff-save');
   if(buffSave) buffSave.addEventListener('click',()=>{
     const n = document.getElementById('buff-name').value.trim();
@@ -66602,6 +67255,8 @@ function init(){
   try{ bindNewSheets(); }catch(e){console.error(e)}
   try{ bindFormSheets(); }catch(e){console.error(e)}
   try{ bindCustomAdds(); }catch(e){console.error(e)}
+  /* G5-SAVES-ITEMS-INIT */
+  try{ wireSavesItems(); }catch(e){console.error(e)}
   try{ bindAgeCat(); }catch(e){console.error(e)}
   try{ if(typeof D5_init==='function') D5_init(); }catch(e){console.error(e)}
   try{ rebindRolls(); }catch(e){console.error(e)}
@@ -67546,6 +68201,17 @@ function D5_getIterativeAttacks(w){
       if(rawBab >= 11) attacks.push(fmt(rawBab - 10 + extras));
     }
   }
+  /* G2-FULLATK */
+  /* Full attack vs single attack toggle.
+     Si el checkbox #combat-full-attack está OFF, el PJ está usando
+     una acción estándar (1 atq), no full attack. Devuelve sólo el
+     primer ataque (incluye iterativos del BAB y extras TWF). */
+  try{
+    const fa = document.getElementById('combat-full-attack');
+    if(fa && fa.checked === false){
+      return [attacks[0]];
+    }
+  }catch(_){}
   return attacks;
 }
 function D5_getMod(attr){
@@ -68217,6 +68883,77 @@ function rebuildBuffModTotals(){
   /* C-05 (fix BUG-1): NO acumular CONDITION_MODS aqui — duplicaba penalizadores
      (p.ej. Cegado daba -4 atq/-4 CA en vez de -2). _computeCondMods en
      CombatEngine es ahora la unica fuente para mods por condicion (atk/ac/saves). */
+
+  /* G5-SAVES-ITEMS: bonos de objetos a saves leídos de STATE.
+     STATE.savesResistanceItem se suma a los 3, los específicos solo al suyo. */
+  try{
+    const st = window.STATE || {};
+    const generic = parseInt(st.savesResistanceItem, 10) || 0;
+    const itemF = parseInt(st.savesItemFort, 10) || 0;
+    const itemR = parseInt(st.savesItemRef, 10) || 0;
+    const itemW = parseInt(st.savesItemWill, 10) || 0;
+    _BUFF_MOD_TOTALS.fort += generic + itemF;
+    _BUFF_MOD_TOTALS.ref  += generic + itemR;
+    _BUFF_MOD_TOTALS.will += generic + itemW;
+  }catch(_){}
+
+  /* G5-MYTHIC-TIER-BONUS: PF1e mythic — tier suma a atq, saves y AC
+     (simplificación común de Mythic Heroes). */
+  try{
+    if(typeof _MYTHIC_STATE !== 'undefined' && _MYTHIC_STATE.active){
+      const tier = parseInt(_MYTHIC_STATE.tier,10) || 0;
+      if(tier > 0){
+        _BUFF_MOD_TOTALS.atk  += tier;
+        _BUFF_MOD_TOTALS.fort += tier;
+        _BUFF_MOD_TOTALS.ref  += tier;
+        _BUFF_MOD_TOTALS.will += tier;
+        _BUFF_MOD_TOTALS.ac   += tier;
+      }
+    }
+  }catch(_){}
+}
+
+/* G5-SAVES-ITEMS-REBUILD: relee STATE de los inputs y refresca cálculos. */
+function rebuildSavesItems(){
+  try{
+    const st = window.STATE = window.STATE || {};
+    const $ = id => document.getElementById(id);
+    const get = id => { const el = $(id); return el ? (parseInt(el.value,10) || 0) : (parseInt(st[id]||0,10)||0); };
+    st.savesResistanceItem = get('g5-saves-item-resist');
+    st.savesItemFort = get('g5-saves-item-fort');
+    st.savesItemRef  = get('g5-saves-item-ref');
+    st.savesItemWill = get('g5-saves-item-will');
+  }catch(_){}
+  try{ rebuildBuffModTotals(); }catch(_){}
+  try{ if(typeof CombatEngine!=='undefined') CombatEngine.apply(); }catch(_){}
+  try{ if(typeof saveStateDebounced==='function') saveStateDebounced('saves-items'); }catch(_){}
+}
+
+/* G5-SAVES-ITEMS-WIRE: bind inputs y restaura desde STATE al cargar */
+function wireSavesItems(){
+  const ids = ['g5-saves-item-resist','g5-saves-item-fort','g5-saves-item-ref','g5-saves-item-will'];
+  /* Restaurar valores desde STATE si existen */
+  try{
+    const st = window.STATE || {};
+    const map = {
+      'g5-saves-item-resist': st.savesResistanceItem,
+      'g5-saves-item-fort':   st.savesItemFort,
+      'g5-saves-item-ref':    st.savesItemRef,
+      'g5-saves-item-will':   st.savesItemWill
+    };
+    Object.entries(map).forEach(([id,v])=>{
+      const el = document.getElementById(id);
+      if(el && v != null && !isNaN(parseInt(v,10))) el.value = parseInt(v,10);
+    });
+  }catch(_){}
+  ids.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el && !el.__g5b){
+      el.__g5b = 1;
+      el.addEventListener('input', rebuildSavesItems);
+      el.addEventListener('change', rebuildSavesItems);
+    }
+  });
 }
 
 /* ─────────────────────────────────────────────────────────────── */
@@ -68601,11 +69338,23 @@ const CombatEngine = (function(){
           }
         }
       };
-      const dying = cur < -(mods.con|0);
-      const unconscious = cur <= 0;
+      let dying = cur < -(mods.con|0);
+      let unconscious = cur <= 0;
       const knockedNonlethal = (cur === 0) || (nl >= max && max > 0);
+      /* G5-HARD-TO-KILL: PF1e Mythic. Con "hard-to-kill" no caes inconsciente
+         al llegar a 0 HP ni mueres por daño hasta CON negativo. Sigue luchando. */
+      try{
+        if(typeof _MYTHIC_STATE !== 'undefined' && _MYTHIC_STATE.active){
+          const featsStr = String(_MYTHIC_STATE.feats||'').toLowerCase();
+          const hasHTK = /hard[-\s]?to[-\s]?kill/.test(featsStr);
+          if(hasHTK){
+            dying = false;
+            unconscious = false;
+          }
+        }
+      }catch(_){}
       setAuto('Muriendo', dying);
-      setAuto('Inconsciente', unconscious || knockedNonlethal);
+      setAuto('Inconsciente', unconscious || (knockedNonlethal && !(typeof _MYTHIC_STATE!=='undefined' && _MYTHIC_STATE.active && /hard[-\s]?to[-\s]?kill/i.test(String(_MYTHIC_STATE.feats||'')))));
     }catch(e){}
   }
 
@@ -71608,7 +72357,8 @@ function _mythicSurge(){
     return;
   }
   const roll = Math.floor(Math.random()*sides) + 1;
-  _MYTHIC_STATE.powerCurrent = cur - 1;
+  /* G5-MYTHIC-SURGE-CONSUME: gasta 1 punto de poder mítico al usar surge */
+  _MYTHIC_STATE.powerCurrent = Math.max(0, cur - 1);
   _MYTHIC_STATE.surgesUsed = (_MYTHIC_STATE.surgesUsed || 0) + 1;
   try{ window.logAction && window.logAction('mythic','surge gastado', '1d'+sides+'='+roll); }catch(_){}
   if(log) log.textContent = `1d${sides} = ${roll} · Power ${_MYTHIC_STATE.powerCurrent}/${_MYTHIC_STATE.powerMax}`;
@@ -71754,6 +72504,9 @@ function wireMythic(){
     _MYTHIC_STATE.active = cb.checked;
     try{ window.logAction && window.logAction('mythic', cb.checked?'mythic activado':'mythic desactivado', null); }catch(_){}
     _mythicRefreshUi();
+    /* G5-MYTHIC-TIER-APPLY-ACTIVE: recalcular bonos tier al activar/desactivar */
+    try{ rebuildBuffModTotals(); }catch(_){}
+    try{ if(typeof CombatEngine!=='undefined') CombatEngine.apply(); }catch(_){}
     if(typeof saveStateDebounced === 'function') saveStateDebounced('mythic-active');
   });
   /* Inputs */
@@ -71768,6 +72521,13 @@ function wireMythic(){
         const newMax = _mythicMaxPower(v);
         _MYTHIC_STATE.powerMax = newMax;
         if(_MYTHIC_STATE.powerCurrent > newMax) _MYTHIC_STATE.powerCurrent = newMax;
+        /* G5-MYTHIC-TIER-APPLY-CHANGE: tier afecta atk/saves/AC vía rebuildBuffModTotals */
+        try{ rebuildBuffModTotals(); }catch(_){}
+        try{ if(typeof CombatEngine!=='undefined') CombatEngine.apply(); }catch(_){}
+      }
+      if(key === 'feats'){
+        /* G5-HARD-TO-KILL-REFRESH: cambiar feats puede activar hard-to-kill */
+        try{ if(typeof CombatEngine!=='undefined' && CombatEngine.calcConditionsAuto) CombatEngine.calcConditionsAuto(); }catch(_){}
       }
       _mythicRefreshUi();
       if(typeof saveStateDebounced === 'function') saveStateDebounced('mythic-' + key);
@@ -72426,6 +73186,204 @@ function recomputeCAAuto(){
   }catch(e){ console.warn('recomputeCAAuto', e); }
 }
 
+/* G2-MANEUVER */
+/* G2-CLEAVE */
+/* Maniobras de combate y ataques especiales.
+   Cada botón data-maneuver tira 1d20 + CMB con modificadores por dotes "mejoradas".
+   Cleave / Great Cleave / Whirlwind detectados por FEATS regex; sólo se muestran
+   los disponibles. Cleave da -2 a CA hasta el inicio del próximo turno (PF1e CRB). */
+(function(){
+  'use strict';
+
+  function _g2_normalizeFeat(s){
+    return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  }
+  function _g2_hasFeat(re){
+    try{
+      const list = (typeof FEATS !== 'undefined' && Array.isArray(FEATS)) ? FEATS : (window.FEATS || []);
+      return list.some(f => re.test(_g2_normalizeFeat(f && f.n || '')));
+    }catch(_){ return false; }
+  }
+  /* Patrones para detectar dotes "Improved X" (ES y EN). */
+  const G2_FEAT_PATTERNS = {
+    trip:       /derribo\s+mejorado|improved\s+trip/,
+    disarm:     /desarmar\s+mejorado|improved\s+disarm/,
+    sunder:     /romper\s+mejorado|improved\s+sunder/,
+    grapple:    /presa\s+mejorada|improved\s+grapple/,
+    bullrush:   /embestida\s+mejorada|embestir\s+mejorado|improved\s+bull\s*rush/,
+    overrun:    /atropello\s+mejorado|improved\s+overrun/,
+    reposition: /reposicionar\s+mejorado|improved\s+reposition/,
+    steal:      /robo\s+mejorado|robar\s+mejorado|improved\s+steal/,
+    dirty:      /truco\s+sucio\s+mejorado|improved\s+dirty\s+trick/,
+    cleave:     /^cleave$|^tajo$|hender(?!\s+grande)/,
+    greatcleave:/gran\s+tajo|great\s+cleave|tajo\s+amplio|hender\s+grande/,
+    whirlwind:  /torbellino|whirlwind\s+attack/,
+  };
+
+  const G2_MANEUVER_LABELS = {
+    trip:'Derribar', disarm:'Desarmar', sunder:'Romper', grapple:'Presa',
+    bullrush:'Embestir', overrun:'Atropellar', reposition:'Reposicionar',
+    steal:'Robar', dirty:'Truco sucio'
+  };
+
+  /* Mejorada: +4 a la tirada; sin ella: -4 (maniobras que provocan AdO).
+     No aplicamos AdO automático aquí, sólo el numérico. */
+  function _g2_maneuverMod(key){
+    const has = _g2_hasFeat(G2_FEAT_PATTERNS[key]);
+    if(has) return { delta: +4, note: '+4 (dote mejorada)' };
+    return { delta: -4, note: '−4 (sin dote mejorada; provoca AdO)' };
+  }
+
+  function _g2_getCMB(){
+    try{
+      if(typeof CombatEngine !== 'undefined' && CombatEngine.calcCMBCMD && CombatEngine.getMods && CombatEngine.calcBAB){
+        const mods = CombatEngine.getMods();
+        const bab  = CombatEngine.calcBAB();
+        const cm   = CombatEngine.calcCMBCMD(mods, bab);
+        return cm.cmb|0;
+      }
+    }catch(_){}
+    const el = document.getElementById('m-cmb');
+    if(el){ const n = parseInt(String(el.textContent||el.value||'0').replace(/[^\-\d]/g,''),10); if(!isNaN(n)) return n; }
+    return 0;
+  }
+
+  function _g2_fmt(n){ return (n>=0?'+':'') + n; }
+
+  function _g2_rollManeuver(key){
+    const cmb = _g2_getCMB();
+    const mod = _g2_maneuverMod(key);
+    const total = cmb + mod.delta;
+    const label = (G2_MANEUVER_LABELS[key]||key) + ' · CMB';
+    const expr  = '1d20' + _g2_fmt(total);
+    const out = document.getElementById('maneuver-output');
+    if(out){
+      out.innerHTML = `<b>${G2_MANEUVER_LABELS[key]||key}</b> · 1d20 ${_g2_fmt(cmb)} CMB ${mod.delta!==0?_g2_fmt(mod.delta):''} <span style="color:var(--ink-muted)">(${mod.note})</span> → comparar con el CMD del objetivo.`;
+    }
+    try{ window.logAction && window.logAction('combate','maniobra '+key, expr+' ('+mod.note+')'); }catch(_){}
+    try{
+      if(typeof performRoll === 'function'){
+        performRoll({expr: expr, label: label, isAttack: true});
+      }
+    }catch(e){}
+  }
+
+  function _g2_getMainHandAttack(){
+    try{
+      const list = (typeof WEAPONS_DATA !== 'undefined') ? WEAPONS_DATA : [];
+      const main = list.find(w => w && w.equipped && w.style !== 'offhand' && w.style !== 'ranged')
+                || list.find(w => w && w.equipped)
+                || list[0];
+      if(!main) return null;
+      const atks = main.iterativeAtks || [main.atk || '+0'];
+      return { weapon: main, atk: atks[0] };
+    }catch(_){ return null; }
+  }
+
+  function _g2_rollSpecial(key){
+    const out = document.getElementById('combat-special-output');
+    const main = _g2_getMainHandAttack();
+    if(!main){
+      if(out) out.textContent = 'No hay arma equipada con la que atacar.';
+      return;
+    }
+    const baseAtk = main.atk || '+0';
+    if(key === 'cleave' || key === 'greatcleave'){
+      const labelES = key === 'cleave' ? 'Cleave' : 'Gran Cleave';
+      if(out) out.innerHTML = `<b>${labelES}</b> · <span style="color:var(--ink-muted)">Aplicas −2 a tu CA hasta tu próximo turno.</span> Tirando atq 1 (${baseAtk})…`;
+      try{ window.logAction && window.logAction('combate', key, main.weapon.name+' atk='+baseAtk); }catch(_){}
+      if(typeof performRoll === 'function'){
+        performRoll({expr: '1d20'+baseAtk, label: `${main.weapon.name} · ${labelES} atq 1`, isAttack: true});
+      }
+      setTimeout(()=>{
+        const ok = (typeof confirm === 'function') ? confirm(`¿Impactaste con el primer ataque de ${labelES}? Aceptar = tirar ataque extra al siguiente enemigo adyacente.`) : false;
+        if(ok){
+          if(typeof performRoll === 'function'){
+            performRoll({expr: '1d20'+baseAtk, label: `${main.weapon.name} · ${labelES} atq extra`, isAttack: true});
+          }
+          if(key === 'greatcleave'){
+            setTimeout(()=>{
+              const ok2 = (typeof confirm === 'function') ? confirm('Great Cleave: ¿Impactaste también? Aceptar = otra cadena.') : false;
+              if(ok2 && typeof performRoll === 'function'){
+                performRoll({expr: '1d20'+baseAtk, label: `${main.weapon.name} · Gran Cleave atq extra`, isAttack: true});
+              }
+            }, 200);
+          }
+        }
+      }, 250);
+      return;
+    }
+    if(key === 'whirlwind'){
+      let n = 1;
+      try{
+        const raw = (typeof prompt === 'function') ? prompt('Whirlwind Attack: ¿cuántos enemigos adyacentes?', '2') : '2';
+        n = Math.max(1, Math.min(20, parseInt(raw,10)||1));
+      }catch(_){ n = 2; }
+      if(out) out.innerHTML = `<b>Whirlwind</b> · ${n} atq, uno por enemigo adyacente. Tirando ${n}×1d20${baseAtk}…`;
+      try{ window.logAction && window.logAction('combate','whirlwind', main.weapon.name+' n='+n+' atk='+baseAtk); }catch(_){}
+      for(let i=0;i<n;i++){
+        const idx = i;
+        setTimeout(()=>{
+          if(typeof performRoll === 'function'){
+            performRoll({expr: '1d20'+baseAtk, label: `${main.weapon.name} · Whirlwind atq ${idx+1}/${n}`, isAttack: true});
+          }
+        }, 300*idx);
+      }
+      return;
+    }
+  }
+
+  function _g2_refreshCleaveButtons(){
+    const card = document.getElementById('combat-cleave-card');
+    if(!card) return;
+    const btns = card.querySelectorAll('[data-special]');
+    let anyVisible = false;
+    btns.forEach(b=>{
+      const k = b.dataset.special;
+      const has = _g2_hasFeat(G2_FEAT_PATTERNS[k]);
+      b.hidden = !has;
+      if(has) anyVisible = true;
+    });
+    const empty = document.getElementById('combat-cleave-empty');
+    if(empty) empty.hidden = anyVisible;
+  }
+
+  function wireG2Maneuvers(){
+    document.querySelectorAll('[data-maneuver]').forEach(btn=>{
+      if(btn.__g2_wired) return;
+      btn.__g2_wired = true;
+      btn.addEventListener('click', ()=>_g2_rollManeuver(btn.dataset.maneuver));
+    });
+    document.querySelectorAll('[data-special]').forEach(btn=>{
+      if(btn.__g2_wired) return;
+      btn.__g2_wired = true;
+      btn.addEventListener('click', ()=>_g2_rollSpecial(btn.dataset.special));
+    });
+    _g2_refreshCleaveButtons();
+    ['feats-changed','character-loaded','load-complete'].forEach(ev=>{
+      document.addEventListener(ev, _g2_refreshCleaveButtons);
+      window.addEventListener(ev, _g2_refreshCleaveButtons);
+    });
+  }
+
+  /* G2-FULLATK */
+  /* #combat-full-attack ya tiene class="combat-tactical", así que
+     wireCombatTacticals dispara D5_refreshWeaponRolls al cambiar.
+     Aquí sólo añadimos log dedicado. */
+  function wireG2FullAttackToggle(){
+    const fa = document.getElementById('combat-full-attack');
+    if(!fa || fa.__g2_wired) return;
+    fa.__g2_wired = true;
+    fa.addEventListener('change', ()=>{
+      try{ window.logAction && window.logAction('combate','toggle full-attack', fa.checked?'full':'single'); }catch(_){}
+    });
+  }
+
+  window.wireG2Maneuvers = wireG2Maneuvers;
+  window.wireG2FullAttackToggle = wireG2FullAttackToggle;
+  window._g2_refreshCleaveButtons = _g2_refreshCleaveButtons;
+})();
+
 /* Fase A MA-1: cualquier toggle táctico (PA/DA/TWF/Asalto Energético) o
    cambio de condición debe disparar recálculo del motor + refresco de armas. */
 function wireCombatTacticals(){
@@ -72535,6 +73493,9 @@ function init6(){
   wireSettingsControls();
   wireRoundButton();
   wireCombatTacticals();
+  /* G2-MANEUVER */ /* G2-CLEAVE */ /* G2-FULLATK */
+  try{ if(typeof wireG2Maneuvers === 'function') wireG2Maneuvers(); }catch(_){}
+  try{ if(typeof wireG2FullAttackToggle === 'function') wireG2FullAttackToggle(); }catch(_){}
   wireMythic();
   wireSummonerArchetypes();
   wireGestaltMode();
@@ -72618,6 +73579,782 @@ if(document.readyState==='complete' || document.readyState==='interactive'){
 
 })();
 /* ─── /DOMINIO 6 · DATOS Y PERSISTENCIA ─── */
+</script>
+
+<!-- /* G3-BLOCK-START */ Class abilities activables (Lay on Hands, Smite, Channel, Bardic, Rage Powers, Bloodline, Versatile) -->
+<style>
+/* G3-CSS */
+.g3-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
+.g3-btn{display:inline-flex;align-items:center;gap:4px;padding:6px 10px;border-radius:8px;border:1px solid var(--leather-dk,#7a4a1f);background:rgba(255,200,100,0.10);color:var(--ink,#222);font:600 12px system-ui;cursor:pointer;min-height:32px}
+.g3-btn:hover{background:rgba(255,200,100,0.20)}
+.g3-btn.g3-danger{border-color:#a33;background:rgba(180,40,40,0.10);color:#8a1a1a}
+.g3-btn.g3-heal{border-color:#3a8;background:rgba(40,180,120,0.10);color:#1a6a45}
+.g3-btn.g3-on{background:rgba(220,140,30,0.30);border-color:#c47a18;color:#7a4a08}
+.g3-info{font:11px/1.3 system-ui;color:var(--ink-muted,#666);margin-top:4px}
+.g3-select{padding:5px 8px;border-radius:6px;border:1px solid var(--leather-dk,#7a4a1f);background:#fff;font:12px system-ui;min-height:32px;max-width:100%}
+.g3-mini-card{border:1px solid var(--leather-dk,#7a4a1f);border-radius:8px;padding:8px;margin-top:6px;background:rgba(0,0,0,0.02)}
+.g3-mini-card .g3-mini-name{font:600 13px system-ui;color:var(--ink,#222)}
+.g3-mini-card .g3-mini-desc{font:11px/1.4 system-ui;color:var(--ink-muted,#666);margin-top:3px}
+.g3-mini-card .g3-mini-actions{display:flex;gap:6px;margin-top:6px;align-items:center;flex-wrap:wrap}
+.g3-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.g3-tag{display:inline-block;font:600 10px system-ui;padding:2px 6px;border-radius:6px;background:rgba(0,0,0,0.06);color:var(--ink-muted,#555)}
+.g3-dc{display:inline-block;font:600 11px system-ui;padding:3px 7px;border-radius:6px;background:rgba(180,40,40,0.08);color:#8a1a1a;border:1px solid rgba(180,40,40,0.30)}
+</style>
+<script>
+/* G3-MAIN — Class abilities activables. Unique anchors `G3-*`. */
+(function(){
+  'use strict';
+
+  /* G3-HELPERS — Acceso defensivo a infra existente */
+  function _g3CharismaMod(){
+    try{
+      if(typeof window.getAttrMod === 'function'){ return window.getAttrMod('CAR')|0; }
+      if(typeof ATTRS !== 'undefined'){
+        const r = ATTRS.find(x => x && x[0] === 'CAR');
+        if(r) return parseInt(r[3],10)||0;
+      }
+    }catch(_){}
+    return 0;
+  }
+  function _g3ToastSafe(msg){
+    try{ if(typeof toast === 'function') toast(msg); }catch(_){}
+  }
+  function _g3LogSafe(cat, action, detail){
+    try{ window.logAction && window.logAction(cat, action, detail); }catch(_){}
+  }
+  function _g3GetClasses(){
+    try{ return Array.isArray(CLASSES_DATA) ? CLASSES_DATA : []; }catch(_){ return []; }
+  }
+  /* G3-CLASS-LEVEL — Lee nivel por nombre/keyword */
+  function _g3ClassLevel(kw){
+    const arr = _g3GetClasses();
+    const k = (kw||'').toLowerCase();
+    let total = 0;
+    for(const c of arr){
+      const n = (c && c.name ? c.name : '').toLowerCase();
+      const ck = (c && c.classKey ? c.classKey : '').toLowerCase();
+      if(n.includes(k) || ck.includes(k)){
+        total += parseInt(c.level,10) || 0;
+      }
+    }
+    return total;
+  }
+  function _g3PaladinLevel(){
+    return Math.max(_g3ClassLevel('paladin'), _g3ClassLevel('paladín'));
+  }
+  function _g3ClericLevel(){
+    let lvl = _g3ClassLevel('clerigo');
+    if(!lvl) lvl = _g3ClassLevel('clérigo');
+    if(!lvl) lvl = _g3ClassLevel('cleric');
+    /* Paladín canaliza energía a nivel efectivo -3 */
+    const pl = _g3PaladinLevel();
+    if(pl >= 4 && lvl < (pl - 3)) lvl = pl - 3;
+    return lvl;
+  }
+  function _g3BardLevel(){
+    let lvl = _g3ClassLevel('bardo');
+    if(!lvl) lvl = _g3ClassLevel('bard');
+    return lvl;
+  }
+  function _g3BarbarianLevel(){
+    let lvl = _g3ClassLevel('barbaro');
+    if(!lvl) lvl = _g3ClassLevel('bárbaro');
+    if(!lvl) lvl = _g3ClassLevel('barbarian');
+    return lvl;
+  }
+  function _g3SorcererLevel(){
+    let lvl = _g3ClassLevel('hechicero');
+    if(!lvl) lvl = _g3ClassLevel('sorcerer');
+    return lvl;
+  }
+  function _g3IsBard(){ return _g3BardLevel() > 0; }
+  function _g3IsBarbarian(){ return _g3BarbarianLevel() > 0; }
+  function _g3IsSorcerer(){ return _g3SorcererLevel() > 0; }
+
+  /* G3-ROLL — Tira un dado expr y devuelve total. Usa performRoll si está disponible. */
+  function _g3RollExpr(expr, label){
+    try{
+      if(typeof performRoll === 'function'){
+        performRoll({expr: expr, label: label || expr});
+      }
+    }catch(_){}
+    const m = String(expr).match(/^(\d+)d(\d+)$/);
+    if(!m) return 0;
+    const n = parseInt(m[1],10), d = parseInt(m[2],10);
+    let t = 0;
+    for(let i=0;i<n;i++) t += 1 + Math.floor(Math.random()*d);
+    return t;
+  }
+
+  /* G3-HP — Suma N al HP del PJ. Usa setHP si está disponible. */
+  function _g3HealHp(amount){
+    try{
+      if(typeof setHP === 'function' && typeof hp !== 'undefined'){
+        setHP((parseInt(hp,10)||0) + (parseInt(amount,10)||0));
+        return true;
+      }
+      if(typeof window.setHP === 'function' && typeof window.hp !== 'undefined'){
+        window.setHP((parseInt(window.hp,10)||0) + (parseInt(amount,10)||0));
+        return true;
+      }
+    }catch(_){}
+    /* Fallback: tocar input id="pg-current" si existe */
+    try{
+      const cur = document.getElementById('pg-current');
+      if(cur){
+        const v = (parseInt(cur.value || cur.textContent,10)||0) + (parseInt(amount,10)||0);
+        if('value' in cur) cur.value = v;
+        else cur.textContent = String(v);
+        try{ cur.dispatchEvent(new Event('input',{bubbles:true})); cur.dispatchEvent(new Event('change',{bubbles:true})); }catch(_){}
+        return true;
+      }
+    }catch(_){}
+    return false;
+  }
+
+  /* G3-BUFF — Manipula BUFFS_LIST */
+  function _g3FindBuffIdx(name){
+    try{
+      if(typeof BUFFS_LIST === 'undefined' || !Array.isArray(BUFFS_LIST)) return -1;
+      return BUFFS_LIST.findIndex(b => b && b.name === name);
+    }catch(_){}
+    return -1;
+  }
+  function _g3AddBuff(buff){
+    try{
+      if(typeof BUFFS_LIST === 'undefined' || !Array.isArray(BUFFS_LIST)) return false;
+      const idx = _g3FindBuffIdx(buff.name);
+      if(idx >= 0) BUFFS_LIST.splice(idx,1);
+      const q = parseInt(buff.qty,10)||0;
+      BUFFS_LIST.push({name:buff.name, mod:buff.mod||'', dur:buff.dur||'Permanente', qty:q, remaining:q, notes:buff.notes||''});
+      _g3LogSafe('aptitud','buff de aptitud activado', buff.name);
+      try{ if(typeof rebuildBuffModTotals === 'function') rebuildBuffModTotals(); }catch(_){}
+      try{ if(typeof renderBuffs === 'function') renderBuffs(); }catch(_){}
+      try{ if(typeof CombatEngine !== 'undefined' && CombatEngine.apply) CombatEngine.apply(); }catch(_){}
+      try{ if(typeof saveStateDebounced === 'function') saveStateDebounced('g3-buff'); }catch(_){}
+      return true;
+    }catch(_){}
+    return false;
+  }
+  function _g3RemoveBuff(name){
+    try{
+      if(typeof BUFFS_LIST === 'undefined' || !Array.isArray(BUFFS_LIST)) return false;
+      const idx = _g3FindBuffIdx(name);
+      if(idx < 0) return false;
+      BUFFS_LIST.splice(idx,1);
+      _g3LogSafe('aptitud','buff de aptitud desactivado', name);
+      try{ if(typeof rebuildBuffModTotals === 'function') rebuildBuffModTotals(); }catch(_){}
+      try{ if(typeof renderBuffs === 'function') renderBuffs(); }catch(_){}
+      try{ if(typeof CombatEngine !== 'undefined' && CombatEngine.apply) CombatEngine.apply(); }catch(_){}
+      try{ if(typeof saveStateDebounced === 'function') saveStateDebounced('g3-buff'); }catch(_){}
+      return true;
+    }catch(_){}
+    return false;
+  }
+  function _g3HasBuff(name){ return _g3FindBuffIdx(name) >= 0; }
+
+  /* G3-STATE — STATE.ragePowers, STATE.versatilePerformance */
+  function _g3State(){
+    if(!window.STATE) window.STATE = {};
+    if(!Array.isArray(window.STATE.ragePowers)) window.STATE.ragePowers = [];
+    if(typeof window.STATE.versatilePerformance !== 'string') window.STATE.versatilePerformance = '';
+    return window.STATE;
+  }
+
+  /* G3-NAME-MATCH — heurísticas de detección por nombre de feature */
+  const G3_PATTERNS = {
+    layOnHands:    /(imposici[oó]n de manos|lay[\s\-]?on[\s\-]?hands)/i,
+    smiteEvil:     /(castigar al mal|smite\s*evil|castigo del mal)/i,
+    channelEnergy: /(canalizar energ[ií]a|channel\s*energy|encauzar energ[ií]a)/i,
+    bardic:        /(actuaci[oó]n bárdica|actuaci[oó]n musical|bardic\s*performance|interpretaci[oó]n bárdica)/i,
+    ragePowers:    /(poder(?:es)? de furia|poder(?:es)? de rabia|rage\s*power(s)?)/i,
+    bloodlinePower:/(poder(?:es)? de linaje|linaje\b|bloodline\s*power)/i,
+  };
+  function _g3MatchPattern(name, key){
+    const re = G3_PATTERNS[key];
+    if(!re) return false;
+    return re.test(String(name||''));
+  }
+
+  /* G3-LOH-UI — Lay on Hands buttons */
+  function _g3LohDieN(){
+    /* N = max(1, floor(paladinLvl/2)) */
+    const pl = _g3PaladinLevel();
+    return Math.max(1, Math.floor(pl/2));
+  }
+  function _g3LohExpr(){ return _g3LohDieN() + 'd6'; }
+  function _g3LohHeal(){
+    const expr = _g3LohExpr();
+    let total = 0;
+    const m = expr.match(/^(\d+)d6$/);
+    const n = m ? parseInt(m[1],10) : 1;
+    for(let i=0;i<n;i++) total += 1 + Math.floor(Math.random()*6);
+    if(typeof performRoll === 'function'){
+      try{ performRoll({expr: expr, label: 'Lay on Hands · Curar'}); }catch(_){}
+    }
+    const ok = _g3HealHp(total);
+    _g3LogSafe('aptitud','Lay on Hands · curar', expr+' = '+total);
+    _g3ToastSafe('🩹 Lay on Hands: '+expr+' → +'+total+' HP'+(ok?'':' (manual)'));
+  }
+  function _g3LohDamageUndead(){
+    const expr = _g3LohExpr();
+    let total = 0;
+    const m = expr.match(/^(\d+)d6$/);
+    const n = m ? parseInt(m[1],10) : 1;
+    for(let i=0;i<n;i++) total += 1 + Math.floor(Math.random()*6);
+    if(typeof performRoll === 'function'){
+      try{ performRoll({expr: expr, label: 'Lay on Hands · Daño no-muerto'}); }catch(_){}
+    }
+    _g3LogSafe('aptitud','Lay on Hands · daño no-muerto', expr+' = '+total);
+    _g3ToastSafe('⚔ Lay on Hands daño no-muerto: '+expr+' → '+total);
+  }
+  function _g3RenderLohButtons(card){
+    const n = _g3LohDieN();
+    const html = `
+      <div class="g3-actions" data-g3-loh-actions>
+        <button type="button" class="g3-btn g3-heal" data-g3-loh-heal title="Curar ${n}d6 al PJ (Shift+click: prompt cantidad)">🩹 Curar ${n}d6</button>
+        <button type="button" class="g3-btn g3-danger" data-g3-loh-dmg title="Tira ${n}d6 como daño contra no-muertos">⚔ Dañar no-muerto ${n}d6</button>
+        <span class="g3-tag">Paladín lvl ${_g3PaladinLevel()||'—'}</span>
+      </div>`;
+    card.insertAdjacentHTML('beforeend', html);
+    const hb = card.querySelector('[data-g3-loh-heal]');
+    const db = card.querySelector('[data-g3-loh-dmg]');
+    if(hb) hb.addEventListener('click', function(ev){
+      if(ev.shiftKey){
+        const ans = prompt('Curar a quién? (texto informativo, sólo afecta al PJ)', 'PJ');
+        if(ans === null) return;
+      }
+      _g3LohHeal();
+    });
+    if(db) db.addEventListener('click', _g3LohDamageUndead);
+  }
+
+  /* G3-SMITE-UI — Smite Evil toggle */
+  const G3_SMITE_BUFF = 'Smite Evil';
+  function _g3SmiteToggle(){
+    const pl = _g3PaladinLevel();
+    if(pl <= 0){ _g3ToastSafe('Sin nivel de Paladín'); return; }
+    if(_g3HasBuff(G3_SMITE_BUFF)){
+      _g3RemoveBuff(G3_SMITE_BUFF);
+      _g3ToastSafe('Smite Evil desactivado');
+    } else {
+      const cha = _g3CharismaMod();
+      const sign = (v)=> (v>=0?'+':'')+v;
+      const mod = sign(cha)+' atk, '+sign(pl)+' dmg';
+      _g3AddBuff({name: G3_SMITE_BUFF, mod: mod, dur: 'Permanente', qty: 0, notes:'Hasta que muera el objetivo.'});
+      _g3ToastSafe('⚔ Smite Evil activado ('+mod+')');
+    }
+    _g3RefreshClassFeatures();
+  }
+  function _g3RenderSmiteButtons(card){
+    const on = _g3HasBuff(G3_SMITE_BUFF);
+    const pl = _g3PaladinLevel();
+    const cha = _g3CharismaMod();
+    const html = `
+      <div class="g3-actions" data-g3-smite-actions>
+        <button type="button" class="g3-btn ${on?'g3-on':''}" data-g3-smite-toggle>${on?'✓ Smite Evil ACTIVO — Desactivar':'⚔ Activar Smite Evil'}</button>
+        <span class="g3-tag">${(cha>=0?'+':'')+cha} atk · ${(pl>=0?'+':'')+pl} dmg</span>
+      </div>`;
+    card.insertAdjacentHTML('beforeend', html);
+    const b = card.querySelector('[data-g3-smite-toggle]');
+    if(b) b.addEventListener('click', _g3SmiteToggle);
+  }
+
+  /* G3-CHANNEL-UI — Channel Energy */
+  function _g3ChannelDieN(){
+    const lvl = _g3ClericLevel();
+    return Math.max(1, Math.floor((lvl+1)/2));
+  }
+  function _g3ChannelDC(){
+    const lvl = _g3ClericLevel();
+    const cha = _g3CharismaMod();
+    return 10 + Math.floor(lvl/2) + cha;
+  }
+  function _g3ChannelHeal(){
+    const n = _g3ChannelDieN();
+    const expr = n+'d6';
+    let total = 0;
+    for(let i=0;i<n;i++) total += 1 + Math.floor(Math.random()*6);
+    if(typeof performRoll === 'function'){
+      try{ performRoll({expr: expr, label: 'Canalizar · Curar (30 ft)'}); }catch(_){}
+    }
+    _g3LogSafe('aptitud','Canalizar energía · curar', expr+' = '+total);
+    _g3ToastSafe('✚ Canalizar curar: '+expr+' → '+total);
+  }
+  function _g3ChannelDamageUndead(){
+    const n = _g3ChannelDieN();
+    const expr = n+'d6';
+    let total = 0;
+    for(let i=0;i<n;i++) total += 1 + Math.floor(Math.random()*6);
+    if(typeof performRoll === 'function'){
+      try{ performRoll({expr: expr, label: 'Canalizar · Daño no-muertos'}); }catch(_){}
+    }
+    _g3LogSafe('aptitud','Canalizar energía · daño', expr+' = '+total+' (DC '+_g3ChannelDC()+')');
+    _g3ToastSafe('💀 Canalizar daño no-muertos: '+expr+' → '+total+' (DC '+_g3ChannelDC()+')');
+  }
+  function _g3RenderChannelButtons(card){
+    const n = _g3ChannelDieN();
+    const dc = _g3ChannelDC();
+    const html = `
+      <div class="g3-actions" data-g3-channel-actions>
+        <button type="button" class="g3-btn g3-heal" data-g3-channel-heal title="Cura ${n}d6 a aliados en esfera 30 ft">✚ Curar (30 ft) ${n}d6</button>
+        <button type="button" class="g3-btn g3-danger" data-g3-channel-dmg title="Daña no-muertos en esfera 30 ft">💀 Dañar no-muertos ${n}d6</button>
+        <span class="g3-dc">DC negar: ${dc}</span>
+      </div>`;
+    card.insertAdjacentHTML('beforeend', html);
+    const h = card.querySelector('[data-g3-channel-heal]');
+    const d = card.querySelector('[data-g3-channel-dmg]');
+    if(h) h.addEventListener('click', _g3ChannelHeal);
+    if(d) d.addEventListener('click', _g3ChannelDamageUndead);
+  }
+
+  /* G3-BARDIC-UI — Bardic Performance */
+  const G3_BARDIC_TYPES = {
+    courage:     {label:'Inspirar Coraje', detail:(lvl)=> {
+      const tier = lvl>=17?4:lvl>=11?3:lvl>=8?2:1;
+      return '+'+tier+' morale atk/dmg, +'+tier+' TS miedo';
+    }},
+    competence:  {label:'Inspirar Competencia', detail:(lvl)=>{
+      const bonus = lvl>=13?'+4':lvl>=7?'+3':'+2';
+      return bonus+' competence a una habilidad';
+    }},
+    counter:     {label:'Contracanto', detail:()=>'Tira 1d20+perform como TS sustituta vs sónico/lingüístico'},
+    'dispel-fear': {label:'Disipar Miedo', detail:()=>'Suprime sacudido/asustado en aliados'},
+    fascinate:   {label:'Fascinar', detail:(lvl)=>'Fascina hasta '+Math.ceil(lvl/3)+' criaturas (DC 10 + ½ nv + CAR)'},
+    suggestion:  {label:'Sugestión', detail:()=>'Sugiere a una criatura ya fascinada (Voluntad niega)'},
+    dirge:       {label:'Endecha de los Caídos', detail:()=>'Bonificador moral contra miedo y efectos de muerte'},
+    frighten:    {label:'Aterrar', detail:(lvl)=>'Aterra criaturas con DG ≤ '+lvl+' (Voluntad niega)'},
+  };
+  const G3_BARDIC_BUFF = 'Bardic Performance';
+  function _g3BardicStart(typeKey){
+    const lvl = _g3BardLevel();
+    if(lvl <= 0){ _g3ToastSafe('Sin nivel de Bardo'); return; }
+    const info = G3_BARDIC_TYPES[typeKey] || G3_BARDIC_TYPES.courage;
+    const detail = (typeof info.detail==='function') ? info.detail(lvl) : '';
+    /* PF1e: rondas/día = 4 + mod CAR + 2 × (nivel-1) */
+    const total = 4 + _g3CharismaMod() + 2 * Math.max(0, lvl-1);
+    _g3RemoveBuff(G3_BARDIC_BUFF);
+    _g3AddBuff({
+      name: G3_BARDIC_BUFF,
+      mod: info.label + ' — ' + detail,
+      dur: 'Asaltos',
+      qty: total,
+      notes: 'Bardo lvl '+lvl+' · '+total+' rondas/día restantes (aprox)',
+    });
+    _g3ToastSafe('🎵 '+info.label+' iniciada ('+total+' rondas)');
+    _g3RefreshClassFeatures();
+  }
+  function _g3BardicStop(){
+    if(_g3RemoveBuff(G3_BARDIC_BUFF)){
+      _g3ToastSafe('🔇 Performance detenida');
+    }
+    _g3RefreshClassFeatures();
+  }
+  function _g3RenderBardicButtons(card){
+    const active = _g3HasBuff(G3_BARDIC_BUFF);
+    const opts = Object.keys(G3_BARDIC_TYPES).map(k=>{
+      const info = G3_BARDIC_TYPES[k];
+      return '<option value="'+k+'">'+info.label+'</option>';
+    }).join('');
+    const html = `
+      <div class="g3-actions" data-g3-bardic-actions>
+        <select id="bardic-type" class="g3-select" data-g3-bardic-type aria-label="Tipo de actuación">${opts}</select>
+        <button type="button" id="bardic-start" class="g3-btn ${active?'g3-on':''}" data-g3-bardic-start>${active?'🎵 En curso':'🎵 Iniciar performance'}</button>
+        <button type="button" id="bardic-stop" class="g3-btn g3-danger" data-g3-bardic-stop>⏹ Detener</button>
+      </div>
+      <div class="g3-info">Bardo lvl ${_g3BardLevel()||'—'} · ${4 + _g3CharismaMod() + 2*Math.max(0,_g3BardLevel()-1)} rondas/día (4 + CAR + 2/nv extra)</div>`;
+    card.insertAdjacentHTML('beforeend', html);
+    const sel = card.querySelector('[data-g3-bardic-type]');
+    const start = card.querySelector('[data-g3-bardic-start]');
+    const stop = card.querySelector('[data-g3-bardic-stop]');
+    if(start) start.addEventListener('click', ()=> _g3BardicStart(sel ? sel.value : 'courage'));
+    if(stop) stop.addEventListener('click', _g3BardicStop);
+  }
+
+  /* G3-RAGE-POWERS — Picker desde DB.special_abilities, STATE.ragePowers */
+  function _g3RagePoolFromDb(){
+    const out = [];
+    try{
+      const arr = (typeof DB !== 'undefined' && DB && Array.isArray(DB.special_abilities)) ? DB.special_abilities : [];
+      arr.forEach(a=>{
+        if(!a) return;
+        const cls = String(a.class||a.class_en||'').toLowerCase();
+        const name = String(a.name||a.name_es||a.name_en||'').toLowerCase();
+        const desc = String(a.description||a.description_es||a.description_en||'').toLowerCase();
+        const matchType = (a.type === 'rage_power');
+        const matchClass = /barbar/.test(cls) || /barbar/.test(name);
+        const matchKw = /poder.{0,3}(furia|rabia)|rage\s*power/.test(name) || /poder.{0,3}(furia|rabia)|rage\s*power/.test(desc);
+        if(matchType || (matchClass && matchKw)){
+          out.push(a);
+        }
+      });
+    }catch(_){}
+    return out;
+  }
+  function _g3RagePowerKey(rp){
+    return (rp && (rp.id || rp.name_es || rp.name || rp.name_en)) || '';
+  }
+  function _g3RagePowerLabel(rp){
+    return (rp && (rp.name || rp.name_es || rp.name_en)) || '?';
+  }
+  function _g3RagePowerDesc(rp){
+    return (rp && (rp.description || rp.description_es || rp.description_en)) || '';
+  }
+  function _g3OpenRagePowerPicker(card){
+    const pool = _g3RagePoolFromDb();
+    const state = _g3State();
+    const known = new Set(state.ragePowers.map(r=>r.key));
+    let html = '<div style="padding:10px;max-height:60vh;overflow:auto;background:#fffdf6;border:2px solid var(--leather-dk,#7a4a1f);border-radius:10px">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h4 style="margin:0">Añadir Rage Power</h4><button type="button" class="g3-btn" data-g3-rp-close>✕</button></div>';
+    html += '<input type="search" class="g3-select" style="width:100%;margin-bottom:6px" placeholder="Buscar..." data-g3-rp-search>';
+    html += '<div data-g3-rp-list>';
+    if(!pool.length){
+      html += '<div class="g3-info">No se encontraron rage powers en DB.special_abilities. Puedes añadir uno manual:</div>';
+      html += '<div class="g3-row" style="margin-top:6px"><input type="text" class="g3-select" data-g3-rp-manual-name placeholder="Nombre" style="flex:1;min-width:140px"><button type="button" class="g3-btn" data-g3-rp-manual-add>+ Añadir</button></div>';
+    } else {
+      pool.forEach((rp,i)=>{
+        const key = _g3RagePowerKey(rp);
+        const dup = known.has(key);
+        html += '<div class="g3-mini-card" data-g3-rp-row="'+i+'">'
+          + '<div class="g3-mini-name">'+_g3RagePowerLabel(rp)+(dup?' <span class="g3-tag">ya añadido</span>':'')+'</div>'
+          + '<div class="g3-mini-desc">'+_g3RagePowerDesc(rp).slice(0,200)+'</div>'
+          + '<div class="g3-mini-actions"><button type="button" class="g3-btn" data-g3-rp-pick="'+i+'"'+(dup?' disabled':'')+'>+ Añadir</button></div>'
+          + '</div>';
+      });
+    }
+    html += '</div></div>';
+    const dlg = document.createElement('div');
+    dlg.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:12px';
+    dlg.innerHTML = html;
+    document.body.appendChild(dlg);
+    const close = ()=>{ try{ dlg.remove(); }catch(_){} };
+    dlg.addEventListener('click', e=>{ if(e.target === dlg) close(); });
+    const closeBtn = dlg.querySelector('[data-g3-rp-close]'); if(closeBtn) closeBtn.addEventListener('click', close);
+    const search = dlg.querySelector('[data-g3-rp-search]');
+    if(search) search.addEventListener('input', ()=>{
+      const q = search.value.toLowerCase();
+      dlg.querySelectorAll('[data-g3-rp-row]').forEach(row=>{
+        const txt = row.textContent.toLowerCase();
+        row.style.display = txt.includes(q) ? '' : 'none';
+      });
+    });
+    dlg.querySelectorAll('[data-g3-rp-pick]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const i = +b.dataset.g3RpPick;
+        const rp = pool[i]; if(!rp) return;
+        const key = _g3RagePowerKey(rp);
+        if(state.ragePowers.find(r=>r.key===key)){ _g3ToastSafe('Ya añadido'); return; }
+        state.ragePowers.push({key, name:_g3RagePowerLabel(rp), desc:_g3RagePowerDesc(rp), active:false});
+        _g3LogSafe('aptitud','rage power añadido', _g3RagePowerLabel(rp));
+        try{ if(typeof saveStateDebounced === 'function') saveStateDebounced('g3-rage'); }catch(_){}
+        close();
+        _g3RefreshClassFeatures();
+      });
+    });
+    const manualName = dlg.querySelector('[data-g3-rp-manual-name]');
+    const manualAdd = dlg.querySelector('[data-g3-rp-manual-add]');
+    if(manualAdd) manualAdd.addEventListener('click', ()=>{
+      const n = (manualName ? manualName.value : '').trim();
+      if(!n) return;
+      const key = 'manual:'+n.toLowerCase();
+      if(state.ragePowers.find(r=>r.key===key)){ _g3ToastSafe('Ya añadido'); return; }
+      state.ragePowers.push({key, name:n, desc:'(manual)', active:false});
+      try{ if(typeof saveStateDebounced === 'function') saveStateDebounced('g3-rage'); }catch(_){}
+      close();
+      _g3RefreshClassFeatures();
+    });
+  }
+  function _g3RenderRagePowersUi(card){
+    const state = _g3State();
+    let html = '<div class="g3-actions" data-g3-rp-actions>';
+    html += '<button type="button" class="g3-btn" data-g3-rp-add>+ Añadir Rage Power</button>';
+    html += '<span class="g3-tag">'+state.ragePowers.length+' conocidos</span>';
+    html += '</div>';
+    if(state.ragePowers.length){
+      html += '<div data-g3-rp-known style="margin-top:6px">';
+      state.ragePowers.forEach((rp,i)=>{
+        html += '<div class="g3-mini-card">'
+          + '<div class="g3-mini-name">'+(rp.name||'?')+'</div>'
+          + '<div class="g3-mini-desc">'+(rp.desc||'').slice(0,300)+'</div>'
+          + '<div class="g3-mini-actions">'
+          + '<button type="button" class="g3-btn '+(rp.active?'g3-on':'')+'" data-g3-rp-toggle="'+i+'">'+(rp.active?'✓ Activo en esta rage':'○ Inactivo')+'</button>'
+          + '<button type="button" class="g3-btn g3-danger" data-g3-rp-del="'+i+'">✕ Quitar</button>'
+          + '</div></div>';
+      });
+      html += '</div>';
+    }
+    card.insertAdjacentHTML('beforeend', html);
+    const addBtn = card.querySelector('[data-g3-rp-add]');
+    if(addBtn) addBtn.addEventListener('click', ()=> _g3OpenRagePowerPicker(card));
+    card.querySelectorAll('[data-g3-rp-toggle]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const i = +b.dataset.g3RpToggle;
+        const rp = state.ragePowers[i]; if(!rp) return;
+        rp.active = !rp.active;
+        _g3LogSafe('aptitud','rage power '+(rp.active?'activado':'desactivado'), rp.name);
+        try{ if(typeof saveStateDebounced === 'function') saveStateDebounced('g3-rage'); }catch(_){}
+        _g3RefreshClassFeatures();
+      });
+    });
+    card.querySelectorAll('[data-g3-rp-del]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const i = +b.dataset.g3RpDel;
+        const rp = state.ragePowers[i]; if(!rp) return;
+        state.ragePowers.splice(i,1);
+        _g3LogSafe('aptitud','rage power eliminado', rp.name);
+        try{ if(typeof saveStateDebounced === 'function') saveStateDebounced('g3-rage'); }catch(_){}
+        _g3RefreshClassFeatures();
+      });
+    });
+  }
+
+  /* G3-BLOODLINE-POWERS — UI listado y "Activar" */
+  function _g3GetBloodlineEntry(){
+    try{
+      const id = (typeof BLOODLINE_PICK !== 'undefined') ? BLOODLINE_PICK : '';
+      if(!id) return null;
+      if(typeof DB !== 'undefined' && DB && Array.isArray(DB.bloodlines)){
+        const idLow = String(id).toLowerCase();
+        return DB.bloodlines.find(b=>{
+          if(!b) return false;
+          if(b.id && String(b.id).toLowerCase() === idLow) return true;
+          const n = b.name || {};
+          if(typeof n === 'string') return n.toLowerCase() === idLow;
+          if(n.es && n.es.toLowerCase() === idLow) return true;
+          if(n.en && n.en.toLowerCase() === idLow) return true;
+          return false;
+        }) || null;
+      }
+    }catch(_){}
+    return null;
+  }
+  function _g3BloodlinePowerLabel(p){
+    if(!p) return '?';
+    if(typeof p.name === 'string') return p.name;
+    return (p.name && (p.name.es || p.name.en)) || p.id || '?';
+  }
+  function _g3BloodlinePowerDesc(p){
+    if(!p) return '';
+    if(typeof p.desc === 'string') return p.desc;
+    return (p.desc && (p.desc.es || p.desc.en)) || '';
+  }
+  function _g3BloodlinePowerIsActive(p){
+    /* Considera activable si tiene usage:'active' o uses (3+cha, 1) — algo limitado/día */
+    if(!p) return false;
+    if(p.usage === 'active') return true;
+    if(p.active === true) return true;
+    if(p.uses && p.uses !== 'passive') return true;
+    return false;
+  }
+  function _g3RenderBloodlineUi(card){
+    const entry = _g3GetBloodlineEntry();
+    const powers = (entry && Array.isArray(entry.powers)) ? entry.powers : [];
+    if(!powers.length){
+      const id = (typeof BLOODLINE_PICK !== 'undefined') ? BLOODLINE_PICK : '';
+      const txt = id ? 'Linaje: '+id+' (sin poderes estructurados en DB)' : 'Selecciona un linaje en el modal de Linaje (🩸).';
+      card.insertAdjacentHTML('beforeend', '<div class="g3-info">'+txt+'</div>');
+      return;
+    }
+    const sLvl = _g3SorcererLevel();
+    const blName = (entry.name && (entry.name.es || entry.name.en)) || entry.id || '?';
+    let html = '<div class="g3-info">Linaje: '+blName+' · Hechicero lvl '+(sLvl||'—')+'</div>';
+    powers.forEach((p,i)=>{
+      const minLvl = parseInt(p.min_level,10) || 1;
+      const locked = sLvl > 0 && sLvl < minLvl;
+      const active = _g3BloodlinePowerIsActive(p);
+      const usesLabel = p.uses ? ' · usos: '+p.uses : '';
+      html += '<div class="g3-mini-card" style="'+(locked?'opacity:0.55':'')+'">'
+        + '<div class="g3-mini-name">'+_g3BloodlinePowerLabel(p)+' <span class="g3-tag">min nv '+minLvl+usesLabel+'</span>'+(locked?' <span class="g3-tag" style="background:#a33;color:#fff">🔒 bloqueado</span>':'')+'</div>'
+        + '<div class="g3-mini-desc">'+_g3BloodlinePowerDesc(p)+'</div>'
+        + (active ? '<div class="g3-mini-actions"><button type="button" class="g3-btn" data-g3-bp-activate="'+i+'"'+(locked?' disabled':'')+'>⚡ Activar</button></div>' : '')
+        + '</div>';
+    });
+    card.insertAdjacentHTML('beforeend', html);
+    card.querySelectorAll('[data-g3-bp-activate]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const i = +b.dataset.g3BpActivate;
+        const p = powers[i]; if(!p) return;
+        const name = _g3BloodlinePowerLabel(p);
+        _g3LogSafe('aptitud','poder de linaje activado', name);
+        _g3ToastSafe('⚡ '+name+' (activado — efecto manual)');
+      });
+    });
+  }
+
+  /* G3-AUGMENT — Recorre #cf-list .cf-card y añade UI según patrón */
+  function _g3AugmentClassFeatures(){
+    try{
+      const container = document.getElementById('cf-list');
+      if(!container) return;
+      if(typeof CLASS_FEATURES_DATA === 'undefined' || !Array.isArray(CLASS_FEATURES_DATA)) return;
+      const cards = container.querySelectorAll('.cf-card');
+      if(!cards.length) return;
+      cards.forEach((card,idx)=>{
+        if(card.dataset.g3Augmented === '1') return; /* idempotencia */
+        const feat = CLASS_FEATURES_DATA[idx];
+        if(!feat) return;
+        const name = feat.name || '';
+        let augmented = false;
+        if(_g3MatchPattern(name,'layOnHands') && _g3PaladinLevel() > 0){
+          _g3RenderLohButtons(card); augmented = true;
+        }
+        if(_g3MatchPattern(name,'smiteEvil') && _g3PaladinLevel() > 0){
+          _g3RenderSmiteButtons(card); augmented = true;
+        }
+        if(_g3MatchPattern(name,'channelEnergy') && _g3ClericLevel() > 0){
+          _g3RenderChannelButtons(card); augmented = true;
+        }
+        if(_g3MatchPattern(name,'bardic') && _g3BardLevel() > 0){
+          _g3RenderBardicButtons(card); augmented = true;
+        }
+        if(_g3MatchPattern(name,'ragePowers') && _g3BarbarianLevel() > 0){
+          _g3RenderRagePowersUi(card); augmented = true;
+        }
+        if(_g3MatchPattern(name,'bloodlinePower') && _g3SorcererLevel() > 0){
+          _g3RenderBloodlineUi(card); augmented = true;
+        }
+        if(augmented) card.dataset.g3Augmented = '1';
+      });
+
+      /* Versatile Performance UI: si es bardo y aún no se ha inyectado, insertar al final */
+      if(_g3IsBard() && !container.querySelector('[data-g3-vp-host]')){
+        _g3RenderVersatilePerformance(container);
+      }
+    }catch(e){
+      try{ console.warn('G3 augment fail', e); }catch(_){}
+    }
+  }
+
+  /* G3-VP — Versatile Performance (info-only, parcial) */
+  const G3_VP_OPTIONS = [
+    {key:'', label:'(ninguno)', replaces:[]},
+    {key:'oratory',    label:'Perform (Oratory)',    replaces:['Diplomacia','Sentir Motivaciones']},
+    {key:'comedy',     label:'Perform (Comedy)',     replaces:['Bluff','Sense Motive']},
+    {key:'sing',       label:'Perform (Sing)',       replaces:['Bluff','Sense Motive']},
+    {key:'string',     label:'Perform (String)',     replaces:['Bluff','Diplomacia']},
+    {key:'wind',       label:'Perform (Wind)',       replaces:['Diplomacia','Handle Animal']},
+    {key:'percussion', label:'Perform (Percussion)', replaces:['Handle Animal','Intimidar']},
+    {key:'dance',      label:'Perform (Dance)',      replaces:['Acrobacias','Escapar']},
+    {key:'act',        label:'Perform (Act)',        replaces:['Bluff','Disfraz']},
+    {key:'keyboard',   label:'Perform (Keyboard)',   replaces:['Diplomacia','Intimidar']},
+  ];
+  function _g3VpFind(k){ return G3_VP_OPTIONS.find(o=>o.key===k) || G3_VP_OPTIONS[0]; }
+  function _g3RenderVersatilePerformance(container){
+    const state = _g3State();
+    const cur = state.versatilePerformance || '';
+    const opts = G3_VP_OPTIONS.map(o=>'<option value="'+o.key+'"'+(o.key===cur?' selected':'')+'>'+o.label+'</option>').join('');
+    const sel = _g3VpFind(cur);
+    const lvl = _g3BardLevel();
+    const bardKnow = Math.floor((lvl+2)/2); /* aproximación Bardic Knowledge */
+    const info = (sel.replaces.length)
+      ? sel.label+' ahora otorga el mejor rango entre la habilidad y '+sel.replaces.join('/')+' (+'+bardKnow+' Bardic Knowledge a Conocimientos)'
+      : 'No hay sustitución activa.';
+    const html = `
+      <div class="g3-mini-card" data-g3-vp-host>
+        <div class="g3-mini-name">🎭 Versatile Performance (Bardo)</div>
+        <div class="g3-mini-actions">
+          <label class="g3-tag">Tipo:</label>
+          <select class="g3-select" data-g3-vp-select aria-label="Versatile Performance">${opts}</select>
+        </div>
+        <div class="g3-info" data-g3-vp-info>${info}</div>
+      </div>`;
+    container.insertAdjacentHTML('beforeend', html);
+    const select = container.querySelector('[data-g3-vp-select]');
+    if(select) select.addEventListener('change', ()=>{
+      state.versatilePerformance = select.value || '';
+      _g3LogSafe('aptitud','Versatile Performance configurado', state.versatilePerformance||'(ninguno)');
+      try{ if(typeof saveStateDebounced === 'function') saveStateDebounced('g3-vp'); }catch(_){}
+      _g3RefreshClassFeatures();
+    });
+  }
+
+  /* G3-REFRESH — Re-pinta cf-list */
+  function _g3RefreshClassFeatures(){
+    try{
+      if(typeof renderClassFeatures === 'function'){
+        renderClassFeatures();
+      } else {
+        _g3AugmentClassFeatures();
+      }
+    }catch(_){}
+  }
+
+  /* G3-HOOK — wrap renderClassFeatures para invocar augment después */
+  function _g3InstallHook(){
+    try{
+      if(typeof window.renderClassFeatures === 'function' && !window.renderClassFeatures._g3Wrapped){
+        const _orig = window.renderClassFeatures;
+        const wrapped = function(){
+          const r = _orig.apply(this, arguments);
+          try{ _g3AugmentClassFeatures(); }catch(_){}
+          return r;
+        };
+        wrapped._g3Wrapped = true;
+        window.renderClassFeatures = wrapped;
+        return true;
+      }
+    }catch(_){}
+    return false;
+  }
+
+  /* G3-INIT */
+  function _g3Init(){
+    /* Intenta enganchar a window.renderClassFeatures. Si no está, sondea unos segundos. */
+    if(_g3InstallHook()){
+      _g3AugmentClassFeatures();
+    } else {
+      let attempts = 0;
+      const iv = setInterval(()=>{
+        attempts++;
+        if(_g3InstallHook() || attempts > 60){
+          clearInterval(iv);
+          try{ _g3AugmentClassFeatures(); }catch(_){}
+        }
+      }, 250);
+    }
+    /* Observa #cf-list también para casos en que la función no esté en window */
+    try{
+      const target = document.getElementById('cf-list');
+      if(target){
+        const obs = new MutationObserver(()=>{
+          if(target.querySelector('.cf-card:not([data-g3-augmented])')){
+            try{ _g3AugmentClassFeatures(); }catch(_){}
+          }
+        });
+        obs.observe(target, {childList:true, subtree:false});
+      }
+    }catch(_){}
+    /* Re-augment ante cambios de clase/atributos */
+    ['class-changed','attr-changed','state-loaded'].forEach(ev=>{
+      try{
+        document.addEventListener(ev, ()=> setTimeout(()=>{ try{ _g3RefreshClassFeatures(); }catch(_){} }, 60));
+        window.addEventListener(ev, ()=> setTimeout(()=>{ try{ _g3RefreshClassFeatures(); }catch(_){} }, 60));
+      }catch(_){}
+    });
+  }
+
+  /* G3-EXPORT */
+  window._G3 = {
+    refresh: _g3RefreshClassFeatures,
+    augment: _g3AugmentClassFeatures,
+    paladinLevel: _g3PaladinLevel,
+    clericLevel: _g3ClericLevel,
+    bardLevel: _g3BardLevel,
+    barbarianLevel: _g3BarbarianLevel,
+    sorcererLevel: _g3SorcererLevel,
+    smiteToggle: _g3SmiteToggle,
+    bardicStart: _g3BardicStart,
+    bardicStop: _g3BardicStop,
+  };
+
+  if(document.readyState === 'complete' || document.readyState === 'interactive'){
+    setTimeout(_g3Init, 0);
+  } else {
+    document.addEventListener('DOMContentLoaded', _g3Init);
+  }
+
+})();
+/* G3-BLOCK-END */
 </script>
 
 <!-- #ANCHOR:P10-MOBILE-WEAKNESSES-JS-V1 — Vulnerabilidades como chips dinámicos -->
@@ -73150,6 +74887,528 @@ if(document.readyState==='complete' || document.readyState==='interactive'){
   if(!attach()){
     document.addEventListener('DOMContentLoaded', attach);
   }
+})();
+</script>
+
+<!-- /* G4-ROOT */ Race traits mecánicos + Class skills auto + Spellbook separado + Sneak Attack -->
+<script>
+(function(){
+  'use strict';
+
+  /* G4-RACE-TRAITS-DATA-V1 */
+  const RACE_TRAITS_DATA = {
+    'humano':    { humanBonusSkillPoint:true },
+    'human':     { humanBonusSkillPoint:true },
+    'elfo':      { lowLight:true, keenSenses:true, elvenImmunities:true, weaponFamiliarity:['longbow','shortbow','rapier','longsword'] },
+    'elf':       { lowLight:true, keenSenses:true, elvenImmunities:true, weaponFamiliarity:['longbow','shortbow','rapier','longsword'] },
+    'enano':     { darkvision:60, hardy:true, stability:true, weaponFamiliarity:['waraxe','urgrosh'], defensiveTraining:'giants' },
+    'dwarf':     { darkvision:60, hardy:true, stability:true, weaponFamiliarity:['waraxe','urgrosh'], defensiveTraining:'giants' },
+    'mediano':   { halflingLuck:true, keenSenses:true, weaponFamiliarity:['sling'] },
+    'halfling':  { halflingLuck:true, keenSenses:true, weaponFamiliarity:['sling'] },
+    'gnomo':     { lowLight:true, defensiveTraining:'giants', keenSenses:true, illusionResist:true, weaponFamiliarity:['hooked-lance'] },
+    'gnome':     { lowLight:true, defensiveTraining:'giants', keenSenses:true, illusionResist:true, weaponFamiliarity:['hooked-lance'] },
+    'semielfo':  { lowLight:true, elvenImmunities:true, keenSenses:true },
+    'halfelf':   { lowLight:true, elvenImmunities:true, keenSenses:true },
+    'semiorco':  { darkvision:60, weaponFamiliarity:['falchion','greataxe'] },
+    'halforc':   { darkvision:60, weaponFamiliarity:['falchion','greataxe'] },
+    'aasimar':   { darkvision:60 },
+    'tiflin':    { darkvision:60 },
+    'tiefling':  { darkvision:60 },
+    'catfolk':   { lowLight:true, keenSenses:true },
+    'dhampir':   { darkvision:60, lowLight:true },
+    'drow':      { darkvision:120, lowLight:true, keenSenses:true, elvenImmunities:true, weaponFamiliarity:['rapier','shortbow','handcrossbow'] },
+    'fetchling': { darkvision:60, lowLight:true },
+    'gillman':   { lowLight:true },
+    'goblin':    { darkvision:60 },
+    'hobgoblin': { darkvision:60 },
+    'ifrit':     { darkvision:60 },
+    'kobold':    { darkvision:60 },
+    'merfolk':   { lowLight:true },
+    'nagaji':    {},
+    'orco':      { darkvision:60, weaponFamiliarity:['falchion','greataxe'] },
+    'orc':       { darkvision:60, weaponFamiliarity:['falchion','greataxe'] },
+    'oread':     { darkvision:60 },
+    'ratfolk':   { darkvision:60 },
+    'samsaran':  { lowLight:true },
+    'strix':     { darkvision:60, lowLight:true },
+    'suli':      { lowLight:true },
+    'svirfneblin':{ darkvision:120, lowLight:true, defensiveTraining:'giants', keenSenses:true },
+    'sylph':     { darkvision:60 },
+    'tengu':     { lowLight:true, weaponFamiliarity:['katana','wakizashi','butterflysword'] },
+    'undine':    { darkvision:60 },
+    'vanara':    { lowLight:true },
+    'vishkanya': { lowLight:true },
+    'wayang':    { darkvision:60 },
+    'changeling':{ darkvision:60 },
+    'duergar':   { darkvision:120, stability:true, hardy:true },
+    'gathlain':  { lowLight:true },
+    'ghoran':    { lowLight:true },
+    'gnoll':     { darkvision:60 },
+    'grippli':   { darkvision:60 },
+    'kitsune':   { lowLight:true },
+    'wyrwood':   {},
+    'wyvaran':   { darkvision:60, lowLight:true }
+  };
+  window.RACE_TRAITS_DATA = RACE_TRAITS_DATA;
+
+  /* G4-STATE-RACE-TRAITS-V1 */
+  if(typeof window.STATE !== 'object' || !window.STATE) window.STATE = {};
+  if(!window.STATE.raceTraits || typeof window.STATE.raceTraits !== 'object'){
+    window.STATE.raceTraits = {};
+  }
+
+  function _slugRaceG4(s){
+    return (s||'').toString().toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g,'')
+      .replace(/[^a-z0-9]+/g,'').trim();
+  }
+
+  /* G4-RACE-TRAITS-APPLY-V1 */
+  function applyRaceTraits(raceId){
+    const slug = _slugRaceG4(raceId);
+    const traits = RACE_TRAITS_DATA[slug] || {};
+    window.STATE.raceTraits = JSON.parse(JSON.stringify(traits));
+    rebuildRaceTraits();
+    try{ if(typeof renderD3Skills === 'function') renderD3Skills(); }catch(_){}
+    try{ if(typeof CombatEngine !== 'undefined' && CombatEngine.apply) CombatEngine.apply(); }catch(_){}
+    return window.STATE.raceTraits;
+  }
+  window.applyRaceTraits = applyRaceTraits;
+
+  /* G4-RACE-TRAITS-MOD-V1 */
+  const _RACE_TRAIT_MOD = {atk:0,ac:0,str:0,dex:0,con:0,int:0,wis:0,cha:0,fort:0,ref:0,will:0,cmb:0,cmd:0,init:0,hp:0,dmg:0};
+
+  function rebuildRaceTraits(){
+    Object.keys(_RACE_TRAIT_MOD).forEach(k=>_RACE_TRAIT_MOD[k]=0);
+    const t = window.STATE.raceTraits || {};
+    if(t.halflingLuck){ _RACE_TRAIT_MOD.fort+=1; _RACE_TRAIT_MOD.ref+=1; _RACE_TRAIT_MOD.will+=1; }
+    if(t.elvenImmunities){ _RACE_TRAIT_MOD.will += 2; }
+    if(t.hardy){ _RACE_TRAIT_MOD.fort += 2; }
+    if(t.stability){ _RACE_TRAIT_MOD.cmd += 4; }
+    if(t.defensiveTraining){ _RACE_TRAIT_MOD.ac += 4; }
+    if(typeof _BUFF_MOD_TOTALS !== 'undefined' && _BUFF_MOD_TOTALS){
+      Object.keys(_RACE_TRAIT_MOD).forEach(k=>{
+        if(k in _BUFF_MOD_TOTALS) _BUFF_MOD_TOTALS[k] += _RACE_TRAIT_MOD[k];
+      });
+    }
+  }
+  window.rebuildRaceTraits = rebuildRaceTraits;
+
+  try{
+    if(typeof rebuildBuffModTotals === 'function' && !rebuildBuffModTotals.__g4Wrapped){
+      const _origRBMT = rebuildBuffModTotals;
+      window.rebuildBuffModTotals = function(){
+        _origRBMT.apply(this, arguments);
+        rebuildRaceTraits();
+      };
+      window.rebuildBuffModTotals.__g4Wrapped = true;
+    }
+  }catch(_){}
+
+  document.addEventListener('race-changed', (ev)=>{
+    try{
+      const r = ev && ev.detail && ev.detail.race;
+      if(r) applyRaceTraits(r);
+    }catch(_){}
+  });
+
+  /* G4-RACE-TRAITS-SKILL-PERCEP-V1 */
+  try{
+    if(window.D3_SKILLS && typeof window.D3_SKILLS.calc === 'function' && !window.D3_SKILLS.calc.__g4Wrapped){
+      const _origCalc = window.D3_SKILLS.calc;
+      window.D3_SKILLS.calc = function(skill){
+        let total = _origCalc.apply(this, arguments);
+        try{
+          const t = window.STATE.raceTraits || {};
+          if(t.keenSenses && skill && skill.id === 'perception') total += 2;
+        }catch(_){}
+        return total;
+      };
+      window.D3_SKILLS.calc.__g4Wrapped = true;
+    }
+  }catch(_){}
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+    try{
+      const el = document.getElementById('in-raza');
+      if(el && el.value) applyRaceTraits(el.value);
+    }catch(_){}
+  });
+
+  /* G4-CLASS-SKILLS-MAP-V1 */
+  const CLASS_SKILLS_MAP = {
+    'guerrero':   ['climb','craft','handle_animal','intimidate','knowledge_dungeoneering','knowledge_engineering','profession','ride','swim','survival'],
+    'barbaro':    ['acrobatics','climb','craft','handle_animal','intimidate','knowledge_nature','perception','ride','survival','swim'],
+    'bardo':      ['acrobatics','appraise','bluff','climb','craft','diplomacy','disguise','escape_artist','intimidate','knowledge_arcana','knowledge_dungeoneering','knowledge_engineering','knowledge_geography','knowledge_history','knowledge_local','knowledge_nature','knowledge_nobility','knowledge_planes','knowledge_religion','linguistics','perception','perform','profession','sense_motive','sleight_of_hand','spellcraft','stealth','use_magic_device'],
+    'brujo':      ['craft','fly','handle_animal','heal','intimidate','knowledge_arcana','knowledge_history','knowledge_nature','knowledge_planes','profession','spellcraft','use_magic_device'],
+    'cavalier':   ['bluff','climb','craft','diplomacy','handle_animal','intimidate','knowledge_nobility','profession','ride','sense_motive','swim'],
+    'clerigo':    ['appraise','craft','diplomacy','heal','knowledge_arcana','knowledge_history','knowledge_nobility','knowledge_planes','knowledge_religion','linguistics','profession','sense_motive','spellcraft'],
+    'druida':     ['climb','craft','fly','handle_animal','heal','knowledge_geography','knowledge_nature','perception','profession','ride','spellcraft','survival','swim'],
+    'explorador': ['climb','craft','handle_animal','heal','intimidate','knowledge_dungeoneering','knowledge_geography','knowledge_nature','perception','profession','ride','spellcraft','stealth','survival','swim'],
+    'hechicero':  ['appraise','bluff','craft','fly','intimidate','knowledge_arcana','profession','spellcraft','use_magic_device'],
+    'inquisidor': ['climb','craft','diplomacy','disguise','heal','intimidate','knowledge_arcana','knowledge_dungeoneering','knowledge_history','knowledge_nature','knowledge_nobility','knowledge_planes','knowledge_religion','perception','profession','ride','sense_motive','spellcraft','stealth','survival','swim'],
+    'mago':       ['appraise','craft','fly','knowledge_arcana','knowledge_dungeoneering','knowledge_engineering','knowledge_geography','knowledge_history','knowledge_local','knowledge_nature','knowledge_nobility','knowledge_planes','knowledge_religion','linguistics','profession','spellcraft'],
+    'monje':      ['acrobatics','climb','craft','escape_artist','intimidate','knowledge_history','knowledge_religion','perception','perform','profession','ride','sense_motive','stealth','swim'],
+    'oraculo':    ['craft','diplomacy','heal','knowledge_history','knowledge_planes','knowledge_religion','profession','sense_motive','spellcraft'],
+    'paladin':    ['craft','diplomacy','handle_animal','heal','knowledge_nobility','knowledge_religion','profession','ride','sense_motive','spellcraft'],
+    'picaro':     ['acrobatics','appraise','bluff','climb','craft','diplomacy','disable_device','disguise','escape_artist','intimidate','knowledge_dungeoneering','knowledge_local','linguistics','perception','perform','profession','sense_motive','sleight_of_hand','stealth','swim','use_magic_device'],
+    'pistolero':  ['acrobatics','climb','craft','handle_animal','heal','intimidate','knowledge_local','perception','profession','ride','sleight_of_hand','survival','swim'],
+    'samurai':    ['climb','craft','diplomacy','handle_animal','intimidate','knowledge_history','knowledge_nobility','profession','ride','sense_motive','swim'],
+    'witch':      ['craft','fly','handle_animal','heal','intimidate','knowledge_arcana','knowledge_history','knowledge_nature','knowledge_planes','profession','spellcraft','use_magic_device'],
+    'alquimista': ['appraise','craft','disable_device','fly','heal','knowledge_arcana','knowledge_nature','perception','profession','sleight_of_hand','spellcraft','survival','use_magic_device'],
+    'magus':      ['climb','craft','fly','intimidate','knowledge_arcana','knowledge_dungeoneering','knowledge_planes','profession','ride','spellcraft','swim','use_magic_device'],
+    'invocador':  ['craft','fly','handle_animal','knowledge_arcana','knowledge_planes','linguistics','profession','ride','spellcraft','use_magic_device'],
+    'antipaladin':['bluff','craft','disguise','handle_animal','intimidate','knowledge_nobility','knowledge_religion','profession','ride','sense_motive','spellcraft','stealth'],
+    'ninja':      ['acrobatics','bluff','climb','craft','disable_device','disguise','escape_artist','intimidate','knowledge_local','knowledge_nobility','linguistics','perception','perform','profession','sense_motive','sleight_of_hand','stealth','swim','use_magic_device'],
+    'rabioso_de_sangre':['acrobatics','climb','craft','handle_animal','intimidate','knowledge_arcana','perception','ride','survival','swim'],
+    'peleador':   ['acrobatics','climb','craft','escape_artist','handle_animal','intimidate','knowledge_dungeoneering','knowledge_local','perception','profession','ride','sense_motive','swim'],
+    'cazador':    ['climb','craft','handle_animal','heal','knowledge_dungeoneering','knowledge_geography','knowledge_nature','perception','ride','spellcraft','stealth','survival','swim'],
+    'investigador':['acrobatics','appraise','bluff','climb','craft','diplomacy','disable_device','disguise','escape_artist','heal','intimidate','knowledge_arcana','knowledge_dungeoneering','knowledge_engineering','knowledge_geography','knowledge_history','knowledge_local','knowledge_nature','knowledge_nobility','knowledge_planes','knowledge_religion','linguistics','perception','perform','profession','sense_motive','sleight_of_hand','spellcraft','stealth','swim','use_magic_device'],
+    'matador':    ['acrobatics','bluff','climb','craft','disguise','heal','intimidate','knowledge_dungeoneering','knowledge_geography','knowledge_local','perception','profession','ride','sense_motive','stealth','survival','swim'],
+    'espadachin': ['acrobatics','bluff','climb','craft','diplomacy','escape_artist','intimidate','knowledge_local','knowledge_nobility','perception','perform','profession','ride','sense_motive','sleight_of_hand','swim'],
+    'sacerdote_de_guerra':['climb','craft','diplomacy','handle_animal','heal','intimidate','knowledge_engineering','knowledge_religion','profession','ride','sense_motive','spellcraft','survival','swim'],
+    'cinetico':   ['acrobatics','craft','heal','intimidate','perception','profession','sense_motive','stealth','use_magic_device'],
+    'escaldo':    ['acrobatics','appraise','bluff','climb','craft','diplomacy','disguise','handle_animal','intimidate','knowledge_arcana','knowledge_history','knowledge_local','knowledge_nobility','linguistics','perception','perform','profession','ride','sense_motive','spellcraft','swim','use_magic_device'],
+    'chaman':     ['craft','diplomacy','fly','handle_animal','heal','knowledge_nature','knowledge_planes','knowledge_religion','profession','ride','sense_motive','spellcraft','survival'],
+    'vigilante':  ['acrobatics','bluff','climb','craft','diplomacy','disable_device','disguise','escape_artist','intimidate','knowledge_local','perception','perform','profession','sense_motive','sleight_of_hand','stealth','swim','use_magic_device']
+  };
+  window.CLASS_SKILLS_MAP = CLASS_SKILLS_MAP;
+
+  /* G4-CLASS-SKILLS-APPLY-V1 */
+  function applyClassSkillsForClass(){
+    try{
+      const state = (window.D3_SKILLS && window.D3_SKILLS.state) ? window.D3_SKILLS.state : null;
+      if(!state) return;
+      const classes = (window.CLASSES_DATA||[]).map(c=>c && c.name).filter(Boolean);
+      const union = new Set();
+      classes.forEach(name=>{
+        const cid = (typeof canonicalClassId === 'function') ? canonicalClassId(name) : null;
+        const list = (cid && CLASS_SKILLS_MAP[cid]) || CLASS_SKILLS_MAP[(name||'').toLowerCase()] || [];
+        list.forEach(s=>union.add(s));
+      });
+      union.forEach(id=>{
+        if(!state[id]) state[id] = {r:0, misc:0};
+        state[id].classSkill = true;
+      });
+      Object.keys(state).forEach(id=>{
+        if(state[id] && state[id].classSkill && !union.has(id)){
+          state[id].classSkill = false;
+        }
+      });
+      if(window.D3_SKILLS && typeof window.D3_SKILLS.recalc === 'function'){
+        window.D3_SKILLS.recalc();
+      }
+    }catch(_){}
+  }
+  window.applyClassSkillsForClass = applyClassSkillsForClass;
+
+  document.addEventListener('class-changed', ()=>{ applyClassSkillsForClass(); });
+  document.addEventListener('DOMContentLoaded', ()=>{
+    setTimeout(()=>{ try{ applyClassSkillsForClass(); }catch(_){} }, 200);
+  });
+
+  /* G4-SPELLBOOK-V1 */
+  function _ensureSpellbookFlags(){
+    try{
+      if(typeof SPELLS_DATA === 'undefined') return;
+      SPELLS_DATA.forEach(s=>{
+        if(s && typeof s.inSpellbook === 'undefined') s.inSpellbook = true;
+        if(s && typeof s.prepared    === 'undefined') s.prepared    = false;
+      });
+    }catch(_){}
+  }
+
+  function _hasWizardClass(){
+    try{
+      return (window.CLASSES_DATA||[]).some(c=>{
+        const cid = (typeof canonicalClassId === 'function') ? canonicalClassId(c.name) : '';
+        return cid === 'mago';
+      });
+    }catch(_){ return false; }
+  }
+  window._hasWizardClass = _hasWizardClass;
+
+  function _pickSpellFilter(name){
+    try{
+      window.spellFilter = name;
+      document.querySelectorAll('#spell-filter button').forEach(b=>{
+        b.classList.toggle('active', b.dataset.sf === name);
+      });
+      if(typeof renderSpells === 'function') renderSpells();
+    }catch(_){}
+  }
+
+  function _injectSpellbookChips(){
+    try{
+      const bar = document.getElementById('spell-filter');
+      if(!bar) return;
+      const isWiz = _hasWizardClass();
+      let libroBtn = bar.querySelector('[data-sf="libro"]');
+      let prepBtn  = bar.querySelector('[data-sf="libro-preparados"]');
+      if(isWiz){
+        if(!libroBtn){
+          libroBtn = document.createElement('button');
+          libroBtn.dataset.sf = 'libro';
+          libroBtn.textContent = 'Libro';
+          libroBtn.title = 'Conjuros aprendidos (Spellbook)';
+          bar.appendChild(libroBtn);
+          libroBtn.addEventListener('click', ()=>_pickSpellFilter('libro'));
+        }
+        if(!prepBtn){
+          prepBtn = document.createElement('button');
+          prepBtn.dataset.sf = 'libro-preparados';
+          prepBtn.textContent = 'Prep.';
+          prepBtn.title = 'Conjuros preparados del libro';
+          bar.appendChild(prepBtn);
+          prepBtn.addEventListener('click', ()=>_pickSpellFilter('libro-preparados'));
+        }
+        if(!document.getElementById('g4-prep-spells-btn')){
+          const btn = document.createElement('button');
+          btn.id = 'g4-prep-spells-btn';
+          btn.textContent = 'Preparar';
+          btn.title = 'Abrir sheet de preparación de hechizos';
+          btn.style.marginLeft = 'auto';
+          bar.appendChild(btn);
+          btn.addEventListener('click', _openPrepSheet);
+        }
+      } else {
+        if(libroBtn) libroBtn.remove();
+        if(prepBtn)  prepBtn.remove();
+        const exBtn = document.getElementById('g4-prep-spells-btn');
+        if(exBtn) exBtn.remove();
+      }
+    }catch(_){}
+  }
+
+  try{
+    if(typeof renderSpells === 'function' && !window.renderSpells.__g4Wrapped){
+      const _origRender = window.renderSpells;
+      window.renderSpells = function(){
+        _ensureSpellbookFlags();
+        _injectSpellbookChips();
+        const sf = window.spellFilter;
+        if(sf === 'libro' || sf === 'libro-preparados'){
+          const prev = window.spellFilter;
+          window.spellFilter = 'todos';
+          try{ _origRender.apply(this, arguments); }
+          finally { window.spellFilter = prev; }
+          try{
+            document.querySelectorAll('#spell-list .spell-row').forEach(row=>{
+              const id = +row.dataset.spell;
+              const sp = SPELLS_DATA.find(x=>x.id===id);
+              if(!sp){ row.style.display=''; return; }
+              if(sf === 'libro' && !sp.inSpellbook) row.style.display='none';
+              else if(sf === 'libro-preparados' && !(sp.inSpellbook && sp.prepared)) row.style.display='none';
+              else row.style.display='';
+            });
+          }catch(_){}
+          return;
+        }
+        return _origRender.apply(this, arguments);
+      };
+      window.renderSpells.__g4Wrapped = true;
+    }
+  }catch(_){}
+
+  function _openPrepSheet(){
+    try{
+      let dlg = document.getElementById('g4-prep-sheet');
+      if(!dlg){
+        dlg = document.createElement('dialog');
+        dlg.className = 'bottom-sheet';
+        dlg.id = 'g4-prep-sheet';
+        dlg.innerHTML = '<div class="drag-handle"></div>'
+          + '<div class="sheet-header"><div class="sheet-title">Preparar hechizos</div>'
+          + '<button class="sheet-close" data-close>x</button></div>'
+          + '<div class="sheet-content" id="g4-prep-sheet-body"></div>';
+        document.body.appendChild(dlg);
+        dlg.querySelector('[data-close]').addEventListener('click', ()=>dlg.close());
+      }
+      _renderPrepSheet();
+      if(typeof openSheet === 'function') openSheet('g4-prep-sheet');
+      else dlg.showModal();
+    }catch(e){ console.warn('G4 prep sheet', e); }
+  }
+
+  function _renderPrepSheet(){
+    const body = document.getElementById('g4-prep-sheet-body');
+    if(!body) return;
+    _ensureSpellbookFlags();
+    const byLvl = {};
+    (typeof SPELLS_DATA !== 'undefined' ? SPELLS_DATA : []).forEach(s=>{
+      if(!s || !s.inSpellbook) return;
+      (byLvl[s.lvl] = byLvl[s.lvl] || []).push(s);
+    });
+    const lvls = Object.keys(byLvl).map(Number).sort((a,b)=>a-b);
+    if(!lvls.length){
+      body.innerHTML = '<p style="padding:8px;font:13px system-ui;color:var(--ink-muted)">Tu libro de hechizos está vacío. Añade conjuros desde la lista.</p>';
+      return;
+    }
+    let html = '<p style="font:12px/1.4 system-ui;color:var(--ink-muted);margin:0 0 10px">Marca los hechizos que quieres preparar. El slot por nivel se controla en la pestaña Conjuros.</p>';
+    lvls.forEach(lvl=>{
+      const slot = (typeof SLOT_STATE!=='undefined' && SLOT_STATE[lvl]) ? SLOT_STATE[lvl] : {max:0,used:0};
+      const prepCount = byLvl[lvl].filter(s=>s.prepared).length;
+      const overCap = (slot.max > 0 && prepCount > slot.max);
+      html += '<div style="margin:6px 0;padding:6px 8px;border-top:1px solid var(--line);">'
+        + '<div style="display:flex;justify-content:space-between;font:700 12px Cinzel,serif">'
+        + '<span>Nivel '+lvl+'</span>'
+        + '<span style="color:'+(overCap?'var(--negative)':'var(--ink-muted)')+';font-weight:600">'+prepCount+'/'+(slot.max||'-')+' prep.</span>'
+        + '</div>';
+      byLvl[lvl].forEach(sp=>{
+        html += '<label style="display:flex;align-items:center;gap:8px;padding:4px 2px;font:13px system-ui">'
+          + '<input type="checkbox" data-g4-prep="'+sp.id+'" '+(sp.prepared?'checked':'')+'>'
+          + '<span style="flex:1">'+sp.name+'<small style="opacity:.7;margin-left:4px">'+(sp.school||'')+'</small></span>'
+          + '</label>';
+      });
+      html += '</div>';
+    });
+    body.innerHTML = html;
+    body.querySelectorAll('[data-g4-prep]').forEach(cb=>{
+      cb.addEventListener('change', ()=>{
+        const sp = SPELLS_DATA.find(x=>x.id===+cb.dataset.g4Prep);
+        if(!sp) return;
+        sp.prepared = cb.checked;
+        _renderPrepSheet();
+        if(typeof renderSpells === 'function') renderSpells();
+        if(typeof saveStateDebounced === 'function') saveStateDebounced('g4-prep');
+      });
+    });
+  }
+
+  document.addEventListener('class-changed', ()=>{ try{ _injectSpellbookChips(); }catch(_){} });
+  document.addEventListener('DOMContentLoaded', ()=>{
+    setTimeout(()=>{ _ensureSpellbookFlags(); _injectSpellbookChips(); }, 300);
+  });
+
+  /* G4-SNEAK-ATTACK-V1 */
+  if(typeof window.STATE.sneakAttackActive === 'undefined'){
+    window.STATE.sneakAttackActive = false;
+  }
+
+  function _sneakAttackLevels(){
+    try{
+      let lvl = 0;
+      (window.CLASSES_DATA||[]).forEach(c=>{
+        const cid = (typeof canonicalClassId === 'function') ? canonicalClassId(c.name) : '';
+        if(cid === 'picaro' || cid === 'ninja' || cid === 'vigilante'){
+          lvl += parseInt(c.level,10) || 0;
+        }
+      });
+      return lvl;
+    }catch(_){ return 0; }
+  }
+
+  function _sneakAttackDice(){
+    const lvl = _sneakAttackLevels();
+    if(lvl <= 0) return 0;
+    return Math.ceil(lvl / 2);
+  }
+  window._sneakAttackDice = _sneakAttackDice;
+
+  try{
+    if(typeof D5_computeWeaponDamage === 'function' && !window.D5_computeWeaponDamage.__g4Wrapped){
+      const _origDmg = window.D5_computeWeaponDamage;
+      window.D5_computeWeaponDamage = function(w){
+        let base = _origDmg.apply(this, arguments);
+        try{
+          if(window.STATE && window.STATE.sneakAttackActive){
+            const n = _sneakAttackDice();
+            if(n > 0) base = base + ' +' + n + 'd6';
+          }
+        }catch(_){}
+        return base;
+      };
+      window.D5_computeWeaponDamage.__g4Wrapped = true;
+    }
+  }catch(_){}
+
+  function _updateSneakUI(){
+    try{
+      const n = _sneakAttackDice();
+      const meta = document.getElementById('g4-sneak-meta');
+      const dEl  = document.getElementById('g4-sneak-dice');
+      const tEl  = document.getElementById('g4-sneak-toggle');
+      const active = !!(window.STATE && window.STATE.sneakAttackActive);
+      if(meta) meta.textContent = active ? ('Activo: +'+n+'d6 al daño cuando flanquees o el objetivo esté desprevenido.') : ('Picaro/Ninja/Vigilante: +'+n+'d6 cuando aplique.');
+      if(dEl)  dEl.textContent  = 'Dado: '+n+'d6';
+      if(tEl)  tEl.checked      = active;
+    }catch(_){}
+  }
+
+  function _injectSneakAttackUI(){
+    try{
+      const dice = _sneakAttackDice();
+      const host = document.getElementById('weapons-list');
+      if(!host) return;
+      let card = document.getElementById('g4-sneak-card');
+      if(dice <= 0){
+        if(card) card.remove();
+        return;
+      }
+      if(!card){
+        card = document.createElement('div');
+        card.id = 'g4-sneak-card';
+        card.className = 'eq-card';
+        card.style.background = 'var(--accent-soft, rgba(120,40,40,0.06))';
+        card.style.borderColor = 'var(--accent, #8a2a2a)';
+        card.innerHTML = '<div class="eq-name">Ataque furtivo (Sneak Attack)</div>'
+          + '<div class="eq-meta" id="g4-sneak-meta">-</div>'
+          + '<div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap">'
+          + '<label style="display:flex;align-items:center;gap:6px;font:600 12px system-ui;cursor:pointer">'
+          + '<input type="checkbox" id="g4-sneak-toggle"><span>Activar</span></label>'
+          + '<span style="font:700 12px system-ui;color:var(--accent)" id="g4-sneak-dice">-</span>'
+          + '<button class="btn-secondary" id="g4-sneak-roll" style="margin-left:auto;font-size:12px">Tirar dado</button>'
+          + '</div>';
+        host.insertBefore(card, host.firstChild);
+        card.querySelector('#g4-sneak-toggle').addEventListener('change', (e)=>{
+          window.STATE.sneakAttackActive = !!e.target.checked;
+          try{ if(typeof D5_refreshWeaponRolls === 'function') D5_refreshWeaponRolls(); }catch(_){}
+          _updateSneakUI();
+        });
+        card.querySelector('#g4-sneak-roll').addEventListener('click', ()=>{
+          const n = _sneakAttackDice();
+          if(n<=0) return;
+          let total = 0;
+          const rolls = [];
+          for(let i=0;i<n;i++){ const r = Math.floor(Math.random()*6)+1; rolls.push(r); total+=r; }
+          const expr = n + 'd6 = [' + rolls.join(',') + '] = ' + total;
+          if(typeof toast === 'function') toast('Sneak: ' + expr);
+          if(typeof window.performRoll === 'function') window.performRoll({expr:n+'d6', label:'Sneak Attack'});
+        });
+      }
+      _updateSneakUI();
+    }catch(_){}
+  }
+  window._injectSneakAttackUI = _injectSneakAttackUI;
+
+  try{
+    if(typeof renderWeapons === 'function' && !window.renderWeapons.__g4SneakWrapped){
+      const _origRW = window.renderWeapons;
+      window.renderWeapons = function(){
+        const r = _origRW.apply(this, arguments);
+        try{ _injectSneakAttackUI(); }catch(_){}
+        return r;
+      };
+      window.renderWeapons.__g4SneakWrapped = true;
+    }
+  }catch(_){}
+
+  document.addEventListener('class-changed', ()=>{ try{ _injectSneakAttackUI(); }catch(_){} });
+  document.addEventListener('DOMContentLoaded', ()=>{
+    setTimeout(()=>{ try{ _injectSneakAttackUI(); }catch(_){} }, 400);
+  });
+
+  /* G4-EXPORT-V1 */
+  try{
+    const stored = localStorage.getItem('g4-sneak-active');
+    if(stored === '1') window.STATE.sneakAttackActive = true;
+  }catch(_){}
+  document.addEventListener('change', (e)=>{
+    if(e && e.target && e.target.id === 'g4-sneak-toggle'){
+      try{ localStorage.setItem('g4-sneak-active', e.target.checked ? '1' : '0'); }catch(_){}
+    }
+  });
+
 })();
 </script>
 
