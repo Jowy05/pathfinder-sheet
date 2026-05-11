@@ -1017,10 +1017,14 @@ function MasterApp({
 
   // ---- Dice + Log ----
   // Rehidratamos el log desde localStorage SOLO si el encuentro guardado coincide.
+  // 2026-05-11 (Fix 6): preferimos loadStateForEncounter para buscar primero
+  // en el ring buffer por encounterKey (3 últimos estados) y caer a loadState
+  // canónico si no hay match. Mantiene compat con saves antiguos.
   const initialLog = useMemoA(() => {
     try {
       if (!window.MstPersist) return null;
-      const saved = window.MstPersist.loadState();
+      const loader = window.MstPersist.loadStateForEncounter || window.MstPersist.loadState;
+      const saved = loader(encounterKey);
       if (!saved || saved.encounterKey !== encounterKey) return null;
       return Array.isArray(saved.log) ? saved.log : null;
     } catch (e) { return null; }
@@ -1864,7 +1868,10 @@ function MasterApp({
     if (hydratedRef.current) return;
     hydratedRef.current = true;
     if (!window.MstPersist) return;
-    const saved = window.MstPersist.loadState();
+    // 2026-05-11 (Fix 6): hydrate exclusivo por encounterKey desde ring buffer.
+    // Si el ring no tiene entry para esta key, cae al loadState canónico.
+    const loader = window.MstPersist.loadStateForEncounter || window.MstPersist.loadState;
+    const saved = loader(encounterKey);
     if (!saved) return;
     if (saved.encounterKey && saved.encounterKey !== encounterKey) return;
     try {

@@ -5,6 +5,56 @@
 const MST_STORAGE_KEY = 'mst-state-v1';
 const MST_STATE_VERSION = 1;
 
+// 2026-05-11 (Fix 6): ring buffer de 3 últimos estados por encounterKey.
+// Mientras no migremos al mapa completo `mst-state-by-encounter`, mantenemos
+// los 3 últimos snapshots indexados por encounterKey para poder restaurar el
+// sub-estado correspondiente al cambiar de encuentro.
+const MST_STORAGE_RING_KEY = 'mst-state-ring-v1';
+const MST_RING_SIZE = 3;
+
+function _readRing() {
+  try {
+    const raw = localStorage.getItem(MST_STORAGE_RING_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) { return []; }
+}
+
+function _writeRing(arr) {
+  try {
+    const trimmed = (Array.isArray(arr) ? arr : []).slice(0, MST_RING_SIZE);
+    localStorage.setItem(MST_STORAGE_RING_KEY, JSON.stringify(trimmed));
+  } catch (e) {
+    // Si el quota explota, deja al menos el último
+    try {
+      const last = (Array.isArray(arr) ? arr : []).slice(0, 1);
+      localStorage.setItem(MST_STORAGE_RING_KEY, JSON.stringify(last));
+    } catch (_) {}
+  }
+}
+
+function _pushRing(snap) {
+  if (!snap || typeof snap !== 'object') return;
+  const key = snap.encounterKey || '__default__';
+  // Quita cualquier entry previa con el mismo encounterKey y mete la nueva al frente.
+  const list = _readRing().filter(s => (s && s.encounterKey) !== key);
+  list.unshift(snap);
+  _writeRing(list.slice(0, MST_RING_SIZE));
+}
+
+function _findInRingByKey(key) {
+  if (!key) return null;
+  const list = _readRing();
+  return list.find(s => s && s.encounterKey === key) || null;
+}
+
+window.MstPersistRing = {
+  read: _readRing, write: _writeRing,
+  push: _pushRing, findByKey: _findInRingByKey,
+  KEY: MST_STORAGE_RING_KEY, SIZE: MST_RING_SIZE,
+};
+
 // El estado que guardamos. NO incluye objetos no serializables.
 // El log se trunca a 100 entradas para no inflar localStorage.
 function snapshotState(s) {
@@ -39,6 +89,10 @@ function saveState(s) {
   try {
     const snap = snapshotState(s);
     localStorage.setItem(MST_STORAGE_KEY, JSON.stringify(snap));
+    // 2026-05-11 (Fix 6): además del save canonico, mete el snapshot
+    // en el ring buffer por encounterKey (mínimo viable hasta que migremos
+    // a un mapa completo `mst-state-by-encounter`).
+    try { _pushRing(snap); } catch (_) {}
     return true;
   } catch (e) {
     console.warn('[mst] saveState failed', e);
@@ -57,6 +111,18 @@ function loadState() {
     console.warn('[mst] loadState failed', e);
     return null;
   }
+}
+
+// 2026-05-11 (Fix 6): hydrate exclusivo por encounterKey desde el ring buffer.
+// Si no hay entry en el ring para esa key, cae al loadState canónico (compat).
+function loadStateForEncounter(encounterKey) {
+  if (encounterKey) {
+    try {
+      const fromRing = _findInRingByKey(encounterKey);
+      if (fromRing && fromRing.version === MST_STATE_VERSION) return fromRing;
+    } catch (_) {}
+  }
+  return loadState();
 }
 
 function clearState() {
@@ -222,7 +288,7 @@ window.MstPersist = {
   VERSION: MST_STATE_VERSION,
   SNAPSHOTS_KEY: MST_SNAPSHOTS_KEY,
   CUSTOM_ENC_KEY: MST_CUSTOM_ENC_KEY,
-  snapshotState, saveState, loadState, clearState, getSavedAt,
+  snapshotState, saveState, loadState, loadStateForEncounter, clearState, getSavedAt,
   exportJson, importJsonFile,
   listSnapshots, saveNamedSnapshot, deleteNamedSnapshot, getNamedSnapshot, clearAllNamedSnapshots,
   listCustomEncounters, saveCustomEncounter, deleteCustomEncounter, getCustomEncounter, validateEncounter, importEncounterFile,
