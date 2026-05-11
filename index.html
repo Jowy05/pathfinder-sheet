@@ -449,6 +449,25 @@
       </select>
     </label>
   </div>
+  <!-- /* PC-A-PJ-STATBUMPS */ Aumento de atributo a niveles 4/8/12/16/20 -->
+  <div id="pj-statbumps-card" style="margin-top:10px;padding:8px 10px;background:rgba(200,160,60,0.10);border:1px solid var(--gold);border-radius:4px;display:none;">
+    <h3 style="margin:0 0 4px;font-size:13px;color:var(--leather-dk);">
+      🎯 <span data-i18n="p.pjStatBumps">Aumentos de atributo pendientes:</span> <span id="pj-statbumps-pending" style="color:var(--crimson);font-weight:700;">0</span>
+    </h3>
+    <div style="font-size:11px;color:var(--leather-lt);margin-bottom:6px;font-style:italic;" data-i18n="pjStatBumps.intro">A los niveles 4, 8, 12, 16 y 20 ganas +1 a un atributo permanente. Acumulados aquí.</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      <button type="button" class="btn-add" data-pj-bump="str">+1 <span data-i18n="attr.str">FUE</span></button>
+      <button type="button" class="btn-add" data-pj-bump="dex">+1 <span data-i18n="attr.dex">DES</span></button>
+      <button type="button" class="btn-add" data-pj-bump="con">+1 <span data-i18n="attr.con">CON</span></button>
+      <button type="button" class="btn-add" data-pj-bump="int">+1 <span data-i18n="attr.int">INT</span></button>
+      <button type="button" class="btn-add" data-pj-bump="wis">+1 <span data-i18n="attr.wis">SAB</span></button>
+      <button type="button" class="btn-add" data-pj-bump="cha">+1 <span data-i18n="attr.cha">CAR</span></button>
+    </div>
+    <div id="pj-statbumps-applied" style="font-size:10.5px;color:var(--leather-lt);margin-top:5px;"></div>
+    <input type="hidden" id="pj-statbumps-pending-val" value="0">
+    <input type="hidden" id="pj-statbumps-last-lvl" value="0">
+    <input type="hidden" id="pj-statbumps-data" value="{}">
+  </div>
   <div class="generic-dice-section">
     <h3 data-i18n="p.dice">Dados de Tirada Libre</h3>
     <div class="dice-type-selector" id="dice-type-selector"></div>
@@ -674,6 +693,69 @@
       <option value="itwf" data-i18n="label.twfImproved">Mejorada (−2/−2)</option>
     </select>
   </div>
+  <!-- /* PC-B-TACTICS-CARD-V1 */ Tácticas activas (Fight Defensively, Total Defense, Charge, Combat Expertise, TWF select) -->
+  <div id="pcb-tactics-card" style="margin:6px 0 4px;padding:6px 6px;border:1px solid var(--leather-lt);border-radius:4px;background:rgba(120,90,60,0.05);">
+    <div style="font-weight:700;font-size:12px;color:var(--leather-dk);margin-bottom:5px;">⚔ Tácticas activas</div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:4px;font-size:11px;">
+      <label class="inline-label" title="Asalto Enérgico: −4 atq · +2 esquiva CA">
+        <input type="checkbox" id="combat-fight-defensively" class="recalc">
+        <span data-i18n="pcb.fightDefensively">🛡 Asalto Enérgico</span>
+      </label>
+      <label class="inline-label" title="Defensa Total: +4 esquiva CA · no atacas">
+        <input type="checkbox" id="combat-total-defense" class="recalc">
+        <span data-i18n="pcb.totalDefense">🛡🛡 Defensa Total</span>
+      </label>
+      <label class="inline-label" title="Carga: +2 atq · −2 esquiva CA">
+        <input type="checkbox" id="combat-charging" class="recalc">
+        <span data-i18n="pcb.charge">🐎 Carga</span>
+      </label>
+      <label class="inline-label" title="Requiere dote Pericia de Combate (Combat Expertise). −1/+1 CA dodge por cada 4 BAB (máx ±5)" id="combat-expertise-label">
+        <input type="checkbox" id="combat-expertise" class="recalc" disabled>
+        <span data-i18n="pcb.combatExpertise">⚔ Pericia de Combate</span>
+      </label>
+      <label class="inline-label" style="grid-column:1/-1;" title="Selecciona modo TWF avanzado (sobrescribe el toggle simple de arriba si activo)">
+        <span style="margin-right:4px;" data-i18n="pcb.twfMode">TWF avanzado:</span>
+        <select id="combat-twf" class="recalc" style="font-size:11px;width:auto;">
+          <option value="off" data-i18n="pcb.twfOff">Sin TWF</option>
+          <option value="std" data-i18n="pcb.twfStd">Sin dote (−4/−8)</option>
+          <option value="twf" data-i18n="pcb.twfFeat">TWF con dote (−2/−2)</option>
+          <option value="twf-light" data-i18n="pcb.twfLight">TWF arma ligera (−2/−2)</option>
+          <option value="itwf" data-i18n="pcb.twfItwf">+Improved TWF (extra BAB−5)</option>
+          <option value="gtwf" data-i18n="pcb.twfGtwf">+Greater TWF (extras BAB−5/−10)</option>
+        </select>
+      </label>
+    </div>
+    <div id="pcb-tactics-info" style="font-size:10px;color:var(--leather-lt);margin-top:4px;"></div>
+  </div>
+  <!-- /* PC-B-MANEUVERS-CARD-V1 */ Maniobras de combate -->
+  <div id="pcb-maneuvers-card" style="margin:6px 0 4px;padding:6px 6px;border:1px solid var(--leather-lt);border-radius:4px;">
+    <div style="font-weight:700;font-size:12px;color:var(--leather-dk);margin-bottom:5px;">🤼 Maniobras de combate</div>
+    <div style="font-size:10px;color:var(--leather-lt);margin-bottom:5px;">1d20 + CMB vs CMD; ±4 si tienes la dote "Mejorada".</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">
+      <button type="button" class="btn-add pcb-maneuver" data-maneuver="trip" style="font-size:11px;padding:4px 2px;">Derribar</button>
+      <button type="button" class="btn-add pcb-maneuver" data-maneuver="disarm" style="font-size:11px;padding:4px 2px;">Desarmar</button>
+      <button type="button" class="btn-add pcb-maneuver" data-maneuver="sunder" style="font-size:11px;padding:4px 2px;">Romper</button>
+      <button type="button" class="btn-add pcb-maneuver" data-maneuver="grapple" style="font-size:11px;padding:4px 2px;">Presa</button>
+      <button type="button" class="btn-add pcb-maneuver" data-maneuver="bullrush" style="font-size:11px;padding:4px 2px;">Embestir</button>
+      <button type="button" class="btn-add pcb-maneuver" data-maneuver="overrun" style="font-size:11px;padding:4px 2px;">Atropellar</button>
+      <button type="button" class="btn-add pcb-maneuver" data-maneuver="reposition" style="font-size:11px;padding:4px 2px;">Reposicionar</button>
+      <button type="button" class="btn-add pcb-maneuver" data-maneuver="steal" style="font-size:11px;padding:4px 2px;">Robar</button>
+      <button type="button" class="btn-add pcb-maneuver" data-maneuver="dirty" style="font-size:11px;padding:4px 2px;">Truco sucio</button>
+    </div>
+    <div id="pcb-maneuver-output" style="margin-top:5px;font-size:11px;color:var(--leather-dk);min-height:14px;"></div>
+  </div>
+  <!-- /* PC-B-SPECIAL-CARD-V1 */ Ataques especiales (Cleave / Great Cleave / Whirlwind) -->
+  <div id="pcb-special-card" style="margin:6px 0 4px;padding:6px 6px;border:1px solid var(--leather-lt);border-radius:4px;">
+    <div style="font-weight:700;font-size:12px;color:var(--leather-dk);margin-bottom:5px;">⚔ Ataques especiales</div>
+    <div style="font-size:10px;color:var(--leather-lt);margin-bottom:5px;">Solo se muestran las dotes detectadas.</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;" id="pcb-special-btns">
+      <button type="button" class="btn-add pcb-special" data-special="cleave" hidden style="font-size:11px;padding:4px 2px;">Cleave</button>
+      <button type="button" class="btn-add pcb-special" data-special="greatcleave" hidden style="font-size:11px;padding:4px 2px;">Gran Cleave</button>
+      <button type="button" class="btn-add pcb-special" data-special="whirlwind" hidden style="font-size:11px;padding:4px 2px;">Whirlwind</button>
+    </div>
+    <div id="pcb-special-empty" style="font-size:10px;color:var(--leather-lt);padding:3px 0;text-align:center;" hidden>Sin dotes especiales detectadas.</div>
+    <div id="pcb-special-output" style="margin-top:5px;font-size:11px;color:var(--leather-dk);min-height:14px;"></div>
+  </div>
   <!-- ==== P-5 COMBAT NOTES PIN HTML ANCHOR 40chars+ ==== -->
   <div id="combat-notes-pin" aria-live="polite">
     <div class="cnp-head">
@@ -791,6 +873,17 @@
     </div>
   </div>
   <div id="save-roll-result" style="font:600 12px/1.4 system-ui;color:var(--ink);margin-top:6px;min-height:18px"></div>
+  <!-- /* PC-A-SAVES-ITEMS */ Items de salvación (Cloak of Resistance + por-save) -->
+  <div id="saves-bonus-items" style="margin:8px 0 4px;padding:6px 8px;background:rgba(0,0,0,0.04);border:1px solid var(--parchment-dk);border-radius:3px;">
+    <h3 data-i18n="p.savesItems" style="margin:0 0 5px;font-size:12px;">🛡 Items de salvación</h3>
+    <div style="font-size:10px;color:var(--leather-lt);margin-bottom:5px;font-style:italic;" data-i18n="savesItems.intro">El bono de Resistencia (Capa de Resistencia, etc.) se aplica a las tres salvaciones. Los bonos individuales se suman a la salvación correspondiente.</div>
+    <div class="two-col" style="gap:6px;">
+      <div class="label-row"><span data-i18n="label.savesResistance" title="Capa de Resistencia: bono a las 3 salvaciones">Resistencia (+N a las 3)</span><input type="number" id="saves-resistance-item" class="recalc" value="0" min="0" max="20"></div>
+      <div class="label-row"><span data-i18n="label.savesItemFort">Item Fortaleza extra</span><input type="number" id="saves-item-fort-extra" class="recalc" value="0"></div>
+      <div class="label-row"><span data-i18n="label.savesItemRef">Item Reflejos extra</span><input type="number" id="saves-item-ref-extra" class="recalc" value="0"></div>
+      <div class="label-row"><span data-i18n="label.savesItemWill">Item Voluntad extra</span><input type="number" id="saves-item-will-extra" class="recalc" value="0"></div>
+    </div>
+  </div>
   <script>
   /* P-64 fix: tiradas de Fort/Ref/Vol con d20 + bono total mostrado.
      Lee #save-{key} (string como "+5"), suma 1d20, escribe en #save-roll-result. */
@@ -894,6 +987,19 @@
   <h3 data-i18n="p.buffs">Efectos Temporales (Buffs Mágicos)</h3>
   <div id="buffs-container"></div>
   <button class="btn-add" id="add-buff-btn" style="margin-top:5px;width:100%;" data-i18n="btn.addBuff">[+] Añadir Buff Temporal</button>
+  <!-- /* PC-B-BUFF-PACKS-BTN-V1 */ Buff packs PF1e -->
+  <button class="btn-add" id="pcb-buff-packs-btn" type="button" style="margin-top:5px;width:100%;background:rgba(180,140,60,0.18);border-color:var(--leather);" title="Añade un buff prediseñado (Bendecir, Premura, Heroísmo...) con duración por nivel">📦 Buff packs PF1e</button>
+  <!-- /* PC-B-BUFF-PACKS-DIALOG-V1 */ Diálogo de buff packs -->
+  <div id="pcb-buff-packs-dialog" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;">
+    <div style="background:var(--parchment, #f1e6cb);color:var(--ink);border:2px solid var(--leather-dk);border-radius:6px;padding:14px;max-width:520px;width:90%;max-height:80vh;overflow:auto;box-shadow:0 6px 22px rgba(0,0,0,0.4);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <h3 style="margin:0;font-size:14px;">📦 Buff packs PF1e</h3>
+        <button type="button" id="pcb-buff-packs-close" class="btn-remove" aria-label="Cerrar" style="font-size:14px;padding:0 8px;">×</button>
+      </div>
+      <div style="font-size:11px;color:var(--leather-lt);margin-bottom:8px;">Click en uno para añadirlo al rastreador de buffs con duración por nivel.</div>
+      <div id="pcb-buff-packs-list"></div>
+    </div>
+  </div>
 
   <div class="divider"></div>
   <h3 data-i18n="p.campaignAdj">Ajustes de Campaña (Permanentes del Master)</h3>
@@ -1341,6 +1447,74 @@
       <div id="comp-tricks-container" style="display:flex;flex-direction:column;gap:3px;margin-top:6px;"></div>
     </div>
 
+    <!-- /* PC-A-COMPANION */ Mobile-feature parity: photo, sync class, stat bumps, defenses, barding -->
+    <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <details class="card" style="padding:6px 8px;background:rgba(0,0,0,0.03);border:1px solid var(--parchment-dk);border-radius:3px;" open>
+        <summary style="cursor:pointer;font-family:var(--ff-head);font-size:12px;font-weight:700;color:var(--leather-dk);">🐾 <span data-i18n="comp.section.bond">Vínculo y foto</span></summary>
+        <div style="margin-top:6px;display:flex;flex-direction:column;gap:6px;">
+          <div class="label-row"><span data-i18n="label.compPhoto">Foto</span>
+            <span style="display:inline-flex;gap:4px;align-items:center;">
+              <input type="file" id="comp-photo-file" accept="image/*" style="font-size:11px;">
+              <button type="button" onclick="document.getElementById('comp-photo-data').value='';document.getElementById('comp-photo-preview').src='';document.getElementById('comp-photo-preview').style.display='none';" data-i18n-title="tt.clearPhoto" title="Quitar foto" style="padding:2px 6px;">×</button>
+            </span>
+          </div>
+          <img id="comp-photo-preview" alt="" style="display:none;max-width:100%;max-height:140px;border:1px solid var(--parchment-dk);border-radius:3px;">
+          <input type="hidden" id="comp-photo-data" value="">
+          <div class="label-row"><span data-i18n="label.compDesc">Descripción</span><textarea id="comp-desc" rows="2" data-i18n-ph="ph.compDesc" placeholder="Color, marcas, personalidad…" style="width:100%;font-size:11px;resize:vertical;"></textarea></div>
+          <div class="label-row"><span data-i18n="label.compSyncClass" title="Sincroniza el nivel del compañero con tu nivel en una clase del PJ">Sync con clase</span>
+            <select id="comp-sync-class" style="font-size:11px;width:auto;">
+              <option value="" data-i18n="opt.noSync">— ninguna —</option>
+              <option value="druid">Druida</option>
+              <option value="ranger">Explorador (−3)</option>
+              <option value="cavalier">Caballero (−3 / igual)</option>
+              <option value="hunter">Cazador</option>
+            </select>
+          </div>
+          <div class="label-row"><span data-i18n="label.compSyncOffset">Offset nivel</span><input type="number" id="comp-sync-offset" value="0" style="width:42px;"></div>
+        </div>
+      </details>
+
+      <details class="card" style="padding:6px 8px;background:rgba(0,0,0,0.03);border:1px solid var(--parchment-dk);border-radius:3px;">
+        <summary style="cursor:pointer;font-family:var(--ff-head);font-size:12px;font-weight:700;color:var(--leather-dk);">🛡 <span data-i18n="comp.section.defenses">Defensas y sentidos</span></summary>
+        <div style="margin-top:6px;display:flex;flex-direction:column;gap:6px;">
+          <div class="label-row"><span data-i18n="label.compDr">RD (DR)</span><input type="text" id="comp-dr" placeholder="5/cold iron" style="font-size:11px;"></div>
+          <div class="label-row"><span data-i18n="label.compSr">RC (SR)</span><input type="number" id="comp-sr" value="0" style="width:50px;"></div>
+          <div class="label-row"><span data-i18n="label.compSenses">Sentidos</span><input type="text" id="comp-senses" placeholder="Olfato, visión nocturna 60ft" style="font-size:11px;"></div>
+          <div class="label-row"><span data-i18n="label.compSpecQ">Habilidades especiales</span><textarea id="comp-special-qualities" rows="2" placeholder="Olfato, derribo, evasión…" style="width:100%;font-size:11px;resize:vertical;"></textarea></div>
+        </div>
+      </details>
+
+      <details class="card" style="padding:6px 8px;background:rgba(0,0,0,0.03);border:1px solid var(--parchment-dk);border-radius:3px;">
+        <summary style="cursor:pointer;font-family:var(--ff-head);font-size:12px;font-weight:700;color:var(--leather-dk);">🐎 <span data-i18n="comp.section.barding">Barda (armadura)</span></summary>
+        <div style="margin-top:6px;display:flex;flex-direction:column;gap:6px;">
+          <div class="label-row"><span data-i18n="label.compBardName">Nombre</span><input type="text" id="comp-barding-name" placeholder="Cota de malla equina" style="font-size:11px;"></div>
+          <div class="label-row"><span data-i18n="label.compBardMaxDex">Máx DES</span><input type="number" id="comp-barding-max-dex" value="99" style="width:50px;"></div>
+          <div class="label-row"><span data-i18n="label.compBardAcp">Penaliz. armadura</span><input type="number" id="comp-barding-acp" value="0" style="width:50px;"></div>
+        </div>
+      </details>
+
+      <details class="card" style="padding:6px 8px;background:rgba(0,0,0,0.03);border:1px solid var(--parchment-dk);border-radius:3px;">
+        <summary style="cursor:pointer;font-family:var(--ff-head);font-size:12px;font-weight:700;color:var(--leather-dk);">🎯 <span data-i18n="comp.section.bumps">Aumentos de atributo (lv 4/8/12/16/20)</span></summary>
+        <div style="margin-top:6px;display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11px;color:var(--leather-dk);">
+            <span data-i18n="comp.bumpsPending">Pendientes:</span>
+            <b id="comp-bumps-pending" style="color:var(--crimson);">0</b>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;">
+            <button type="button" class="btn-add" data-comp-bump="str" style="font-size:11px;">+1 FUE</button>
+            <button type="button" class="btn-add" data-comp-bump="dex" style="font-size:11px;">+1 DES</button>
+            <button type="button" class="btn-add" data-comp-bump="con" style="font-size:11px;">+1 CON</button>
+            <button type="button" class="btn-add" data-comp-bump="int" style="font-size:11px;">+1 INT</button>
+            <button type="button" class="btn-add" data-comp-bump="wis" style="font-size:11px;">+1 SAB</button>
+            <button type="button" class="btn-add" data-comp-bump="cha" style="font-size:11px;">+1 CAR</button>
+          </div>
+          <div id="comp-bumps-applied" style="font-size:10.5px;color:var(--leather-lt);"></div>
+          <input type="hidden" id="comp-bumps-pending-val" value="0">
+          <input type="hidden" id="comp-bumps-last-lvl" value="0">
+          <input type="hidden" id="comp-bumps-data" value="{}">
+        </div>
+      </details>
+    </div>
   </div>
 </div>
 
@@ -2050,6 +2224,26 @@ const I18N = {
     'label.hd':'DG','label.hpMax':'PG Máx','label.ac':'CA','label.feats':'Dotes',
     'p.compSpecial':'Habilidades Especiales',
     'ca.evasion':'Evasión (nv.3)','ca.devotion':'Devoción (nv.6)','ca.multiattack':'Ataque Múltiple (nv.9)','ca.impEvasion':'Evasión Mejorada (nv.15)',
+    /* PC-A-COMPANION i18n ES */
+    'comp.section.bond':'Vínculo y foto',
+    'comp.section.defenses':'Defensas y sentidos',
+    'comp.section.barding':'Barda (armadura)',
+    'comp.section.bumps':'Aumentos de atributo (lv 4/8/12/16/20)',
+    'comp.bumpsPending':'Pendientes:',
+    'label.compPhoto':'Foto',
+    'label.compDesc':'Descripción','ph.compDesc':'Color, marcas, personalidad…',
+    'label.compSyncClass':'Sync con clase','opt.noSync':'— ninguna —',
+    'label.compSyncOffset':'Offset nivel',
+    'label.compDr':'RD (DR)','label.compSr':'RC (SR)','label.compSenses':'Sentidos','label.compSpecQ':'Habilidades especiales',
+    'label.compBardName':'Nombre barda','label.compBardMaxDex':'Máx DES','label.compBardAcp':'Penaliz. armadura',
+    /* PC-A-SAVES-ITEMS i18n ES */
+    'p.savesItems':'🛡 Items de salvación',
+    'savesItems.intro':'El bono de Resistencia (Capa de Resistencia, etc.) se aplica a las tres salvaciones. Los bonos individuales se suman a la salvación correspondiente.',
+    'label.savesResistance':'Resistencia (+N a las 3)',
+    'label.savesItemFort':'Item Fortaleza extra','label.savesItemRef':'Item Reflejos extra','label.savesItemWill':'Item Voluntad extra',
+    /* PC-A-PJ-STATBUMPS i18n ES */
+    'p.pjStatBumps':'Aumentos de atributo pendientes:',
+    'pjStatBumps.intro':'A los niveles 4, 8, 12, 16 y 20 ganas +1 a un atributo permanente. Acumulados aquí.',
     'p.compInv':'Inventario del Compañero','compInv.intro':'Bardas, objetos mágicos especiales, etc.',
     'btn.addItem':'[+] Objeto',
     'p.compSkills':'Habilidades','p.compAttacks':'Ataques Naturales','p.compTricks':'Trucos y Tareas',
@@ -2511,6 +2705,26 @@ const I18N = {
     'label.hd':'HD','label.hpMax':'Max HP','label.ac':'AC','label.feats':'Feats',
     'p.compSpecial':'Special Abilities',
     'ca.evasion':'Evasion (lv.3)','ca.devotion':'Devotion (lv.6)','ca.multiattack':'Multiattack (lv.9)','ca.impEvasion':'Improved Evasion (lv.15)',
+    /* PC-A-COMPANION i18n EN */
+    'comp.section.bond':'Bond & photo',
+    'comp.section.defenses':'Defenses & senses',
+    'comp.section.barding':'Barding (armor)',
+    'comp.section.bumps':'Stat bumps (lv 4/8/12/16/20)',
+    'comp.bumpsPending':'Pending:',
+    'label.compPhoto':'Photo',
+    'label.compDesc':'Description','ph.compDesc':'Color, marks, personality…',
+    'label.compSyncClass':'Sync with class','opt.noSync':'— none —',
+    'label.compSyncOffset':'Level offset',
+    'label.compDr':'DR','label.compSr':'SR','label.compSenses':'Senses','label.compSpecQ':'Special qualities',
+    'label.compBardName':'Barding name','label.compBardMaxDex':'Max DEX','label.compBardAcp':'Armor check pen.',
+    /* PC-A-SAVES-ITEMS i18n EN */
+    'p.savesItems':'🛡 Save items',
+    'savesItems.intro':'Resistance bonus (Cloak of Resistance, etc.) applies to all three saves. Specific bonuses stack on the matching save.',
+    'label.savesResistance':'Resistance (+N to all 3)',
+    'label.savesItemFort':'Extra Fort item','label.savesItemRef':'Extra Ref item','label.savesItemWill':'Extra Will item',
+    /* PC-A-PJ-STATBUMPS i18n EN */
+    'p.pjStatBumps':'Pending stat bumps:',
+    'pjStatBumps.intro':'At levels 4, 8, 12, 16 and 20 you get +1 to a permanent attribute. Tracked here.',
     'p.compInv':'Companion Inventory','compInv.intro':'Barding, special magic items, etc.',
     'btn.addItem':'[+] Item',
     'p.compSkills':'Skills','p.compAttacks':'Natural Attacks','p.compTricks':'Tricks & Tasks',
@@ -6183,6 +6397,10 @@ function recalc() {
 
   document.getElementById('total-level').value = totalLevel;
   document.getElementById('total-hd').value = totalHD;
+  /* PC-A-PJ-STATBUMPS: recomputa aumentos pendientes al cambiar el nivel total. */
+  if (typeof recomputePjStatBumps === 'function') {
+    try { recomputePjStatBumps(); } catch(e) { /* no-op */ }
+  }
   updateAlignmentDisplay();
   updateFeatCounter();
   updateTraitCounter();
@@ -6547,9 +6765,11 @@ function calcDefense(mods, effDex, acpTotal, spellFailure) {
   // Desprevenido: pierde bonus de DEX y Dodge, pero mantiene penalizadores de DEX negativa
   const effDexFlat = Math.min(0, effDex);
 
-  let acTotal = 10 + armorACBonus + shieldACBonus + effDex + sizeMod + natArmor + deflect + dodge + condAC;
-  const acTouch = 10 + effDex + sizeMod + deflect + dodge + condAC;
-  const acFlat  = 10 + armorACBonus + shieldACBonus + effDexFlat + sizeMod + natArmor + deflect + condAC;
+  /* PC-A-MYTHIC-AUTOAPPLY: tier mítico se suma a CA (untyped, paralelo al sistema mítico). */
+  const _mythAc = (typeof getMythicTier === 'function') ? getMythicTier() : 0;
+  let acTotal = 10 + armorACBonus + shieldACBonus + effDex + sizeMod + natArmor + deflect + dodge + condAC + _mythAc;
+  const acTouch = 10 + effDex + sizeMod + deflect + dodge + condAC + _mythAc;
+  const acFlat  = 10 + armorACBonus + shieldACBonus + effDexFlat + sizeMod + natArmor + deflect + condAC + _mythAc;
 
   /* Fix P-39: si flat-footed esta marcado, la CA Total efectiva es la flat-footed */
   const isFlatFooted = document.getElementById('cond-flat-footed')?.checked;
@@ -6615,8 +6835,10 @@ function calcCombat(mods, bab, effDex, buffDeltas, encLevel = 'light') {
   const pronePenalty = document.getElementById('cond-prone').checked ? -4 : 0;
 
   // 1. Calcular base genérica (para displays generales)
-  const meleeMod = bab + mods.str + sizeAtk + condAtk + pronePenalty;
-  const rangeMod = bab + mods.dex + sizeAtk + condAtk;
+  /* PC-A-MYTHIC-AUTOAPPLY: tier mítico suma al ataque (m/r) si activo. */
+  const _mythAtk = (typeof getMythicTier === 'function') ? getMythicTier() : 0;
+  const meleeMod = bab + mods.str + sizeAtk + condAtk + pronePenalty + _mythAtk;
+  const rangeMod = bab + mods.dex + sizeAtk + condAtk + _mythAtk;
   const el_m = document.getElementById('atk-melee');
   const el_r = document.getElementById('atk-ranged');
   if(el_m) el_m.textContent = formatAtkProgression(meleeMod, bab);
@@ -6870,6 +7092,14 @@ function calcSaves(mods, baseFort, baseRef, baseWill) {
   const itemFort = parseInt(gv('save-fort-item')) || 0;
   const itemRef  = parseInt(gv('save-ref-item'))  || 0;
   const itemWill = parseInt(gv('save-will-item')) || 0;
+  /* PC-A-SAVES-ITEMS: bono de Resistencia (Cloak of Resistance, +N a los 3 saves)
+     y bonos extra por save (objetos específicos). Se suman al cálculo final. */
+  const resItem   = parseInt(gv('saves-resistance-item')) || 0;
+  const xFort     = parseInt(gv('saves-item-fort-extra')) || 0;
+  const xRef      = parseInt(gv('saves-item-ref-extra'))  || 0;
+  const xWill     = parseInt(gv('saves-item-will-extra')) || 0;
+  /* PC-A-MYTHIC-AUTOAPPLY: tier mítico aplica a los 3 saves cuando activo. */
+  const mythicBonus = (typeof getMythicTier === 'function') ? getMythicTier() : 0;
 
   let condSave = 0;
   const hasFearSave = document.getElementById('cond-shaken').checked ||
@@ -6879,9 +7109,10 @@ function calcSaves(mods, baseFort, baseRef, baseWill) {
   if(document.getElementById('cond-sickened').checked)   condSave -= 2;
 
   const _fb  = getFeatBonuses();
-  const fort = baseFort + mods.con + itemFort + miscFort + condSave + _fb.fort;
-  const ref  = baseRef  + mods.dex + itemRef  + miscRef  + condSave + _fb.ref;
-  const will = baseWill + mods.wis + itemWill + miscWill + condSave + _fb.will;
+  /* PC-A-SAVES-ITEMS + PC-A-MYTHIC-AUTOAPPLY incorporados en el cálculo final */
+  const fort = baseFort + mods.con + itemFort + miscFort + condSave + _fb.fort + resItem + xFort + mythicBonus;
+  const ref  = baseRef  + mods.dex + itemRef  + miscRef  + condSave + _fb.ref  + resItem + xRef  + mythicBonus;
+  const will = baseWill + mods.wis + itemWill + miscWill + condSave + _fb.will + resItem + xWill + mythicBonus;
 
   document.getElementById('save-fort-base').value = baseFort >= 0 ? `+${baseFort}` : `${baseFort}`;
   document.getElementById('save-ref-base').value  = baseRef  >= 0 ? `+${baseRef}`  : `${baseRef}`;
@@ -7485,6 +7716,10 @@ function calcAnimalCompanion() {
     Math.floor(((parseInt(document.getElementById('comp-wis').value)||12)-10)/2),
     Math.floor(((parseInt(document.getElementById('comp-cha').value)||6)-10)/2),
     totalPts);
+  /* PC-A-COMPANION: recomputa pending bumps según el nivel efectivo (master+offset). */
+  if (typeof recomputeCompStatBumps === 'function') {
+    try { recomputeCompStatBumps(); } catch(e) { /* no-op */ }
+  }
 }
 
 const COMP_SKILLS = [
@@ -7549,6 +7784,112 @@ function updateCompSkillTotal(skId) {
   // Trigger recalc which calls calcAnimalCompanion
   recalc();
 }
+
+/* PC-A-COMPANION — Helpers para companion: foto, sync clase, stat bumps lv 4/8/12/16/20.
+   Reutilizan inputs ocultos en la card de "Más opciones" del panel de compañero. */
+const COMP_BUMP_LEVELS = [4,8,12,16,20];
+
+function _compBumpsRead(){
+  const pending = parseInt(document.getElementById('comp-bumps-pending-val')?.value) || 0;
+  const last    = parseInt(document.getElementById('comp-bumps-last-lvl')?.value) || 0;
+  let bumps = {};
+  try { bumps = JSON.parse(document.getElementById('comp-bumps-data')?.value || '{}') || {}; } catch(e){ bumps = {}; }
+  return { pending, last, bumps };
+}
+function _compBumpsWrite(s){
+  const pE = document.getElementById('comp-bumps-pending-val');
+  const lE = document.getElementById('comp-bumps-last-lvl');
+  const dE = document.getElementById('comp-bumps-data');
+  if (pE) pE.value = s.pending;
+  if (lE) lE.value = s.last;
+  if (dE) dE.value = JSON.stringify(s.bumps || {});
+}
+function _compBumpsRefreshUi(){
+  const s = _compBumpsRead();
+  const pendEl = document.getElementById('comp-bumps-pending');
+  const appEl  = document.getElementById('comp-bumps-applied');
+  if (pendEl) pendEl.textContent = s.pending;
+  if (appEl) {
+    const parts = ['str','dex','con','int','wis','cha']
+      .map(k => ({k, v: s.bumps[k]||0}))
+      .filter(o => o.v > 0)
+      .map(o => `${o.k.toUpperCase()} +${o.v}`);
+    appEl.textContent = parts.length ? ('Aplicados: ' + parts.join(', ')) : '';
+  }
+}
+function recomputeCompStatBumps(){
+  /* El nivel del compañero animal equivale al nivel del maestro (o sync) en PF1e.
+     Para el aumento lv4/8/12/16/20 usamos el nivel de maestro como proxy. */
+  const masterLevelEl = document.getElementById('comp-master-level');
+  const syncCls = document.getElementById('comp-sync-class')?.value || '';
+  const syncOff = parseInt(document.getElementById('comp-sync-offset')?.value) || 0;
+  let effLevel = parseInt(masterLevelEl?.value) || 1;
+  if (syncCls) {
+    /* Sync con clase del PJ: aplica offset (ranger/cavalier usan -3 típicamente). */
+    effLevel = Math.max(1, effLevel + syncOff);
+  }
+  const s = _compBumpsRead();
+  let pending = s.pending;
+  COMP_BUMP_LEVELS.forEach(L => {
+    if (effLevel >= L && s.last < L) pending += 1;
+  });
+  s.pending = pending;
+  s.last = effLevel;
+  _compBumpsWrite(s);
+  _compBumpsRefreshUi();
+}
+function applyCompStatBump(stat){
+  const s = _compBumpsRead();
+  if (s.pending <= 0) return;
+  if (!['str','dex','con','int','wis','cha'].includes(stat)) return;
+  s.bumps = s.bumps || {};
+  s.bumps[stat] = (s.bumps[stat]||0) + 1;
+  s.pending -= 1;
+  _compBumpsWrite(s);
+  /* Suma el +1 directamente al atributo base del compañero. */
+  const inp = document.getElementById('comp-' + stat);
+  if (inp) {
+    inp.value = (parseInt(inp.value)||0) + 1;
+  }
+  _compBumpsRefreshUi();
+  if (typeof recalc === 'function') recalc();
+}
+function _compPhotoOnFile(ev){
+  const file = ev?.target?.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const data = e.target.result;
+    const dataEl = document.getElementById('comp-photo-data');
+    const prevEl = document.getElementById('comp-photo-preview');
+    if (dataEl) dataEl.value = data;
+    if (prevEl) { prevEl.src = data; prevEl.style.display = ''; }
+  };
+  reader.readAsDataURL(file);
+}
+function _compPhotoRestore(){
+  const dataEl = document.getElementById('comp-photo-data');
+  const prevEl = document.getElementById('comp-photo-preview');
+  if (dataEl && prevEl && dataEl.value) {
+    prevEl.src = dataEl.value;
+    prevEl.style.display = '';
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-comp-bump]').forEach(btn => {
+    btn.addEventListener('click', () => applyCompStatBump(btn.dataset.compBump));
+  });
+  const fileInp = document.getElementById('comp-photo-file');
+  if (fileInp) fileInp.addEventListener('change', _compPhotoOnFile);
+  /* Si la sync de clase cambia, recalculamos para detectar nuevos hitos. */
+  const sCls = document.getElementById('comp-sync-class');
+  const sOff = document.getElementById('comp-sync-offset');
+  if (sCls) sCls.addEventListener('change', () => { recomputeCompStatBumps(); });
+  if (sOff) sOff.addEventListener('change', () => { recomputeCompStatBumps(); });
+  _compBumpsRefreshUi();
+  _compPhotoRestore();
+});
+/* PC-A-COMPANION-END */
 
 /* ── ACTIVE BUFFS & TWEAKS ──────────────────────────────── */
 function normalizeBonusType(raw) {
@@ -13443,10 +13784,10 @@ document.addEventListener('DOMContentLoaded', () => {
   } catch(e) {}
 
   const cbActive = document.getElementById('mythic-active');
-  if (cbActive) cbActive.addEventListener('change', _mythicRefreshUi);
+  if (cbActive) cbActive.addEventListener('change', () => { _mythicRefreshUi(); if (typeof recalc==='function') recalc(); });
 
   const tierEl = document.getElementById('mythic-tier');
-  if (tierEl) tierEl.addEventListener('input', _mythicRefreshUi);
+  if (tierEl) tierEl.addEventListener('input', () => { _mythicRefreshUi(); if (typeof recalc==='function') recalc(); });
 
   const surgeBtn = document.getElementById('mythic-surge-btn');
   if (surgeBtn) surgeBtn.addEventListener('click', _mythicSurge);
@@ -13456,6 +13797,90 @@ document.addEventListener('DOMContentLoaded', () => {
 
   _mythicRefreshUi();
 });
+
+/* PC-A-PJ-STATBUMPS — Sistema de aumentos de atributo del PJ (lv 4/8/12/16/20).
+   Persiste en inputs ocultos en el card. Apply+1 escribe en el campo Inherente
+   del atributo correspondiente (suma permanente). Detecta cambios de nivel total
+   y aumenta pendingStatBumps en cada hito alcanzado. */
+const PJ_BUMP_LEVELS = [4,8,12,16,20];
+
+function _pjStatBumpsRead(){
+  const pending = parseInt(document.getElementById('pj-statbumps-pending-val')?.value) || 0;
+  const last    = parseInt(document.getElementById('pj-statbumps-last-lvl')?.value) || 0;
+  let bumps = {};
+  try { bumps = JSON.parse(document.getElementById('pj-statbumps-data')?.value || '{}') || {}; } catch(e){ bumps = {}; }
+  return { pending, last, bumps };
+}
+function _pjStatBumpsWrite(s){
+  const pE = document.getElementById('pj-statbumps-pending-val');
+  const lE = document.getElementById('pj-statbumps-last-lvl');
+  const dE = document.getElementById('pj-statbumps-data');
+  if (pE) pE.value = s.pending;
+  if (lE) lE.value = s.last;
+  if (dE) dE.value = JSON.stringify(s.bumps || {});
+}
+function _pjStatBumpsRefreshUi(){
+  const s = _pjStatBumpsRead();
+  const card = document.getElementById('pj-statbumps-card');
+  const pendEl = document.getElementById('pj-statbumps-pending');
+  const appEl  = document.getElementById('pj-statbumps-applied');
+  if (!card || !pendEl) return;
+  const totalApplied = Object.values(s.bumps||{}).reduce((a,b)=>a+(+b||0),0);
+  if (s.pending > 0) {
+    card.style.display = '';
+  } else if (totalApplied > 0) {
+    /* Mostrar igualmente para que el usuario pueda ver los aplicados; pendingStatBumps=0 */
+    card.style.display = '';
+  } else {
+    card.style.display = 'none';
+  }
+  pendEl.textContent = s.pending;
+  if (appEl) {
+    const parts = ['str','dex','con','int','wis','cha']
+      .map(k => ({k, v: s.bumps[k]||0}))
+      .filter(o => o.v > 0)
+      .map(o => `${o.k.toUpperCase()} +${o.v}`);
+    appEl.textContent = parts.length ? ('Aplicados: ' + parts.join(', ')) : '';
+  }
+}
+function recomputePjStatBumps(){
+  /* Detecta el nivel total actual; por cada hito en PJ_BUMP_LEVELS que se
+     haya cruzado desde la última vez, suma 1 a pendingStatBumps. */
+  const totalLvlEl = document.getElementById('total-level');
+  const totalLvl = parseInt(totalLvlEl?.value) || 0;
+  const s = _pjStatBumpsRead();
+  let pending = s.pending;
+  PJ_BUMP_LEVELS.forEach(L => {
+    if (totalLvl >= L && s.last < L) pending += 1;
+  });
+  s.pending = pending;
+  s.last = totalLvl;
+  _pjStatBumpsWrite(s);
+  _pjStatBumpsRefreshUi();
+}
+function applyPjStatBump(stat){
+  const s = _pjStatBumpsRead();
+  if (s.pending <= 0) return;
+  if (!['str','dex','con','int','wis','cha'].includes(stat)) return;
+  s.bumps = s.bumps || {};
+  s.bumps[stat] = (s.bumps[stat]||0) + 1;
+  s.pending -= 1;
+  _pjStatBumpsWrite(s);
+  /* Escribir en el campo Inherente del atributo (PF1e: stat bumps son permanentes). */
+  const inhEl = document.getElementById(stat + '-inherent');
+  if (inhEl) {
+    inhEl.value = (parseInt(inhEl.value)||0) + 1;
+  }
+  _pjStatBumpsRefreshUi();
+  if (typeof recalc === 'function') recalc();
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-pj-bump]').forEach(btn => {
+    btn.addEventListener('click', () => applyPjStatBump(btn.dataset.pjBump));
+  });
+  _pjStatBumpsRefreshUi();
+});
+/* PC-A-PJ-STATBUMPS-END */
 
 /* ── MODO EPIC (R-29) ────────────────────────────────────
    Permite niveles 21-30. PF1e oficial termina en 20; las
@@ -14799,6 +15224,2671 @@ window.rollWeaponFullAttack = function(btn){
     if (target && target.focus) try { target.focus(); } catch(_){}
   };
 })();
+
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║ PC-B-COMBAT-TACTICS-V1                                       ║
+   ║ Wire tactics (Fight Defensively, Total Defense, Charge,       ║
+   ║ Combat Expertise, TWF mode), maneuvers, special attacks,     ║
+   ║ buff packs, bleed-tick & Hard-to-Kill HP rules.              ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+(function(){
+  'use strict';
+
+  /* ---------- helpers ---------- */
+  function _normFeat(s){
+    return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  }
+  function _allFeatNames(){
+    var out = [];
+    try {
+      document.querySelectorAll('.feat-card .feat-name').forEach(function(el){
+        var v = (el.value||'').trim();
+        if (v) out.push(_normFeat(v));
+      });
+    } catch(_){}
+    return out;
+  }
+  function _hasFeat(re){
+    return _allFeatNames().some(function(n){ return re.test(n); });
+  }
+  function _getBAB(){
+    try {
+      var t = (document.getElementById('bab-total')||{}).value || '0';
+      return parseInt(String(t).replace(/[^\-\d]/g,''),10) || 0;
+    } catch(_){ return 0; }
+  }
+  function _getCMB(){
+    try {
+      var t = (document.getElementById('cmb-total')||{}).value || '0';
+      return parseInt(String(t).replace(/[^\-\d]/g,''),10) || 0;
+    } catch(_){ return 0; }
+  }
+  function _fmt(n){ return (n>=0?'+':'') + n; }
+  function _hasCombatExpertiseFeat(){
+    return _hasFeat(/pericia\s+de?\s*combate|combat\s+expertise/);
+  }
+
+  /* ---------- 1: Combat Tactics wire ---------- */
+  function wireCombatTacticals(){
+    var ids = ['combat-fight-defensively','combat-total-defense','combat-charging','combat-expertise','combat-twf'];
+    ids.forEach(function(id){
+      var el = document.getElementById(id);
+      if (!el || el.__pcb_wired) return;
+      el.__pcb_wired = true;
+      el.addEventListener('change', function(){
+        try { if (typeof recalc === 'function') recalc(); } catch(_){}
+        try { _updateTacticsInfo(); } catch(_){}
+      });
+    });
+    _refreshCombatExpertiseGating();
+    _updateTacticsInfo();
+  }
+  function _refreshCombatExpertiseGating(){
+    var ce = document.getElementById('combat-expertise');
+    var lbl = document.getElementById('combat-expertise-label');
+    if (!ce) return;
+    var has = _hasCombatExpertiseFeat();
+    ce.disabled = !has;
+    if (!has && ce.checked) { ce.checked = false; }
+    if (lbl) {
+      lbl.style.opacity = has ? '' : '0.55';
+      lbl.title = has ? 'Pericia de Combate activa: −1 atq / +1 CA dodge por cada 4 BAB (máx ±5)'
+                     : 'Requiere dote "Pericia de combate" (Combat Expertise)';
+    }
+  }
+  function _updateTacticsInfo(){
+    var info = document.getElementById('pcb-tactics-info');
+    if (!info) return;
+    var parts = [];
+    var bab = _getBAB();
+    if (document.getElementById('combat-fight-defensively') && document.getElementById('combat-fight-defensively').checked) parts.push('Asalto Enérgico: −4 atq / +2 CA');
+    if (document.getElementById('combat-total-defense') && document.getElementById('combat-total-defense').checked) parts.push('Defensa Total: +4 CA');
+    if (document.getElementById('combat-charging') && document.getElementById('combat-charging').checked) parts.push('Carga: +2 atq / −2 CA');
+    var ce = document.getElementById('combat-expertise');
+    if (ce && ce.checked && _hasCombatExpertiseFeat()){
+      var tier = Math.max(1, Math.min(5, Math.floor((bab||0)/4) + 1));
+      parts.push('Pericia: −' + tier + ' atq / +' + tier + ' CA');
+    }
+    var twfSel = document.getElementById('combat-twf');
+    if (twfSel && twfSel.value && twfSel.value !== 'off'){
+      var twfMap = { 'std':'TWF sin dote (−4/−8)', 'twf':'TWF con dote (−2/−2)', 'twf-light':'TWF ligera (−2/−2)',
+                     'itwf':'Improved TWF (extra BAB−5)', 'gtwf':'Greater TWF (extras BAB−5/−10)' };
+      parts.push(twfMap[twfSel.value] || twfSel.value);
+    }
+    info.textContent = parts.length ? parts.join('  ·  ') : '';
+  }
+
+  /* Apply tactics deltas into PC's recalc pipeline.
+     PC-B-RECALC-HOOK-V1: monkey-patch recalc so we re-apply after each calc. */
+  function _tacticsDodgeBonus(){
+    var bonus = 0;
+    var bab = _getBAB();
+    var fd = document.getElementById('combat-fight-defensively');
+    var td = document.getElementById('combat-total-defense');
+    var ch = document.getElementById('combat-charging');
+    var ce = document.getElementById('combat-expertise');
+    if (fd && fd.checked) bonus += 2;
+    if (td && td.checked) bonus += 4;
+    if (ch && ch.checked) bonus -= 2;
+    if (ce && ce.checked && _hasCombatExpertiseFeat()){
+      var tier = Math.max(1, Math.min(5, Math.floor((bab||0)/4) + 1));
+      bonus += tier;
+    }
+    return bonus;
+  }
+  function _tacticsAtkBonus(){
+    var bab = _getBAB();
+    var atk = 0;
+    var fd = document.getElementById('combat-fight-defensively');
+    var ch = document.getElementById('combat-charging');
+    var ce = document.getElementById('combat-expertise');
+    if (fd && fd.checked) atk -= 4;
+    if (ch && ch.checked) atk += 2;
+    if (ce && ce.checked && _hasCombatExpertiseFeat()){
+      var tier = Math.max(1, Math.min(5, Math.floor((bab||0)/4) + 1));
+      atk -= tier;
+    }
+    return atk;
+  }
+
+  /* Apply deltas to displayed AC/atk after recalc completes. */
+  function _applyTacticsToDisplays(){
+    try {
+      var dodgeDelta = _tacticsDodgeBonus();
+      var atkDelta   = _tacticsAtkBonus();
+      if (!dodgeDelta && !atkDelta) return;
+      // Adjust CA Total + CA Toque (dodge applies to both, not flat)
+      ['ac-total','ac-touch'].forEach(function(id){
+        var el = document.getElementById(id);
+        if (!el) return;
+        var cur = parseInt(el.value, 10);
+        if (isNaN(cur)) return;
+        if (el.dataset.pcbBase == null) el.dataset.pcbBase = String(cur);
+        else cur = parseInt(el.dataset.pcbBase, 10) || cur;
+        el.value = cur + dodgeDelta;
+      });
+      // Adjust CMD (dodge applies)
+      var cmdEl = document.getElementById('cmd-total');
+      if (cmdEl){
+        var c = parseInt(cmdEl.value, 10);
+        if (!isNaN(c)){
+          if (cmdEl.dataset.pcbBase == null) cmdEl.dataset.pcbBase = String(c);
+          else c = parseInt(cmdEl.dataset.pcbBase, 10) || c;
+          cmdEl.value = String(c + dodgeDelta);
+        }
+      }
+      // Adjust atk-melee / atk-ranged textContent (each iterative)
+      ['atk-melee','atk-ranged'].forEach(function(id){
+        var el = document.getElementById(id);
+        if (!el) return;
+        var txt = el.textContent || '';
+        if (el.dataset.pcbBase == null) el.dataset.pcbBase = txt;
+        else txt = el.dataset.pcbBase;
+        var adjusted = txt.replace(/([+\-]?\d+)/g, function(m){
+          var n = parseInt(m,10);
+          if (isNaN(n)) return m;
+          return _fmt(n + atkDelta);
+        });
+        el.textContent = adjusted;
+      });
+    } catch(e){ console.warn('PC-B tactics displays', e); }
+  }
+  function _clearTacticsCache(){
+    ['ac-total','ac-touch','cmd-total','atk-melee','atk-ranged'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (el && el.dataset && el.dataset.pcbBase != null) delete el.dataset.pcbBase;
+    });
+  }
+  function _installRecalcHook(){
+    if (window.__pcbRecalcHooked) return;
+    if (typeof window.recalc !== 'function') return;
+    window.__pcbRecalcHooked = true;
+    var orig = window.recalc;
+    window.recalc = function(){
+      _clearTacticsCache();
+      var r = orig.apply(this, arguments);
+      try { _applyTacticsToDisplays(); } catch(_){}
+      try { _refreshCombatExpertiseGating(); } catch(_){}
+      try { _refreshSpecialButtons(); } catch(_){}
+      try { _updateTacticsInfo(); } catch(_){}
+      return r;
+    };
+  }
+
+  /* ---------- 2: Maneuvers ---------- */
+  /* PC-B-MANEUVER-PATTERNS-V1 */
+  var PCB_FEAT_PATTERNS = {
+    trip:       /derribo\s+mejorado|improved\s+trip/,
+    disarm:     /desarmar\s+mejorado|improved\s+disarm/,
+    sunder:     /romper\s+mejorado|improved\s+sunder/,
+    grapple:    /presa\s+mejorada|improved\s+grapple/,
+    bullrush:   /embestida\s+mejorada|embestir\s+mejorado|improved\s+bull\s*rush/,
+    overrun:    /atropello\s+mejorado|improved\s+overrun/,
+    reposition: /reposicionar\s+mejorado|improved\s+reposition/,
+    steal:      /robo\s+mejorado|robar\s+mejorado|improved\s+steal/,
+    dirty:      /truco\s+sucio\s+mejorado|improved\s+dirty\s+trick/,
+    cleave:     /^cleave$|^tajo$|hender(?!\s+grande)/,
+    greatcleave:/gran\s+tajo|great\s+cleave|tajo\s+amplio|hender\s+grande/,
+    whirlwind:  /torbellino|whirlwind\s+attack/
+  };
+  var PCB_MANEUVER_LABELS = {
+    trip:'Derribar', disarm:'Desarmar', sunder:'Romper', grapple:'Presa',
+    bullrush:'Embestir', overrun:'Atropellar', reposition:'Reposicionar',
+    steal:'Robar', dirty:'Truco sucio'
+  };
+  function _maneuverMod(key){
+    return _hasFeat(PCB_FEAT_PATTERNS[key])
+      ? { delta:+4, note:'+4 (dote mejorada)' }
+      : { delta:-4, note:'−4 (sin dote mejorada; provoca AdO)' };
+  }
+  function _rollManeuver(key){
+    var cmb = _getCMB();
+    var mod = _maneuverMod(key);
+    var total = cmb + mod.delta;
+    var label = PCB_MANEUVER_LABELS[key] || key;
+    var d20 = 1 + Math.floor(Math.random()*20);
+    var roll = d20 + total;
+    var critFlag = d20 === 20 ? ' 🎯' : (d20 === 1 ? ' ☠️' : '');
+    var out = document.getElementById('pcb-maneuver-output');
+    if (out){
+      out.innerHTML = '<b>' + label + '</b> · 1d20(' + d20 + ') ' + _fmt(cmb) + ' CMB '
+                    + (mod.delta!==0?(mod.delta>0?'+':'')+mod.delta:'') + ' <span style="color:var(--leather-lt)">('
+                    + mod.note + ')</span> = <b>' + roll + '</b>' + critFlag;
+    }
+  }
+  function _wireManeuvers(){
+    document.querySelectorAll('#pcb-maneuvers-card [data-maneuver]').forEach(function(btn){
+      if (btn.__pcb_wired) return;
+      btn.__pcb_wired = true;
+      btn.addEventListener('click', function(){ _rollManeuver(btn.dataset.maneuver); });
+    });
+  }
+
+  /* ---------- 3: Special attacks ---------- */
+  function _getMainHandWeaponAtk(){
+    try {
+      var equipped = Array.from(document.querySelectorAll('.weapon-card')).find(function(c){
+        var eq = c.querySelector('.weapon-equipped');
+        return eq && eq.checked;
+      });
+      var target = equipped || document.querySelector('.weapon-card');
+      if (!target) return null;
+      var atk = parseInt(target.dataset.rollAtk, 10) || 0;
+      var nameEl = target.querySelector('input[type="text"]');
+      var name = (nameEl && nameEl.value) || 'Arma';
+      return { atk:atk, name:name };
+    } catch(_){ return null; }
+  }
+  function _rollSpecial(key){
+    var main = _getMainHandWeaponAtk();
+    var out = document.getElementById('pcb-special-output');
+    if (!main){ if (out) out.textContent = 'No hay arma equipada con la que atacar.'; return; }
+    if (key === 'cleave' || key === 'greatcleave'){
+      var label = key === 'cleave' ? 'Cleave' : 'Gran Cleave';
+      var d20 = 1 + Math.floor(Math.random()*20);
+      var tot = d20 + main.atk;
+      var critFlag = d20===20?' 🎯':(d20===1?' ☠️':'');
+      if (out){
+        out.innerHTML = '<b>' + label + '</b> (' + main.name + ') · 1d20(' + d20 + ') ' + _fmt(main.atk)
+                      + ' = <b>' + tot + '</b>' + critFlag
+                      + ' <span style="color:var(--leather-lt)">(−2 a tu CA hasta próximo turno)</span>';
+      }
+      setTimeout(function(){
+        var ok = confirm('¿Impactaste con el primer ataque de ' + label + '? Aceptar = tirar ataque extra al siguiente enemigo adyacente.');
+        if (!ok) return;
+        var d2 = 1 + Math.floor(Math.random()*20);
+        var t2 = d2 + main.atk;
+        if (out) out.innerHTML += '<br>' + label + ' atq extra: 1d20(' + d2 + ') ' + _fmt(main.atk) + ' = <b>' + t2 + '</b>';
+        if (key === 'greatcleave'){
+          setTimeout(function(){
+            var ok2 = confirm('Great Cleave: ¿Impactaste también? Aceptar = otra cadena.');
+            if (!ok2) return;
+            var d3 = 1 + Math.floor(Math.random()*20);
+            var t3 = d3 + main.atk;
+            if (out) out.innerHTML += '<br>Gran Cleave extra: 1d20(' + d3 + ') ' + _fmt(main.atk) + ' = <b>' + t3 + '</b>';
+          }, 150);
+        }
+      }, 200);
+      return;
+    }
+    if (key === 'whirlwind'){
+      var n;
+      try { n = parseInt(prompt('Whirlwind Attack: ¿cuántos enemigos adyacentes?', '2'), 10); } catch(_){ n = 2; }
+      n = Math.max(1, Math.min(20, n||1));
+      var html = '<b>Whirlwind</b> · ' + n + ' atq:<br>';
+      for (var i=0;i<n;i++){
+        var dd = 1 + Math.floor(Math.random()*20);
+        var tt = dd + main.atk;
+        var cf = dd===20?' 🎯':(dd===1?' ☠️':'');
+        html += '#' + (i+1) + ': 1d20(' + dd + ') ' + _fmt(main.atk) + ' = <b>' + tt + '</b>' + cf + '<br>';
+      }
+      if (out) out.innerHTML = html;
+    }
+  }
+  function _refreshSpecialButtons(){
+    var card = document.getElementById('pcb-special-card');
+    if (!card) return;
+    var btns = card.querySelectorAll('[data-special]');
+    var anyVisible = false;
+    btns.forEach(function(b){
+      var k = b.dataset.special;
+      var has = _hasFeat(PCB_FEAT_PATTERNS[k]);
+      b.hidden = !has;
+      if (has) anyVisible = true;
+    });
+    var empty = document.getElementById('pcb-special-empty');
+    if (empty) empty.hidden = anyVisible;
+  }
+  function _wireSpecials(){
+    document.querySelectorAll('#pcb-special-card [data-special]').forEach(function(btn){
+      if (btn.__pcb_wired) return;
+      btn.__pcb_wired = true;
+      btn.addEventListener('click', function(){ _rollSpecial(btn.dataset.special); });
+    });
+  }
+
+  /* ---------- 4: Buff packs ---------- */
+  /* PC-B-BUFF-PACKS-DATA-V1 */
+  var PCB_BUFF_PACKS = [
+    { id:'heroes-feast',   name:"Festín de los Héroes", mods:'+2 atq · +1 moral vs miedo · +1d8+nv hp', dur:'24h',       btype:'morale',     bonus:2, target:'atq' },
+    { id:'bless',          name:"Bendecir",             mods:'+1 atq · +1 moral vs miedo',             dur:'1 min/nv',  btype:'morale',     bonus:1, target:'atq' },
+    { id:'bulls-strength', name:"Fuerza de Toro",       mods:'+4 FUE',                                 dur:'1 min/nv',  btype:'enhancement',bonus:4, target:'FUE' },
+    { id:'cats-grace',     name:"Gracia Felina",        mods:'+4 DES',                                 dur:'1 min/nv',  btype:'enhancement',bonus:4, target:'DES' },
+    { id:'bears-endurance',name:"Resistencia de Oso",   mods:'+4 CON',                                 dur:'1 min/nv',  btype:'enhancement',bonus:4, target:'CON' },
+    { id:'haste',          name:"Premura",              mods:'+1 atq extra · +1 atq · +1 ref · +1 CA', dur:'1 rd/nv',   btype:'untyped',    bonus:1, target:'atq/ref/CA' },
+    { id:'good-hope',      name:"Buena Esperanza",      mods:'+2 atq · +2 dmg · +2 habilidades',       dur:'1 min/nv',  btype:'morale',     bonus:2, target:'atq/dmg/skill' },
+    { id:'prayer',         name:"Plegaria",             mods:'+1 atq · +1 ref · +1 will · +1 dmg',     dur:'1 rd/nv',   btype:'luck',       bonus:1, target:'atq/ts/dmg' },
+    { id:'heroism',        name:"Heroísmo",             mods:'+2 atq · +2 saves · +2 habilidades',     dur:'10 min/nv', btype:'morale',     bonus:2, target:'atq/ts/skill' }
+  ];
+  function _pcLevelTotal(){
+    try { return Math.max(1, parseInt((document.getElementById('total-level')||{}).value,10) || 1); }
+    catch(_){ return 1; }
+  }
+  /* PC-B-BUFF-PACK-DUR-V1 */
+  function _packDuration(pack){
+    var lvl = _pcLevelTotal();
+    var d = (pack.dur||'').toLowerCase();
+    if (/24h|24\s*h/.test(d))             return { duration: 24,        unit:'h'  };
+    if (/10\s*min\/nv/.test(d))           return { duration: 10*lvl,    unit:'min' };
+    if (/1\s*min\/nv|min\/nv/.test(d))    return { duration: lvl,       unit:'min' };
+    if (/rd\/nv|asalto\/nv|round\/nv/.test(d)) return { duration: lvl,  unit:'rd' };
+    if (/min\b/.test(d))                  return { duration: 1,         unit:'min' };
+    return { duration: 0, unit:'permanent' };
+  }
+  function _renderBuffPacks(){
+    var list = document.getElementById('pcb-buff-packs-list');
+    if (!list) return;
+    list.innerHTML = '';
+    PCB_BUFF_PACKS.forEach(function(p, i){
+      var dur = _packDuration(p);
+      var row = document.createElement('button');
+      row.type = 'button';
+      row.style.cssText = 'display:block;width:100%;text-align:left;padding:8px 10px;margin-bottom:5px;border:1px solid var(--leather-lt);border-radius:4px;background:var(--parchment-lt,rgba(255,255,255,0.4));cursor:pointer;font:inherit;';
+      row.dataset.packIdx = String(i);
+      row.innerHTML = '<div style="font-weight:700;font-size:12px;color:var(--leather-dk)">' + p.name + '</div>'
+                    + '<div style="font-size:11px;color:var(--ink)">' + p.mods + '</div>'
+                    + '<div style="font-size:10px;color:var(--leather-lt);margin-top:2px">Duración: ' + p.dur
+                    + ' · → ' + dur.duration + ' ' + dur.unit + '</div>';
+      row.addEventListener('click', function(){ _applyBuffPack(i); });
+      list.appendChild(row);
+    });
+  }
+  function _applyBuffPack(idx){
+    var pack = PCB_BUFF_PACKS[idx];
+    if (!pack) return;
+    var dur = _packDuration(pack);
+    var payload = {
+      name: pack.name,
+      btype: pack.btype || 'untyped',
+      bonus: pack.bonus || 0,
+      target: pack.target || '',
+      duration: dur.duration,
+      unit: dur.unit,
+      remaining: dur.unit === 'permanent' ? null : dur.duration,
+      note: 'Pack: ' + pack.id + ' (base ' + pack.dur + ')'
+    };
+    if (typeof window.btrAddBuff === 'function') {
+      try { window.btrAddBuff(payload); } catch(e){ console.warn('btrAddBuff', e); }
+    } else if (typeof window.addBuff === 'function') {
+      try {
+        window.addBuff('buffs-container');
+        var c = document.getElementById('buffs-container');
+        var last = c && c.lastElementChild;
+        if (last){
+          var nameInp = last.querySelector('input[type="text"]');
+          if (nameInp) nameInp.value = pack.name;
+        }
+      } catch(_){}
+    }
+    _closeBuffPacks();
+  }
+  function _openBuffPacks(){
+    var dlg = document.getElementById('pcb-buff-packs-dialog');
+    if (!dlg) return;
+    _renderBuffPacks();
+    dlg.style.display = 'flex';
+  }
+  function _closeBuffPacks(){
+    var dlg = document.getElementById('pcb-buff-packs-dialog');
+    if (dlg) dlg.style.display = 'none';
+  }
+  function _wireBuffPacks(){
+    var btn = document.getElementById('pcb-buff-packs-btn');
+    if (btn && !btn.__pcb_wired){ btn.__pcb_wired = true; btn.addEventListener('click', _openBuffPacks); }
+    var cls = document.getElementById('pcb-buff-packs-close');
+    if (cls && !cls.__pcb_wired){ cls.__pcb_wired = true; cls.addEventListener('click', _closeBuffPacks); }
+    var dlg = document.getElementById('pcb-buff-packs-dialog');
+    if (dlg && !dlg.__pcb_wired){
+      dlg.__pcb_wired = true;
+      dlg.addEventListener('click', function(e){ if (e.target === dlg) _closeBuffPacks(); });
+    }
+  }
+
+  /* ---------- 5: Bleed tick (Sangrando / Muriendo) + Hard to Kill ---------- */
+  /* PC-B-BLEED-TICK-V1: hook btrNextRound to also bleed HP. */
+  function _hasHardToKill(){
+    try {
+      var ta = document.getElementById('mythic-feats-text');
+      if (!ta) return false;
+      var tier = parseInt((document.getElementById('mythic-tier')||{}).value, 10) || 0;
+      if (tier <= 0) return false;
+      var enabledEl = document.getElementById('mythic-enabled');
+      if (enabledEl && !enabledEl.checked) return false;
+      var txt = (ta.value || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+      return /hard[-\s]?to[-\s]?kill/.test(txt);
+    } catch(_){ return false; }
+  }
+  function _conChecked(id){
+    try { return !!(document.getElementById(id) && document.getElementById(id).checked); } catch(_){ return false; }
+  }
+  /* PC-B-SETHP-V1: setHP that allows negative HP up to -CON_score
+     (Hard to Kill expands to -2×CON). Replaces any external Math.max(0,...) clamp. */
+  function _conScore(){
+    try { return parseInt((document.getElementById('con-total')||{}).value, 10) || 10; }
+    catch(_){ return 10; }
+  }
+  window.pcbSetHP = function(val){
+    var hpInp = document.getElementById('hp-current');
+    if (!hpInp) return;
+    var n = parseInt(val, 10);
+    if (isNaN(n)) return;
+    var maxStr = (document.getElementById('hp-max')||{}).value || '0';
+    var max = parseInt(String(maxStr).replace(/[^\-\d]/g,''), 10) || 0;
+    var lowerBound = -_conScore();
+    if (_hasHardToKill()) lowerBound = -2 * _conScore();
+    if (max > 0 && n > max) n = max;
+    if (n < lowerBound) n = lowerBound;
+    hpInp.value = String(n);
+    try { hpInp.dispatchEvent(new Event('input', { bubbles:true })); } catch(_){}
+    try { hpInp.dispatchEvent(new Event('change', { bubbles:true })); } catch(_){}
+  };
+  /* Patch the +/- HP quick buttons handler to allow negative HP. Also patch
+     existing hp-current sanitizer if it clamps to 0. */
+  function _patchHPClamp(){
+    if (window.__pcbHPPatched) return;
+    window.__pcbHPPatched = true;
+    var hpInp = document.getElementById('hp-current');
+    if (!hpInp) return;
+    /* Add capture-phase listener to allow negative values; intercept clamp */
+    hpInp.setAttribute('min', String(-200));
+    /* Re-route the hp-quick delta buttons through pcbSetHP for proper bounds */
+    document.addEventListener('click', function(ev){
+      var btn = ev.target && ev.target.closest && ev.target.closest('.hp-quick');
+      if (!btn) return;
+      // The original handler already ran and may have clamped. Re-apply with our bounds.
+      var delta = parseInt(btn.dataset.hpDelta,10) || 0;
+      if (ev.shiftKey) delta *= 5;
+      // Compute target based on the value BEFORE the original handler clamped, by
+      // re-reading current input value as a starting reference (this isn't perfect
+      // but ensures negatives are reachable on subsequent clicks).
+      var cur = parseInt(hpInp.value, 10) || 0;
+      // The original handler set hpInp.value to its clamped result; ensure floor.
+      var conLow = _hasHardToKill() ? -2 * _conScore() : -_conScore();
+      if (cur < conLow) window.pcbSetHP(conLow);
+      else if (cur < 0 && !btn.__pcbCheckedZero){
+        // No-op: native handler doesn't clamp, but if cur < 0, leave it (we already allowed).
+      }
+    }, false);
+  }
+  function _bleedTick(){
+    try {
+      var dmg = 0;
+      if (_conChecked('cond-bleed')) dmg += 1;
+      if (_conChecked('cond-dying')) dmg += 1;
+      if (dmg <= 0) return;
+      var hpInp = document.getElementById('hp-current');
+      if (!hpInp) return;
+      var cur = parseInt(hpInp.value, 10) || 0;
+      var next = cur - dmg;
+      var htk = _hasHardToKill();
+      var lower = htk ? -2 * _conScore() : -_conScore();
+      if (next < lower) next = lower;
+      hpInp.value = String(next);
+      try { hpInp.dispatchEvent(new Event('input', { bubbles:true })); } catch(_){}
+      try { hpInp.dispatchEvent(new Event('change', { bubbles:true })); } catch(_){}
+      if (!htk){
+        if (next < 0){
+          var dy = document.getElementById('cond-dying');
+          if (dy && !dy.checked){ dy.checked = true; try{ dy.dispatchEvent(new Event('change',{bubbles:true})); }catch(_){}}
+        }
+        if (next <= 0){
+          var un = document.getElementById('cond-unconscious');
+          if (un && !un.checked){ un.checked = true; try{ un.dispatchEvent(new Event('change',{bubbles:true})); }catch(_){}}
+        }
+      }
+      /* If Hard to Kill, NEVER auto-mark Dying/Unconscious from bleed tick. */
+    } catch(e){ console.warn('PC-B bleed tick', e); }
+  }
+  function _hookBleedToNextRound(){
+    if (window.__pcbBleedHooked) return;
+    if (typeof window.btrNextRound !== 'function') return;
+    window.__pcbBleedHooked = true;
+    var orig = window.btrNextRound;
+    window.btrNextRound = function(){
+      var r;
+      try { r = orig.apply(this, arguments); }
+      catch(e){ console.warn('btrNextRound base', e); }
+      try { _bleedTick(); } catch(_){}
+      return r;
+    };
+  }
+
+  /* ---------- Init ---------- */
+  function _init(){
+    try { wireCombatTacticals(); } catch(e){ console.warn('PC-B tactics', e); }
+    try { _wireManeuvers();      } catch(e){ console.warn('PC-B maneuvers', e); }
+    try { _wireSpecials();       } catch(e){ console.warn('PC-B specials', e); }
+    try { _refreshSpecialButtons(); } catch(_){}
+    try { _wireBuffPacks();      } catch(e){ console.warn('PC-B buffpacks', e); }
+    try { _installRecalcHook();  } catch(_){}
+    try { _hookBleedToNextRound(); } catch(_){}
+    try { _patchHPClamp(); } catch(_){}
+  }
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', _init);
+  } else {
+    setTimeout(_init, 0);
+  }
+  // Late hooks (recalc and btrNextRound may be defined after DOMContentLoaded)
+  setTimeout(function(){
+    try { _installRecalcHook(); } catch(_){}
+    try { _hookBleedToNextRound(); } catch(_){}
+    try { _refreshCombatExpertiseGating(); } catch(_){}
+    try { _refreshSpecialButtons(); } catch(_){}
+  }, 1500);
+
+  /* Expose for parent agents / debugging */
+  window.wireCombatTacticals = wireCombatTacticals;
+  window.pcbApplyBuffPack = function(id){
+    var idx = PCB_BUFF_PACKS.findIndex(function(p){ return p.id === id; });
+    if (idx >= 0) _applyBuffPack(idx);
+  };
+  window.pcbRefreshSpecialButtons = _refreshSpecialButtons;
+})();
+</script>
+
+
+<!-- /* PC-D-MAIN-BLOCK-V1 */ ============================================
+     Zona D: Inventario D5 + monedas + log + tirada custom + atributos
+     + masterwork/natural styles + weapon edit. Inyectado al final para
+     evitar colisiones con anchors PC-A/B/C que están editando en paralelo.
+     ===================================================================== -->
+<script>
+/* PC-D-LOG-V1 — window.logAction (buffer + localStorage). */
+(function(){
+  'use strict';
+  if (window.logAction) return;
+  var KEY = 'ficha-action-log';
+  var MAX = 500;
+  var buffer;
+  try {
+    var raw = localStorage.getItem(KEY);
+    buffer = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(buffer)) buffer = [];
+  } catch(_) { buffer = []; }
+  var pendingFlush = null;
+  function flush(){
+    pendingFlush = null;
+    try { localStorage.setItem(KEY, JSON.stringify(buffer.slice(-MAX))); } catch(_){}
+  }
+  function fmtTime(ts){
+    var d = new Date(ts);
+    function pad(n){ return String(n).padStart(2,'0'); }
+    return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())+'.'+String(d.getMilliseconds()).padStart(3,'0');
+  }
+  window.logAction = function(category, msg, details){
+    try {
+      var entry = {
+        ts: Date.now(),
+        cat: String(category||'?').slice(0,24),
+        msg: String(msg||'').slice(0,240),
+        det: (details==null) ? null
+          : (typeof details === 'string' ? details.slice(0,400)
+            : JSON.stringify(details).slice(0,400))
+      };
+      buffer.push(entry);
+      if (buffer.length > MAX) buffer = buffer.slice(-MAX);
+      if (pendingFlush) clearTimeout(pendingFlush);
+      pendingFlush = setTimeout(flush, 400);
+      try { console.debug('[log]', entry.cat, entry.msg, entry.det || ''); } catch(_){}
+      if (window.__pcdLogRender) try { window.__pcdLogRender(); } catch(_){}
+    } catch(_){}
+  };
+  window.getActionLog = function(){ return buffer.slice(); };
+  window.clearActionLog = function(){
+    buffer = [];
+    try { localStorage.removeItem(KEY); } catch(_){}
+    if (window.__pcdLogRender) try { window.__pcdLogRender(); } catch(_){}
+  };
+  window.formatActionLog = function(){
+    if (!buffer.length) return '(log vacío)';
+    return buffer.slice().reverse().map(function(e){
+      return '['+fmtTime(e.ts)+'] '+e.cat.padEnd(10)+' · '+e.msg+(e.det?'  →  '+e.det:'');
+    }).join('\n');
+  };
+  window.addEventListener('error', function(e){
+    try { window.logAction('error', e.message || 'unhandled error',
+      e.filename ? (e.filename.split('/').pop()+':'+e.lineno) : null); } catch(_){}
+  });
+  window.addEventListener('unhandledrejection', function(e){
+    try { window.logAction('error', 'promise rejected',
+      e.reason && (e.reason.message || String(e.reason))); } catch(_){}
+  });
+  window.logAction('app','log inicializado (PC-D)');
+})();
+
+/* PC-D-DOM-INJECT-V1 — inyecta paneles + dialogs (Mochila, Monedas, etc). */
+(function(){
+  'use strict';
+  function inject(){
+    var masterDivider = document.getElementById('zone-divider-master');
+    if (masterDivider && !document.getElementById('d5-inv-panel')) {
+      var wrap = document.createElement('div');
+      wrap.innerHTML = ''
+        + '<div class="panel full-row" id="d5-inv-panel" data-pcd="inv">'
+        +   '<h2 class="collapsible-header" id="d5-inv-header" style="cursor:pointer">🎒 Mochila (categorías)</h2>'
+        +   '<div class="collapsible-body" id="d5-inv-body">'
+        +     '<div class="inv-controls" style="margin-bottom:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;">'
+        +       '<button class="btn-add" type="button" id="d5-inv-add-btn">[+] Añadir objeto</button>'
+        +       '<small style="font-size:10.5px;color:var(--leather-lt);font-style:italic;">Equipo · Pociones · Alquimia · Mágicos · Contenedores</small>'
+        +     '</div>'
+        +     '<div id="inv-cats"></div>'
+        +   '</div>'
+        + '</div>'
+        + '<div class="panel full-row" id="d5-coins-panel" data-pcd="coins">'
+        +   '<h2 class="collapsible-header" id="d5-coins-header" style="cursor:pointer">🪙 Monedas (D5)</h2>'
+        +   '<div class="collapsible-body" id="d5-coins-body">'
+        +     '<div class="currency-row" style="display:flex;flex-wrap:wrap;gap:10px;">'
+        +       '<div class="cur-item"><label>PP (Platino)</label><input type="number" class="coin-in" data-coin="pp" min="0" value="0"></div>'
+        +       '<div class="cur-item"><label>PO (Oro)</label><input type="number" class="coin-in" data-coin="po" min="0" value="0"></div>'
+        +       '<div class="cur-item"><label>PE (Electrum)</label><input type="number" class="coin-in" data-coin="pe" min="0" value="0"></div>'
+        +       '<div class="cur-item"><label>PC (Cobre)</label><input type="number" class="coin-in" data-coin="pc" min="0" value="0"></div>'
+        +     '</div>'
+        +     '<div class="coin-total-bar" style="margin-top:6px;">'
+        +       '<span>Valor total:</span> <strong id="coin-total-po-d5">0</strong>'
+        +       '<span>po &nbsp;·&nbsp; Peso monedas:</span> <strong id="coin-weight">0</strong>'
+        +       '<span>lb</span>'
+        +     '</div>'
+        +   '</div>'
+        + '</div>';
+      while (wrap.firstChild) masterDivider.parentNode.insertBefore(wrap.firstChild, masterDivider);
+    }
+    if (!document.getElementById('d5-inv-add-dialog')) {
+      var div = document.createElement('div');
+      div.innerHTML = ''
+        + '<dialog id="d5-inv-add-dialog" style="border:2px solid var(--leather-dk,#3a230a);border-radius:8px;background:var(--parchment,#f0e1bd);color:var(--leather-dk,#3a230a);padding:16px;max-width:480px;">'
+        +   '<form method="dialog" id="d5-inv-add-form" style="display:flex;flex-direction:column;gap:8px;">'
+        +     '<h3 style="margin:0 0 6px;font-family:var(--ff-head,Cinzel,serif);">Añadir objeto al inventario</h3>'
+        +     '<label style="font-size:12px;">Categoría'
+        +       '<select id="d5-add-cat" style="display:block;width:100%;margin-top:2px;">'
+        +         '<option value="gear">Equipo general</option>'
+        +         '<option value="potions">Pociones / Pergaminos</option>'
+        +         '<option value="alchemy">Alquimia</option>'
+        +         '<option value="magic">Objetos mágicos</option>'
+        +         '<option value="containers">Contenedores</option>'
+        +       '</select>'
+        +     '</label>'
+        +     '<label style="font-size:12px;">Nombre <input type="text" id="d5-add-name" required style="width:100%;"></label>'
+        +     '<div style="display:flex;gap:8px;flex-wrap:wrap;">'
+        +       '<label style="font-size:12px;flex:1;">Cantidad <input type="number" id="d5-add-qty" value="1" min="0" style="width:100%;"></label>'
+        +       '<label style="font-size:12px;flex:1;">Peso (lb) <input type="number" id="d5-add-weight" value="0" min="0" step="0.1" style="width:100%;"></label>'
+        +       '<label style="font-size:12px;flex:1;">Valor (po) <input type="number" id="d5-add-value" value="0" min="0" step="0.1" style="width:100%;"></label>'
+        +     '</div>'
+        +     '<label style="font-size:12px;">Descripción <textarea id="d5-add-desc" rows="2" style="width:100%;"></textarea></label>'
+        +     '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">'
+        +       '<button type="button" class="pcj-btn-mini" id="d5-inv-add-cancel">Cancelar</button>'
+        +       '<button type="button" class="pcj-btn pcj-btn-primary" id="d5-inv-add-save">Añadir</button>'
+        +     '</div>'
+        +   '</form>'
+        + '</dialog>'
+        + '<dialog id="pc-d-weapon-edit-dialog" style="border:2px solid var(--leather-dk,#3a230a);border-radius:8px;background:var(--parchment,#f0e1bd);color:var(--leather-dk,#3a230a);padding:16px;max-width:560px;">'
+        +   '<form method="dialog" style="display:flex;flex-direction:column;gap:8px;">'
+        +     '<h3 style="margin:0 0 6px;font-family:var(--ff-head,Cinzel,serif);">Editar arma</h3>'
+        +     '<input type="hidden" id="pcd-wedit-id">'
+        +     '<label style="font-size:12px;">Nombre <input type="text" id="pcd-wedit-name" style="width:100%;"></label>'
+        +     '<div style="display:flex;gap:8px;flex-wrap:wrap;">'
+        +       '<label style="font-size:12px;flex:1;min-width:140px;">Estilo'
+        +         '<select id="pcd-wedit-style" style="width:100%;">'
+        +           '<option value="melee">Cuerpo a cuerpo</option>'
+        +           '<option value="offhand">Secundaria (offhand)</option>'
+        +           '<option value="finesse">Sutileza (DES)</option>'
+        +           '<option value="ranged">A distancia</option>'
+        +           '<option value="composite">Compuesto</option>'
+        +           '<option value="natural-primary">Natural primaria (full STR)</option>'
+        +           '<option value="natural-secondary">Natural secundaria (-5 atk, ½ STR)</option>'
+        +         '</select>'
+        +       '</label>'
+        +       '<label style="font-size:12px;flex:1;min-width:90px;">Daño <input type="text" id="pcd-wedit-dmg" placeholder="1d8" style="width:100%;"></label>'
+        +       '<label style="font-size:12px;flex:1;min-width:90px;">Crítico <input type="text" id="pcd-wedit-crit" placeholder="19-20/x2" style="width:100%;"></label>'
+        +     '</div>'
+        +     '<div style="display:flex;gap:8px;flex-wrap:wrap;">'
+        +       '<label style="font-size:12px;flex:1;">Tipo daño <input type="text" id="pcd-wedit-dtype" placeholder="P/S/C" style="width:100%;"></label>'
+        +       '<label style="font-size:12px;flex:1;">Mejora (+N) <input type="number" id="pcd-wedit-enh" value="0" style="width:100%;"></label>'
+        +       '<label style="font-size:12px;flex:1;">Peso (lb) <input type="number" id="pcd-wedit-weight" value="0" min="0" step="0.1" style="width:100%;"></label>'
+        +     '</div>'
+        +     '<label style="font-size:12px;display:flex;align-items:center;gap:6px;">'
+        +       '<input type="checkbox" id="pcd-wedit-mw"> <strong>Masterwork</strong> (+1 atk si no hay mejora mágica)'
+        +     '</label>'
+        +     '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">'
+        +       '<button type="button" class="pcj-btn-mini" id="pcd-wedit-cancel">Cancelar</button>'
+        +       '<button type="button" class="pcj-btn pcj-btn-primary" id="pcd-wedit-save">Guardar</button>'
+        +     '</div>'
+        +   '</form>'
+        + '</dialog>'
+        + '<dialog id="pc-d-dice-dialog" style="border:2px solid var(--leather-dk,#3a230a);border-radius:8px;background:var(--parchment,#f0e1bd);color:var(--leather-dk,#3a230a);padding:16px;max-width:380px;">'
+        +   '<form method="dialog" style="display:flex;flex-direction:column;gap:8px;">'
+        +     '<h3 style="margin:0 0 6px;font-family:var(--ff-head,Cinzel,serif);">🎲 Tirada custom</h3>'
+        +     '<label style="font-size:12px;">Expresión (ej: <code>2d6+3</code>)'
+        +       '<input type="text" id="pcd-dice-expr" placeholder="1d20+5" style="width:100%;font-family:ui-monospace,monospace;">'
+        +     '</label>'
+        +     '<div id="pcd-dice-result" style="font-size:13px;min-height:1.4em;padding:6px;background:var(--parchment-dk,#c9b27e);border-radius:4px;"></div>'
+        +     '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">'
+        +       '<button type="button" class="pcj-btn-mini" id="pcd-dice-close">Cerrar</button>'
+        +       '<button type="button" class="pcj-btn pcj-btn-primary" id="pcd-dice-roll">Tirar</button>'
+        +     '</div>'
+        +   '</form>'
+        + '</dialog>'
+        + '<dialog id="pc-d-actionlog-dialog" style="border:2px solid var(--leather-dk,#3a230a);border-radius:8px;background:var(--parchment,#f0e1bd);color:var(--leather-dk,#3a230a);padding:16px;max-width:720px;width:90vw;max-height:80vh;">'
+        +   '<div style="display:flex;flex-direction:column;gap:8px;height:100%;">'
+        +     '<h3 style="margin:0;font-family:var(--ff-head,Cinzel,serif);">📜 Log de acciones · Acerca de · v1</h3>'
+        +     '<div style="font-size:11px;color:var(--leather-lt,#6f4f2a);">PC-D log (ficha-action-log, máx 500 entradas).</div>'
+        +     '<pre id="pcd-actionlog-output" style="background:#1a1a1a;color:#e0e0c0;padding:8px;border-radius:4px;font:11px/1.4 ui-monospace,monospace;overflow:auto;max-height:50vh;min-height:200px;white-space:pre-wrap;word-break:break-word;"></pre>'
+        +     '<div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;">'
+        +       '<button type="button" class="pcj-btn-mini" id="pcd-actionlog-copy">📋 Copiar</button>'
+        +       '<button type="button" class="pcj-btn-mini" id="pcd-actionlog-clear">🗑 Limpiar</button>'
+        +       '<button type="button" class="pcj-btn pcj-btn-primary" id="pcd-actionlog-close">Cerrar</button>'
+        +     '</div>'
+        +   '</div>'
+        + '</dialog>';
+      while (div.firstChild) document.body.appendChild(div.firstChild);
+    }
+    var headerActions = document.querySelector('.header-actions');
+    if (headerActions && !document.getElementById('pcd-about-btn')) {
+      var aboutBtn = document.createElement('button');
+      aboutBtn.id = 'pcd-about-btn';
+      aboutBtn.type = 'button';
+      aboutBtn.className = 'btn-refresh';
+      aboutBtn.title = 'Ver log de acciones (Acerca de)';
+      aboutBtn.innerHTML = 'ℹ Acerca de · v1';
+      aboutBtn.style.cssText = 'background:rgba(0,0,0,0.08);';
+      aboutBtn.addEventListener('click', function(){ if(window.openActionLogDialog) window.openActionLogDialog(); });
+      headerActions.appendChild(aboutBtn);
+      var diceBtn = document.createElement('button');
+      diceBtn.id = 'pcd-dice-btn';
+      diceBtn.type = 'button';
+      diceBtn.className = 'btn-refresh';
+      diceBtn.title = 'Tirada custom NdM±X (ej: 2d6+3)';
+      diceBtn.innerHTML = '🎲 Custom';
+      diceBtn.style.cssText = 'background:rgba(0,0,0,0.08);';
+      diceBtn.addEventListener('click', function(){ if(window.openCustomDiceDialog) window.openCustomDiceDialog(); });
+      headerActions.appendChild(diceBtn);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', inject, { once:true });
+  } else {
+    inject();
+  }
+})();
+
+/* PC-D-INV-CORE-V1 — D5_INVENTORY + D5_COINS + render + add dialog. */
+(function(){
+  'use strict';
+  if (window.D5_INVENTORY) return;
+
+  window.D5_INVENTORY = [];
+  window.D5_COINS = { pp:0, po:0, pe:0, pc:0 };
+  var D5_CAT_LABELS = {
+    gear: 'Equipo general',
+    potions: 'Pociones / Pergaminos',
+    alchemy: 'Alquimia',
+    magic: 'Objetos mágicos',
+    containers: 'Contenedores'
+  };
+  var D5_CAT_OPEN = { gear:true, potions:true, alchemy:true, magic:true, containers:true };
+
+  function _escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  window.D5_computeTotalWeight = function(){
+    var w = 0;
+    try {
+      document.querySelectorAll('#weapons-container .item-weight, #armor-container .item-weight').forEach(function(inp){
+        w += parseFloat(inp.value) || 0;
+      });
+      document.querySelectorAll('#items-container .item-card').forEach(function(card){
+        var wtEl = card.querySelector('.item-weight');
+        var qtyEl = card.querySelector('.item-qty');
+        var wt = parseFloat(wtEl ? wtEl.value : 0) || 0;
+        var qty = parseInt(qtyEl ? qtyEl.value : 1, 10) || 1;
+        w += wt * qty;
+      });
+    } catch(_){}
+    (window.D5_INVENTORY||[]).forEach(function(it){
+      w += (parseFloat(it.weight)||0) * (parseInt(it.qty,10)||0);
+    });
+    var c = window.D5_COINS || {};
+    var coinCount = (c.pp||0)+(c.po||0)+(c.pe||0)+(c.pc||0);
+    w += coinCount / 50;
+    return w;
+  };
+
+  window.D5_renderCoins = function(){
+    document.querySelectorAll('.coin-in').forEach(function(inp){
+      inp.value = (window.D5_COINS[inp.dataset.coin]) || 0;
+      if (inp.__pcdBound) return;
+      inp.__pcdBound = true;
+      inp.addEventListener('input', function(){
+        var k = inp.dataset.coin;
+        var v = Math.max(0, parseInt(inp.value,10)||0);
+        window.D5_COINS[k] = v;
+        try {
+          if (window._pcdCoinLogT) clearTimeout(window._pcdCoinLogT);
+          window._pcdCoinLogT = setTimeout(function(){
+            try { if(window.logAction) window.logAction('equipo','dinero cambiado', k+'='+v); } catch(_){}
+          }, 600);
+        } catch(_){}
+        if (window.D5_recompute) window.D5_recompute();
+      });
+    });
+    var c = window.D5_COINS || {};
+    var total = (c.pp*10) + (c.po*1) + (c.pe*0.5) + (c.pc*0.01);
+    var peso  = ((c.pp+c.po+c.pe+c.pc)/50);
+    var tEl = document.getElementById('coin-total-po-d5'); if (tEl) tEl.textContent = total.toFixed(2);
+    var wEl = document.getElementById('coin-weight');      if (wEl) wEl.textContent = peso.toFixed(1);
+  };
+
+  function _isPotionName(name){ return /poci[oó]n|elixir|potion/i.test(name||''); }
+  function _parsePotionHeal(name){
+    var n = (name||'').toLowerCase();
+    if (/leve|light/.test(n))        return {formula:'1d8+1', count:1, sides:8, mod:1};
+    if (/moderad/.test(n))           return {formula:'2d8+3', count:2, sides:8, mod:3};
+    if (/grave|serious/.test(n))     return {formula:'3d8+5', count:3, sides:8, mod:5};
+    if (/cr[ií]tica|critic/.test(n)) return {formula:'4d8+7', count:4, sides:8, mod:7};
+    return {formula:'1d8+1', count:1, sides:8, mod:1};
+  }
+
+  window.D5_renderInventory = function(){
+    var c = document.getElementById('inv-cats');
+    if (!c) return;
+    var cats = ['gear','potions','alchemy','magic','containers'];
+    c.innerHTML = cats.map(function(cat){
+      var items = (window.D5_INVENTORY||[]).filter(function(it){ return it.cat === cat; });
+      var open = D5_CAT_OPEN[cat];
+      var inner = open ? (items.length ? items.map(function(it){
+        var qty = parseInt(it.qty,10)||0;
+        var wt = parseFloat(it.weight)||0;
+        var v = parseFloat(it.value)||0;
+        var consumable = '';
+        if (qty > 0) {
+          if (_isPotionName(it.name)) {
+            consumable = '<button type="button" data-d5-drink="'+it.id+'" style="width:100%;margin-top:4px;background:rgba(180,140,40,0.15);border:1px solid var(--gold,#a37e2c);color:var(--leather-dk,#3a230a);font-size:11px;padding:4px;border-radius:4px;cursor:pointer;">🧪 Beber (curar, −1)</button>';
+          } else if (cat === 'potions') {
+            consumable = '<button type="button" data-d5-use="'+it.id+'" style="width:100%;margin-top:4px;background:rgba(0,0,0,0.05);border:1px solid var(--leather-lt,#6f4f2a);font-size:11px;padding:4px;border-radius:4px;cursor:pointer;">▶ Usar (−1)</button>';
+          }
+        }
+        var charges = '';
+        if (it.magic) {
+          var max = parseInt(it.chargesMax,10) || 50;
+          var cur = (typeof it.chargesUsed === 'number') ? it.chargesUsed : 0;
+          var remain = Math.max(0, max - cur);
+          var bubblesCount = Math.min(50, max);
+          var bubbles = Array.from({length:bubblesCount}, function(_,k){
+            var used = k < cur;
+            return '<button type="button" data-d5-charge="'+it.id+'" data-charge-idx="'+k+'" title="Carga '+(k+1)+'/'+max+'" style="width:12px;height:12px;border-radius:50%;border:1px solid var(--gold,#a37e2c);background:'+(used?'transparent':'var(--gold,#a37e2c)')+';opacity:'+(used?0.4:1)+';cursor:pointer;padding:0;margin:1px;"></button>';
+          }).join('');
+          charges = '<div style="margin-top:5px;padding:4px;background:rgba(0,0,0,0.04);border-radius:4px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;">'
+            + '<span style="font:600 10px var(--ff-head,Cinzel,serif);color:var(--leather-dk,#3a230a);">Cargas</span>'
+            + '<input type="number" data-d5-mag-max="'+it.id+'" value="'+max+'" min="1" style="width:48px;font-size:11px;">'
+            + '<span style="font-size:11px;color:var(--gold,#a37e2c);font-weight:700;">'+remain+'/'+max+'</span>'
+            + '<div style="display:flex;flex-wrap:wrap;width:100%;">'+bubbles+'</div>'
+            + '</div>';
+        }
+        return '<div class="pcd-eq" data-d5-item="'+it.id+'" style="border:1px solid var(--parchment-dk,#c9b27e);border-radius:5px;padding:5px 7px;margin-bottom:5px;background:var(--parchment,#f0e1bd);position:relative;">'
+          + '<button class="btn-remove" data-d5-del="'+it.id+'" aria-label="Quitar" style="position:absolute;top:4px;right:4px;">×</button>'
+          + '<div style="font-weight:700;font-size:13px;padding-right:24px;">'+_escHtml(it.name)+'</div>'
+          + '<div style="font-size:11px;color:var(--leather-lt,#6f4f2a);">'+wt+' lb · '+v+' po'+(it.desc?' · '+_escHtml(it.desc):'')+'</div>'
+          + '<div style="display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap;font-size:12px;">'
+          + '<button type="button" data-d5-qty="'+it.id+'" data-d5-d="-1" style="min-width:28px;">−</button>'
+          + '<input type="number" data-d5-qtyin="'+it.id+'" value="'+qty+'" min="0" style="width:50px;text-align:center;">'
+          + '<button type="button" data-d5-qty="'+it.id+'" data-d5-d="1" style="min-width:28px;">+</button>'
+          + '<span style="color:var(--leather-lt,#6f4f2a);">×'+qty+' = '+(wt*qty).toFixed(1)+' lb</span>'
+          + '<label style="margin-left:auto;display:flex;align-items:center;gap:3px;font-size:11px;color:var(--gold,#a37e2c);">'
+          + '<input type="checkbox" data-d5-mag="'+it.id+'" '+(it.magic?'checked':'')+'>✦ Mágico'
+          + '</label>'
+          + '</div>'
+          + consumable
+          + charges
+          + '</div>';
+      }).join('') : '<div style="text-align:center;font-size:11px;color:var(--leather-lt,#6f4f2a);padding:6px;">Sin objetos</div>') : '';
+      return '<div class="pcd-cat" data-d5-cat="'+cat+'" style="margin-bottom:8px;border:1px solid var(--parchment-dk,#c9b27e);border-radius:6px;padding:6px;background:rgba(0,0,0,0.02);">'
+        + '<h3 style="cursor:pointer;margin:0 0 4px;font-size:13px;font-family:var(--ff-head,Cinzel,serif);" data-d5-toggle="'+cat+'">'
+        + '<span>'+(open?'▾':'▸')+'</span>'
+        + ' <span>'+D5_CAT_LABELS[cat]+' <span style="font:600 11px system-ui;color:var(--leather-lt,#6f4f2a);">('+items.length+')</span></span>'
+        + '</h3>'
+        + inner
+        + '</div>';
+    }).join('');
+    c.querySelectorAll('[data-d5-toggle]').forEach(function(h){ h.addEventListener('click', function(){
+      var k = h.dataset.d5Toggle;
+      D5_CAT_OPEN[k] = !D5_CAT_OPEN[k];
+      window.D5_renderInventory();
+    }); });
+    c.querySelectorAll('[data-d5-del]').forEach(function(b){ b.addEventListener('click', function(){
+      var id = +b.dataset.d5Del;
+      var i = window.D5_INVENTORY.findIndex(function(x){ return x.id === id; });
+      if (i >= 0) {
+        try { if(window.logAction) window.logAction('equipo','objeto borrado', window.D5_INVENTORY[i].name||''); } catch(_){}
+        window.D5_INVENTORY.splice(i, 1);
+        window.D5_renderInventory();
+        window.D5_recompute();
+      }
+    }); });
+    c.querySelectorAll('[data-d5-qty]').forEach(function(b){ b.addEventListener('click', function(){
+      var it = window.D5_INVENTORY.find(function(x){ return x.id === +b.dataset.d5Qty; });
+      if (it) {
+        it.qty = Math.max(0, (parseInt(it.qty,10)||0) + (+b.dataset.d5D));
+        window.D5_renderInventory();
+        window.D5_recompute();
+      }
+    }); });
+    c.querySelectorAll('[data-d5-qtyin]').forEach(function(inp){ inp.addEventListener('change', function(){
+      var it = window.D5_INVENTORY.find(function(x){ return x.id === +inp.dataset.d5Qtyin; });
+      if (it) {
+        it.qty = Math.max(0, parseInt(inp.value,10)||0);
+        window.D5_renderInventory();
+        window.D5_recompute();
+      }
+    }); });
+    c.querySelectorAll('[data-d5-mag]').forEach(function(chk){ chk.addEventListener('change', function(){
+      var it = window.D5_INVENTORY.find(function(x){ return x.id === +chk.dataset.d5Mag; });
+      if (it) {
+        it.magic = chk.checked;
+        if (it.magic) {
+          if (typeof it.chargesMax !== 'number') it.chargesMax = 50;
+          if (typeof it.chargesUsed !== 'number') it.chargesUsed = 0;
+        }
+        window.D5_renderInventory();
+      }
+    }); });
+    c.querySelectorAll('[data-d5-mag-max]').forEach(function(inp){ inp.addEventListener('change', function(){
+      var it = window.D5_INVENTORY.find(function(x){ return x.id === +inp.dataset.d5MagMax; });
+      if (it) {
+        it.chargesMax = Math.max(1, parseInt(inp.value,10)||1);
+        if (it.chargesUsed > it.chargesMax) it.chargesUsed = it.chargesMax;
+        window.D5_renderInventory();
+      }
+    }); });
+    c.querySelectorAll('[data-d5-charge]').forEach(function(b){ b.addEventListener('click', function(){
+      var it = window.D5_INVENTORY.find(function(x){ return x.id === +b.dataset.d5Charge; });
+      if (!it) return;
+      var idx = parseInt(b.dataset.chargeIdx,10) || 0;
+      var cur = it.chargesUsed || 0;
+      it.chargesUsed = (idx < cur) ? idx : (idx + 1);
+      window.D5_renderInventory();
+    }); });
+    c.querySelectorAll('[data-d5-drink]').forEach(function(b){ b.addEventListener('click', function(){
+      var it = window.D5_INVENTORY.find(function(x){ return x.id === +b.dataset.d5Drink; });
+      if (!it || (parseInt(it.qty,10)||0) <= 0) return;
+      var heal = _parsePotionHeal(it.name);
+      var healed = heal.mod;
+      for (var i = 0; i < heal.count; i++) healed += Math.floor(Math.random()*heal.sides) + 1;
+      try {
+        var hpCur = document.getElementById('hp-current');
+        var hpMax = document.getElementById('hp-max');
+        if (hpCur) {
+          var cur2 = parseInt(hpCur.value,10) || 0;
+          var max = parseInt(hpMax ? hpMax.value : '0', 10) || cur2+healed;
+          hpCur.value = Math.min(max, cur2 + healed);
+          hpCur.dispatchEvent(new Event('input', {bubbles:true}));
+          hpCur.dispatchEvent(new Event('change', {bubbles:true}));
+        }
+      } catch(_){}
+      it.qty = Math.max(0, (parseInt(it.qty,10)||0) - 1);
+      try { if(window.logAction) window.logAction('equipo','poción bebida', it.name+' +'+healed+' PG'); } catch(_){}
+      window.D5_renderInventory();
+      window.D5_recompute();
+      try { (typeof showToast === 'function' ? showToast : alert)('🧪 '+it.name+': +'+healed+' PG ('+heal.formula+'). Quedan '+it.qty+'.'); } catch(_){}
+    }); });
+    c.querySelectorAll('[data-d5-use]').forEach(function(b){ b.addEventListener('click', function(){
+      var it = window.D5_INVENTORY.find(function(x){ return x.id === +b.dataset.d5Use; });
+      if (!it || (parseInt(it.qty,10)||0) <= 0) return;
+      it.qty = Math.max(0, (parseInt(it.qty,10)||0) - 1);
+      try { if(window.logAction) window.logAction('equipo','objeto usado', it.name+' (resto '+it.qty+')'); } catch(_){}
+      window.D5_renderInventory();
+      window.D5_recompute();
+    }); });
+  };
+
+  window.D5_recompute = function(){
+    try { window.D5_renderCoins(); } catch(_){}
+    try { if (typeof recalc === 'function') recalc(); } catch(_){}
+  };
+
+  function _bindAddDialog(){
+    var dlg = document.getElementById('d5-inv-add-dialog');
+    var openBtn = document.getElementById('d5-inv-add-btn');
+    if (!dlg || !openBtn || openBtn.__pcdBound) return;
+    openBtn.__pcdBound = true;
+    openBtn.addEventListener('click', function(){
+      ['d5-add-name','d5-add-desc'].forEach(function(id){ var el = document.getElementById(id); if (el) el.value = ''; });
+      var q = document.getElementById('d5-add-qty'); if (q) q.value = '1';
+      var wt = document.getElementById('d5-add-weight'); if (wt) wt.value = '0';
+      var v = document.getElementById('d5-add-value'); if (v) v.value = '0';
+      try { dlg.showModal(); } catch(_){ dlg.setAttribute('open',''); }
+    });
+    var cancelBtn = document.getElementById('d5-inv-add-cancel');
+    if (cancelBtn && !cancelBtn.__pcdB) {
+      cancelBtn.__pcdB = true;
+      cancelBtn.addEventListener('click', function(){ try { dlg.close(); } catch(_){ dlg.removeAttribute('open'); } });
+    }
+    var saveBtn = document.getElementById('d5-inv-add-save');
+    if (saveBtn && !saveBtn.__pcdB) {
+      saveBtn.__pcdB = true;
+      saveBtn.addEventListener('click', function(){
+        var cat = document.getElementById('d5-add-cat').value || 'gear';
+        var name = (document.getElementById('d5-add-name').value || '').trim();
+        var qty = Math.max(0, parseInt(document.getElementById('d5-add-qty').value,10)||1);
+        var weight = Math.max(0, parseFloat(document.getElementById('d5-add-weight').value)||0);
+        var value = Math.max(0, parseFloat(document.getElementById('d5-add-value').value)||0);
+        var desc = (document.getElementById('d5-add-desc').value || '').trim();
+        if (!name) { try { (typeof showToast==='function'?showToast:alert)('Falta nombre'); } catch(_){} return; }
+        var id = ((window.D5_INVENTORY[window.D5_INVENTORY.length-1]||{}).id || 0) + 1;
+        window.D5_INVENTORY.push({ id: id, cat: cat, name: name, qty: qty, weight: weight, value: value, desc: desc });
+        try { if(window.logAction) window.logAction('equipo','objeto añadido', name+(qty>1?' x'+qty:'')); } catch(_){}
+        try { dlg.close(); } catch(_){ dlg.removeAttribute('open'); }
+        window.D5_renderInventory();
+        window.D5_recompute();
+      });
+    }
+  }
+
+  function _init(){
+    _bindAddDialog();
+    window.D5_renderInventory();
+    window.D5_renderCoins();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(_init, 50); }, { once:true });
+  } else {
+    setTimeout(_init, 50);
+  }
+})();
+
+/* PC-D-DICE-CUSTOM-V1 — diálogo de tirada NdM±X. */
+(function(){
+  'use strict';
+  function openDice(){
+    var dlg = document.getElementById('pc-d-dice-dialog');
+    if (!dlg) return;
+    var exprIn = document.getElementById('pcd-dice-expr');
+    var out = document.getElementById('pcd-dice-result');
+    if (out) out.textContent = '';
+    if (exprIn) exprIn.value = exprIn.value || '1d20';
+    try { dlg.showModal(); } catch(_){ dlg.setAttribute('open',''); }
+    setTimeout(function(){ try { if(exprIn){ exprIn.focus(); exprIn.select(); } } catch(_){} }, 30);
+  }
+  window.openCustomDiceDialog = openDice;
+  function rollExpr(){
+    var exprIn = document.getElementById('pcd-dice-expr');
+    var out = document.getElementById('pcd-dice-result');
+    if (!exprIn || !out) return;
+    var raw = (exprIn.value || '').trim();
+    var m = raw.match(/^(\d+)?d(\d+)\s*([+\-]\s*\d+)?$/i);
+    if (!m) {
+      out.innerHTML = '<span style="color:var(--negative,#b94040);">Formato inválido. Usa NdM o NdM±X (ej: 2d6+3)</span>';
+      return;
+    }
+    var count = Math.max(1, Math.min(100, parseInt(m[1]||'1',10)));
+    var sides = Math.max(2, Math.min(1000, parseInt(m[2],10)));
+    var mod = m[3] ? parseInt(m[3].replace(/\s+/g,''),10) : 0;
+    var rolls = [];
+    for (var i = 0; i < count; i++) rolls.push(1 + Math.floor(Math.random()*sides));
+    var sum = rolls.reduce(function(a,b){ return a+b; }, 0);
+    var total = sum + mod;
+    var sign = mod > 0 ? '+'+mod : mod < 0 ? mod : '';
+    out.innerHTML = '<strong>'+count+'d'+sides+sign+' = '+total+'</strong><br>'
+      + '<span style="font-size:11px;color:var(--leather-lt,#6f4f2a);">Tiradas: '+rolls.join(', ')+(mod?' &nbsp;(mod '+sign+')':'')+'</span>';
+    try { if(window.logAction) window.logAction('dados','custom', count+'d'+sides+sign+'='+total+' ['+rolls.join(',')+']'); } catch(_){}
+  }
+  function bind(){
+    var closeBtn = document.getElementById('pcd-dice-close');
+    var rollBtn = document.getElementById('pcd-dice-roll');
+    var dlg = document.getElementById('pc-d-dice-dialog');
+    var exprIn = document.getElementById('pcd-dice-expr');
+    if (closeBtn && !closeBtn.__pcdB) { closeBtn.__pcdB = true; closeBtn.addEventListener('click', function(){ try { dlg.close(); } catch(_){ dlg.removeAttribute('open'); } }); }
+    if (rollBtn && !rollBtn.__pcdB) { rollBtn.__pcdB = true; rollBtn.addEventListener('click', rollExpr); }
+    if (exprIn && !exprIn.__pcdB) {
+      exprIn.__pcdB = true;
+      exprIn.addEventListener('keydown', function(e){ if (e.key === 'Enter') { e.preventDefault(); rollExpr(); } });
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(bind, 60); }, {once:true});
+  else setTimeout(bind, 60);
+})();
+
+/* PC-D-ACTIONLOG-DIALOG-V1 — visor del log. */
+(function(){
+  'use strict';
+  function render(){
+    var out = document.getElementById('pcd-actionlog-output');
+    if (!out) return;
+    try { out.textContent = (window.formatActionLog ? window.formatActionLog() : '(log no inicializado)'); } catch(_){}
+  }
+  window.__pcdLogRender = render;
+  function open(){
+    var dlg = document.getElementById('pc-d-actionlog-dialog');
+    if (!dlg) return;
+    render();
+    try { if(window.logAction) window.logAction('ui','abrir Acerca de'); } catch(_){}
+    try { dlg.showModal(); } catch(_){ dlg.setAttribute('open',''); }
+  }
+  window.openActionLogDialog = open;
+  function bind(){
+    var dlg = document.getElementById('pc-d-actionlog-dialog');
+    var closeBtn = document.getElementById('pcd-actionlog-close');
+    var copyBtn = document.getElementById('pcd-actionlog-copy');
+    var clearBtn = document.getElementById('pcd-actionlog-clear');
+    if (closeBtn && !closeBtn.__pcdB) { closeBtn.__pcdB = true; closeBtn.addEventListener('click', function(){ try { dlg.close(); } catch(_){ dlg.removeAttribute('open'); } }); }
+    if (copyBtn && !copyBtn.__pcdB) {
+      copyBtn.__pcdB = true;
+      copyBtn.addEventListener('click', function(){
+        var txt = (window.formatActionLog ? window.formatActionLog() : '');
+        try {
+          navigator.clipboard.writeText(txt).then(function(){
+            try { (typeof showToast==='function'?showToast:alert)('Log copiado ('+txt.length+' chars)'); } catch(_){}
+          }).catch(function(){
+            try { (typeof showToast==='function'?showToast:alert)('No se pudo copiar al portapapeles'); } catch(_){}
+          });
+        } catch(_){}
+      });
+    }
+    if (clearBtn && !clearBtn.__pcdB) {
+      clearBtn.__pcdB = true;
+      clearBtn.addEventListener('click', function(){
+        if (!confirm('¿Vaciar el log de acciones? (No reversible)')) return;
+        try { if(window.clearActionLog) window.clearActionLog(); } catch(_){}
+        render();
+      });
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(bind, 60); }, {once:true});
+  else setTimeout(bind, 60);
+})();
+
+/* PC-D-WEAPON-EDIT-V1 — edición post-creación + Masterwork + natural styles. */
+(function(){
+  'use strict';
+
+  var STYLE_OPTIONS = [
+    {value:'melee',             label:'Cuerpo a cuerpo'},
+    {value:'offhand',           label:'Secundaria (offhand)'},
+    {value:'finesse',           label:'Sutileza (DES)'},
+    {value:'ranged',            label:'A distancia'},
+    {value:'composite',         label:'Compuesto'},
+    {value:'natural-primary',   label:'Natural primaria'},
+    {value:'natural-secondary', label:'Natural secundaria (-5)'}
+  ];
+
+  function ensureStyleOptions(sel){
+    if (!sel || sel.__pcdStyleOk) return;
+    var existing = new Set([].slice.call(sel.options).map(function(o){ return o.value; }));
+    STYLE_OPTIONS.forEach(function(opt){
+      if (!existing.has(opt.value)) {
+        var o = document.createElement('option');
+        o.value = opt.value;
+        o.textContent = opt.label;
+        sel.appendChild(o);
+      }
+    });
+    sel.__pcdStyleOk = true;
+  }
+
+  function ensureMwCheckbox(card){
+    if (card.querySelector('.pcd-weapon-mw')) return;
+    var brokenCheck = card.querySelector('.weapon-broken');
+    var ref = brokenCheck ? brokenCheck.closest('.item-check') : null;
+    var wrap = document.createElement('div');
+    wrap.className = 'item-check pcd-weapon-mw-wrap';
+    wrap.style.cssText = 'display:inline-flex;align-items:center;gap:3px;';
+    var cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.className = 'pcd-weapon-mw recalc';
+    cb.title = 'Masterwork: +1 atk si no hay mejora mágica';
+    var lbl = document.createElement('label');
+    lbl.textContent = ' MW';
+    lbl.title = 'Masterwork (+1 atk si enh=0)';
+    lbl.style.color = 'var(--gold,#a37e2c)';
+    wrap.appendChild(cb);
+    wrap.appendChild(lbl);
+    cb.addEventListener('change', function(){
+      card.dataset.masterwork = cb.checked ? '1' : '0';
+      var enhEl = card.querySelector('.weapon-enhance');
+      var enh = parseInt(enhEl ? enhEl.value : 0, 10) || 0;
+      var bonusEl = card.querySelector('.weapon-atk-bonus');
+      var prev = card.dataset.pcdMwApplied === '1';
+      if (bonusEl) {
+        var curBonus = parseInt(bonusEl.value, 10) || 0;
+        if (cb.checked && enh === 0 && !prev) {
+          bonusEl.value = curBonus + 1;
+          card.dataset.pcdMwApplied = '1';
+        } else if (!cb.checked && prev) {
+          bonusEl.value = Math.max(0, curBonus - 1);
+          card.dataset.pcdMwApplied = '0';
+        }
+        bonusEl.dispatchEvent(new Event('input',{bubbles:true}));
+      }
+      try { if(window.logAction) window.logAction('equipo','MW arma', (cb.checked?'on':'off')); } catch(_){}
+      try { if (typeof recalc === 'function') recalc(); } catch(_){}
+    });
+    if (ref && ref.parentNode) ref.parentNode.insertBefore(wrap, ref.nextSibling);
+    else card.appendChild(wrap);
+  }
+
+  function enhanceWeaponCard(card){
+    if (!card || card.__pcdEnh) return;
+    card.__pcdEnh = true;
+    ensureStyleOptions(card.querySelector('.weapon-style'));
+    ensureMwCheckbox(card);
+    card.addEventListener('click', function(e){
+      if (e.target.closest('input, select, textarea, button')) return;
+      openEditDialog(card);
+    });
+  }
+
+  function scanAll(){
+    document.querySelectorAll('#weapons-container .weapon-card').forEach(enhanceWeaponCard);
+  }
+  function initObserver(){
+    var cont = document.getElementById('weapons-container');
+    if (!cont) { setTimeout(initObserver, 200); return; }
+    scanAll();
+    var mo = new MutationObserver(scanAll);
+    mo.observe(cont, { childList:true, subtree:true });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initObserver, {once:true});
+  else initObserver();
+
+  var _editingCard = null;
+  function _getCardValue(card, sel){
+    var el = card.querySelector(sel);
+    return el ? el.value : '';
+  }
+  function openEditDialog(card){
+    var dlg = document.getElementById('pc-d-weapon-edit-dialog');
+    if (!dlg) return;
+    _editingCard = card;
+    var nameEl = card.querySelector('.item-field.wide input') || card.querySelector('input[type="text"]');
+    document.getElementById('pcd-wedit-name').value  = nameEl ? nameEl.value : '';
+    document.getElementById('pcd-wedit-style').value = _getCardValue(card, '.weapon-style') || 'melee';
+    document.getElementById('pcd-wedit-dmg').value   = _getCardValue(card, '.weapon-base-dmg');
+    document.getElementById('pcd-wedit-crit').value  = _getCardValue(card, '.weapon-crit');
+    document.getElementById('pcd-wedit-dtype').value = _getCardValue(card, '.weapon-type');
+    document.getElementById('pcd-wedit-enh').value   = _getCardValue(card, '.weapon-enhance');
+    document.getElementById('pcd-wedit-weight').value = _getCardValue(card, '.item-weight');
+    var mwLocal = card.querySelector('.pcd-weapon-mw');
+    document.getElementById('pcd-wedit-mw').checked   = (card.dataset.masterwork === '1') || !!(mwLocal && mwLocal.checked);
+    dlg.dataset.editingId = card.id || '';
+    try { dlg.showModal(); } catch(_){ dlg.setAttribute('open',''); }
+  }
+  function applyEdit(){
+    var card = _editingCard;
+    var dlg  = document.getElementById('pc-d-weapon-edit-dialog');
+    if (!card) { try { if (dlg) dlg.close(); } catch(_){} return; }
+    function setVal(sel, val){
+      var el = card.querySelector(sel);
+      if (el) {
+        el.value = val;
+        el.dispatchEvent(new Event('input',{bubbles:true}));
+        el.dispatchEvent(new Event('change',{bubbles:true}));
+      }
+    }
+    var nameEl = card.querySelector('.item-field.wide input') || card.querySelector('input[type="text"]');
+    if (nameEl) {
+      nameEl.value = document.getElementById('pcd-wedit-name').value;
+      nameEl.dispatchEvent(new Event('change',{bubbles:true}));
+    }
+    setVal('.weapon-style',    document.getElementById('pcd-wedit-style').value);
+    setVal('.weapon-base-dmg', document.getElementById('pcd-wedit-dmg').value);
+    setVal('.weapon-crit',     document.getElementById('pcd-wedit-crit').value);
+    setVal('.weapon-type',     document.getElementById('pcd-wedit-dtype').value);
+    setVal('.weapon-enhance',  document.getElementById('pcd-wedit-enh').value);
+    setVal('.item-weight',     document.getElementById('pcd-wedit-weight').value);
+    var mwCb = card.querySelector('.pcd-weapon-mw');
+    var newMW = document.getElementById('pcd-wedit-mw').checked;
+    if (mwCb && mwCb.checked !== newMW) { mwCb.checked = newMW; mwCb.dispatchEvent(new Event('change',{bubbles:true})); }
+    try { if(window.logAction) window.logAction('equipo','arma editada', (nameEl?nameEl.value:'?')); } catch(_){}
+    try { if (typeof recalc === 'function') recalc(); } catch(_){}
+    try { if (dlg) dlg.close(); } catch(_){ if (dlg) dlg.removeAttribute('open'); }
+    _editingCard = null;
+  }
+  function bindEdit(){
+    var cancel = document.getElementById('pcd-wedit-cancel');
+    var save   = document.getElementById('pcd-wedit-save');
+    var dlg    = document.getElementById('pc-d-weapon-edit-dialog');
+    if (cancel && !cancel.__pcdB) { cancel.__pcdB = true; cancel.addEventListener('click', function(){ try { dlg.close(); } catch(_){ dlg.removeAttribute('open'); } _editingCard = null; }); }
+    if (save && !save.__pcdB) { save.__pcdB = true; save.addEventListener('click', applyEdit); }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(bindEdit, 80); }, {once:true});
+  else setTimeout(bindEdit, 80);
+})();
+
+/* PC-D-ATTR-METHODS-V1 — Heroico + Stat Array + Personalizado en el asistente. */
+(function(){
+  'use strict';
+  function inject(){
+    var saPanel = document.querySelector('[data-attrpanel="sa"]');
+    if (!saPanel || saPanel.__pcdAttrInj) return;
+    saPanel.__pcdAttrInj = true;
+    var bar = document.createElement('div');
+    bar.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin:0 0 6px;align-items:center;';
+    bar.innerHTML = ''
+      + '<strong style="font-size:11px;">Preset rápido:</strong>'
+      + '<button type="button" class="pcj-btn-mini" data-pcd-preset="heroic">⚔ Heroico</button>'
+      + '<button type="button" class="pcj-btn-mini" data-pcd-preset="array">🎯 Stat Array</button>'
+      + '<button type="button" class="pcj-btn-mini" data-pcd-preset="custom">📝 Personalizado (todos 10)</button>'
+      + '<small style="font-size:10.5px;color:var(--leather-lt,#6f4f2a);font-style:italic;">Heroico=15,14,13,12,10,8 · Array=17,15,13,12,10,8</small>';
+    saPanel.insertBefore(bar, saPanel.firstChild);
+    bar.querySelectorAll('[data-pcd-preset]').forEach(function(btn){ btn.addEventListener('click', function(){
+      var preset = btn.dataset.pcdPreset;
+      var values;
+      if (preset === 'heroic')      values = [15,14,13,12,10,8];
+      else if (preset === 'array')  values = [17,15,13,12,10,8];
+      else if (preset === 'custom') values = [10,10,10,10,10,10];
+      else return;
+      var table = document.getElementById('sa-table');
+      if (!table) { alert('Asistente no inicializado. Pulsa "Generar atributos" antes.'); return; }
+      var rows = table.querySelectorAll('tr');
+      var idx = 0;
+      rows.forEach(function(tr){
+        var sel = tr.querySelector('select');
+        if (sel && idx < values.length) {
+          var v = String(values[idx]);
+          var has = [].slice.call(sel.options).some(function(o){ return o.value === v; });
+          if (!has) {
+            var o = document.createElement('option');
+            o.value = v; o.textContent = v;
+            sel.appendChild(o);
+          }
+          sel.value = v;
+          sel.dispatchEvent(new Event('change',{bubbles:true}));
+          idx++;
+        } else {
+          var inp = tr.querySelector('input[type="number"]');
+          if (inp && idx < values.length) {
+            inp.value = String(values[idx]);
+            inp.dispatchEvent(new Event('input',{bubbles:true}));
+            inp.dispatchEvent(new Event('change',{bubbles:true}));
+            idx++;
+          }
+        }
+      });
+      try { if(window.logAction) window.logAction('atributos','preset aplicado', preset+' = '+values.join(',')); } catch(_){}
+    }); });
+  }
+  function tryInject(){ try { inject(); } catch(e){ console.warn('PC-D attr inject', e); } }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tryInject, {once:true});
+  else tryInject();
+  setTimeout(tryInject, 300);
+  setTimeout(tryInject, 1500);
+  var origOpen = window.openAttrGen;
+  if (typeof origOpen === 'function' && !origOpen.__pcdHooked) {
+    window.openAttrGen = function(){
+      var r = origOpen.apply(this, arguments);
+      setTimeout(tryInject, 30);
+      return r;
+    };
+    window.openAttrGen.__pcdHooked = true;
+  }
+})();
+
+/* PC-D-SAVE-RESTORE-V1 — persistencia D5_INVENTORY + D5_COINS. */
+(function(){
+  'use strict';
+  var KEY = 'pcd-inv-coins-v1';
+  function save(){
+    try {
+      var payload = {
+        inv: window.D5_INVENTORY || [],
+        coins: window.D5_COINS || {pp:0,po:0,pe:0,pc:0}
+      };
+      localStorage.setItem(KEY, JSON.stringify(payload));
+    } catch(_){}
+  }
+  function load(){
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return;
+      var p = JSON.parse(raw);
+      if (Array.isArray(p.inv)) {
+        window.D5_INVENTORY.length = 0;
+        p.inv.forEach(function(it){ window.D5_INVENTORY.push(it); });
+      }
+      if (p.coins && typeof p.coins === 'object') Object.assign(window.D5_COINS, p.coins);
+      if (typeof window.D5_renderInventory === 'function') window.D5_renderInventory();
+      if (typeof window.D5_renderCoins === 'function') window.D5_renderCoins();
+    } catch(_){}
+  }
+  var _t = null;
+  function auto(){ clearTimeout(_t); _t = setTimeout(save, 800); }
+  document.addEventListener('input', function(e){
+    if (e.target && e.target.matches && (e.target.matches('.coin-in') || e.target.matches('[data-d5-qtyin]') || e.target.matches('[data-d5-mag-max]'))) auto();
+  }, true);
+  function hookRender(){
+    var r1 = window.D5_renderInventory;
+    if (typeof r1 === 'function' && !r1.__pcdHooked) {
+      window.D5_renderInventory = function(){ var x = r1.apply(this, arguments); auto(); return x; };
+      window.D5_renderInventory.__pcdHooked = true;
+    }
+  }
+  function init(){ load(); hookRender(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(init, 200); }, {once:true});
+  else setTimeout(init, 200);
+})();
+</script>
+
+<!-- /* PC-C-ROOT */ Zona C: Class abilities activables, Race traits, Class-skills auto, Sneak Attack, Feat bonuses (Skill/Weapon/Spell Focus, Combat Expertise), Casting override, Archetype replaces, Grants, Feat prereqs extended. Anchors: PC-C-* únicos. -->
+<style id="pc-c-style">
+/* PC-C-CSS */
+.pcc-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;align-items:center}
+.pcc-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 9px;border-radius:5px;border:1px solid var(--leather, #7a4a1f);background:rgba(255,200,100,0.10);color:var(--ink, #222);font:600 11px system-ui;cursor:pointer;min-height:28px}
+.pcc-btn:hover{background:rgba(255,200,100,0.20)}
+.pcc-btn.pcc-danger{border-color:#a33;background:rgba(180,40,40,0.10);color:#8a1a1a}
+.pcc-btn.pcc-heal{border-color:#3a8;background:rgba(40,180,120,0.10);color:#1a6a45}
+.pcc-btn.pcc-on{background:rgba(220,140,30,0.30);border-color:#c47a18;color:#7a4a08}
+.pcc-btn[disabled]{opacity:0.4;cursor:not-allowed}
+.pcc-info{font:11px/1.3 system-ui;color:var(--leather-lt, #666);margin-top:4px}
+.pcc-select{padding:3px 6px;border-radius:4px;border:1px solid var(--leather, #7a4a1f);background:var(--parchment, #fff);font:11px system-ui;min-height:26px;max-width:100%}
+.pcc-tag{display:inline-block;font:600 10px system-ui;padding:2px 6px;border-radius:4px;background:rgba(0,0,0,0.06);color:var(--leather-lt, #555)}
+.pcc-dc{display:inline-block;font:600 11px system-ui;padding:2px 6px;border-radius:4px;background:rgba(180,40,40,0.08);color:#8a1a1a;border:1px solid rgba(180,40,40,0.30)}
+.pcc-mini{border:1px solid var(--leather, #7a4a1f);border-radius:5px;padding:6px 8px;margin-top:5px;background:rgba(0,0,0,0.02)}
+.pcc-mini-name{font:600 12px system-ui;color:var(--ink, #222)}
+.pcc-mini-desc{font:11px/1.4 system-ui;color:var(--leather-lt, #666);margin-top:3px}
+.pcc-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px}
+.pcc-sneak-card{margin-top:8px;padding:6px 8px;border:1px solid var(--crimson, #8a2a2a);border-radius:5px;background:rgba(180,40,40,0.06)}
+.pcc-sneak-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font:700 12px Cinzel,serif;color:var(--crimson, #8a2a2a)}
+</style>
+<script id="pc-c-script">
+/* PC-C-MAIN — Zona C megabloque. IIFE para no ensuciar global. */
+(function(){
+  'use strict';
+
+  function _pccLog(){ try{ /* console.log.apply(console, arguments); */ }catch(_){} }
+  function _pccToast(msg){
+    try{
+      if(typeof window.toast === 'function'){ window.toast(msg); return; }
+      if(typeof window.logRoll === 'function'){ window.logRoll(msg, ''); return; }
+    }catch(_){}
+  }
+  function _pccLogRoll(label, expr){
+    try{ if(typeof window.logRoll === 'function') window.logRoll(label, expr); }catch(_){}
+  }
+  function _pccActiveRows(){
+    try{ return (typeof getActiveClassRows === 'function') ? getActiveClassRows() : []; }catch(_){ return []; }
+  }
+  function _pccClassLevel(keys){
+    const arr = Array.isArray(keys) ? keys : [keys];
+    const lowerArr = arr.map(k => String(k||'').toLowerCase());
+    let max = 0;
+    _pccActiveRows().forEach(r => {
+      const ck = String(r.classKey||'').toLowerCase();
+      if(lowerArr.includes(ck)) max = Math.max(max, r.level|0);
+    });
+    return max;
+  }
+  function _pccAttrMod(attr){
+    const el = document.getElementById((attr||'').toLowerCase() + '-mod');
+    if(!el) return 0;
+    return parseInt(String(el.value||'0').replace('+','')) || 0;
+  }
+  function _pccHeal(n){
+    try{
+      const el = document.getElementById('hp-current');
+      const max = parseInt((document.getElementById('hp-max')||{}).value)||0;
+      if(!el) return false;
+      const newVal = Math.min(max||9999, (parseInt(el.value)||0) + (n|0));
+      el.value = newVal;
+      el.dispatchEvent(new Event('input', {bubbles:true}));
+      el.dispatchEvent(new Event('change', {bubbles:true}));
+      try{ if(typeof updateHPBar === 'function') updateHPBar(); }catch(_){}
+      return true;
+    }catch(_){}
+    return false;
+  }
+  function _pccRollDice(n, sides){
+    let total = 0, rolls = [];
+    for(let i=0;i<(n|0);i++){
+      const r = 1 + Math.floor(Math.random()*sides);
+      rolls.push(r); total += r;
+    }
+    return {total, rolls};
+  }
+  function _pccPerformRoll(expr, label){
+    try{
+      if(typeof window.performRoll === 'function'){ window.performRoll({expr, label}); return; }
+    }catch(_){}
+  }
+  function _pccDebRecalc(){
+    if(_pccDebRecalc._t) clearTimeout(_pccDebRecalc._t);
+    _pccDebRecalc._t = setTimeout(()=>{ try{ if(typeof recalc === 'function') recalc(); }catch(_){} }, 90);
+  }
+  function _pccStateGet(){
+    if(!window.PCC_STATE){
+      try{
+        const stored = JSON.parse(localStorage.getItem('pc-c-state')||'null');
+        window.PCC_STATE = stored && typeof stored === 'object' ? stored : {};
+      }catch(_){ window.PCC_STATE = {}; }
+    }
+    const s = window.PCC_STATE;
+    if(!Array.isArray(s.ragePowers))   s.ragePowers = [];
+    if(typeof s.versatilePerf !== 'string') s.versatilePerf = '';
+    if(typeof s.sneakActive !== 'boolean') s.sneakActive = false;
+    if(typeof s.smiteEvilOn !== 'boolean') s.smiteEvilOn = false;
+    if(typeof s.bardicOn !== 'boolean')    s.bardicOn = false;
+    if(typeof s.bardicType !== 'string')   s.bardicType = 'courage';
+    return s;
+  }
+  function _pccStateSave(){
+    try{ localStorage.setItem('pc-c-state', JSON.stringify(window.PCC_STATE||{})); }catch(_){}
+  }
+
+  /* PC-C-G3 · Class abilities activables (augmenta #features-container) */
+  const PCC_FEAT_PATTERNS = {
+    layOnHands:    /(imposici[oó]n\s+de\s+manos|lay\s*on\s*hands)/i,
+    smiteEvil:     /(castigar\s+al\s+mal|golpe\s+del\s+bien|smite\s*evil)/i,
+    channelEnergy: /(canalizar\s+energ[ií]a|channel\s*energy|encauzar)/i,
+    bardic:        /(actuaci[oó]n\s+b[aá]rdica|interpretaci[oó]n\s+b[aá]rdica|bardic\s*performance)/i,
+    ragePowers:    /(poder(?:es)?\s+de\s+furia|poder(?:es)?\s+de\s+rabia|rage\s*power(s)?)/i,
+    versatile:     /(actuaci[oó]n\s+versatil|actuaci[oó]n\s+vers[áa]til|versatile\s*performance)/i,
+  };
+  function _pccCardName(card){
+    const inp = card && card.querySelector && card.querySelector('.feat-name, .feature-name-input');
+    return inp ? String(inp.value||'') : '';
+  }
+  function _pccPaladinLvl(){ return _pccClassLevel(['paladin','paladín','antipaladin','antipaladín']); }
+  function _pccClericLvl(){
+    let cl = _pccClassLevel(['cleric','clerigo','clérigo','warpriest']);
+    const pl = _pccClassLevel(['paladin','paladín']);
+    if(pl >= 4 && cl < (pl - 3)) cl = pl - 3;
+    return cl;
+  }
+  function _pccBardLvl(){ return _pccClassLevel(['bard','bardo','skald','escaldo']); }
+  function _pccBarbarianLvl(){ return _pccClassLevel(['barbarian','barbaro','bárbaro','unchained_barbarian','bloodrager']); }
+
+  /* PC-C-G3-LOH */
+  function _pccRenderLoH(card){
+    if(card.querySelector('[data-pcc-loh]')) return;
+    const pl = _pccPaladinLvl(); if(pl <= 0) return;
+    const n = Math.max(1, Math.floor(pl/2));
+    const wrap = document.createElement('div');
+    wrap.className = 'pcc-actions';
+    wrap.dataset.pccLoh = '1';
+    wrap.innerHTML =
+      '<button type="button" class="pcc-btn pcc-heal" data-pcc-loh-heal>Curar '+n+'d6</button>' +
+      '<button type="button" class="pcc-btn pcc-danger" data-pcc-loh-dmg>Dañar no-muerto '+n+'d6</button>' +
+      '<span class="pcc-tag">Paladín nv '+pl+'</span>';
+    card.appendChild(wrap);
+    wrap.querySelector('[data-pcc-loh-heal]').addEventListener('click', function(){
+      const r = _pccRollDice(n,6);
+      _pccPerformRoll(n+'d6','Imposición de manos · Curar');
+      _pccHeal(r.total);
+      _pccLogRoll('Lay on Hands · Curar', n+'d6=['+r.rolls.join(',')+']='+r.total+' (+HP)');
+      _pccToast('Curado '+r.total+' HP (Imposición de manos)');
+    });
+    wrap.querySelector('[data-pcc-loh-dmg]').addEventListener('click', function(){
+      const r = _pccRollDice(n,6);
+      _pccPerformRoll(n+'d6','Imposición de manos · Daño no-muerto');
+      _pccLogRoll('Lay on Hands · Daño no-muerto', n+'d6=['+r.rolls.join(',')+']='+r.total);
+      _pccToast('Daño no-muerto: '+r.total);
+    });
+  }
+
+  /* PC-C-G3-SMITE */
+  function _pccSmiteBuffCard(){
+    return Array.from(document.querySelectorAll('#buffs-container .buff-card'))
+      .find(c => {
+        const inp = c.querySelector('input[type="text"]');
+        return inp && /smite\s*evil|golpe\s+del\s+bien/i.test(inp.value||'');
+      });
+  }
+  function _pccSmiteToggle(){
+    const pl = _pccPaladinLvl(); if(pl <= 0) return;
+    const cha = _pccAttrMod('cha');
+    const s = _pccStateGet();
+    const existing = _pccSmiteBuffCard();
+    if(existing){
+      existing.remove();
+      s.smiteEvilOn = false;
+      _pccStateSave();
+      _pccToast('Smite Evil desactivado');
+    } else {
+      try{
+        if(typeof addBuff === 'function') addBuff('buffs-container');
+        const cards = document.querySelectorAll('#buffs-container .buff-card');
+        const last = cards[cards.length-1];
+        if(last){
+          const inp = last.querySelector('input[type="text"]');
+          if(inp) inp.value = 'Smite Evil';
+          const stat = last.querySelector('.buff-stat'); if(stat) stat.value = 'atk';
+          const val = last.querySelector('.buff-value'); if(val) val.value = cha;
+          const type = last.querySelector('.buff-type'); if(type) type.value = 'sacred';
+          last.querySelectorAll('input,select').forEach(el=>{
+            try{ el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); }catch(_){}
+          });
+        }
+      }catch(_){}
+      s.smiteEvilOn = true;
+      _pccStateSave();
+      _pccToast('Smite Evil ACTIVO (+'+cha+' atk, +'+pl+' dmg)');
+    }
+    _pccDebRecalc();
+    setTimeout(_pccAugmentFeatures, 120);
+  }
+  function _pccRenderSmite(card){
+    if(card.querySelector('[data-pcc-smite]')) return;
+    const pl = _pccPaladinLvl(); if(pl <= 0) return;
+    const on = !!_pccSmiteBuffCard();
+    const cha = _pccAttrMod('cha');
+    const wrap = document.createElement('div');
+    wrap.className = 'pcc-actions';
+    wrap.dataset.pccSmite = '1';
+    wrap.innerHTML =
+      '<button type="button" class="pcc-btn '+(on?'pcc-on':'')+'" data-pcc-smite-toggle>' +
+      (on ? '✓ Smite Evil ACTIVO — Desactivar' : '⚔ Activar Smite Evil') +
+      '</button>' +
+      '<span class="pcc-tag">'+(cha>=0?'+':'')+cha+' atk · +'+pl+' dmg</span>';
+    card.appendChild(wrap);
+    wrap.querySelector('[data-pcc-smite-toggle]').addEventListener('click', _pccSmiteToggle);
+  }
+
+  /* PC-C-G3-CHANNEL */
+  function _pccRenderChannel(card){
+    if(card.querySelector('[data-pcc-channel]')) return;
+    const lvl = _pccClericLvl(); if(lvl <= 0) return;
+    const n = Math.max(1, Math.floor((lvl+1)/2));
+    const cha = _pccAttrMod('cha');
+    const dc = 10 + Math.floor(lvl/2) + cha;
+    const wrap = document.createElement('div');
+    wrap.className = 'pcc-actions';
+    wrap.dataset.pccChannel = '1';
+    wrap.innerHTML =
+      '<button type="button" class="pcc-btn pcc-heal" data-pcc-ch-heal>Curar '+n+'d6 (30 ft)</button>' +
+      '<button type="button" class="pcc-btn pcc-danger" data-pcc-ch-dmg>Dañar no-muertos '+n+'d6</button>' +
+      '<span class="pcc-dc">CD: '+dc+'</span>';
+    card.appendChild(wrap);
+    wrap.querySelector('[data-pcc-ch-heal]').addEventListener('click', function(){
+      const r = _pccRollDice(n,6);
+      _pccPerformRoll(n+'d6','Canalizar energía · Curar');
+      _pccLogRoll('Channel Energy · Curar', n+'d6=['+r.rolls.join(',')+']='+r.total);
+      _pccToast('Canalizar curar: '+r.total);
+    });
+    wrap.querySelector('[data-pcc-ch-dmg]').addEventListener('click', function(){
+      const r = _pccRollDice(n,6);
+      _pccPerformRoll(n+'d6','Canalizar energía · Daño no-muerto');
+      _pccLogRoll('Channel Energy · Daño', n+'d6=['+r.rolls.join(',')+']='+r.total+' (DC '+dc+')');
+      _pccToast('Canalizar daño: '+r.total+' (DC '+dc+')');
+    });
+  }
+
+  /* PC-C-G3-BARDIC */
+  const PCC_BARDIC_TYPES = {
+    courage:     {label:'Inspirar Coraje'},
+    competence:  {label:'Inspirar Competencia'},
+    counter:     {label:'Contracanto'},
+    'dispel-fear':{label:'Disipar Miedo'},
+    fascinate:   {label:'Fascinar'},
+    suggestion:  {label:'Sugestión'},
+    dirge:       {label:'Endecha de los Caídos'},
+    frighten:    {label:'Aterrar'},
+  };
+  function _pccBardicBuffCard(){
+    return Array.from(document.querySelectorAll('#buffs-container .buff-card'))
+      .find(c => {
+        const inp = c.querySelector('input[type="text"]');
+        return inp && /bardic\s*performance|actuaci[oó]n\s+b[aá]rdica/i.test(inp.value||'');
+      });
+  }
+  function _pccBardicStart(typeKey){
+    const lvl = _pccBardLvl(); if(lvl <= 0) return;
+    const cha = _pccAttrMod('cha');
+    const info = PCC_BARDIC_TYPES[typeKey] || PCC_BARDIC_TYPES.courage;
+    const rounds = 4 + cha + 2 * Math.max(0, lvl-1);
+    const s = _pccStateGet();
+    const old = _pccBardicBuffCard(); if(old) old.remove();
+    try{
+      if(typeof addBuff === 'function') addBuff('buffs-container');
+      const cards = document.querySelectorAll('#buffs-container .buff-card');
+      const last = cards[cards.length-1];
+      if(last){
+        const inp = last.querySelector('input[type="text"]');
+        if(inp) inp.value = 'Bardic Performance — '+info.label+' ('+rounds+' rd)';
+        last.querySelectorAll('input,select').forEach(el=>{
+          try{ el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); }catch(_){}
+        });
+      }
+    }catch(_){}
+    s.bardicOn = true; s.bardicType = typeKey;
+    _pccStateSave();
+    _pccToast(info.label+' iniciada ('+rounds+' rondas)');
+    _pccDebRecalc();
+    setTimeout(_pccAugmentFeatures, 120);
+  }
+  function _pccBardicStop(){
+    const c = _pccBardicBuffCard(); if(c) c.remove();
+    const s = _pccStateGet();
+    s.bardicOn = false;
+    _pccStateSave();
+    _pccToast('Performance detenida');
+    _pccDebRecalc();
+    setTimeout(_pccAugmentFeatures, 120);
+  }
+  function _pccRenderBardic(card){
+    if(card.querySelector('[data-pcc-bardic]')) return;
+    const lvl = _pccBardLvl(); if(lvl <= 0) return;
+    const active = !!_pccBardicBuffCard();
+    const cha = _pccAttrMod('cha');
+    const total = 4 + cha + 2*Math.max(0,lvl-1);
+    const s = _pccStateGet();
+    const optsHtml = Object.keys(PCC_BARDIC_TYPES).map(k=>{
+      const sel = (k === s.bardicType) ? ' selected' : '';
+      return '<option value="'+k+'"'+sel+'>'+PCC_BARDIC_TYPES[k].label+'</option>';
+    }).join('');
+    const wrap = document.createElement('div');
+    wrap.dataset.pccBardic = '1';
+    wrap.innerHTML =
+      '<div class="pcc-actions">' +
+      '<select class="pcc-select" data-pcc-bardic-type aria-label="Tipo">'+optsHtml+'</select>' +
+      '<button type="button" class="pcc-btn '+(active?'pcc-on':'')+'" data-pcc-bardic-start>'+(active?'🎵 En curso':'🎵 Iniciar')+'</button>' +
+      '<button type="button" class="pcc-btn pcc-danger" data-pcc-bardic-stop>⏹ Detener</button>' +
+      '</div>' +
+      '<div class="pcc-info">Bardo nv '+lvl+' · ~'+total+' rondas/día (4 + CAR + 2/nv)</div>';
+    card.appendChild(wrap);
+    const sel = wrap.querySelector('[data-pcc-bardic-type]');
+    wrap.querySelector('[data-pcc-bardic-start]').addEventListener('click', ()=> _pccBardicStart(sel ? sel.value : 'courage'));
+    wrap.querySelector('[data-pcc-bardic-stop]').addEventListener('click', _pccBardicStop);
+    if(sel) sel.addEventListener('change', ()=>{ const st = _pccStateGet(); st.bardicType = sel.value; _pccStateSave(); });
+  }
+
+  /* PC-C-G3-RAGE */
+  function _pccRagePoolFromDb(){
+    const out = [];
+    try{
+      const arr = (typeof DB !== 'undefined' && DB && Array.isArray(DB.special_abilities)) ? DB.special_abilities : [];
+      arr.forEach(a => {
+        if(!a) return;
+        const cls = String(a.class||a.class_en||'').toLowerCase();
+        const name = String(a.name||a.name_es||a.name_en||'').toLowerCase();
+        const desc = String(a.description||a.description_es||a.description_en||'').toLowerCase();
+        const matchType = (a.type === 'rage_power');
+        const matchClass = /barbar/.test(cls) || /barbar/.test(name);
+        const matchKw = /poder.{0,3}(furia|rabia)|rage\s*power/.test(name) ||
+                        /poder.{0,3}(furia|rabia)|rage\s*power/.test(desc);
+        if(matchType || (matchClass && matchKw)) out.push(a);
+      });
+    }catch(_){}
+    return out;
+  }
+  function _pccRpKey(rp){ return (rp && (rp.id || rp.name_es || rp.name || rp.name_en)) || ''; }
+  function _pccRpLabel(rp){ return (rp && (rp.name || rp.name_es || rp.name_en)) || '?'; }
+  function _pccRpDesc(rp){ return (rp && (rp.description || rp.description_es || rp.description_en)) || ''; }
+  function _pccOpenRagePicker(){
+    const pool = _pccRagePoolFromDb();
+    const s = _pccStateGet();
+    const known = new Set(s.ragePowers.map(r => r.key));
+    const dlg = document.createElement('div');
+    dlg.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:14px';
+    let html = '<div style="padding:12px;max-height:70vh;overflow:auto;background:var(--parchment,#fffdf6);border:2px solid var(--leather,#7a4a1f);border-radius:8px;max-width:640px;width:100%">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h4 style="margin:0">Añadir Rage Power</h4><button type="button" class="pcc-btn" data-pcc-rp-close>✕</button></div>';
+    html += '<input type="search" class="pcc-select" placeholder="Buscar..." data-pcc-rp-search style="width:100%;margin-bottom:6px">';
+    html += '<div data-pcc-rp-list>';
+    if(!pool.length){
+      html += '<div class="pcc-info">No se encontraron rage powers en DB.special_abilities. Puedes añadir uno manual:</div>';
+      html += '<div class="pcc-row"><input type="text" class="pcc-select" data-pcc-rp-mn placeholder="Nombre" style="flex:1;min-width:160px"><button type="button" class="pcc-btn" data-pcc-rp-madd>+ Añadir</button></div>';
+    } else {
+      pool.forEach((rp,i)=>{
+        const key = _pccRpKey(rp); const dup = known.has(key);
+        html += '<div class="pcc-mini" data-pcc-rp-row="'+i+'">' +
+          '<div class="pcc-mini-name">'+_pccRpLabel(rp)+(dup?' <span class="pcc-tag">ya añadido</span>':'')+'</div>' +
+          '<div class="pcc-mini-desc">'+(_pccRpDesc(rp)+'').slice(0,200)+'</div>' +
+          '<div class="pcc-row"><button type="button" class="pcc-btn" data-pcc-rp-pick="'+i+'"'+(dup?' disabled':'')+'>+ Añadir</button></div>' +
+        '</div>';
+      });
+    }
+    html += '</div></div>';
+    dlg.innerHTML = html;
+    document.body.appendChild(dlg);
+    const close = ()=>{ try{ dlg.remove(); }catch(_){} };
+    dlg.addEventListener('click', e => { if(e.target === dlg) close(); });
+    const cb = dlg.querySelector('[data-pcc-rp-close]'); if(cb) cb.addEventListener('click', close);
+    const search = dlg.querySelector('[data-pcc-rp-search]');
+    if(search) search.addEventListener('input', ()=>{
+      const q = search.value.toLowerCase();
+      dlg.querySelectorAll('[data-pcc-rp-row]').forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+      });
+    });
+    dlg.querySelectorAll('[data-pcc-rp-pick]').forEach(b => {
+      b.addEventListener('click', ()=>{
+        const i = +b.dataset.pccRpPick;
+        const rp = pool[i]; if(!rp) return;
+        const key = _pccRpKey(rp);
+        const st = _pccStateGet();
+        if(st.ragePowers.find(r => r.key === key)){ _pccToast('Ya añadido'); return; }
+        st.ragePowers.push({key, name:_pccRpLabel(rp), desc:_pccRpDesc(rp), active:false});
+        _pccStateSave(); close(); _pccAugmentFeatures();
+      });
+    });
+    const mn = dlg.querySelector('[data-pcc-rp-mn]');
+    const madd = dlg.querySelector('[data-pcc-rp-madd]');
+    if(madd) madd.addEventListener('click', ()=>{
+      const n = (mn ? mn.value : '').trim(); if(!n) return;
+      const key = 'manual:'+n.toLowerCase();
+      const st = _pccStateGet();
+      if(st.ragePowers.find(r => r.key === key)){ _pccToast('Ya añadido'); return; }
+      st.ragePowers.push({key, name:n, desc:'(manual)', active:false});
+      _pccStateSave(); close(); _pccAugmentFeatures();
+    });
+  }
+  function _pccRenderRagePowers(card){
+    if(card.querySelector('[data-pcc-rp]')) return;
+    const lvl = _pccBarbarianLvl(); if(lvl <= 0) return;
+    const s = _pccStateGet();
+    const wrap = document.createElement('div');
+    wrap.dataset.pccRp = '1';
+    let html = '<div class="pcc-actions"><button type="button" class="pcc-btn" data-pcc-rp-add>+ Añadir Rage Power</button><span class="pcc-tag">'+s.ragePowers.length+' conocidos</span></div>';
+    if(s.ragePowers.length){
+      s.ragePowers.forEach((rp,i) => {
+        html += '<div class="pcc-mini">' +
+          '<div class="pcc-mini-name">'+rp.name+'</div>' +
+          '<div class="pcc-mini-desc">'+(rp.desc||'').slice(0,300)+'</div>' +
+          '<div class="pcc-row">' +
+          '<button type="button" class="pcc-btn '+(rp.active?'pcc-on':'')+'" data-pcc-rp-t="'+i+'">'+(rp.active?'✓ Activo':'○ Inactivo')+'</button>' +
+          '<button type="button" class="pcc-btn pcc-danger" data-pcc-rp-d="'+i+'">✕ Quitar</button>' +
+          '</div></div>';
+      });
+    }
+    wrap.innerHTML = html;
+    card.appendChild(wrap);
+    wrap.querySelector('[data-pcc-rp-add]').addEventListener('click', _pccOpenRagePicker);
+    wrap.querySelectorAll('[data-pcc-rp-t]').forEach(b => b.addEventListener('click', ()=>{
+      const i = +b.dataset.pccRpT; const rp = s.ragePowers[i]; if(!rp) return;
+      rp.active = !rp.active; _pccStateSave(); _pccAugmentFeatures();
+    }));
+    wrap.querySelectorAll('[data-pcc-rp-d]').forEach(b => b.addEventListener('click', ()=>{
+      const i = +b.dataset.pccRpD; s.ragePowers.splice(i,1); _pccStateSave(); _pccAugmentFeatures();
+    }));
+  }
+
+  /* PC-C-G3-VP */
+  const PCC_VP_OPTIONS = [
+    {key:'', label:'(ninguno)', replaces:[]},
+    {key:'oratory',    label:'Perform (Oratory)',    replaces:['Diplomacia','Sentir Motivaciones']},
+    {key:'comedy',     label:'Perform (Comedy)',     replaces:['Engañar','Sentir Motivaciones']},
+    {key:'sing',       label:'Perform (Sing)',       replaces:['Engañar','Sentir Motivaciones']},
+    {key:'string',     label:'Perform (String)',     replaces:['Engañar','Diplomacia']},
+    {key:'wind',       label:'Perform (Wind)',       replaces:['Diplomacia','Trato con Animales']},
+    {key:'percussion', label:'Perform (Percussion)', replaces:['Trato con Animales','Intimidar']},
+    {key:'dance',      label:'Perform (Dance)',      replaces:['Acrobacias','Escapismo']},
+    {key:'act',        label:'Perform (Act)',        replaces:['Engañar','Disfraz']},
+    {key:'keyboard',   label:'Perform (Keyboard)',   replaces:['Diplomacia','Intimidar']},
+  ];
+  function _pccVpFind(k){ return PCC_VP_OPTIONS.find(o => o.key===k) || PCC_VP_OPTIONS[0]; }
+  function _pccRenderVP(card){
+    if(card.querySelector('[data-pcc-vp]')) return;
+    const lvl = _pccBardLvl(); if(lvl < 2) return;
+    const s = _pccStateGet();
+    const cur = s.versatilePerf || '';
+    const opts = PCC_VP_OPTIONS.map(o => '<option value="'+o.key+'"'+(o.key===cur?' selected':'')+'>'+o.label+'</option>').join('');
+    const sel = _pccVpFind(cur);
+    const info = sel.replaces.length
+      ? sel.label+' usa el rango/bonificador entre la habilidad y '+sel.replaces.join(' / ')
+      : 'Sin sustitución activa.';
+    const wrap = document.createElement('div');
+    wrap.dataset.pccVp = '1';
+    wrap.innerHTML =
+      '<div class="pcc-actions"><span class="pcc-tag">Tipo:</span><select class="pcc-select" data-pcc-vp-sel>'+opts+'</select></div>' +
+      '<div class="pcc-info" data-pcc-vp-info>'+info+'</div>';
+    card.appendChild(wrap);
+    wrap.querySelector('[data-pcc-vp-sel]').addEventListener('change', function(){
+      const st = _pccStateGet(); st.versatilePerf = this.value || ''; _pccStateSave(); _pccAugmentFeatures();
+    });
+  }
+  function _pccEnsureVpCard(){
+    if(_pccBardLvl() < 2) return;
+    const container = document.getElementById('features-container');
+    if(!container) return;
+    if(container.querySelector('[data-pcc-vp-host]')) return;
+    const cards = container.querySelectorAll('.feature-card');
+    for(const c of cards){
+      if(PCC_FEAT_PATTERNS.versatile.test(_pccCardName(c))){
+        _pccRenderVP(c); return;
+      }
+    }
+    const host = document.createElement('div');
+    host.className = 'feature-card';
+    host.dataset.pccVpHost = '1';
+    host.dataset.autoKey = 'pcc.versatile';
+    host.innerHTML = '<div class="feature-top"><input type="text" class="feat-name" value="Actuación Versátil (Bardo)" readonly style="font-weight:600"><button class="feature-remove-btn" type="button" onclick="this.closest(\'.feature-card\').remove();">×</button></div>';
+    container.appendChild(host);
+    _pccRenderVP(host);
+  }
+
+  function _pccAugmentFeatures(){
+    try{
+      const container = document.getElementById('features-container');
+      if(!container) return;
+      container.querySelectorAll('.feature-card').forEach(card => {
+        const name = _pccCardName(card);
+        if(!name) return;
+        if(PCC_FEAT_PATTERNS.layOnHands.test(name)    && _pccPaladinLvl()    > 0) _pccRenderLoH(card);
+        if(PCC_FEAT_PATTERNS.smiteEvil.test(name)     && _pccPaladinLvl()    > 0) _pccRenderSmite(card);
+        if(PCC_FEAT_PATTERNS.channelEnergy.test(name) && _pccClericLvl()     > 0) _pccRenderChannel(card);
+        if(PCC_FEAT_PATTERNS.bardic.test(name)        && _pccBardLvl()       > 0) _pccRenderBardic(card);
+        if(PCC_FEAT_PATTERNS.ragePowers.test(name)    && _pccBarbarianLvl()  > 0) _pccRenderRagePowers(card);
+        if(PCC_FEAT_PATTERNS.versatile.test(name)     && _pccBardLvl()       > 1) _pccRenderVP(card);
+      });
+      _pccEnsureVpCard();
+    }catch(e){ _pccLog('PC-C augment fail', e); }
+  }
+
+  function _pccInstallFeatureObserver(){
+    const container = document.getElementById('features-container');
+    if(!container) return;
+    if(container.dataset.pccObs === '1') return;
+    container.dataset.pccObs = '1';
+    try{
+      const obs = new MutationObserver(()=> {
+        if(_pccInstallFeatureObserver._t) clearTimeout(_pccInstallFeatureObserver._t);
+        _pccInstallFeatureObserver._t = setTimeout(_pccAugmentFeatures, 80);
+      });
+      obs.observe(container, {childList:true, subtree:true, characterData:true});
+    }catch(_){}
+  }
+
+  /* PC-C-G4-RACE · Race traits mecánicos */
+  const PCC_RACE_TRAITS = {
+    humano:{humanBonusSkillPoint:true},human:{humanBonusSkillPoint:true},
+    elfo:{lowLight:true,keenSenses:true,elvenImmunities:true,weaponFamiliarity:['longbow','shortbow','rapier','longsword']},
+    elf: {lowLight:true,keenSenses:true,elvenImmunities:true,weaponFamiliarity:['longbow','shortbow','rapier','longsword']},
+    enano:{darkvision:60,hardy:true,stability:true,weaponFamiliarity:['waraxe','urgrosh'],defensiveTraining:'giants'},
+    dwarf:{darkvision:60,hardy:true,stability:true,weaponFamiliarity:['waraxe','urgrosh'],defensiveTraining:'giants'},
+    mediano:{halflingLuck:true,keenSenses:true,weaponFamiliarity:['sling']},
+    halfling:{halflingLuck:true,keenSenses:true,weaponFamiliarity:['sling']},
+    gnomo:{lowLight:true,defensiveTraining:'giants',keenSenses:true,illusionResist:true,weaponFamiliarity:['hooked-lance']},
+    gnome:{lowLight:true,defensiveTraining:'giants',keenSenses:true,illusionResist:true,weaponFamiliarity:['hooked-lance']},
+    semielfo:{lowLight:true,elvenImmunities:true,keenSenses:true},
+    halfelf: {lowLight:true,elvenImmunities:true,keenSenses:true},
+    semiorco:{darkvision:60,weaponFamiliarity:['falchion','greataxe']},
+    halforc: {darkvision:60,weaponFamiliarity:['falchion','greataxe']},
+    aasimar:{darkvision:60},
+    tiflin:{darkvision:60},tiefling:{darkvision:60},
+    catfolk:{lowLight:true,keenSenses:true},
+    dhampir:{darkvision:60,lowLight:true},
+    drow:{darkvision:120,lowLight:true,keenSenses:true,elvenImmunities:true,weaponFamiliarity:['rapier','shortbow','handcrossbow']},
+    fetchling:{darkvision:60,lowLight:true},
+    gillman:{lowLight:true},
+    goblin:{darkvision:60},
+    hobgoblin:{darkvision:60},
+    ifrit:{darkvision:60},
+    kobold:{darkvision:60},
+    merfolk:{lowLight:true},
+    nagaji:{},
+    orco:{darkvision:60,weaponFamiliarity:['falchion','greataxe']},
+    orc: {darkvision:60,weaponFamiliarity:['falchion','greataxe']},
+    oread:{darkvision:60},
+    ratfolk:{darkvision:60},
+    samsaran:{lowLight:true},
+    strix:{darkvision:60,lowLight:true},
+    suli:{lowLight:true},
+    svirfneblin:{darkvision:120,lowLight:true,defensiveTraining:'giants',keenSenses:true},
+    sylph:{darkvision:60},
+    tengu:{lowLight:true,weaponFamiliarity:['katana','wakizashi','butterflysword']},
+    undine:{darkvision:60},
+    vanara:{lowLight:true},
+    vishkanya:{lowLight:true},
+    wayang:{darkvision:60},
+    changeling:{darkvision:60},
+    duergar:{darkvision:120,stability:true,hardy:true},
+    gathlain:{lowLight:true},
+    ghoran:{lowLight:true},
+    gnoll:{darkvision:60},
+    grippli:{darkvision:60},
+    kitsune:{lowLight:true},
+    wyrwood:{},
+    wyvaran:{darkvision:60,lowLight:true},
+  };
+  window.PCC_RACE_TRAITS = PCC_RACE_TRAITS;
+  function _pccSlugRace(s){
+    return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'').trim();
+  }
+  function _pccRaceTraits(){
+    const raw = (document.getElementById('char-race')||{}).value || '';
+    if(!raw) return {};
+    const slug = _pccSlugRace(raw);
+    return PCC_RACE_TRAITS[slug] || {};
+  }
+  window.applyRaceTraits = function(raceId){
+    const slug = _pccSlugRace(raceId || (document.getElementById('char-race')||{}).value || '');
+    const traits = PCC_RACE_TRAITS[slug] || {};
+    window.STATE = window.STATE || {};
+    window.STATE.raceTraits = JSON.parse(JSON.stringify(traits));
+    _pccDebRecalc();
+    return window.STATE.raceTraits;
+  };
+
+  function _pccInstallRaceWraps(){
+    try{
+      if(typeof window.gatherBuffDeltas === 'function' && !window.gatherBuffDeltas.__pccWrap){
+        const _orig = window.gatherBuffDeltas;
+        window.gatherBuffDeltas = function(){
+          const d = _orig.apply(this, arguments) || {};
+          try{
+            const t = _pccRaceTraits();
+            if(t.halflingLuck){ d.fort = (d.fort||0)+1; d.ref = (d.ref||0)+1; d.will = (d.will||0)+1; }
+            if(t.elvenImmunities){ d.will = (d.will||0)+2; }
+            if(t.hardy){ d.fort = (d.fort||0)+2; }
+            if(t.keenSenses){
+              d.perSkill = d.perSkill || {};
+              d.perSkill.perception = (d.perSkill.perception||0) + 2;
+            }
+          }catch(_){}
+          return d;
+        };
+        window.gatherBuffDeltas.__pccWrap = true;
+      }
+    }catch(_){}
+  }
+
+  /* PC-C-G4-CLASSSKILLS · fallback canónico para DB sin class_skills */
+  const PCC_CLASS_SKILLS_MAP = {
+    guerrero:['climb','craft','handle_animal','intimidate','knowledge_dungeoneering','knowledge_engineering','profession','ride','survival','swim'],
+    fighter: ['climb','craft','handle_animal','intimidate','knowledge_dungeoneering','knowledge_engineering','profession','ride','survival','swim'],
+    barbaro: ['acrobatics','climb','craft','handle_animal','intimidate','knowledge_nature','perception','ride','survival','swim'],
+    barbarian:['acrobatics','climb','craft','handle_animal','intimidate','knowledge_nature','perception','ride','survival','swim'],
+    bardo:   ['acrobatics','appraise','bluff','climb','craft','diplomacy','disguise','escape_artist','intimidate','knowledge_arcana','knowledge_dungeoneering','knowledge_engineering','knowledge_geography','knowledge_history','knowledge_local','knowledge_nature','knowledge_nobility','knowledge_planes','knowledge_religion','linguistics','perception','perform','profession','sense_motive','sleight_of_hand','spellcraft','stealth','use_magic_device'],
+    bard:    ['acrobatics','appraise','bluff','climb','craft','diplomacy','disguise','escape_artist','intimidate','knowledge_arcana','knowledge_dungeoneering','knowledge_engineering','knowledge_geography','knowledge_history','knowledge_local','knowledge_nature','knowledge_nobility','knowledge_planes','knowledge_religion','linguistics','perception','perform','profession','sense_motive','sleight_of_hand','spellcraft','stealth','use_magic_device'],
+    paladin: ['craft','diplomacy','handle_animal','heal','knowledge_nobility','knowledge_religion','profession','ride','sense_motive','spellcraft'],
+    clerigo: ['appraise','craft','diplomacy','heal','knowledge_arcana','knowledge_history','knowledge_nobility','knowledge_planes','knowledge_religion','linguistics','profession','sense_motive','spellcraft'],
+    cleric:  ['appraise','craft','diplomacy','heal','knowledge_arcana','knowledge_history','knowledge_nobility','knowledge_planes','knowledge_religion','linguistics','profession','sense_motive','spellcraft'],
+    druida:  ['climb','craft','fly','handle_animal','heal','knowledge_geography','knowledge_nature','perception','profession','ride','spellcraft','survival','swim'],
+    druid:   ['climb','craft','fly','handle_animal','heal','knowledge_geography','knowledge_nature','perception','profession','ride','spellcraft','survival','swim'],
+    explorador:['climb','craft','handle_animal','heal','intimidate','knowledge_dungeoneering','knowledge_geography','knowledge_nature','perception','profession','ride','spellcraft','stealth','survival','swim'],
+    ranger:    ['climb','craft','handle_animal','heal','intimidate','knowledge_dungeoneering','knowledge_geography','knowledge_nature','perception','profession','ride','spellcraft','stealth','survival','swim'],
+    hechicero:['appraise','bluff','craft','fly','intimidate','knowledge_arcana','profession','spellcraft','use_magic_device'],
+    sorcerer:['appraise','bluff','craft','fly','intimidate','knowledge_arcana','profession','spellcraft','use_magic_device'],
+    monje:   ['acrobatics','climb','craft','escape_artist','intimidate','knowledge_history','knowledge_religion','perception','perform','profession','ride','sense_motive','stealth','swim'],
+    monk:    ['acrobatics','climb','craft','escape_artist','intimidate','knowledge_history','knowledge_religion','perception','perform','profession','ride','sense_motive','stealth','swim'],
+    picaro:  ['acrobatics','appraise','bluff','climb','craft','diplomacy','disable_device','disguise','escape_artist','intimidate','knowledge_dungeoneering','knowledge_local','linguistics','perception','perform','profession','sense_motive','sleight_of_hand','stealth','swim','use_magic_device'],
+    rogue:   ['acrobatics','appraise','bluff','climb','craft','diplomacy','disable_device','disguise','escape_artist','intimidate','knowledge_dungeoneering','knowledge_local','linguistics','perception','perform','profession','sense_motive','sleight_of_hand','stealth','swim','use_magic_device'],
+    mago:    ['appraise','craft','fly','knowledge_arcana','knowledge_dungeoneering','knowledge_engineering','knowledge_geography','knowledge_history','knowledge_local','knowledge_nature','knowledge_nobility','knowledge_planes','knowledge_religion','linguistics','profession','spellcraft'],
+    wizard:  ['appraise','craft','fly','knowledge_arcana','knowledge_dungeoneering','knowledge_engineering','knowledge_geography','knowledge_history','knowledge_local','knowledge_nature','knowledge_nobility','knowledge_planes','knowledge_religion','linguistics','profession','spellcraft'],
+    ninja:   ['acrobatics','bluff','climb','craft','disable_device','disguise','escape_artist','intimidate','knowledge_local','knowledge_nobility','linguistics','perception','perform','profession','sense_motive','sleight_of_hand','stealth','swim','use_magic_device'],
+    vigilante:['acrobatics','bluff','climb','craft','diplomacy','disable_device','disguise','escape_artist','intimidate','knowledge_local','perception','perform','profession','sense_motive','sleight_of_hand','stealth','swim','use_magic_device'],
+  };
+  window.PCC_CLASS_SKILLS_MAP = PCC_CLASS_SKILLS_MAP;
+  function _pccPatchDbClassSkills(){
+    try{
+      if(typeof DB === 'undefined' || !DB || !DB.classes) return;
+      Object.entries(DB.classes).forEach(([k, cls]) => {
+        if(!cls) return;
+        if(!Array.isArray(cls.class_skills) || cls.class_skills.length === 0){
+          const fb = PCC_CLASS_SKILLS_MAP[String(k).toLowerCase()];
+          if(fb) cls.class_skills = fb.slice();
+        }
+      });
+    }catch(_){}
+  }
+
+  /* PC-C-G4-SNEAK · Sneak Attack toggle + display */
+  function _pccSneakDice(){
+    let lvl = 0;
+    _pccActiveRows().forEach(r => {
+      const ck = String(r.classKey||'').toLowerCase();
+      if(['rogue','picaro','pícaro','unchained_rogue','ninja','vigilante','vivisectionist'].includes(ck)){
+        lvl += r.level|0;
+      }
+    });
+    if(lvl <= 0) return 0;
+    return Math.ceil(lvl / 2);
+  }
+  function _pccInjectSneakUI(){
+    try{
+      const dice = _pccSneakDice();
+      const host = document.getElementById('weapons-container');
+      const old = document.getElementById('pcc-sneak-card');
+      if(dice <= 0){ if(old) old.remove(); return; }
+      if(!host) return;
+      const s = _pccStateGet();
+      let card = old;
+      if(!card){
+        card = document.createElement('div');
+        card.id = 'pcc-sneak-card';
+        card.className = 'pcc-sneak-card';
+        card.innerHTML =
+          '<div class="pcc-sneak-head">Ataque furtivo (Sneak Attack)' +
+          '<span class="pcc-tag" id="pcc-sneak-dice">Dado: '+dice+'d6</span>' +
+          '<label style="display:inline-flex;align-items:center;gap:5px;font:600 11px system-ui;cursor:pointer"><input type="checkbox" id="pcc-sneak-toggle">Activar</label>' +
+          '<button type="button" class="pcc-btn" id="pcc-sneak-roll" style="margin-left:auto">Tirar '+dice+'d6</button>' +
+          '</div>' +
+          '<div class="pcc-info" id="pcc-sneak-meta"></div>';
+        host.insertBefore(card, host.firstChild);
+        card.querySelector('#pcc-sneak-toggle').addEventListener('change', function(){
+          const st = _pccStateGet();
+          st.sneakActive = !!this.checked;
+          _pccStateSave();
+          _pccDebRecalc();
+          _pccInjectSneakUI();
+        });
+        card.querySelector('#pcc-sneak-roll').addEventListener('click', function(){
+          const n = _pccSneakDice(); if(n<=0) return;
+          const r = _pccRollDice(n,6);
+          _pccPerformRoll(n+'d6','Sneak Attack');
+          _pccLogRoll('Sneak Attack', n+'d6=['+r.rolls.join(',')+']='+r.total);
+          _pccToast('Sneak Attack: '+r.total);
+        });
+      } else {
+        const span = card.querySelector('#pcc-sneak-dice');
+        if(span) span.textContent = 'Dado: '+dice+'d6';
+        const rollBtn = card.querySelector('#pcc-sneak-roll');
+        if(rollBtn) rollBtn.textContent = 'Tirar '+dice+'d6';
+      }
+      const tog = card.querySelector('#pcc-sneak-toggle');
+      if(tog) tog.checked = !!s.sneakActive;
+      const meta = card.querySelector('#pcc-sneak-meta');
+      if(meta) meta.textContent = s.sneakActive
+        ? 'ACTIVO: +'+dice+'d6 al daño cuando flanquees o el objetivo esté desprevenido.'
+        : 'Pícaro/Ninja/Vigilante: +'+dice+'d6 cuando aplique.';
+      document.querySelectorAll('.weapon-card .weapon-dmg-normal-display').forEach(disp => {
+        const txt = (disp.textContent||'').trim();
+        const tag = ' [+'+dice+'d6 sneak]';
+        const clean = txt.replace(/\s*\[\+\d+d6\s*sneak\]\s*$/i, '');
+        disp.textContent = s.sneakActive ? clean + tag : clean;
+      });
+    }catch(e){ _pccLog('PC-C sneak inject fail', e); }
+  }
+
+  /* PC-C-FEAT-BONUSES · Skill Focus / Weapon Focus / Spell Focus / Combat Expertise */
+  function _pccNormName(s){
+    return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+  }
+  const PCC_SKILL_NAME_ALIASES = {
+    'acrobacias':'acrobatics','acrobatics':'acrobatics',
+    'tasacion':'appraise','appraise':'appraise',
+    'engano':'bluff','bluff':'bluff',
+    'trepar':'climb','climb':'climb',
+    'oficio':'craft','craft':'craft',
+    'diplomacia':'diplomacy','diplomacy':'diplomacy',
+    'inutilizar mecanismo':'disable_device','disable device':'disable_device','disable_device':'disable_device',
+    'disfraz':'disguise','disguise':'disguise',
+    'escapismo':'escape_artist','escape artist':'escape_artist',
+    'volar':'fly','fly':'fly',
+    'trato con animales':'handle_animal','handle animal':'handle_animal',
+    'sanar':'heal','heal':'heal',
+    'intimidar':'intimidate','intimidate':'intimidate',
+    'conocimiento (arcano)':'knowledge_arcana','knowledge (arcana)':'knowledge_arcana',
+    'conocimiento (mazmorras)':'knowledge_dungeoneering','knowledge (dungeoneering)':'knowledge_dungeoneering',
+    'conocimiento (ingenieria)':'knowledge_engineering','knowledge (engineering)':'knowledge_engineering',
+    'conocimiento (geografia)':'knowledge_geography','knowledge (geography)':'knowledge_geography',
+    'conocimiento (historia)':'knowledge_history','knowledge (history)':'knowledge_history',
+    'conocimiento (local)':'knowledge_local','knowledge (local)':'knowledge_local',
+    'conocimiento (naturaleza)':'knowledge_nature','knowledge (nature)':'knowledge_nature',
+    'conocimiento (nobleza)':'knowledge_nobility','knowledge (nobility)':'knowledge_nobility',
+    'conocimiento (planos)':'knowledge_planes','knowledge (planes)':'knowledge_planes',
+    'conocimiento (religion)':'knowledge_religion','knowledge (religion)':'knowledge_religion',
+    'linguistica':'linguistics','linguistics':'linguistics',
+    'avistar':'perception','percepcion':'perception','perception':'perception',
+    'actuar':'perform','perform':'perform',
+    'profesion':'profession','profession':'profession',
+    'montar':'ride','ride':'ride',
+    'sentir motivaciones':'sense_motive','sense motive':'sense_motive',
+    'juego de manos':'sleight_of_hand','sleight of hand':'sleight_of_hand',
+    'conjuros':'spellcraft','spellcraft':'spellcraft',
+    'sigilo':'stealth','stealth':'stealth',
+    'supervivencia':'survival','survival':'survival',
+    'nadar':'swim','swim':'swim',
+    'usar objeto magico':'use_magic_device','use magic device':'use_magic_device',
+  };
+  function _pccParseParen(name){
+    const m = String(name||'').match(/\(([^)]+)\)/);
+    return m ? m[1].trim() : '';
+  }
+  function _pccCollectSkillFocus(){
+    const map = {};
+    document.querySelectorAll('#feats-container .feat-card .feat-name').forEach(el => {
+      const raw = (el.value||'').toLowerCase();
+      const isFocus  = /(soltura\s+con\s+habilidad|skill\s*focus)/i.test(raw);
+      const isGreat  = /(soltura\s+con\s+habilidad\s+(mejor|may)|greater\s+skill\s+focus)/i.test(raw);
+      if(!isFocus && !isGreat) return;
+      const tgt = _pccNormName(_pccParseParen(raw));
+      if(!tgt) return;
+      const skillId = PCC_SKILL_NAME_ALIASES[tgt];
+      if(!skillId) return;
+      const ranks = parseInt((document.getElementById('sk-'+skillId+'-ranks')||{}).value)||0;
+      const bonus = (ranks >= 10 ? 6 : 3) + (isGreat ? 3 : 0);
+      map[skillId] = Math.max(map[skillId]||0, bonus);
+    });
+    return map;
+  }
+  function _pccWeaponFocusSet(){
+    const set = {normal:new Set(), greater:new Set()};
+    document.querySelectorAll('#feats-container .feat-card .feat-name').forEach(el => {
+      const raw = (el.value||'');
+      const norm = _pccNormName(raw);
+      const isMajor = /(soltura\s+con\s+arma\s+(mejor|may)|greater\s+weapon\s+focus)/.test(norm);
+      const isNormal = /(soltura\s+con\s+arma|weapon\s+focus)/.test(norm);
+      if(!isNormal && !isMajor) return;
+      const tgt = _pccNormName(_pccParseParen(raw));
+      if(!tgt) return;
+      if(isMajor) set.greater.add(tgt);
+      else set.normal.add(tgt);
+    });
+    return set;
+  }
+  function _pccSpellFocusSchools(){
+    const out = {};
+    document.querySelectorAll('#feats-container .feat-card .feat-name').forEach(el => {
+      const raw = (el.value||'');
+      const norm = _pccNormName(raw);
+      const isMajor = /(focal[ií]zaci[oó]n\s+de\s+conjuros\s+(mejor|may)|greater\s+spell\s+focus|enfoque\s+(de|del)\s+conjuro\s+(mayor|mejor))/.test(norm);
+      const isNormal = /(focal[ií]zaci[oó]n\s+de\s+conjuros|spell\s+focus|enfoque\s+(de|del)\s+conjuro)/.test(norm);
+      if(!isNormal && !isMajor) return;
+      const sch = _pccNormName(_pccParseParen(raw));
+      if(!sch) return;
+      out[sch] = Math.max(out[sch]||0, isMajor ? 2 : 1);
+    });
+    return out;
+  }
+  function _pccHasCombatExpertise(){
+    let has = false;
+    document.querySelectorAll('#feats-container .feat-card .feat-name').forEach(el => {
+      const n = _pccNormName(el.value||'');
+      if(/(pericia\s+de\s+combate|combat\s+expertise)/.test(n)) has = true;
+    });
+    return has;
+  }
+  window.PCC_hasCombatExpertise = _pccHasCombatExpertise;
+
+  function _pccInstallFeatBonusWraps(){
+    try{
+      if(typeof window.gatherBuffDeltas === 'function' && !window.gatherBuffDeltas.__pccFb){
+        const _orig = window.gatherBuffDeltas;
+        window.gatherBuffDeltas = function(){
+          const d = _orig.apply(this, arguments) || {};
+          try{
+            d.perSkill = d.perSkill || {};
+            const map = _pccCollectSkillFocus();
+            Object.entries(map).forEach(([sk, bn]) => {
+              d.perSkill[sk] = (d.perSkill[sk]||0) + bn;
+            });
+          }catch(_){}
+          return d;
+        };
+        window.gatherBuffDeltas.__pccFb = true;
+      }
+    }catch(_){}
+  }
+
+  function _pccApplyWeaponFocusToWeapons(){
+    try{
+      const wf = _pccWeaponFocusSet();
+      if(!wf.normal.size && !wf.greater.size) return;
+      document.querySelectorAll('.weapon-card').forEach(card => {
+        const nameInp = card.querySelector('input[type="text"]');
+        const name = _pccNormName(nameInp ? nameInp.value : '');
+        if(!name) return;
+        let bonus = 0;
+        wf.normal.forEach(w => { if(name.includes(w)) bonus = Math.max(bonus, 1); });
+        wf.greater.forEach(w => { if(name.includes(w)) bonus = Math.max(bonus, 2); });
+        if(!bonus) return;
+        const inp = card.querySelector('.weapon-atk-bonus');
+        if(!inp) return;
+        const cur = parseInt(inp.value)||0;
+        const wasPcc = card.dataset.pccWfBonus ? parseInt(card.dataset.pccWfBonus)||0 : null;
+        if(cur === 0 || cur === wasPcc){
+          if(cur !== bonus){
+            inp.value = bonus;
+            card.dataset.pccWfBonus = String(bonus);
+            try{ inp.dispatchEvent(new Event('input', {bubbles:true})); }catch(_){}
+          }
+        }
+      });
+    }catch(_){}
+  }
+
+  function _pccInstallSpellFocusWrap(){
+    try{
+      if(typeof window.calcSpells === 'function' && !window.calcSpells.__pccSf){
+        const _orig = window.calcSpells;
+        window.calcSpells = function(){
+          const r = _orig.apply(this, arguments);
+          try{
+            const schools = _pccSpellFocusSchools();
+            const anyVal = Object.values(schools).reduce((m,v)=>Math.max(m,v||0), 0);
+            let host = document.getElementById('pcc-spellfocus-info');
+            if(anyVal > 0){
+              const target = document.querySelector('.spell-meta') ||
+                             document.getElementById('spells-body');
+              if(!host && target){
+                host = document.createElement('div');
+                host.id = 'pcc-spellfocus-info';
+                host.style.cssText = 'margin-top:4px;font:11px system-ui;color:var(--leather, #7a4a1f)';
+                target.appendChild(host);
+              }
+              if(host){
+                const list = Object.entries(schools)
+                  .map(([s,b]) => '<span class="pcc-tag">+'+b+' DC '+s+'</span>')
+                  .join(' ');
+                host.innerHTML = 'Spell Focus: ' + list;
+              }
+            } else if(host){ host.remove(); }
+          }catch(_){}
+          return r;
+        };
+        window.calcSpells.__pccSf = true;
+      }
+    }catch(_){}
+  }
+
+  function _pccGateCombatExpertise(){
+    try{
+      const cb = document.getElementById('combat-expertise') ||
+                 document.getElementById('combat-expertise-toggle') ||
+                 document.getElementById('pcb-tactic-combat-expertise');
+      if(!cb) return;
+      const has = _pccHasCombatExpertise();
+      cb.disabled = !has;
+      const lbl = cb.closest('label');
+      if(lbl) lbl.style.opacity = has ? '1' : '0.45';
+      if(!has && cb.checked){ cb.checked = false; try{ cb.dispatchEvent(new Event('change',{bubbles:true})); }catch(_){} }
+    }catch(_){}
+  }
+
+  /* PC-C-CAST-OVERRIDE · Modo lanzamiento por clase */
+  function _pccIsCaster(classKey){
+    try{
+      const cls = (typeof DB !== 'undefined' && DB && DB.classes) ? DB.classes[classKey] : null;
+      return !!(cls && cls.spells_per_day);
+    }catch(_){ return false; }
+  }
+  function _pccCastOverrideStore(){
+    window.STATE = window.STATE || {};
+    if(!window.STATE.castingOverride) window.STATE.castingOverride = {};
+    return window.STATE.castingOverride;
+  }
+  function _pccInjectCastOverride(){
+    try{
+      const store = _pccCastOverrideStore();
+      document.querySelectorAll('.class-row-dynamic').forEach(row => {
+        const idx = row.dataset.rowIdx;
+        const classSel = document.getElementById('class'+idx);
+        const classKey = classSel ? classSel.value : '';
+        const isCaster = _pccIsCaster(classKey);
+        let host = row.querySelector('[data-pcc-cast-override]');
+        if(!isCaster){
+          if(host) host.remove();
+          delete store[idx];
+          return;
+        }
+        if(!host){
+          host = document.createElement('div');
+          host.dataset.pccCastOverride = idx;
+          host.style.cssText = 'margin-top:4px;font:11px system-ui;display:flex;align-items:center;gap:6px;flex-wrap:wrap';
+          host.innerHTML = '<span class="pcc-tag">Modo lanzamiento:</span>' +
+            '<select class="pcc-select" data-pcc-cast-sel="'+idx+'">' +
+              '<option value="auto">Auto</option>' +
+              '<option value="prep">Preparada</option>' +
+              '<option value="spont">Espontánea</option>' +
+            '</select>';
+          row.appendChild(host);
+          host.querySelector('select').addEventListener('change', function(){
+            const st = _pccCastOverrideStore();
+            st[idx] = this.value;
+            _pccStateSave();
+            _pccDebRecalc();
+          });
+        }
+        const sel = host.querySelector('select');
+        if(sel){ sel.value = store[idx] || 'auto'; }
+      });
+    }catch(_){}
+  }
+  window.getCastingOverride = function(idx){
+    const st = _pccCastOverrideStore();
+    return st[idx] || 'auto';
+  };
+
+  /* PC-C-ARCHREPL · Archetype features replaces */
+  function _pccCollectReplacedFeatureNames(){
+    const out = new Set();
+    try{
+      _pccActiveRows().forEach(r => {
+        if(!r.archetypeKey) return;
+        const arch = (typeof DB !== 'undefined' && DB.archetypes) ? DB.archetypes[r.archetypeKey] : null;
+        if(!arch) return;
+        if(Array.isArray(arch.replaces)){
+          arch.replaces.forEach(n => out.add(_pccNormName(n)));
+        }
+        const txt = String(arch.description_es || arch.description || arch.description_en || '');
+        const re = /(?:reemplaza|sustituye|replaces|substitutes)\s+([^\.;]+)/ig;
+        let m;
+        while((m = re.exec(txt))){
+          const part = m[1];
+          part.split(/,| y | and /i).forEach(s => {
+            const t = _pccNormName(s.trim());
+            if(t && t.length > 2 && t.length < 60) out.add(t);
+          });
+        }
+      });
+    }catch(_){}
+    return out;
+  }
+  function _pccApplyArchetypeReplaces(){
+    try{
+      const replaced = _pccCollectReplacedFeatureNames();
+      if(!replaced.size) return;
+      const container = document.getElementById('features-container');
+      if(!container) return;
+      container.querySelectorAll('.feature-card').forEach(card => {
+        if(card.dataset.pccArchRepl === '1') return;
+        const n = _pccNormName(_pccCardName(card));
+        if(!n) return;
+        for(const target of replaced){
+          if(target && (n === target || n.includes(target) || target.includes(n))){
+            if(card.dataset.autoKey){
+              card.style.display = 'none';
+              card.dataset.pccArchRepl = '1';
+            }
+            break;
+          }
+        }
+      });
+    }catch(_){}
+  }
+
+  /* PC-C-GRANTS · Resumen de granted feats/spells */
+  function _pccCollectGranted(){
+    const granted = { feats:[], spells:[], source:'pcc' };
+    try{
+      _pccActiveRows().forEach(r => {
+        if(r.archetypeKey){
+          const arch = (typeof DB !== 'undefined' && DB.archetypes) ? DB.archetypes[r.archetypeKey] : null;
+          if(arch && Array.isArray(arch.bonus_feats)){
+            arch.bonus_feats.forEach(f => granted.feats.push({name:f, source:'arch:'+r.archetypeKey}));
+          }
+        }
+      });
+      const dom1 = (document.getElementById('domain-select-1')||{}).value;
+      const dom2 = (document.getElementById('domain-select-2')||{}).value;
+      [dom1, dom2].forEach(id => {
+        if(!id || typeof DB === 'undefined' || !Array.isArray(DB.domains)) return;
+        const d = DB.domains.find(x => x.id === id);
+        if(!d) return;
+        if(Array.isArray(d.spells)){
+          d.spells.forEach((sp,i) => granted.spells.push({name:sp, level:i+1, source:'domain:'+id}));
+        }
+      });
+      const blId = (document.getElementById('bloodline-select')||{}).value;
+      if(blId && typeof DB !== 'undefined' && Array.isArray(DB.bloodlines)){
+        const b = DB.bloodlines.find(x => x.id === blId);
+        if(b){
+          if(Array.isArray(b.spells)) b.spells.forEach((sp,i) => granted.spells.push({name:sp, level:i+1, source:'bloodline:'+blId}));
+          if(Array.isArray(b.bonus_feats)) b.bonus_feats.forEach(f => granted.feats.push({name:f, source:'bloodline:'+blId}));
+        }
+      }
+      const mystId = (document.getElementById('oracle-mystery-select')||{}).value;
+      if(mystId && typeof DB !== 'undefined' && Array.isArray(DB.oracle_mysteries)){
+        const m = DB.oracle_mysteries.find(x => x.id === mystId);
+        if(m && Array.isArray(m.spells)) m.spells.forEach((sp,i) => granted.spells.push({name:sp, level:i+1, source:'mystery:'+mystId}));
+      }
+      const patId = (document.getElementById('witch-patron-select')||{}).value;
+      if(patId && typeof DB !== 'undefined' && Array.isArray(DB.witch_patrons)){
+        const p = DB.witch_patrons.find(x => x.id === patId);
+        if(p && Array.isArray(p.spells)) p.spells.forEach((sp,i) => granted.spells.push({name:sp, level:i+2, source:'patron:'+patId}));
+      }
+    }catch(_){}
+    return granted;
+  }
+  function _pccUpdateGrantedHint(){
+    try{
+      const g = _pccCollectGranted();
+      window.PCC_GRANTED = g;
+      let host = document.getElementById('pcc-granted-list');
+      const totalShow = g.feats.length + g.spells.length;
+      if(totalShow === 0){ if(host) host.remove(); return; }
+      if(!host){
+        const target = document.querySelector('.class-features-panel .collapsible-body') ||
+                       document.getElementById('features-container');
+        if(!target) return;
+        host = document.createElement('div');
+        host.id = 'pcc-granted-list';
+        host.style.cssText = 'margin-top:8px;padding:6px 8px;border:1px dashed var(--leather, #7a4a1f);border-radius:5px;background:rgba(200,160,60,0.06);font:11px system-ui';
+        target.appendChild(host);
+      }
+      let html = '<div style="font-weight:600;margin-bottom:4px">Granted automáticamente:</div>';
+      if(g.feats.length){
+        html += '<div><b>Dotes:</b> '+g.feats.map(f => '<span class="pcc-tag">'+f.name+' <small style="opacity:0.6">('+f.source+')</small></span>').join(' ')+'</div>';
+      }
+      if(g.spells.length){
+        html += '<div style="margin-top:3px"><b>Conjuros:</b> '+g.spells.map(s => '<span class="pcc-tag">Nv'+s.level+' '+s.name+' <small style="opacity:0.6">('+s.source+')</small></span>').join(' ')+'</div>';
+      }
+      host.innerHTML = html;
+    }catch(_){}
+  }
+
+  /* PC-C-FEATPREREQ · Extiende parseFeatPrereqToken con alignment/race/size */
+  function _pccInstallFeatPrereqWrap(){
+    try{
+      if(typeof window.parseFeatPrereqToken === 'function' && !window.parseFeatPrereqToken.__pccExt){
+        const _orig = window.parseFeatPrereqToken;
+        const _normalize = (typeof _normFeatTxt === 'function') ? _normFeatTxt : (s => String(s||'').toLowerCase().trim());
+        const ALIGN_TOKENS = {
+          'lg':'LG','lawful good':'LG','legal bueno':'LG',
+          'ng':'NG','neutral good':'NG','neutral bueno':'NG',
+          'cg':'CG','chaotic good':'CG','caotico bueno':'CG',
+          'ln':'LN','lawful neutral':'LN','legal neutral':'LN',
+          'n':'N','true neutral':'N','neutral':'N',
+          'cn':'CN','chaotic neutral':'CN','caotico neutral':'CN',
+          'le':'LE','lawful evil':'LE','legal malvado':'LE',
+          'ne':'NE','neutral evil':'NE','neutral malvado':'NE',
+          'ce':'CE','chaotic evil':'CE','caotico malvado':'CE',
+        };
+        const SIZE_TOKENS = ['fine','diminuta','tiny','pequena','small','mediana','medium','grande','large','enorme','huge','gigantesca','gargantuan','colosal','colossal','diminutive'];
+        window.parseFeatPrereqToken = function(raw, ctx){
+          const tk = _normalize(raw||'');
+          if(ALIGN_TOKENS[tk]){
+            const want = ALIGN_TOKENS[tk];
+            const cur = (document.getElementById('char-alignment')||{}).value || '';
+            return { kind:'alignment', ok: cur === want, label: raw, reason:'align '+(cur||'-')+'/'+want };
+          }
+          let m = tk.match(/^(?:raza|race)\s+([a-z0-9-]+)/);
+          if(m){
+            const want = _pccSlugRace(m[1]);
+            const cur = _pccSlugRace((document.getElementById('char-race')||{}).value || '');
+            return { kind:'race', ok: cur === want, label: raw, reason:'race '+(cur||'-')+'/'+want };
+          }
+          m = tk.match(/^(?:talla|size)\s+([a-z]+)/);
+          if(m && SIZE_TOKENS.includes(m[1])){
+            const sizeKey = (document.getElementById('char-size')||{}).value || '';
+            return { kind:'size', ok: sizeKey === m[1], label: raw, reason:'size '+(sizeKey||'-')+'/'+m[1] };
+          }
+          return _orig.apply(this, arguments);
+        };
+        window.parseFeatPrereqToken.__pccExt = true;
+      }
+    }catch(_){}
+  }
+
+  /* PC-C-RECALC-HOOK · wrap recalc */
+  function _pccInstallRecalcWrap(){
+    try{
+      if(typeof window.recalc === 'function' && !window.recalc.__pccWrap){
+        const _orig = window.recalc;
+        window.recalc = function(){
+          const r = _orig.apply(this, arguments);
+          try{
+            _pccPatchDbClassSkills();
+            _pccApplyWeaponFocusToWeapons();
+            _pccGateCombatExpertise();
+            _pccInjectCastOverride();
+            _pccApplyArchetypeReplaces();
+            _pccUpdateGrantedHint();
+            _pccAugmentFeatures();
+            _pccInjectSneakUI();
+          }catch(e){ _pccLog('PC-C post-recalc', e); }
+          return r;
+        };
+        window.recalc.__pccWrap = true;
+      }
+    }catch(_){}
+  }
+
+  /* PC-C-INIT */
+  function _pccInit(){
+    _pccStateGet();
+    _pccPatchDbClassSkills();
+    _pccInstallRaceWraps();
+    _pccInstallFeatBonusWraps();
+    _pccInstallSpellFocusWrap();
+    _pccInstallFeatPrereqWrap();
+    _pccInstallRecalcWrap();
+    _pccInstallFeatureObserver();
+    try{
+      const raceEl = document.getElementById('char-race');
+      if(raceEl && !raceEl.__pccWrap){
+        raceEl.addEventListener('change', ()=> _pccDebRecalc());
+        raceEl.addEventListener('input',  ()=> _pccDebRecalc());
+        raceEl.__pccWrap = true;
+      }
+    }catch(_){}
+    try{
+      document.addEventListener('input', (e)=>{
+        const card = e.target && e.target.closest && e.target.closest('#feats-container .feat-card');
+        if(card) _pccDebRecalc();
+      });
+      document.addEventListener('change', (e)=>{
+        const card = e.target && e.target.closest && e.target.closest('#feats-container .feat-card');
+        if(card) _pccDebRecalc();
+      });
+    }catch(_){}
+    ['change','input'].forEach(ev => {
+      try{ document.addEventListener(ev, (e)=>{
+        const el = e.target && e.target.id;
+        if(!el) return;
+        if(/^class\d+$/.test(el) || /^archetype\d+$/.test(el) || /^level\d+$/.test(el)){
+          _pccDebRecalc();
+        }
+      }); }catch(_){}
+    });
+    setTimeout(()=>{
+      try{ _pccPatchDbClassSkills(); }catch(_){}
+      try{ _pccInjectCastOverride(); }catch(_){}
+      try{ _pccUpdateGrantedHint(); }catch(_){}
+      try{ _pccAugmentFeatures(); }catch(_){}
+      try{ _pccInjectSneakUI(); }catch(_){}
+      try{ _pccGateCombatExpertise(); }catch(_){}
+    }, 600);
+    setTimeout(()=>{ try{ if(typeof recalc === 'function') recalc(); }catch(_){} }, 800);
+  }
+
+  /* PC-C-EXPORT */
+  window.PCC = {
+    raceTraits: _pccRaceTraits,
+    sneakDice: _pccSneakDice,
+    augment: _pccAugmentFeatures,
+    smiteToggle: _pccSmiteToggle,
+    bardicStart: _pccBardicStart,
+    bardicStop: _pccBardicStop,
+    refreshSneakUI: _pccInjectSneakUI,
+    collectGranted: _pccCollectGranted,
+    state: _pccStateGet,
+  };
+
+  if(document.readyState === 'complete' || document.readyState === 'interactive'){
+    setTimeout(_pccInit, 80);
+  } else {
+    document.addEventListener('DOMContentLoaded', _pccInit);
+  }
+})();
+/* PC-C-END */
 </script>
 
 </body>
