@@ -1,10 +1,12 @@
 # Dependencias y build de Electron
 node_modules/
-dist-electron/
+dist-electron/*
+!dist-electron/PathfinderCS-*.zip
 *.tsbuildinfo
 
-# Outputs
+# Outputs (excepto release ZIPs explícitos del dist-electron, tracked vía Git LFS)
 *.zip
+!dist-electron/PathfinderCS-*.zip
 *.exe
 *.msi
 
