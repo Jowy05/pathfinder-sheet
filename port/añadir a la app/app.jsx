@@ -661,11 +661,13 @@ function TemplateModal({ open, onClose, onConfirm, lang }) {
         </div>
         <div className="mst-modal-body">
           <div className="mst-template-modal">
+            {/* #ANCHOR:MST-SQUARE-V1 — añadido kind 'square' (PF1e burst). 2026-05-11 */}
             <div className="shape-grid">
               {[
                 { k: 'circle', icon: 'circle', lbl: t.templateCircle || 'Esfera' },
                 { k: 'cone',   icon: 'cone',   lbl: t.templateCone   || 'Cono' },
                 { k: 'line',   icon: 'line',   lbl: t.templateLine   || 'Línea' },
+                { k: 'square', icon: 'square', lbl: t.templateSquare || 'Cuadrado' },
               ].map(s => (
                 <button
                   key={s.k}
@@ -1353,12 +1355,15 @@ function MasterApp({
       euclideanFt,
     };
   };
+  /* #ANCHOR:MST-MEASURE-MULTI-V1 — soporte hasta 8 puntos secuenciales con
+     auto-reset al 9º. El UI también ofrece un botón "Limpiar" manual. 2026-05-11 */
   const onMeasureClick = (point) => {
     setMeasurePts(pts => {
-      if (pts.length >= 2) return [point];
+      if (pts.length >= 8) return [point];
       return [...pts, point];
     });
   };
+  const clearMeasurePts = () => setMeasurePts([]);
   const toggleMeasureMode = () => {
     setMeasureMode(m => {
       if (m) setMeasurePts([]);
@@ -3282,6 +3287,20 @@ function MasterApp({
                     <window.MstIcon name="ruler" size={20}/>
                   </button>
                   <span className="mst-btn-caption on-dark">{t.lblMeasure || 'Medir'}</span>
+                </div>
+              )}
+              {/* #ANCHOR:MST-MEASURE-MULTI-V1 — botón "Limpiar" visible solo si hay puntos. 2026-05-11 */}
+              {viewMode === 'map' && measureMode && measurePts.length > 0 && (
+                <div className="mst-btn-stack">
+                  <button
+                    className="mst-fab"
+                    aria-label={t.lblMeasureClear || 'Limpiar medida'}
+                    title={t.lblMeasureClear || 'Limpiar medida'}
+                    onClick={clearMeasurePts}
+                  >
+                    <window.MstIcon name="x" size={20}/>
+                  </button>
+                  <span className="mst-btn-caption on-dark">{t.lblMeasureClear || 'Limpiar'}</span>
                 </div>
               )}
               {viewMode === 'map' && (

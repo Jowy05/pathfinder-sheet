@@ -860,9 +860,16 @@ body.theme-dark .search-input{
 }
 .skill-list{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-card)}
 .skill-row{
-  display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;
+  /* #ANCHOR:UX-T10T20-V1 — grid de 5 cols (nombre, clase, 📐, rangos, total). 2026-05-11 */
+  display:grid;grid-template-columns:1fr auto auto auto auto;gap:8px;align-items:center;
   padding:10px 12px;border-bottom:1px solid var(--line);min-height:52px;
 }
+.skill-take-btn{
+  background:var(--surface-2);color:var(--ink-muted);border:1px solid var(--line);
+  border-radius:6px;min-width:34px;height:30px;padding:0 6px;
+  font-size:14px;line-height:1;cursor:pointer;
+}
+.skill-take-btn:active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .skill-row:last-child{border-bottom:0}
 .skill-name{font:15px/1.2 system-ui;color:var(--ink)}
 .skill-attr{
@@ -56551,6 +56558,34 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
           <label class="field-label" data-i18n="lblDeidad">Deidad</label>
           <input class="field-input" id="in-deidad" value="" placeholder="Deidad" />
         </div>
+        <!-- #ANCHOR:UX-REGION-V1 — picker de región Golarion con datalist. 2026-05-11 -->
+        <div class="field">
+          <label class="field-label" data-i18n="lblRegion">Región</label>
+          <input class="field-input" id="in-region" list="region-dlist" placeholder="Andoran, Varisia, ...">
+          <datalist id="region-dlist">
+            <option>Andoran</option>
+            <option>Cheliax</option>
+            <option>Galt</option>
+            <option>Irrisen</option>
+            <option>Katapesh</option>
+            <option>Lastwall</option>
+            <option>Mwangi</option>
+            <option>Nidal</option>
+            <option>Numeria</option>
+            <option>Osirion</option>
+            <option>Qadira</option>
+            <option>Razmiran</option>
+            <option>Sargava</option>
+            <option>Shoanti</option>
+            <option>Taldor</option>
+            <option>Tian Xia</option>
+            <option>Thuvia</option>
+            <option>Ulfen</option>
+            <option>Varisia</option>
+            <option>Vudra</option>
+            <option>Worldwound</option>
+          </datalist>
+        </div>
         <label class="field-label" data-i18n="lblAlineamiento">Alineamiento</label>
         <div class="field-row">
           <select class="field-select" id="al-1">
@@ -56687,11 +56722,14 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
       <div class="card" style="margin-bottom:10px">
         <h3 class="card-title"><span class="ornament">🎲</span><span>Generador de atributos</span><span class="ornament">🎲</span></h3>
         <div style="font:11px/1.4 system-ui;color:var(--ink-muted);margin-bottom:8px">Aplica un método de generación al campo Base de cada atributo.</div>
+        <!-- #ANCHOR:UX-ATTRMETHOD-V2 — añadidos Heroico (15,14,13,12,10,8) y Stat Array (17,15,13,12,10,8). 2026-05-11 -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
           <button class="btn-secondary attr-gen-btn" data-gen="custom" style="font-size:11px">✏ Personalizado</button>
           <button class="btn-secondary attr-gen-btn" data-gen="pb15" style="font-size:11px">Point-Buy 15</button>
           <button class="btn-secondary attr-gen-btn" data-gen="pb20" style="font-size:11px">Point-Buy 20</button>
           <button class="btn-secondary attr-gen-btn" data-gen="pb25" style="font-size:11px">Point-Buy 25</button>
+          <button class="btn-secondary attr-gen-btn" data-gen="heroic" style="font-size:11px">⚔ Heroico (15,14,13,12,10,8)</button>
+          <button class="btn-secondary attr-gen-btn" data-gen="statarray" style="font-size:11px">★ Stat Array (17,15,13,12,10,8)</button>
           <button class="btn-secondary attr-gen-btn" data-gen="roll" style="font-size:11px;grid-column:span 2">🎲 Tirar 4d6 quitar el más bajo</button>
         </div>
         <div id="attr-gen-feedback" style="font:11px system-ui;color:var(--accent);margin-top:6px;text-align:center;min-height:14px"></div>
@@ -56974,6 +57012,11 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
           <label style="display:flex;align-items:center;gap:10px;padding:8px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--surface-2)">
             <input type="checkbox" id="combat-flanking" class="combat-tactical"> <span style="flex:1">Flanqueando</span>
             <span style="font:11px/1 system-ui;color:var(--ink-muted)">+2 atq CaC al objetivo flanqueado</span>
+          </label>
+          <!-- #ANCHOR:COMBAT-EXPERTISE-V1 — Pericia de combate. Requiere dote. 2026-05-11 -->
+          <label style="display:flex;align-items:center;gap:10px;padding:8px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--surface-2)" id="combat-expertise-label" title="Requiere dote Combat Expertise">
+            <input type="checkbox" id="combat-expertise" class="combat-tactical" disabled> <span style="flex:1">Pericia de combate</span>
+            <span style="font:11px/1 system-ui;color:var(--ink-muted)">−1/+1 CA dodge por cada 4 BAB (máx ±5)</span>
           </label>
         </div>
       </div>
@@ -57974,6 +58017,28 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
         <button data-dh="temp">PG temp</button>
       </div>
       <input class="dh-amount" id="dh-amount" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="0" aria-label="Cantidad">
+      <!-- #ANCHOR:DR-DAMAGE-TYPE-SELECT-V1 — tipo de daño para evaluar bypass de RD. 2026-05-11 -->
+      <div style="display:flex;align-items:center;gap:8px;font:600 11px system-ui;color:var(--ink-muted)">
+        <label for="hp-damage-type" style="flex:0 0 auto">Tipo daño (RD)</label>
+        <select id="hp-damage-type" style="flex:1;padding:6px 8px;border-radius:6px;background:var(--surface);color:var(--ink);border:1px solid var(--line);font:600 12px system-ui">
+          <option value="" selected>— (sin tipo · RD aplica)</option>
+          <option value="contundente">Contundente</option>
+          <option value="cortante">Cortante</option>
+          <option value="perforante">Perforante</option>
+          <option value="magic">Mágico</option>
+          <option value="cold iron">Hierro frío</option>
+          <option value="silver">Plata</option>
+          <option value="adamantine">Adamantino</option>
+          <option value="fuego">Fuego</option>
+          <option value="frio">Frío</option>
+          <option value="electrico">Eléctrico</option>
+          <option value="acido">Ácido</option>
+          <option value="good">Bien</option>
+          <option value="evil">Mal</option>
+          <option value="lawful">Ley</option>
+          <option value="chaotic">Caos</option>
+        </select>
+      </div>
       <div style="font:11px/1.4 system-ui;color:var(--ink-muted);text-align:center" id="dh-hint">El daño letal reduce PG actuales hasta el mínimo. La curación no excede el máximo.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <button class="btn-secondary" data-close>Cancelar</button>
@@ -58625,7 +58690,7 @@ const I18N = {
     subArmas:'Armas',subArmadura:'Armadura',subInventario:'Inventario',subPeso:'Peso',
     cardBasicos:'Datos básicos',cardFisico:'Físico',cardXP:'Experiencia',cardRasgosRaciales:'Rasgos raciales · Humano',cardRasgosClase:'Rasgos de Guerrero',cardTrasfondo:'Trasfondo',
     cardCAComp:'Componentes de CA',cardHP:'Puntos de Golpe',cardManiobras:'Maniobras',cardAptClase:'Aptitudes de clase',cardConjuros:'Conjuros',cardPeso:'Carga',
-    lblNombre:'Nombre',lblJugador:'Jugador',lblRaza:'Raza',lblDeidad:'Deidad',lblAlineamiento:'Alineamiento',lblEdad:'Edad',lblAltura:'Altura',lblPeso:'Peso',lblTamano:'Tamaño',lblAvance:'Avance',lblCatEdad:'Categoría de edad',lblGenero:'Género',lblPelo:'Color de pelo',lblOjos:'Color de ojos',
+    lblNombre:'Nombre',lblJugador:'Jugador',lblRaza:'Raza',lblDeidad:'Deidad',lblRegion:'Región',lblAlineamiento:'Alineamiento',lblEdad:'Edad',lblAltura:'Altura',lblPeso:'Peso',lblTamano:'Tamaño',lblAvance:'Avance',lblCatEdad:'Categoría de edad',lblGenero:'Género',lblPelo:'Color de pelo',lblOjos:'Color de ojos',
     lblHistoria:'Historia',lblRasgosPers:'Rasgos personalidad',lblIdeales:'Ideales / Vínculos / Defectos',
     lblCATotal:'CA Total',lblCAToque:'CA Toque',lblCADesp:'Desprev.',
     lblArmadura:'Armadura',lblEscudo:'Escudo',lblDestreza:'Destreza',lblTamanoCA:'Tamaño',lblNatural:'Natural',lblDesvio:'Desvío',lblEsquiva:'Esquiva',
@@ -58667,7 +58732,7 @@ const I18N = {
     subArmas:'Weapons',subArmadura:'Armor',subInventario:'Inventory',subPeso:'Weight',
     cardBasicos:'Basic info',cardFisico:'Physical',cardXP:'Experience',cardRasgosRaciales:'Racial traits · Human',cardRasgosClase:'Fighter features',cardTrasfondo:'Background',
     cardCAComp:'AC components',cardHP:'Hit Points',cardManiobras:'Maneuvers',cardAptClase:'Class features',cardConjuros:'Spells',cardPeso:'Load',
-    lblNombre:'Name',lblJugador:'Player',lblRaza:'Race',lblDeidad:'Deity',lblAlineamiento:'Alignment',lblEdad:'Age',lblAltura:'Height',lblPeso:'Weight',lblTamano:'Size',lblAvance:'Track',lblCatEdad:'Age category',lblGenero:'Gender',lblPelo:'Hair color',lblOjos:'Eye color',
+    lblNombre:'Name',lblJugador:'Player',lblRaza:'Race',lblDeidad:'Deity',lblRegion:'Region',lblAlineamiento:'Alignment',lblEdad:'Age',lblAltura:'Height',lblPeso:'Weight',lblTamano:'Size',lblAvance:'Track',lblCatEdad:'Age category',lblGenero:'Gender',lblPelo:'Hair color',lblOjos:'Eye color',
     lblHistoria:'Story',lblRasgosPers:'Personality traits',lblIdeales:'Ideals / Bonds / Flaws',
     lblCATotal:'AC Total',lblCAToque:'AC Touch',lblCADesp:'Flat-foot.',
     lblArmadura:'Armor',lblEscudo:'Shield',lblDestreza:'Dex',lblTamanoCA:'Size',lblNatural:'Natural',lblDesvio:'Deflect',lblEsquiva:'Dodge',
@@ -60454,7 +60519,10 @@ function rebuildClassAutoFeatures(){
   const A = {FUE:getAttrModD4('FUE'),DES:getAttrModD4('DES'),CON:getAttrModD4('CON'),
              INT:getAttrModD4('INT'),SAB:getAttrModD4('SAB'),CAR:getAttrModD4('CAR')};
   let nextId = 1000;
-  const seenNames = new Set(CLASS_FEATURES_DATA.map(f => (f.name||'').toLowerCase()));
+  /* 2026-05-11 (post-audit F1): dedup por CLASE+NOMBRE, no solo por nombre.
+     Antes "Reto" de Cavalier bloqueaba el "Reto" de Samurai (PF1e los acumula
+     o usa el mayor). Ahora cada clase puede tener su instancia. */
+  const seenKeys = new Set(CLASS_FEATURES_DATA.map(f => (f.source||'manual')+'::'+(f.name||'').toLowerCase()));
   let samuraiResolveMax = 0;
   all.forEach(cls => {
     const id = canonicalClassId(cls.name);
@@ -60462,13 +60530,14 @@ function rebuildClassAutoFeatures(){
     if(!gen) return;
     const feats = gen(cls.level||1, A) || [];
     feats.forEach(f=>{
-      const key = (f.name||'').toLowerCase();
-      if(seenNames.has(key)) return; /* dedup entre clases */
-      seenNames.add(key);
+      const key = id + '::' + (f.name||'').toLowerCase();
+      if(seenKeys.has(key)) return;
+      seenKeys.add(key);
       CLASS_FEATURES_DATA.push({
         id: nextId++, name:f.name, desc:f.desc,
         tracker: f.tracker!==false, max: f.max|0, curr: f.max|0,
-        reset: f.reset||'long', auto:true
+        reset: f.reset||'long', auto:true,
+        source: id /* clase origen para dedup futuro y labels */
       });
     });
     if(id==='samurai'){
@@ -60537,9 +60606,12 @@ function updateClassPickerVisibility(){
   try { _renderGrantedInfo(); } catch(_){}
 }
 
-/* FIX-APT-3: panel con conjuros/poderes/feats otorgados por la opción elegida.
-   PARCIAL: no inyecta en SPELLS_DATA/CLASS_FEATURES, sólo visualiza.
-   TODO: inyección automática como class-features/spells nativos. */
+/* FIX-APT-3 / #ANCHOR:GRANTS-INJECT-V1 — panel con conjuros/poderes/feats otorgados.
+   Visualización (_renderGrantedInfo) + inyección nativa (_applyGrantsForOption):
+   - powers/granted_powers → CLASS_FEATURES_DATA con source:'<kind>'.
+   - spells/granted_spells → SPELLS_DATA con granted:true (no borrables).
+   - bonus_feats/granted_feats/feats → FEATS con granted:true.
+   Las inyecciones se etiquetan con grantSource para poder limpiar al cambiar pick. */
 function _findDbEntryByName(dbObj, name){
   if(!dbObj || !name) return null;
   const norm = (s) => (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
@@ -60619,6 +60691,163 @@ function _renderGrantedInfo(){
     }
   }catch(e){ console.warn('granted info', e); }
   host.innerHTML = parts.filter(Boolean).join('');
+}
+
+/* #ANCHOR:GRANTS-INJECT-CORE-V1 — inyección nativa de granted features.
+   Diseño:
+   - Cada grant lleva grantSource = "<kind>:<name>" (ej. "domain:Fire").
+     Permite limpiar al cambiar la pick sin pisar entradas manuales.
+   - Powers   → CLASS_FEATURES_DATA (id auto, auto:true, source:<kind>).
+   - Spells   → SPELLS_DATA (granted:true, no borrables en CRUD).
+   - Feats    → FEATS (granted:true, marca visible).
+   - Si la estructura del DB no expone arrays claros, parseamos lo que haya
+     (string list, objeto con name/desc, etc.). TODO speculative: descripciones
+     en prosa no se parsean — sólo se inyectan entradas estructuradas. */
+function _grantedPickName(n){
+  if(!n) return '';
+  if(typeof n === 'string') return n;
+  const lang = (document && document.documentElement && document.documentElement.dataset.lang === 'en') ? 'en' : 'es';
+  return n[lang] || n.es || n.en || '';
+}
+function _clearGrantsBySource(sourceTag){
+  try{
+    if(typeof CLASS_FEATURES_DATA !== 'undefined' && Array.isArray(CLASS_FEATURES_DATA)){
+      for(let i=CLASS_FEATURES_DATA.length-1;i>=0;i--){
+        if(CLASS_FEATURES_DATA[i] && CLASS_FEATURES_DATA[i].grantSource === sourceTag){
+          CLASS_FEATURES_DATA.splice(i,1);
+        }
+      }
+    }
+    if(typeof SPELLS_DATA !== 'undefined' && Array.isArray(SPELLS_DATA)){
+      for(let i=SPELLS_DATA.length-1;i>=0;i--){
+        if(SPELLS_DATA[i] && SPELLS_DATA[i].grantSource === sourceTag){
+          SPELLS_DATA.splice(i,1);
+        }
+      }
+    }
+    if(typeof FEATS !== 'undefined' && Array.isArray(FEATS)){
+      for(let i=FEATS.length-1;i>=0;i--){
+        if(FEATS[i] && FEATS[i].grantSource === sourceTag){
+          FEATS.splice(i,1);
+        }
+      }
+    }
+  }catch(_){}
+}
+function _clearAllGrantsByKind(kind){
+  try{
+    const prefix = kind + ':';
+    [CLASS_FEATURES_DATA, SPELLS_DATA, FEATS].forEach(arr=>{
+      if(!Array.isArray(arr)) return;
+      for(let i=arr.length-1;i>=0;i--){
+        const t = arr[i] && arr[i].grantSource;
+        if(typeof t === 'string' && t.startsWith(prefix)) arr.splice(i,1);
+      }
+    });
+  }catch(_){}
+}
+function _injectGrantsFromEntry(entry, sourceTag, kind){
+  if(!entry || typeof entry !== 'object') return {powers:0, spells:0, feats:0};
+  let p=0, s=0, f=0;
+  try{
+    // Powers → CLASS_FEATURES_DATA
+    const powers = entry.powers || entry.granted_powers || [];
+    if(Array.isArray(powers) && typeof CLASS_FEATURES_DATA !== 'undefined'){
+      powers.forEach(pw=>{
+        const name = _grantedPickName(pw && pw.name) || (pw && pw.id) || '';
+        if(!name) return;
+        const desc = _grantedPickName(pw && (pw.desc||pw.description)) || '';
+        const newId = (CLASS_FEATURES_DATA[CLASS_FEATURES_DATA.length-1]?.id||0) + 1 + p;
+        CLASS_FEATURES_DATA.push({
+          id:newId, name:name+' ('+kind+')', desc, tracker:false, auto:true,
+          source:kind, grantSource:sourceTag,
+          lvlunlock: (pw && (pw.min_level||pw.level)) || 1
+        });
+        p++;
+      });
+    }
+    // Spells → SPELLS_DATA (granted:true)
+    const spells = entry.spells || entry.granted_spells || [];
+    if(Array.isArray(spells) && typeof SPELLS_DATA !== 'undefined'){
+      spells.forEach(sp=>{
+        let name='', lvl=null;
+        if(typeof sp === 'string'){ name = sp; }
+        else if(sp && typeof sp === 'object'){
+          name = _grantedPickName(sp.name) || sp.id || '';
+          lvl  = (sp.level!=null) ? +sp.level : (sp.min_level!=null?+sp.min_level:null);
+        }
+        if(!name) return;
+        SPELLS_DATA.push({
+          name, level:lvl, granted:true, source:kind, grantSource:sourceTag
+        });
+        s++;
+      });
+    }
+    // Feats → FEATS (granted:true)
+    const feats = entry.bonus_feats || entry.granted_feats || entry.feats || [];
+    if(Array.isArray(feats) && typeof FEATS !== 'undefined'){
+      feats.forEach(ft=>{
+        let n='', d='';
+        if(typeof ft === 'string'){ n = ft; }
+        else if(ft && typeof ft === 'object'){
+          n = _grantedPickName(ft.name) || ft.id || '';
+          d = _grantedPickName(ft.desc||ft.description) || '';
+        }
+        if(!n) return;
+        FEATS.push({n, t:'general', d, granted:true, source:kind, grantSource:sourceTag});
+        f++;
+      });
+    }
+  }catch(e){ console.warn('inject grants', e); }
+  return {powers:p, spells:s, feats:f};
+}
+function _refreshAfterGrants(){
+  try{ if(typeof renderClassFeatures==='function') renderClassFeatures(); }catch(_){}
+  try{ if(typeof renderFeatsCrud==='function') renderFeatsCrud(); }catch(_){}
+  try{ if(typeof renderSpells==='function') renderSpells(); }catch(_){}
+  try{ if(typeof rebuildSpellSystem==='function') rebuildSpellSystem(); }catch(_){}
+}
+function _applyDomainGrants(domainName, slot){
+  if(!domainName){ _clearGrantsBySource('domain:'+slot); _refreshAfterGrants(); return; }
+  _clearGrantsBySource('domain:'+slot);
+  const entry = _findDbEntryByName(DB?.domains, domainName);
+  _injectGrantsFromEntry(entry, 'domain:'+slot, 'domain');
+  _refreshAfterGrants();
+}
+function _applyBloodlineGrants(name){
+  _clearAllGrantsByKind('bloodline');
+  if(!name){ _refreshAfterGrants(); return; }
+  const entry = _findDbEntryByName(DB?.bloodlines, name);
+  _injectGrantsFromEntry(entry, 'bloodline:'+name, 'bloodline');
+  _refreshAfterGrants();
+}
+function _applyOrderGrants(name){
+  _clearAllGrantsByKind('order');
+  if(!name){ _refreshAfterGrants(); return; }
+  const entry = _findDbEntryByName(DB?.orders, name);
+  _injectGrantsFromEntry(entry, 'order:'+name, 'order');
+  _refreshAfterGrants();
+}
+function _applyMysteryGrants(name){
+  _clearAllGrantsByKind('mystery');
+  if(!name){ _refreshAfterGrants(); return; }
+  const entry = _findDbEntryByName(DB?.oracle_mysteries, name);
+  _injectGrantsFromEntry(entry, 'mystery:'+name, 'mystery');
+  _refreshAfterGrants();
+}
+function _applySchoolGrants(name){
+  _clearAllGrantsByKind('school');
+  if(!name){ _refreshAfterGrants(); return; }
+  const entry = _findDbEntryByName(DB?.arcane_schools, name);
+  _injectGrantsFromEntry(entry, 'school:'+name, 'school');
+  _refreshAfterGrants();
+}
+function _applyPatronGrants(name){
+  _clearAllGrantsByKind('patron');
+  if(!name){ _refreshAfterGrants(); return; }
+  const entry = _findDbEntryByName(DB?.witch_patrons, name);
+  _injectGrantsFromEntry(entry, 'patron:'+name, 'patron');
+  _refreshAfterGrants();
 }
 
 function renderSamuraiResolve(){
@@ -60710,13 +60939,14 @@ function injectPickerSheets(){
   const _domainData = _toBindData(DB?.domains, DOMAINS);
   const _mysteryData = _toBindData(DB?.oracle_mysteries, MYSTERIES);
   const _patronData = _toBindData(DB?.witch_patrons, PATRONS);
-  bindPicker('sheet-arcane-school', _schoolData, v=>{SCHOOL_PICK=v; if(typeof toast==='function') toast('Escuela: '+v);});
-  bindPicker('sheet-bloodline',     _bloodData,  v=>{BLOODLINE_PICK=v; if(typeof toast==='function') toast('Linaje: '+v);});
-  bindPicker('sheet-domain-1',      _domainData, v=>{DOMAIN_PICKS[0]=v; if(typeof toast==='function') toast('Dominio 1: '+v);});
-  bindPicker('sheet-domain-2',      _domainData, v=>{DOMAIN_PICKS[1]=v; if(typeof toast==='function') toast('Dominio 2: '+v);});
-  bindPicker('sheet-mystery',       _mysteryData,v=>{MYSTERY_PICK=v; if(typeof toast==='function') toast('Misterio: '+v);});
-  bindPicker('sheet-patron',        _patronData, v=>{PATRON_PICK=v; if(typeof toast==='function') toast('Patrón: '+v);});
-  bindPicker('sheet-order',         _orderData,  v=>{ORDER_PICK=v; if(typeof toast==='function') toast('Orden: '+v);});
+  /* #ANCHOR:GRANTS-INJECT-BIND-V1 — al elegir opción, inyectar grants nativos. */
+  bindPicker('sheet-arcane-school', _schoolData, v=>{SCHOOL_PICK=v; try{ _applySchoolGrants(v); }catch(_){}    if(typeof toast==='function') toast('Escuela: '+v);});
+  bindPicker('sheet-bloodline',     _bloodData,  v=>{BLOODLINE_PICK=v; try{ _applyBloodlineGrants(v); }catch(_){} if(typeof toast==='function') toast('Linaje: '+v);});
+  bindPicker('sheet-domain-1',      _domainData, v=>{DOMAIN_PICKS[0]=v; try{ _applyDomainGrants(v,0); }catch(_){} if(typeof toast==='function') toast('Dominio 1: '+v);});
+  bindPicker('sheet-domain-2',      _domainData, v=>{DOMAIN_PICKS[1]=v; try{ _applyDomainGrants(v,1); }catch(_){} if(typeof toast==='function') toast('Dominio 2: '+v);});
+  bindPicker('sheet-mystery',       _mysteryData,v=>{MYSTERY_PICK=v; try{ _applyMysteryGrants(v); }catch(_){}   if(typeof toast==='function') toast('Misterio: '+v);});
+  bindPicker('sheet-patron',        _patronData, v=>{PATRON_PICK=v; try{ _applyPatronGrants(v); }catch(_){}     if(typeof toast==='function') toast('Patrón: '+v);});
+  bindPicker('sheet-order',         _orderData,  v=>{ORDER_PICK=v; try{ _applyOrderGrants(v); }catch(_){}        if(typeof toast==='function') toast('Orden: '+v);});
 }
 
 document.addEventListener('attr-changed', ()=>{
@@ -60937,6 +61167,19 @@ function getClassPickerData() {
     .sort((a,b) => (a[1].name||a[0]).localeCompare(b[1].name||b[0]))
     .map(([k,c]) => [c.name||k, `d${c.hit_die||8} PG · BAB ${c.bab_progression||'?'} · ${c.skill_points||2} pts habilidad/niv`, k]);
 }
+/* #ANCHOR:UX-SPECIAL-V1 — clases híbridas PF1e (ACG). Usado por chip "Especial". 2026-05-11 */
+const HYBRID_CLASS_IDS = new Set([
+  'bloodrager','brawler','hunter','investigator','shaman','skald','slayer','swashbuckler','warpriest','arcanist'
+]);
+function isHybridClassKey(k){
+  if(!k) return false;
+  const key = String(k).toLowerCase();
+  /* Match directo */
+  if(HYBRID_CLASS_IDS.has(key)) return true;
+  /* Match a través de la DB si trae is_hybrid */
+  try{ if(DB.classes && DB.classes[k] && DB.classes[k].is_hybrid === true) return true; }catch(_){}
+  return false;
+}
 
 function getArchetypePickerData(classKey) {
   const entries = Object.entries(DB.archetypes || {}).filter(([k]) => k !== '_schema');
@@ -60962,6 +61205,31 @@ const _ARCH_SRC_MATCH = {
   'UW': /Ultimate Wilderness/i
 };
 
+/* #ANCHOR:ARCHETYPE-REPLACES-PARSER-V1 — heurística para detectar qué features
+   reemplaza un archetype, a partir de su description_es/description.
+   Patrones soportados:
+     - "Esta habilidad reemplaza X[,;.]"
+     - "This ability replaces X[,;.]"
+     - "Reemplaza X y Y[,;.]" / "Replaces X and Y[,;.]"
+   Limitaciones: no resuelve referencias indirectas (p.ej. "the class's special
+   ability gained at 3rd level"). Sólo extrae nombres literales cortos. */
+function _parseArchetypeReplaces(arch){
+  const desc = String((arch && (arch.description_es || arch.description)) || '');
+  const replaces = [];
+  if(!desc) return replaces;
+  const re = /(?:reemplaza|replaces?)\s+([^.,;]+?)(?=[.,;]|$)/gi;
+  let m;
+  while((m = re.exec(desc)) !== null){
+    let feat = m[1].trim().replace(/^(la |el |the |a |an )/i, '');
+    // Split por " y " / " and " si trae varios nombres encadenados
+    feat.split(/\s+(?:y|and)\s+/i).forEach(part=>{
+      const p = part.trim().replace(/^(la |el |the |a |an )/i, '');
+      if(p.length > 2 && p.length < 50) replaces.push(p);
+    });
+  }
+  return replaces;
+}
+
 function autoAddMobileClassFeatures(classKey, classNameEs, classNameEn, level, archetypeKey) {
   if (!DB.special_abilities || !DB.special_abilities.length) return;
 
@@ -60973,10 +61241,18 @@ function autoAddMobileClassFeatures(classKey, classNameEs, classNameEn, level, a
     (arch?.features_removed_es || []).forEach(n => removed.add(n.toLowerCase()));
     /* FIX-APT-8: soporte explícito a 'replaces' (array de strings) si el archetype lo define. */
     (arch?.replaces            || []).forEach(n => removed.add(String(n||'').toLowerCase()));
+    /* #ANCHOR:ARCHETYPE-REPLACES-PARSE-V1 — fallback: parsea descripción del archetype
+       buscando "reemplaza/replaces X" cuando arch.replaces no está definido. */
+    if(!arch?.replaces || !arch.replaces.length){
+      try{
+        _parseArchetypeReplaces(arch).forEach(n => removed.add(n.toLowerCase()));
+      }catch(_){}
+    }
   }
 
-  /* FIX-APT-8: elimina del array de class features mostradas las que el archetype reemplaza.
-     Solo si el archetype define explícitamente features_removed/replaces. NO parseamos descripciones. */
+  /* FIX-APT-8 / #ANCHOR:ARCHETYPE-REPLACES-V2 — elimina del array de class features
+     las que el archetype reemplaza. Combina features_removed/replaces explícitos
+     con el parsing fallback de descripciones (heurístico). */
   if (removed.size) {
     for (let i = CLASS_FEATURES_DATA.length - 1; i >= 0; i--) {
       const name = (CLASS_FEATURES_DATA[i].name || '').toLowerCase();
@@ -61172,8 +61448,13 @@ function renderClasses(){
         const q = _ccQuery.toLowerCase();
         const filtered = allData.filter(([n,d,k])=>{
           if(_ccFilter !== 'all'){
-            const cat = (DB.classes?.[k]?.category || 'base').toLowerCase();
-            if(cat !== _ccFilter) return false;
+            /* #ANCHOR:UX-SPECIAL-V1 — "special" filtra por clases híbridas (PF1e ACG). */
+            if(_ccFilter === 'special'){
+              if(!isHybridClassKey(k)) return false;
+            } else {
+              const cat = (DB.classes?.[k]?.category || 'base').toLowerCase();
+              if(cat !== _ccFilter) return false;
+            }
           }
           if(q && !(n+(d||'')).toLowerCase().includes(q)) return false;
           return true;
@@ -64070,8 +64351,13 @@ function bindNewSheets(){
       const q = _classQuery.toLowerCase();
       const filtered = allData.filter(([n,d,k])=>{
         if(_classCatFilter !== 'all'){
-          const cat = (DB.classes?.[k]?.category || 'base').toLowerCase();
-          if(cat !== _classCatFilter) return false;
+          /* #ANCHOR:UX-SPECIAL-V1 — "special" filtra por clases híbridas (PF1e ACG). */
+          if(_classCatFilter === 'special'){
+            if(!isHybridClassKey(k)) return false;
+          } else {
+            const cat = (DB.classes?.[k]?.category || 'base').toLowerCase();
+            if(cat !== _classCatFilter) return false;
+          }
         }
         if(q && !(n+(d||'')).toLowerCase().includes(q)) return false;
         return true;
@@ -64865,30 +65151,82 @@ function renderFeatsCrud(){
 
 /* ─── DAÑO / CURACIÓN ESPECÍFICA ─── */
 let DH_MODE='dmg';
-/* BUG-10: parser de RD/DR libre — extrae primer entero de campo #m-dr.
-   No detecta tipo de daño (contundente/magia/etc.), aplicacion lineal a daño
-   letal. Si el usuario necesita ignorar RD (p.ej. arma magica vs RD/magia)
-   debe desactivar temporalmente el campo. */
+/* BUG-10 / #ANCHOR:DR-PARSE-TYPED-V1 — parser de RD/DR tipado.
+   Formato: "5/cold iron", "10/magic", "5/—", o "5" suelto.
+   Devuelve {amount, bypass}. bypass='__all__' para RD x/— (aplica a todo). */
 function _parseDR(){
   try{
     const txt = (document.getElementById('m-dr')?.value || '').trim();
-    if(!txt || txt === '—' || txt === '-' || /^(no|none|sin)$/i.test(txt)) return 0;
-    const m = txt.match(/(\d+)/);
-    return m ? parseInt(m[1],10) : 0;
-  }catch(_){ return 0; }
+    if(!txt || txt === '—' || txt === '-' || /^(no|none|sin)$/i.test(txt)) return {amount:0, bypass:''};
+    const m = txt.match(/(\d+)\s*\/\s*(.+)?/);
+    if(!m){
+      const n = txt.match(/(\d+)/);
+      return n ? {amount: parseInt(n[1],10), bypass:''} : {amount:0, bypass:''};
+    }
+    const bypassRaw = (m[2]||'').trim().toLowerCase();
+    const bypass = (/^(?:—|-|none|sin|na|n\/a)$/i.test(bypassRaw)) ? '__all__' : bypassRaw;
+    return {amount: parseInt(m[1],10), bypass};
+  }catch(_){ return {amount:0, bypass:''}; }
 }
-function applyDH(amount){
+/* #ANCHOR:DR-BYPASS-MATCH-V1 — ¿el damageType atraviesa el bypass de la RD?
+   Sinónimos ES/EN para tipos comunes. */
+function _drIsBypassed(bypass, damageType){
+  if(!bypass) return false;
+  if(bypass === '__all__') return false;
+  if(!damageType) return false;
+  const dt = String(damageType).toLowerCase().trim();
+  if(!dt) return false;
+  const SYN = {
+    'cold iron':['cold iron','hierro frio','hierro frío'],
+    'silver':['silver','plata','plateado','silvered'],
+    'adamantine':['adamantine','adamantino'],
+    'magic':['magic','magico','mágico','magia','+1','+2','+3','+4','+5'],
+    'bludgeoning':['bludgeoning','contundente'],
+    'piercing':['piercing','perforante'],
+    'slashing':['slashing','cortante','tajante'],
+    'fire':['fire','fuego'],
+    'cold':['cold','frio','frío'],
+    'electricity':['electricity','electric','electrico','eléctrico','rayo'],
+    'acid':['acid','acido','ácido'],
+    'good':['good','bien','bueno'],
+    'evil':['evil','mal','malvado'],
+    'lawful':['lawful','legal','ley'],
+    'chaotic':['chaotic','caotico','caótico'],
+    'epic':['epic','epico','épico']
+  };
+  const bypassTokens = bypass.split(/\s+or\s+|\s+y\s+|\s+and\s+|,/).map(s=>s.trim()).filter(Boolean);
+  for(const tok of bypassTokens){
+    if(dt === tok || dt.includes(tok) || tok.includes(dt)) return true;
+    for(const key of Object.keys(SYN)){
+      const list = SYN[key];
+      const tokIsKey = (tok === key) || list.includes(tok);
+      const dtIsKey  = (dt === key)  || list.includes(dt);
+      if(tokIsKey && dtIsKey) return true;
+    }
+  }
+  return false;
+}
+function applyDH(amount, opts){
+  opts = opts || {};
   if(amount<=0) return;
   if(DH_MODE==='dmg'){
     /* C-01: Daño letal — primero consume PG temporales, luego PG actuales */
-    /* BUG-10: aplicar RD antes de cualquier ajuste (PF1e oficial: RD reduce
-       el daño recibido por golpe que no penetre el tipo). */
+    /* BUG-10 / DR-TYPED: aplicar RD antes de cualquier ajuste.
+       Si opts.damageType (o #hp-damage-type) bypassa la RD, no se resta. */
     const dr = _parseDR();
-    if(dr > 0){
+    let damageType = (opts.damageType || '').toString().trim().toLowerCase();
+    if(!damageType){
+      const sel = document.getElementById('hp-damage-type');
+      if(sel) damageType = (sel.value || '').trim().toLowerCase();
+    }
+    const bypassed = _drIsBypassed(dr.bypass, damageType);
+    if(dr.amount > 0 && !bypassed){
       const before = amount;
-      amount = Math.max(0, amount - dr);
-      try{ window.logAction && window.logAction('combate','RD aplicada', before+'→'+amount+' (RD '+dr+')'); }catch(_){}
+      amount = Math.max(0, amount - dr.amount);
+      try{ window.logAction && window.logAction('combate','RD aplicada', before+'→'+amount+' (RD '+dr.amount+(dr.bypass?'/'+dr.bypass:'')+(damageType?' · daño '+damageType:'')+')'); }catch(_){}
       if(amount === 0){ refreshHP(); return; }
+    } else if(dr.amount > 0 && bypassed){
+      try{ window.logAction && window.logAction('combate','RD bypass', damageType+' atraviesa RD '+dr.amount+'/'+dr.bypass); }catch(_){}
     }
     let dmg = amount;
     if(hpTemp > 0){
@@ -66585,10 +66923,12 @@ if(__raza){
       bar = document.createElement('div');
       bar.id = 'skill-filters';
       bar.className = 'skill-filters';
+      /* #ANCHOR:UX-SKFILTER-V2 — separa "rangos" (>0 rangos) de "entrenadas" (rango>0 O clase). 2026-05-11 */
       bar.innerHTML = `
         <button class="sk-chip active" data-sk-filter="todas">Todas</button>
         <button class="sk-chip" data-sk-filter="clase">De clase</button>
         <button class="sk-chip" data-sk-filter="rangos">Con rangos</button>
+        <button class="sk-chip" data-sk-filter="entrenadas">Entrenadas</button>
       `;
       sw.parentNode.insertBefore(bar, sw.nextSibling);
       bar.addEventListener('click',e=>{
@@ -66612,6 +66952,11 @@ if(__raza){
       if(!matchQuery(s, SKILL_QUERY)) return false;
       if(SKILL_FILTER==='clase' && !isClassSkill(s)) return false;
       if(SKILL_FILTER==='rangos' && !(ensureState(s.id).r>0)) return false;
+      /* #ANCHOR:UX-SKFILTER-V2 — entrenadas = rangos>0 O habilidad de clase. */
+      if(SKILL_FILTER==='entrenadas'){
+        const hasRanks = (ensureState(s.id).r>0);
+        if(!hasRanks && !isClassSkill(s)) return false;
+      }
       return true;
     });
     if(!items.length){
@@ -66626,6 +66971,7 @@ if(__raza){
       const total = calcSkillTotal(s);
       const warn = st.r > totalLevel;
       const noRanks = !!s.noRanks;
+      /* #ANCHOR:UX-T10T20-V1 — botón 📐 visible para Tomar 10/20 directo. 2026-05-11 */
       return `
         <div class="skill-row${cls?' is-class':''}${warn?' has-warn':''}" data-skid="${s.id}" tabindex="0" role="button" aria-label="Tirar ${s.n}">
           <div>
@@ -66633,6 +66979,7 @@ if(__raza){
             <span class="skill-attr">${s.a}</span>
           </div>
           ${cls?'<span class="chip-class">Clase</span>':'<span></span>'}
+          <button type="button" class="skill-take-btn" data-skill-take="${s.id}" aria-label="Tomar 10 o 20 en ${s.n}" title="Tomar 10 / 20">📐</button>
           ${noRanks
             ? '<span class="skill-norank" title="No usa rangos">—</span>'
             : `<input class="skill-rank" type="number" inputmode="numeric" pattern="-?[0-9]*" min="0" max="${totalLevel}" value="${st.r}" aria-label="Rangos ${s.n}">`}
@@ -66653,11 +67000,23 @@ if(__raza){
       row.addEventListener('click', tapHandler);
       row.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' ') { e.preventDefault(); tapHandler(e); }});
       let pressTimer = null;
-      const startPress = ()=>{ pressTimer = setTimeout(()=>{ pressTimer=null; openSkillDetail(s); }, 500); };
+      const startPress = (ev)=>{
+        /* No iniciar long-press si el target es el botón de 📐 o input de rangos */
+        if(ev.target.closest('.skill-take-btn') || ev.target.closest('.skill-rank')) return;
+        pressTimer = setTimeout(()=>{ pressTimer=null; openSkillDetail(s); }, 500);
+      };
       const cancelPress = ()=>{ if(pressTimer){ clearTimeout(pressTimer); pressTimer=null; } };
       row.addEventListener('touchstart', startPress, {passive:true});
       row.addEventListener('mousedown', startPress);
       ['touchend','touchcancel','mouseup','mouseleave'].forEach(ev=>row.addEventListener(ev, cancelPress));
+      /* #ANCHOR:UX-T10T20-V1 — botón 📐 abre mini-menú con Tomar 10 / Tomar 20. */
+      const takeBtn = row.querySelector('.skill-take-btn');
+      if(takeBtn){
+        takeBtn.addEventListener('click', e=>{
+          e.stopPropagation();
+          openSkillTakePopover(s, takeBtn);
+        });
+      }
       const inp = row.querySelector('.skill-rank');
       if(inp){
         inp.addEventListener('click', e=>e.stopPropagation());
@@ -66763,6 +67122,46 @@ if(__raza){
     };
     if(typeof dlg.showModal==='function'){ try{ dlg.showModal(); }catch(_){ dlg.setAttribute('open',''); } }
     else dlg.setAttribute('open','');
+  }
+
+  /* #ANCHOR:UX-T10T20-V1 — popover ligero "Tomar 10 / Tomar 20" sin abrir el detail-sheet. */
+  function openSkillTakePopover(s, anchorBtn){
+    document.querySelectorAll('.skill-take-pop').forEach(p=>p.remove());
+    const total = calcSkillTotal(s);
+    const v10 = total + 10;
+    const v20 = total + 20;
+    const pop = document.createElement('div');
+    pop.className = 'skill-take-pop';
+    pop.setAttribute('role','menu');
+    pop.innerHTML = `
+      <button type="button" data-take="10" class="skill-take-pop-item">Tomar 10 → <b>${v10}</b></button>
+      <button type="button" data-take="20" class="skill-take-pop-item">Tomar 20 → <b>${v20}</b><span class="skill-take-pop-note">(toma 2 min)</span></button>
+    `;
+    document.body.appendChild(pop);
+    /* posición relativa al botón */
+    const r = anchorBtn.getBoundingClientRect();
+    const popW = 200;
+    const left = Math.max(8, Math.min(window.innerWidth - popW - 8, r.right - popW));
+    const top  = Math.min(window.innerHeight - 90, r.bottom + 6);
+    pop.style.left = left + 'px';
+    pop.style.top  = top  + 'px';
+    const close = ()=>{ pop.remove(); document.removeEventListener('click', onDoc, true); };
+    const onDoc = (e)=>{ if(!pop.contains(e.target) && e.target !== anchorBtn) close(); };
+    setTimeout(()=>document.addEventListener('click', onDoc, true), 0);
+    pop.querySelectorAll('[data-take]').forEach(b=>b.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const which = b.dataset.take;
+      if(which==='10'){
+        if(typeof window.toast==='function') window.toast('Tomar 10: '+v10+' · '+s.n);
+        if(typeof window.pushHistory==='function') window.pushHistory({total:v10, die:'T10', label:s.n+' · Tomar 10'});
+        try{ window.logAction && window.logAction('aptitud','tomar 10', s.n+' = '+v10); }catch(_){}
+      } else {
+        if(typeof window.toast==='function') window.toast('Tomar 20: '+v20+' · '+s.n+' (2 min)');
+        if(typeof window.pushHistory==='function') window.pushHistory({total:v20, die:'T20', label:s.n+' · Tomar 20'});
+        try{ window.logAction && window.logAction('aptitud','tomar 20', s.n+' = '+v20); }catch(_){}
+      }
+      close();
+    }));
   }
 
   function ensureCustomSheet(){
@@ -66936,6 +67335,21 @@ if(__raza){
   .skill-detail-mods .mod-row{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:var(--surface-2);border-radius:6px}
   .d3-cs-attrs{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
   .d3-cs-check{display:flex;gap:8px;align-items:center;margin-top:8px;font:14px/1.2 system-ui;color:var(--ink)}
+  /* #ANCHOR:UX-T10T20-V1 — popover Tomar 10/20 */
+  .skill-take-pop{
+    position:fixed;z-index:10001;min-width:200px;
+    background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    box-shadow:0 8px 24px rgba(0,0,0,.32);padding:6px;
+    display:flex;flex-direction:column;gap:4px;
+  }
+  .skill-take-pop-item{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    background:transparent;border:none;color:var(--ink);
+    font:13px/1.2 system-ui;text-align:left;padding:10px 10px;border-radius:6px;cursor:pointer;
+  }
+  .skill-take-pop-item:hover,.skill-take-pop-item:active{background:var(--surface-2)}
+  .skill-take-pop-item b{color:var(--accent);font:700 14px system-ui}
+  .skill-take-pop-note{font:10px/1 system-ui;color:var(--ink-muted);margin-left:6px}
   `;
   const st = document.createElement('style');
   st.id = 'd3-skills-css';
@@ -67069,10 +67483,23 @@ function D5_getCombatTacticals(w, isMelee, isRanged, isOffhand, is2H){
     chargeAtk = 2;
     chargeDodge = -2;
   }
+  /* #ANCHOR:COMBAT-EXPERTISE-TACTICAL-V1 — Pericia de combate.
+     PF1e: −tier atq, +tier CA dodge. tier = clamp(1, BAB/4 + 1, 5).
+     Solo aplica si el PJ tiene la dote (_hasCombatExpertise()) y el checkbox está activo. */
+  let ceAtk = 0, ceDodge = 0;
+  try{
+    const ceEl = document.getElementById('combat-expertise');
+    if(ceEl && ceEl.checked && (typeof _hasCombatExpertise !== 'function' || _hasCombatExpertise())){
+      const rawBab = (typeof D5_getRawBAB === 'function') ? D5_getRawBAB() : 0;
+      const tier = Math.max(1, Math.min(5, Math.floor((rawBab||0)/4) + 1));
+      ceAtk = -tier;
+      ceDodge = tier;
+    }
+  }catch(_){}
   return {
-    paAtk: paAtk + flankBonus + fdAtk + chargeAtk,
+    paAtk: paAtk + flankBonus + fdAtk + chargeAtk + ceAtk,
     paDmg, twfPenalty, twfMode, brokenAtk, brokenDmg, condAtk, pronePenalty,
-    acDodge: fdDodge + chargeDodge
+    acDodge: fdDodge + chargeDodge + ceDodge
   };
 }
 
@@ -67225,17 +67652,56 @@ function _weaponFocusBonus(weaponName){
   }catch(_){ return 0; }
 }
 
-/* FIX-APT-5: Combat Expertise — detección, NO aplicación (no hay toggle UI aún).
-   TODO: añadir checkbox #combat-expertise (scope Combate) y, si está activo,
-   aplicar -1 atk / +1 CA dodge por cada 4 BAB hasta tope = 1 + BAB/4. */
+/* FIX-APT-5 / #ANCHOR:COMBAT-EXPERTISE-FEAT-DETECT-V1 — Pericia de combate.
+   Detecta dote en FEATS y, si está, habilita el checkbox #combat-expertise.
+   Aplicación: D5_getCombatTacticals (atk + acDodge), calcAC y calcCMBCMD. */
 function _hasCombatExpertise(){
   try{
-    return (window.FEATS || []).some(f => {
+    const list = (typeof FEATS !== 'undefined' && Array.isArray(FEATS)) ? FEATS : (window.FEATS || []);
+    return list.some(f => {
       const fn = (f && f.n || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-      return fn.includes('combat expertise') || fn.includes('pericia de combate') || fn.includes('pericia en combate');
+      if(/pericia\s+de\s+combate|combat\s+expertise/i.test(fn)) return true;
+      // tolerancia: variante "pericia en combate"
+      return fn.includes('pericia en combate');
     });
   }catch(_){ return false; }
 }
+/* #ANCHOR:COMBAT-EXPERTISE-WIRE-V1 — sincroniza estado del checkbox UI con la dote.
+   Si no tiene la dote, deshabilita y desmarca. Tooltip explicativo. */
+function _syncCombatExpertiseUI(){
+  try{
+    const cb = document.getElementById('combat-expertise');
+    if(!cb) return;
+    const lbl = document.getElementById('combat-expertise-label');
+    const has = _hasCombatExpertise();
+    if(has){
+      cb.disabled = false;
+      if(lbl) lbl.title = 'Pericia de combate: −tier atq / +tier CA dodge (tier = 1 + ⌊BAB/4⌋, máx 5)';
+    } else {
+      cb.disabled = true;
+      cb.checked = false;
+      if(lbl) lbl.title = 'Requiere dote Combat Expertise';
+    }
+  }catch(_){}
+}
+try{
+  document.addEventListener('DOMContentLoaded', _syncCombatExpertiseUI);
+  document.addEventListener('feats-changed', _syncCombatExpertiseUI);
+  // Re-sync tras importar/cargar estado
+  document.addEventListener('state-loaded', _syncCombatExpertiseUI);
+  // Refresco al togglear: dispara recalc igual que el resto de tácticas
+  setTimeout(()=>{
+    const cb = document.getElementById('combat-expertise');
+    if(cb && !cb.__wired){
+      cb.__wired = true;
+      cb.addEventListener('change', ()=>{
+        try{ if(typeof CombatEngine !== 'undefined' && CombatEngine.apply) CombatEngine.apply(); }catch(_){}
+        try{ if(typeof D5_refreshWeaponRolls === 'function') D5_refreshWeaponRolls(); }catch(_){}
+      });
+    }
+    _syncCombatExpertiseUI();
+  }, 300);
+}catch(_){}
 
 /* #ANCHOR:D5-WEAP-ATK-V2 — añade masterwork +1 atk y armas naturales. 2026-05-11 */
 function D5_computeWeaponAttack(w){
@@ -68038,6 +68504,13 @@ const CombatEngine = (function(){
       if(document.getElementById('combat-fight-defensively')?.checked) tacticalDodge += 2;
       if(document.getElementById('combat-total-defense')?.checked)     tacticalDodge += 4;
       if(document.getElementById('combat-charging')?.checked)          tacticalDodge -= 2;
+      /* #ANCHOR:COMBAT-EXPERTISE-CALC-AC-V1 — Pericia de combate +tier CA dodge */
+      const ceEl = document.getElementById('combat-expertise');
+      if(ceEl && ceEl.checked && (typeof _hasCombatExpertise !== 'function' || _hasCombatExpertise())){
+        const rawBab = (typeof D5_getRawBAB === 'function') ? D5_getRawBAB() : 0;
+        const tier = Math.max(1, Math.min(5, Math.floor((rawBab||0)/4) + 1));
+        tacticalDodge += tier;
+      }
     }catch(_){}
     const dodge   = readCARow('dodge') + featDodge + tacticalDodge;
     let effDex = dex;
@@ -68081,6 +68554,13 @@ const CombatEngine = (function(){
       if(document.getElementById('combat-fight-defensively')?.checked) tacticalDodge += 2;
       if(document.getElementById('combat-total-defense')?.checked)     tacticalDodge += 4;
       if(document.getElementById('combat-charging')?.checked)          tacticalDodge -= 2;
+      /* #ANCHOR:COMBAT-EXPERTISE-CALC-CMD-V1 — Pericia de combate +tier CA dodge */
+      const ceEl = document.getElementById('combat-expertise');
+      if(ceEl && ceEl.checked && (typeof _hasCombatExpertise !== 'function' || _hasCombatExpertise())){
+        const rawBab = (typeof D5_getRawBAB === 'function') ? D5_getRawBAB() : 0;
+        const tier = Math.max(1, Math.min(5, Math.floor((rawBab||0)/4) + 1));
+        tacticalDodge += tier;
+      }
     }catch(_){}
     const dodge   = readCARow('dodge') + tacticalDodge;
     const effDodge = (cond.flatFooted || cond.helpless || cond.pinned) ? 0 : dodge;
@@ -68314,10 +68794,14 @@ const SAVE_DEBOUNCE_MS = 800;
 function blankState(){
   return {
     v: STATE_VERSION,
-    identity: {nombre:'', jugador:'', raza:'Humano', clase:'Guerrero', nivel:3, deidad:'', alineamiento:'NN', edad:'', altura:'', peso:'', tamano:'Mediano', historia:'', personalidad:'', ideales:''},
+    identity: {nombre:'', jugador:'', raza:'Humano', clase:'Guerrero', nivel:3, deidad:'', alineamiento:'NN', edad:'', altura:'', peso:'', tamano:'Mediano', historia:'', personalidad:'', ideales:'', genero:'', pelo:'', ojos:'', region:''},
     attrs: {}, classes: [], skills: {}, feats: [],
     weapons: [], armor: [], items: [], conds: [], buffs: [], adjusts: [],
     fcb: [],
+    /* 2026-05-11 (post-audit F2): aumentos atributo PJ (lv 4/8/12/16/20) */
+    pendingStatBumps: 0,
+    statBumps: { str:0, dex:0, con:0, int:0, wis:0, cha:0 },
+    _lastBumpLevel: 0,
     notes: '', photo: null,
     settings: { fontSize:'normal', daltonico:false },
     theme: null, lang: null, extra: {}
@@ -69951,6 +70435,12 @@ function _applyAttrMethod(method){
   } else if(method === 'pb15' || method === 'pb20' || method === 'pb25'){
     /* Point-buy: empezar todos a 10, el usuario reparte después */
     values = [10,10,10,10,10,10];
+  } else if(method === 'heroic'){
+    /* #ANCHOR:UX-ATTRMETHOD-V2 — Heroico (high-fantasy preset): 15,14,13,12,10,8 → FUE/DES/CON/INT/SAB/CAR. */
+    values = [15,14,13,12,10,8];
+  } else if(method === 'statarray'){
+    /* #ANCHOR:UX-ATTRMETHOD-V2 — Stat Array (heroic+1 alto): 17,15,13,12,10,8. */
+    values = [17,15,13,12,10,8];
   } else if(method === 'roll'){
     values = ATTR_LIST.map(()=>{
       const dice = [Math.floor(Math.random()*6)+1, Math.floor(Math.random()*6)+1, Math.floor(Math.random()*6)+1, Math.floor(Math.random()*6)+1];
@@ -69989,7 +70479,7 @@ function _applyAttrMethod(method){
 function wireAttrGenerator(){
   document.querySelectorAll('.attr-gen-btn').forEach(b=>b.addEventListener('click', async ()=>{
     const m = b.dataset.gen;
-    const labels = {custom:'Personalizado', standard:'Personalizado', pb15:'Point-Buy 15', pb20:'Point-Buy 20', pb25:'Point-Buy 25', roll:'4d6 drop lowest'};
+    const labels = {custom:'Personalizado', standard:'Personalizado', pb15:'Point-Buy 15', pb20:'Point-Buy 20', pb25:'Point-Buy 25', heroic:'Heroico', statarray:'Stat Array', roll:'4d6 drop lowest'};
     const ok = await appConfirm(`Esto sobrescribirá los valores Base de los 6 atributos con el método elegido. ¿Aplicar?`, {title:labels[m] || 'Generar atributos', okText:'Aplicar', cancelText:'Cancelar'});
     if(!ok) return;
     const values = _applyAttrMethod(m);
@@ -70893,6 +71383,17 @@ function nextRoundDecrement(){
   /* BUG-6 fix: INIT_ROUND++ eliminado aqui — duplicaba con initNext (L63948)
      que ya incrementa al wrappear el ciclo de combatientes. Fuente canonica
      unica = initNext. nextRoundDecrement solo decrementa buffs y aplica ticks. */
+  /* #ANCHOR:NEXT-ROUND-FALLBACK-V1 — si no hay init tracker activo, este botón
+     es la única fuente que avanza el asalto. Incrementamos INIT_ROUND para que
+     el contador de Resumen siga subiendo aunque no haya combatientes. */
+  try{
+    if(typeof INIT_LIST !== 'undefined' && (!INIT_LIST || INIT_LIST.length === 0)){
+      INIT_ROUND = ((typeof INIT_ROUND==='number'?INIT_ROUND:1) | 0) + 1;
+      const r = document.getElementById('init-round');
+      if(r) r.textContent = 'Asalto '+INIT_ROUND;
+      try{ window.logAction && window.logAction('combate','siguiente asalto (sin tracker)', INIT_ROUND); }catch(_){}
+    }
+  }catch(_){}
   _refreshRoundLabels();
 }
 /* UX-L09 Fase L: refrescar etiqueta de asalto en summary card y card init read-only. */

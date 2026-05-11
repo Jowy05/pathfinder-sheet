@@ -78,6 +78,9 @@ const Icon = ({ name, size = 22, ...rest }) => {
       return <svg {...common}><path d="M12 3 4 21h16Z"/></svg>;
     case "line":
       return <svg {...common}><path d="M4 20 20 4"/></svg>;
+    /* #ANCHOR:MST-SQUARE-V1 — icono cuadrado para plantilla burst PF1e. 2026-05-11 */
+    case "square":
+      return <svg {...common}><rect x="4" y="4" width="16" height="16"/></svg>;
     case "fog":
       return <svg {...common}><path d="M3 10h18"/><path d="M5 14h14"/><path d="M7 18h10"/><path d="M5 6h12"/></svg>;
     case "image":

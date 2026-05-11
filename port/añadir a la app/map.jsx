@@ -529,6 +529,19 @@ function MstMap({
                   />
                 );
               }
+              /* #ANCHOR:MST-SQUARE-V1 — kind 'square' (PF1e burst): NxN centrado. 2026-05-11 */
+              if (tpl.kind === 'square') {
+                const half = radiusPx;
+                return (
+                  <rect key={tpl.id} className={cls}
+                    x={tpl.x - half} y={tpl.y - half}
+                    width={half*2} height={half*2}
+                    fill={fill} stroke={stroke} strokeWidth="2.4" strokeDasharray="8 5"
+                    style={{ pointerEvents:'auto', cursor:'pointer' }}
+                    onClick={onClick}
+                  />
+                );
+              }
               // Render por celdas (PF1e exact) si tpl.snap está activo
               if (tpl.snap && (tpl.kind === 'cone' || tpl.kind === 'line')) {
                 const cells = tpl.kind === 'cone'
@@ -651,6 +664,8 @@ function MstMap({
         })}
 
         {/* Overlay de medición */}
+        {/* #ANCHOR:MST-MEASURE-MULTI-V1 — soporta hasta 8 puntos. Suma de tramos
+            como total acumulado mostrado en el último punto. 2026-05-11 */}
         {measureMode && Array.isArray(measurePts) && measurePts.length > 0 && (
           <svg
             className="mst-measure-overlay"
@@ -663,26 +678,46 @@ function MstMap({
               <circle key={'mp-' + i} cx={p.x} cy={p.y} r={6}
                 fill="var(--gold)" stroke="white" strokeWidth="2"/>
             ))}
-            {measurePts.length === 2 && (() => {
-              const [a, b] = measurePts;
-              const d = computeDistance ? computeDistance(a, b) : null;
-              const mx = (a.x + b.x) / 2;
-              const my = (a.y + b.y) / 2;
+            {measurePts.length >= 2 && (() => {
+              const segs = [];
+              let totalFt = 0;
+              for (let i = 1; i < measurePts.length; i++) {
+                const a = measurePts[i-1], b = measurePts[i];
+                const d = computeDistance ? computeDistance(a, b) : null;
+                const ft = d && d.ft != null ? d.ft : 0;
+                totalFt += ft;
+                segs.push({ a, b, ft });
+              }
+              const last = measurePts[measurePts.length - 1];
               return (
                 <g>
-                  <line x1={a.x} y1={a.y} x2={b.x} y2={b.y}
-                    stroke="var(--gold)" strokeWidth="3" strokeDasharray="6 4"/>
-                  {d && (
-                    <g>
-                      <rect x={mx - 38} y={my - 14} width="76" height="28" rx="6"
-                        fill="rgba(0,0,0,.78)" stroke="var(--gold)" strokeWidth="1.2"/>
-                      <text x={mx} y={my + 5} textAnchor="middle"
-                        fill="white" fontSize="14" fontWeight="700"
-                        style={{ fontFamily: 'Cinzel, Georgia, serif' }}>
-                        {d.ft} ft
-                      </text>
-                    </g>
-                  )}
+                  {segs.map((s, i) => {
+                    const mx = (s.a.x + s.b.x) / 2;
+                    const my = (s.a.y + s.b.y) / 2;
+                    return (
+                      <g key={'seg-' + i}>
+                        <line x1={s.a.x} y1={s.a.y} x2={s.b.x} y2={s.b.y}
+                          stroke="var(--gold)" strokeWidth="3" strokeDasharray="6 4"/>
+                        <rect x={mx - 26} y={my - 11} width="52" height="22" rx="5"
+                          fill="rgba(0,0,0,.72)" stroke="var(--gold)" strokeWidth="1"/>
+                        <text x={mx} y={my + 5} textAnchor="middle"
+                          fill="white" fontSize="11" fontWeight="700"
+                          style={{ fontFamily: 'Cinzel, Georgia, serif' }}>
+                          {s.ft} ft
+                        </text>
+                      </g>
+                    );
+                  })}
+                  {/* Total acumulado al lado del último punto */}
+                  <g>
+                    <rect x={last.x + 10} y={last.y - 16} width="86" height="32" rx="7"
+                      fill="rgba(0,0,0,.85)" stroke="var(--gold)" strokeWidth="1.4"/>
+                    <text x={last.x + 53} y={last.y + 5} textAnchor="middle"
+                      fill="white" fontSize="14" fontWeight="800"
+                      style={{ fontFamily: 'Cinzel, Georgia, serif' }}>
+                      Σ {totalFt} ft
+                    </text>
+                  </g>
                 </g>
               );
             })()}
