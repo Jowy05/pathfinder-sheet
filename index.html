@@ -5803,7 +5803,15 @@ function calcMultiCasterSpells(mods) {
   const rows = _mcCasterClassRows();
   // R-23 · Bumps de prestige por clase target
   let prestigeBumps = {};
-  try { prestigeBumps = calcPrestigeCasterBumps(); } catch(_) {}
+  try { prestigeBumps = calcPrestigeCasterBumps(); } catch(e) {
+    try {
+      if (typeof window !== 'undefined' && window.logAction) {
+        window.logAction('error', 'calcPrestigeCasterBumps (calcMultiCasterSpells)', e && e.message || String(e));
+      } else {
+        console.warn('calcPrestigeCasterBumps (calcMultiCasterSpells)', e);
+      }
+    } catch(_){}
+  }
   rows.forEach(({classKey, level}) => {
     const attrSel = document.getElementById(`mc-attr-${classKey}`);
     const attr    = attrSel?.value || CLASS_CAST_ATTR[classKey] || 'int';
@@ -7280,7 +7288,15 @@ function autoFillSpellSlots() {
   try {
     const bumps = calcPrestigeCasterBumps();
     if(bumps[bestClass]) effectiveLevel += bumps[bestClass].clBump;
-  } catch(_) {}
+  } catch(e) {
+    try {
+      if (typeof window !== 'undefined' && window.logAction) {
+        window.logAction('error', 'calcPrestigeCasterBumps (autoFillSpellSlots best class)', e && e.message || String(e));
+      } else {
+        console.warn('calcPrestigeCasterBumps (autoFillSpellSlots best class)', e);
+      }
+    } catch(_){}
+  }
   const table = DB.classes[bestClass].spells_per_day;
   const row = table[Math.min(effectiveLevel, 20) - 1];
   if(!row) return;
@@ -7352,7 +7368,15 @@ function calcSpells(mods) {
         }
       }
     }
-  } catch(_) {}
+  } catch(e) {
+    try {
+      if (typeof window !== 'undefined' && window.logAction) {
+        window.logAction('error', 'calcPrestigeCasterBumps (calcSpells global CL bump)', e && e.message || String(e));
+      } else {
+        console.warn('calcPrestigeCasterBumps (calcSpells global CL bump)', e);
+      }
+    } catch(_){}
+  }
   // Render hint UI cerca del input cast-level.
   _renderGlobalCasterBumpHint(_globalBumpInfo);
 
@@ -12371,7 +12395,16 @@ function importData(event) {
         const raw = data['__weaknesses'] || (hid ? hid.value : '[]');
         const parsed = JSON.parse(raw);
         _weaknesses = Array.isArray(parsed) ? parsed : [];
-      } catch(e) { _weaknesses = []; }
+      } catch(e) {
+        _weaknesses = [];
+        try {
+          if (typeof window !== 'undefined' && window.logAction) {
+            window.logAction('error', 'parse __weaknesses (importState)', e && e.message || String(e));
+          } else {
+            console.warn('parse __weaknesses (importState)', e);
+          }
+        } catch(_){}
+      }
       try { renderWeaknesses(); } catch(e) {}
 
       // P-3 Conditions Timer: structured block overrides per-id values
@@ -12509,7 +12542,15 @@ function importData(event) {
         try {
           const arr = JSON.parse(data['__dismissed_features']);
           if (Array.isArray(arr)) { _autoFeaturesDismissed.clear(); arr.forEach(k => _autoFeaturesDismissed.add(k)); }
-        } catch(e) {}
+        } catch(e) {
+          try {
+            if (typeof window !== 'undefined' && window.logAction) {
+              window.logAction('error', 'parse __dismissed_features (importState)', e && e.message || String(e));
+            } else {
+              console.warn('parse __dismissed_features (importState)', e);
+            }
+          } catch(_){}
+        }
       }
 
       // Restore eidolon selected evolutions
@@ -12520,7 +12561,15 @@ function importData(event) {
             _eidolonSelectedEvos.clear();
             arr.forEach(uid => _eidolonSelectedEvos.add(uid));
           }
-        } catch(e) {}
+        } catch(e) {
+          try {
+            if (typeof window !== 'undefined' && window.logAction) {
+              window.logAction('error', 'parse __eid_evolutions (importState)', e && e.message || String(e));
+            } else {
+              console.warn('parse __eid_evolutions (importState)', e);
+            }
+          } catch(_){}
+        }
       }
       // R-24 · Broodmaster: restaurar ambos eidolones. Si existe payload,
       // sobrescribe el panel con el eidolón activo guardado; si no existe,
@@ -12530,7 +12579,15 @@ function importData(event) {
         try {
           const payload = JSON.parse(data['__brood_state']);
           if (typeof _broodRestore === 'function') _broodRestore(payload);
-        } catch(e) {}
+        } catch(e) {
+          try {
+            if (typeof window !== 'undefined' && window.logAction) {
+              window.logAction('error', 'parse __brood_state (importState)', e && e.message || String(e));
+            } else {
+              console.warn('parse __brood_state (importState)', e);
+            }
+          } catch(_){}
+        }
       }
       try { updateEidolonVisibility(); recalcEidolon(); renderEidolonSelectedEvos(); } catch(e) {}
 

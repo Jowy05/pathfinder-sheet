@@ -66623,7 +66623,15 @@ function bindFormSheets(){
     try{ window.logAction && window.logAction('conjuro','descanso 8h: slots restaurados'); }catch(_){}
     renderSlots(); renderSpells();
     /* FIX-APT-1: dispara rest-long para que class-features auto (rage/ki/smite/etc.) se reseteen */
-    try { document.dispatchEvent(new CustomEvent('rest-long', {detail:{quality:'normal'}})); } catch(_){}
+    try { document.dispatchEvent(new CustomEvent('rest-long', {detail:{quality:'normal'}})); } catch(e) {
+      try {
+        if (typeof window !== 'undefined' && window.logAction) {
+          window.logAction('error', 'rest-long dispatch (rest-8h click)', e && e.message || String(e));
+        } else {
+          console.warn('rest-long dispatch (rest-8h click)', e);
+        }
+      } catch(_){}
+    }
     toast('8h descansadas. Slots restaurados.');
   });
   // Spell filter
@@ -69130,7 +69138,15 @@ const CombatEngine = (function(){
         const fromCon  = con * lvl;
         total += Math.max(lvl, Math.round(fromDice + fromCon));
       });
-    }catch(e){}
+    }catch(e){
+      try {
+        if (typeof window !== 'undefined' && window.logAction) {
+          window.logAction('error', 'calcHPMax forEach clase', e && e.message || String(e));
+        } else {
+          console.warn('calcHPMax forEach clase', e);
+        }
+      } catch(_){}
+    }
     const buff = parseInt((document.getElementById('pg-buff')||{}).value,10)||0;
     const miscPerLvl = parseInt((document.getElementById('pg-misc-lvl')||{}).value,10)||0;
     /* 2026-05-08: dote Dureza (Toughness) — +3 PG en nv1-3, +1 PG por DV
@@ -69155,7 +69171,15 @@ const CombatEngine = (function(){
         if(gestalt){ if(b > bab) bab = b; }
         else bab += b;
       });
-    }catch(e){}
+    }catch(e){
+      try {
+        if (typeof window !== 'undefined' && window.logAction) {
+          window.logAction('error', 'calcBAB forEach clase', e && e.message || String(e));
+        } else {
+          console.warn('calcBAB forEach clase', e);
+        }
+      } catch(_){}
+    }
     return bab + (_BUFF_MOD_TOTALS.atk||0);
   }
 
@@ -69178,7 +69202,15 @@ const CombatEngine = (function(){
           f += fc; r += rc; w += wc;
         }
       });
-    }catch(e){}
+    }catch(e){
+      try {
+        if (typeof window !== 'undefined' && window.logAction) {
+          window.logAction('error', 'calcSaves forEach clase', e && e.message || String(e));
+        } else {
+          console.warn('calcSaves forEach clase', e);
+        }
+      } catch(_){}
+    }
     /* 2026-05-07: aplicar bonos de dotes mecánicas comunes a saves.
        Gran fortaleza +2 fort, Reflejos felinos +2 ref, Voluntad de hierro +2 will.
        Versiones mejoradas (Improved) acumulan +2 más (en PF1e dan re-roll, simplificado). */
@@ -69383,7 +69415,15 @@ const CombatEngine = (function(){
       }catch(_){}
       setAuto('Muriendo', dying);
       setAuto('Inconsciente', unconscious || (knockedNonlethal && !(typeof _MYTHIC_STATE!=='undefined' && _MYTHIC_STATE.active && /hard[-\s]?to[-\s]?kill/i.test(String(_MYTHIC_STATE.feats||'')))));
-    }catch(e){}
+    }catch(e){
+      try {
+        if (typeof window !== 'undefined' && window.logAction) {
+          window.logAction('error', 'calcConditionsAuto', e && e.message || String(e));
+        } else {
+          console.warn('calcConditionsAuto', e);
+        }
+      } catch(_){}
+    }
   }
 
   function emit(field, value){
@@ -70070,7 +70110,15 @@ function applyState(state){
       }
     }catch(e){ console.warn('applyState weaknesses', e); }
     /* CombatEngine recalc tras cargar inputs */
-    try{ if(typeof CombatEngine !== 'undefined' && CombatEngine.apply) CombatEngine.apply(); }catch(e){}
+    try{ if(typeof CombatEngine !== 'undefined' && CombatEngine.apply) CombatEngine.apply(); }catch(e){
+      try {
+        if (typeof window !== 'undefined' && window.logAction) {
+          window.logAction('error', 'applyState→CombatEngine.apply', e && e.message || String(e));
+        } else {
+          console.warn('applyState→CombatEngine.apply', e);
+        }
+      } catch(_){}
+    }
     /* Subtabs activas (diferido para que el render exista) */
     if(state.activeSubtabs){
       setTimeout(()=>{
