@@ -242,6 +242,13 @@
     inp.value = String(next);
     inp.dispatchEvent(new Event('input', {bubbles:true}));
     inp.dispatchEvent(new Event('change', {bubbles:true}));
+    /* P4-LOG-HPQUICK-V1 */
+    try {
+      if(window.logAction){
+        const sgn = delta>=0 ? '+' : '';
+        window.logAction('combate', (delta>=0?'curación':'daño'), sgn+delta+' PG · '+cur+'→'+next+(max?(' / '+max):''));
+      }
+    } catch(_){}
   });
   </script>
   <!-- P-45 fix: botones de descanso accesibles desde el panel principal,
@@ -904,6 +911,8 @@
       const critFlag = d20===20 ? ' 🎯' : (d20===1 ? ' ☠️' : '');
       out.textContent = `🎲 ${lab}: 1d20(${d20}) ${sign}${bonus} = ${total}${critFlag}`;
     }
+    /* P4-LOG-SAVE-V1 */
+    try { window.logAction && window.logAction('combate','tirada salvación', lab+' d20('+d20+')'+sign+bonus+'='+total); } catch(_){}
   }
   window.rollSave = rollSave;
   </script>
@@ -2966,6 +2975,8 @@ function applyI18n(root) {
 }
 function setLanguage(lang) {
   LANG = (lang === 'en') ? 'en' : 'es';
+  /* P4-LOG-LANG-V1 */
+  try { window.logAction && window.logAction('ui','idioma', LANG); } catch(_){}
   try { localStorage.setItem('pf1e-lang', LANG); } catch(e) {}
   const badge = document.getElementById('lang-current');
   if (badge) badge.textContent = LANG.toUpperCase();
@@ -3346,6 +3357,8 @@ async function checkDispel() {
   const roll = d20 + myCL;
   const key = roll >= dc ? 'm.dispelPass' : 'm.dispelFail';
   toast(t(key, { roll, d20, cl: myCL, target: targetCL, dc }));
+  /* P4-LOG-DISPEL-V1 */
+  try { window.logAction && window.logAction('conjuro','disipar magia', 'd20('+d20+')+CL('+myCL+')='+roll+' vs CD '+dc+' → '+(roll>=dc?'éxito':'falla')); } catch(_){}
 }
 
 /* Check de Resistencia a la Magia (PF1e):
@@ -3362,6 +3375,8 @@ async function checkSpellResistance() {
   const roll = d20 + cl;
   const key = roll >= sr ? 'm.srResultPass' : 'm.srResultFail';
   toast(t(key, { roll, d20, cl, sr }));
+  /* P4-LOG-SRCHECK-V1 */
+  try { window.logAction && window.logAction('combate','check SR', 'd20('+d20+')+CL('+cl+')='+roll+' vs SR '+sr+' → '+(roll>=sr?'pasa':'bloquea')); } catch(_){}
 }
 
 /* Check de Concentración (PF1e):
@@ -3393,6 +3408,8 @@ async function checkConcentration() {
   const d20 = Math.floor(Math.random() * 20) + 1;
   const roll = d20 + cl + attrMod;
   const key = roll >= dc ? 'm.concPass' : 'm.concFail';
+  /* P4-LOG-CONC-V1 */
+  try { window.logAction && window.logAction('conjuro','concentración', 'd20('+d20+')+CL('+cl+')+mod('+attrMod+')='+roll+' vs CD '+dc+' → '+(roll>=dc?'mantiene':'pierde')); } catch(_){}
   const attrLabel = t('cast.'+castAttr) || castAttr.toUpperCase();
   toast(t(key, { roll, d20, cl, mod: attrMod, dc, attr: attrLabel }));
 }
@@ -3617,6 +3634,8 @@ function populateArchetypeSelect(idx, classKey) {
 }
 
 function addClassRow(classKey = '', level = 1, hp = 0, isFirst = false) {
+  /* P4-LOG-ADDCLASS-V1 */
+  if(!isFirst) { try { window.logAction && window.logAction('personaje','clase añadida', (classKey||'(sin elegir)')+' nv'+level); } catch(_){} }
   const container = document.getElementById('class-rows-container');
   const rows = container.querySelectorAll('.class-row-dynamic');
   if(rows.length >= MAX_CLASS_ROWS) return;
@@ -3747,6 +3766,13 @@ function addClassRow(classKey = '', level = 1, hp = 0, isFirst = false) {
 
 function removeClassRow(btn) {
   const row = btn.closest('.class-row-dynamic');
+  /* P4-LOG-RMCLASS-V1 */
+  try {
+    if(window.logAction){
+      const sel = row.querySelector('.class-select');
+      window.logAction('personaje','clase eliminada', sel?sel.value:'');
+    }
+  } catch(_){}
   row.remove();
   updateAddClassBtn();
   syncClassSkills();
@@ -4023,6 +4049,8 @@ function addCustomLanguage() {
   const input = document.getElementById('lang-custom');
   const name = input.value.trim();
   if(!name) return;
+  /* P4-LOG-ADDLANG-V1 */
+  try { window.logAction && window.logAction('personaje','idioma añadido', name); } catch(_){}
   const grid = document.getElementById('lang-grid');
   const id = `lang-custom-${Date.now()}`;
   const div = document.createElement('div');
@@ -4332,6 +4360,8 @@ function restShort() {
     if(REST_RESET_KEY[key] === 'short') _resetFeatureCard(card);
   });
   try { logRoll && logRoll(t('m.restShortDone'), ''); } catch(_){}
+  /* P4-LOG-RESTSHORT-V1 */
+  try { window.logAction && window.logAction('combate','descanso corto','1h'); } catch(_){}
 }
 
 /* Long rest (8h): full daily reset.
@@ -4360,6 +4390,8 @@ function restLong() {
   }
   try { recalc(); } catch(_){}
   try { logRoll && logRoll(t('m.restLongDone'), ''); } catch(_){}
+  /* P4-LOG-RESTLONG-V1 */
+  try { window.logAction && window.logAction('combate','descanso largo','8h'); } catch(_){}
 }
 
 /* Features/recursos de clase que se auto-añaden al panel de
@@ -5742,7 +5774,7 @@ function addMcSpellEntry(classKey, level, name='', school='—', expended=false)
   const cbHTML = isCantrip
     ? `<span class="spell-exp-placeholder" aria-hidden="true"></span>`
     : `<input type="checkbox" class="spell-exp-cb" ${expended?'checked':''} title="${t('tt.castToday')}"
-             onchange="this.closest('.spell-entry').classList.toggle('expended',this.checked)">`;
+             onchange="(function(cb){cb.closest('.spell-entry').classList.toggle('expended',cb.checked); try{var nm=cb.closest('.spell-entry').querySelector('.spell-name-inp,input[type=&quot;text&quot;]'); window.logAction && window.logAction('conjuro',(cb.checked?'conjuro lanzado':'conjuro restaurado'), nm?nm.value:'');}catch(_){}})(this)">`;
   div.innerHTML = (typeof _spellRowHTML==='function')
     ? _spellRowHTML(cbHTML, name, school, schoolOpts)
     : `${cbHTML}<input type="text" class="spell-name-inp" placeholder="${t('ph.spellName')}" value="${name}">`;
@@ -5785,6 +5817,7 @@ function updateMcSpellBubbles(classKey, lv, max) {
 }
 
 function toggleMcSpellBubble(bubble, classKey, lv) {
+  const wasUsed = bubble.classList.contains('used');
   bubble.classList.toggle('used');
   bubble.title = bubble.classList.contains('used') ? t('tt.use.click') : t('tt.avail.click');
   const container = document.getElementById(`mc-bubbles-${classKey}-${lv}`);
@@ -5793,6 +5826,8 @@ function toggleMcSpellBubble(bubble, classKey, lv) {
   const usedCount = container.querySelectorAll('.tracker-bubble.used').length;
   const total = container.querySelectorAll('.tracker-bubble').length;
   leftInput.value = total - usedCount;
+  /* P4-LOG-MCSLOT-V1 */
+  try { window.logAction && window.logAction('conjuro', (wasUsed?'slot recuperado':'slot gastado'), classKey+' L'+lv+' ('+(total-usedCount)+'/'+total+')'); } catch(_){}
 }
 
 /* Re-cálculo: aplica DC, bonus slots y burbujas para cada clase
@@ -6035,15 +6070,19 @@ function addSpellEntry(level, name = '', school = '—', expended = false) {
   const cbHTML = isCantrip
     ? `<span class="spell-exp-placeholder" aria-hidden="true"></span>`
     : `<input type="checkbox" class="spell-exp-cb" ${expended?'checked':''} title="${t('tt.castToday')}"
-             onchange="this.closest('.spell-entry').classList.toggle('expended',this.checked)">`;
+             onchange="(function(cb){cb.closest('.spell-entry').classList.toggle('expended',cb.checked); try{var nm=cb.closest('.spell-entry').querySelector('.spell-name-inp,input[type=&quot;text&quot;]'); window.logAction && window.logAction('conjuro',(cb.checked?'conjuro lanzado':'conjuro restaurado'), nm?nm.value:'');}catch(_){}})(this)">`;
   div.innerHTML = _spellRowHTML(cbHTML, name, school, schoolOpts);
   container.appendChild(div);
+  /* P4-LOG-ADDSPELL-V1 */
+  try { window.logAction && window.logAction('conjuro','conjuro añadido', 'L'+level+': '+(name||'(sin nombre)')); } catch(_){}
 }
 
 /* 2026-05-07: catálogo PF1e Core para PC.
    Botón 📚 abre un overlay con 564 conjuros filtrables por clase, nivel y nombre.
    Al seleccionar uno: addSpellEntry(level, name, school). */
 function openSpellCatalogPC(targetLvl) {
+  /* P4-LOG-OPEN-SPELLCAT-V1 */
+  try { window.logAction && window.logAction('ui','catálogo conjuros abierto', 'L'+targetLvl); } catch(_){}
   const all = (DB && Array.isArray(DB.spells)) ? DB.spells : [];
   if(!all.length){ toast('Catálogo no cargado'); return; }
   const SCHOOL_LABEL = {
@@ -6183,6 +6222,7 @@ function updateSpellBubbles(lv, max) {
 }
 
 function toggleSpellBubble(bubble, lv) {
+  const wasUsed = bubble.classList.contains('used');
   bubble.classList.toggle('used');
   bubble.title = bubble.classList.contains('used') ? t('tt.use.click') : t('tt.avail.click');
   const container = document.getElementById(`spell-bubbles-${lv}`);
@@ -6191,9 +6231,13 @@ function toggleSpellBubble(bubble, lv) {
   const usedCount = container.querySelectorAll('.tracker-bubble.used').length;
   const total = container.querySelectorAll('.tracker-bubble').length;
   leftInput.value = total - usedCount;
+  /* P4-LOG-SLOT-V1 */
+  try { window.logAction && window.logAction('conjuro', (wasUsed?'slot recuperado':'slot gastado'), 'L'+lv+' ('+(total-usedCount)+'/'+total+')'); } catch(_){}
 }
 
 function newDay() {
+  /* P4-LOG-NEWDAY-V1 */
+  try { window.logAction && window.logAction('conjuro','nuevo día (reset slots)'); } catch(_){}
   // Reset expended spells
   document.querySelectorAll('.spell-entry.expended').forEach(e => {
     e.classList.remove('expended');
@@ -6864,6 +6908,8 @@ function calcCombat(mods, bab, effDex, buffDeltas, encLevel = 'light') {
   if(document.getElementById('cond-entangled').checked)   condAtk -= 2;
   if(document.getElementById('cond-grappled').checked)    condAtk -= 2;
   if(document.getElementById('cond-dazzled').checked)     condAtk -= 1;
+  /* P2-BLINDED-ATK-V1: Cegado aplica -2 al ataque (además del -2 CA ya aplicado en calcDefense). PF1e RAW. */
+  if(document.getElementById('cond-blinded')?.checked)    condAtk -= 2;
   // Tumbado: -4 solo a ataques cuerpo a cuerpo (no distancia)
   const pronePenalty = document.getElementById('cond-prone').checked ? -4 : 0;
 
@@ -6970,7 +7016,21 @@ function calcCombat(mods, bab, effDex, buffDeltas, encLevel = 'light') {
     const wAtk = bab + atkStat + sizeAtk + condAtk + (isRangedWeapon ? 0 : pronePenalty) + enhance + (buffDeltas.atk||0) + (broken ? -2 : 0) + twfPenalty + paAtkMod + featAtk;
     const wDmg = dmgStat + enhance + bonusDmg + condDmg + (buffDeltas.dmg||0) + (broken ? -2 : 0) + paDmgBonus;
 
-    const atkSeq = formatAtkProgression(wAtk, bab);
+    /* P2-OFFHAND-PROG-V1: offhand utiliza progresión específica TWF/iTWF/gTWF
+       en lugar de la progresión iterativa estándar de BAB. Lee combat-twf (avanzado)
+       y, si no hay, infiere de twf-level (toggle simple). */
+    let _offhandTwfLvl = null;
+    if (style === 'offhand') {
+      const adv = (document.getElementById('combat-twf')||{}).value;
+      if (adv && adv !== 'off') {
+        _offhandTwfLvl = (adv === 'itwf' || adv === 'gtwf') ? adv : 'twf';
+      } else if (twfActive) {
+        _offhandTwfLvl = (twfLvl === 'itwf') ? 'itwf' : 'twf';
+      }
+    }
+    const atkSeq = (style === 'offhand' && _offhandTwfLvl)
+                   ? _pcFormatOffhandProgression(wAtk, bab, _offhandTwfLvl)
+                   : formatAtkProgression(wAtk, bab);
 
     // ── Formato nuevo: mín/máx normal y crítico ──────────────
     // Arma rota: multiplicador crítico siempre ×2 (PF1e CRB)
@@ -7067,11 +7127,27 @@ function calcCombat(mods, bab, effDex, buffDeltas, encLevel = 'light') {
   });
 
   // 3. Maniobras de combate
-  let condCmb = condAtk; 
+  let condCmb = condAtk;
   const deflectForCMD = parseInt(document.getElementById('deflection')?.value) || 0;
   const dodgeForCMD   = (parseInt(document.getElementById('dodge-bonus')?.value) || 0) + getFeatBonuses().ac_dodge;
+  /* P2-CMD-LOSEDEX-V1: en flat-footed/helpless/pinned el PJ pierde DES y dodge al CMD (PF1e RAW).
+     P2-CMD-CONDAC-V1: aplicar condAC (penalizadores de condiciones) al CMD para alinear con Mobile. */
+  const _cmdLosesDex = document.getElementById('cond-flat-footed')?.checked
+                    || document.getElementById('cond-helpless')?.checked
+                    || document.getElementById('cond-pinned')?.checked;
+  const effDexCMD   = _cmdLosesDex ? 0 : mods.dex;
+  const effDodgeCMD = _cmdLosesDex ? 0 : dodgeForCMD;
+  /* Recompute condAC localmente para el CMD (mismo cálculo que en calcDefense). */
+  let _condAcForCmd = 0;
+  if(document.getElementById('cond-blinded')?.checked)     _condAcForCmd -= 2;
+  if(document.getElementById('cond-cowering')?.checked)    _condAcForCmd -= 2;
+  if(document.getElementById('cond-stunned')?.checked)     _condAcForCmd -= 2;
+  if(document.getElementById('cond-unconscious')?.checked) _condAcForCmd -= 2;
+  if(document.getElementById('cond-pinned')?.checked)      _condAcForCmd -= 4;
+  if(document.getElementById('cond-helpless')?.checked)    _condAcForCmd -= 4;
+  if(document.getElementById('cond-prone')?.checked)       _condAcForCmd -= 4;
   const cmb  = bab + mods.str + sizeCMB + condCmb;
-  const cmd  = 10 + bab + mods.str + mods.dex + sizeCMB + deflectForCMD + dodgeForCMD;
+  const cmd  = 10 + bab + mods.str + effDexCMD + sizeCMB + deflectForCMD + effDodgeCMD + _condAcForCmd;
   sv('cmb-total', cmb >= 0 ? `+${cmb}` : `${cmb}`);
   sv('cmd-total', cmd);
 
@@ -7268,6 +7344,8 @@ function resetSpellSlotsAuto() {
     if(el) { delete el.dataset.userOverride; delete el.dataset.autoFilled; }
   }
   recalc();
+  /* P4-LOG-RESETSLOTS-V1 */
+  try { window.logAction && window.logAction('conjuro','reset slots auto'); } catch(_){}
 }
 
 function autoFillSpellSlots() {
@@ -7312,6 +7390,40 @@ function autoFillSpellSlots() {
     }
   }
 }
+
+/* P2-SPELLFOCUS-DC-V1: helper que devuelve el bono Spell Focus + Greater Spell Focus
+   (cada dote suma +1; ambas suman +2 acumulado) para la escuela del conjuro.
+   Lee las cartas de dote vivas (.feat-card .feat-name) y window.FEATS si existe. */
+function _pcSpellSchoolFocus(school){
+  if(!school) return 0;
+  const norm = (s) => String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const sn = norm(school);
+  if(!sn || sn === '—' || sn === '-') return 0;
+  let bonus = 0;
+  const feats = [];
+  try {
+    document.querySelectorAll('.feat-card .feat-name').forEach(el => {
+      feats.push({ name: el.value || '' });
+    });
+  } catch(_) {}
+  try {
+    if (Array.isArray(window.FEATS)) window.FEATS.forEach(f => feats.push(f));
+  } catch(_) {}
+  feats.forEach(f => {
+    const raw = (f && (f.name || f.n)) || '';
+    const fn = norm(raw);
+    if(!fn) return;
+    if(!/(spell\s*focus|focal[ií]?zaci[oó]?n\s+de\s+conjuros|enfoque\s+(de|del)\s+conjuro)/.test(fn)) return;
+    /* Coincidir por (escuela) entre paréntesis o por inclusión directa del nombre. */
+    const m = raw.match(/\(([^)]+)\)/);
+    const target = m ? norm(m[1]) : fn;
+    if(target.includes(sn) || sn.includes(target)){
+      bonus += 1;
+    }
+  });
+  return bonus;
+}
+window._pcSpellSchoolFocus = _pcSpellSchoolFocus;
 
 function calcSpells(mods) {
   autoFillSpellSlots();
@@ -7391,6 +7503,23 @@ function calcSpells(mods) {
     const dc = 10 + lv + castMod;
     const dcEl = document.getElementById(`spell-dc-${lv}`);
     if(dcEl) dcEl.textContent = dc;
+
+    /* P2-SPELLFOCUS-DC-V1: ajustar DC por entrada según escuela del conjuro
+       (Spell Focus +1, Greater Spell Focus +1 = +2 si ambas en la escuela). */
+    try {
+      const entries = document.querySelectorAll(`#spell-entries-${lv} .spell-entry`);
+      entries.forEach(entry => {
+        const sel = entry.querySelector('.spell-school-sel');
+        const school = sel ? sel.value : '';
+        const focus = _pcSpellSchoolFocus(school);
+        const entryDc = dc + focus;
+        entry.dataset.dc = String(entryDc);
+        if (sel) {
+          if (focus > 0) sel.title = `+${focus} DC por Spell Focus (${school}) -> DC ${entryDc}`;
+          else sel.title = '';
+        }
+      });
+    } catch(_){}
 
     // Bonus slots from high casting attribute (official PF table)
     // lv 0 = cantrips, no bonus; lv >= 1: bonus if castMod >= lv
@@ -7510,6 +7639,8 @@ function updateHPBar() {
 
 /* ── ANIMAL COMPANION ───────────────────────────────────── */
 function addCompAttack(name='', atkMod='', dmg='', notes='') {
+  /* P4-LOG-COMPATK-V1 */
+  try { window.logAction && window.logAction('compañero','ataque natural añadido', name||'(personalizado)'); } catch(_){}
   const container = document.getElementById('comp-attacks-container');
   if(!container) return;
   const div = document.createElement('div');
@@ -7605,6 +7736,8 @@ function addCompTrick(name='', learned=false) {
     <input type="text" value="${name}" placeholder="${t('ph.trickName')}" style="flex:1;">
     <button type="button" style="padding:1px 5px;" onclick="this.closest('div').remove()">✕</button>`;
   container.appendChild(div);
+  /* P4-LOG-COMPTRICK-V1 */
+  try { window.logAction && window.logAction('compañero','truco añadido', name||'(personalizado)'); } catch(_){}
 }
 
 function calcFamiliar() {
@@ -8099,6 +8232,18 @@ function formatAtkProgression(fullMod, bab) {
   return parts.join('/');
 }
 
+/* P2-OFFHAND-PROG-V1: progresión específica para offhand con TWF/iTWF/gTWF.
+   - twf (con dote): 1 ataque offhand al BAB total.
+   - itwf: añade un 2º ataque a BAB-5 (BAB raw >= 6).
+   - gtwf: añade además un 3º ataque a BAB-10 (BAB raw >= 11). PF1e RAW. */
+function _pcFormatOffhandProgression(fullMod, bab, twfLevel) {
+  const fmt = n => n >= 0 ? `+${n}` : `${n}`;
+  const parts = [fmt(fullMod)];
+  if ((twfLevel === 'itwf' || twfLevel === 'gtwf') && bab >= 6)  parts.push(fmt(fullMod - 5));
+  if (twfLevel === 'gtwf' && bab >= 11) parts.push(fmt(fullMod - 10));
+  return parts.join('/');
+}
+
 /* ── WEAPON TRAITS ──────────────────────────────────────── */
 const WEAPON_TRAITS = [
   { id:'reach',     cat:'util' },
@@ -8253,6 +8398,13 @@ function rollWeaponDamage(btn, isCrit) {
 
     const label = isCrit ? t('w.critX') : t('w.dmgLabel');
     outEl.innerHTML = `<span class="wroll-label">${label}</span> <span class="wroll-dice">${detailStr}</span> = <span class="wroll-total">${total}</span>`;
+    /* P4-LOG-WPNDMG-V1 */
+    try {
+      if(window.logAction){
+        const nm = (card.querySelector('input[type="text"]')||{}).value || '';
+        window.logAction('combate', (isCrit?'daño crítico':'daño arma'), (nm?nm+' · ':'')+'total '+total);
+      }
+    } catch(_){}
   }, 800);
 }
 
@@ -8278,6 +8430,13 @@ function rollWeaponAttack(btn) {
     const sign  = atkMod >= 0 ? `+${atkMod}` : `${atkMod}`;
     outEl.innerHTML =
       `<span class="wroll-label">${t('w.atk')}</span> <span class="wroll-dice">[${d20}]${sign}</span> = <span class="wroll-total${isCrit20?' wroll-nat20':isFumble?' wroll-fumble':''}">${total}${note}</span>`;
+    /* P4-LOG-WPNATK-V1 */
+    try {
+      if(window.logAction){
+        const nm = (card.querySelector('input[type="text"]')||{}).value || '';
+        window.logAction('combate','ataque arma', (nm?nm+' · ':'')+'d20('+d20+')'+sign+'='+total+(isCrit20?' NAT20':(isFumble?' PIFIA':'')));
+      }
+    } catch(_){}
   }, 800);
 }
 
@@ -8297,6 +8456,8 @@ function rollInitiative() {
     const sign  = bonus >= 0 ? `+${bonus}` : `${bonus}`;
     const mark  = d20 === 20 ? ' ★' : d20 === 1 ? ' ✗' : '';
     el.value = `[${d20}]${sign}=${total}${mark}`;
+    /* P4-LOG-INIT-V1 */
+    try { window.logAction && window.logAction('combate','iniciativa','d20('+d20+')'+sign+'='+total); } catch(_){}
     setTimeout(() => { el.value = bonus >= 0 ? `+${bonus}` : `${bonus}`; }, 3000);
   }, 800);
 }
@@ -8325,9 +8486,13 @@ function addWeakness(type, note) {
   _weaknesses.push({ type, note });
   if (noteEl) noteEl.value = '';
   renderWeaknesses();
+  /* P4-LOG-ADDWK-V1 */
+  try { window.logAction && window.logAction('personaje','debilidad añadida', type+(note?' · '+note:'')); } catch(_){}
 }
 
 function removeWeakness(idx) {
+  /* P4-LOG-RMWK-V1 */
+  try { window.logAction && window.logAction('personaje','debilidad eliminada', _weaknesses[idx] ? _weaknesses[idx].type : ''); } catch(_){}
   _weaknesses.splice(idx, 1);
   renderWeaknesses();
 }
@@ -8724,6 +8889,8 @@ function syncWeaponHandsFromSelect(sel) {
 
 /* ── PICKER DE ARMAS DESDE BASE DE DATOS ─────────────────── */
 function openWeaponPicker() {
+  /* P4-LOG-OPEN-WPNPICK-V1 */
+  try { window.logAction && window.logAction('ui','catálogo armas abierto'); } catch(_){}
   const panel = document.getElementById('weapon-picker-panel');
   panel.style.display = 'block';
   const sel = document.getElementById('weapon-picker-select');
@@ -8770,6 +8937,8 @@ function confirmAddWeaponFromList() {
 
 /* ── PICKER DE ARMADURAS DESDE BASE DE DATOS ─────────────── */
 function openArmorPicker() {
+  /* P4-LOG-OPEN-ARMPICK-V1 */
+  try { window.logAction && window.logAction('ui','catálogo armaduras abierto'); } catch(_){}
   document.getElementById('armor-picker-panel').style.display = 'block';
   document.getElementById('armor-type-filter').value = '';
   filterArmorList();
@@ -8837,6 +9006,8 @@ function addArmorFromData(a) {
     <button class="btn-remove" type="button" aria-label="${t('aria.delete')}" title="${t('aria.delete')}"><span aria-hidden="true">×</span></button>`;
   container.appendChild(div);
   recalc();
+  /* P4-LOG-ADDARMDATA-V1 */
+  try { window.logAction && window.logAction('equipo','armadura añadida', a.name || a.id || ''); } catch(_){}
 }
 
 /* ── PICKER DE EQUIPO GENERAL ────────────────────────────── */
@@ -8846,6 +9017,8 @@ function _allItems() {
           ...(it.gear    || []).map(x=>({...x,_cat:'gear'}))];
 }
 function openItemPicker() {
+  /* P4-LOG-OPEN-ITEMPICK-V1 */
+  try { window.logAction && window.logAction('ui','catálogo objetos abierto'); } catch(_){}
   document.getElementById('item-picker-panel').style.display = 'block';
   document.getElementById('item-cat-filter').value = '';
   filterItemList();
@@ -9024,6 +9197,8 @@ function addWeapon(data = {}) {
   }
   container.appendChild(div);
   recalc();
+  /* P4-LOG-ADDWPN-V1 */
+  try { window.logAction && window.logAction('equipo','arma añadida', data.name || '(personalizada)'); } catch(_){}
 }
 
 function addArmor() {
@@ -9052,6 +9227,8 @@ function addArmor() {
     </div>`;
   container.appendChild(div);
   recalc();
+  /* P4-LOG-ADDARM-V1 */
+  try { window.logAction && window.logAction('equipo','armadura añadida (vacía)'); } catch(_){}
 }
 
 function addItem() {
@@ -9105,6 +9282,8 @@ function buildBuffStatOptions() {
 }
 
 function addBuff(targetContainerId, isPermanentTweak = false) {
+  /* P4-LOG-ADDBUFF-V1 */
+  try { window.logAction && window.logAction('combate', (isPermanentTweak?'ajuste permanente añadido':'buff temporal añadido'), targetContainerId); } catch(_){}
   const container = document.getElementById(targetContainerId);
   const div = document.createElement('div');
   div.className = isPermanentTweak ? 'buff-card tweak-card' : 'buff-card';
@@ -9139,6 +9318,8 @@ function addCompItem() {
 
 /* ── PICKER DE DOTES DESDE BASE DE DATOS ─────────────────── */
 function openFeatPicker() {
+  /* P4-LOG-OPEN-FEATPICK-V1 */
+  try { window.logAction && window.logAction('ui','catálogo dotes abierto'); } catch(_){}
   const panel = document.getElementById('feat-picker-panel');
   panel.style.display = 'block';
   buildFeatPickerLists();
@@ -9238,10 +9419,12 @@ function addFeat(name = '', type = 'normal', notes = '') {
       <option value="team"    ${type==='team'   ?'selected':''} data-i18n="ft.team">${t('ft.team')}</option>
     </select>
     <input type="text" class="feat-notes" data-i18n-ph="ph.featNotes" placeholder="${t('ph.featNotes')}" value="${notes}">
-    <button class="btn-remove" type="button" data-i18n-aria="aria.delFeat" data-i18n-title="aria.delFeat" aria-label="${t('aria.delFeat')}" title="${t('aria.delFeat')}" onclick="this.closest('.feat-card').remove(); updateFeatCounter(); refreshFeatPrereqChips();"><span aria-hidden="true">×</span></button>`;
+    <button class="btn-remove" type="button" data-i18n-aria="aria.delFeat" data-i18n-title="aria.delFeat" aria-label="${t('aria.delFeat')}" title="${t('aria.delFeat')}" onclick="(function(c){try{var nm=c.querySelector('.feat-name'); window.logAction && window.logAction('dote','dote eliminada', nm?nm.value:'');}catch(_){} c.remove(); updateFeatCounter(); refreshFeatPrereqChips();})(this.closest('.feat-card'));"><span aria-hidden="true">×</span></button>`;
   container.appendChild(div);
   updateFeatCounter();
   refreshFeatPrereqChips();
+  /* P4-LOG-ADDFEAT-V1 */
+  try { window.logAction && window.logAction('dote','dote añadida', (name||'(personalizada)')+' ['+type+']'); } catch(_){}
 }
 
 /* ── PICKER DE APTITUDES DESDE BASE DE DATOS ────────────── */
@@ -9412,6 +9595,8 @@ function clearRaceData() {
 }
 
 function addRacialTraitCard(name = '', desc = '') {
+  /* P4-LOG-ADDRTRAIT-V1 */
+  try { window.logAction && window.logAction('personaje','rasgo racial añadido', name||'(personalizado)'); } catch(_){}
   const container = document.getElementById('racial-traits-container');
   if(!container) return;
   const card = document.createElement('div');
@@ -9427,6 +9612,8 @@ function addRacialTraitCard(name = '', desc = '') {
 }
 
 function openFeaturePicker() {
+  /* P4-LOG-OPEN-FEATUREPICK-V1 */
+  try { window.logAction && window.logAction('ui','catálogo aptitudes abierto'); } catch(_){}
   const panel = document.getElementById('feature-picker-panel');
   panel.style.display = 'block';
   buildFeaturePickerLists();
@@ -10546,6 +10733,8 @@ function collectMissingForSync() {
 let _syncBuffer = null; // last collected missing items, keyed by item.key
 
 function openSyncSheet() {
+  /* P4-LOG-SYNCOPEN-V1 */
+  try { window.logAction && window.logAction('personaje','abrir sincronizar ficha'); } catch(_){}
   const overlay = document.getElementById('sync-sheet-overlay');
   const content = document.getElementById('sync-modal-content');
   if (!overlay || !content) return;
@@ -10621,6 +10810,8 @@ function applySyncSelection() {
   if (!_syncBuffer || !_syncBuffer.size) { closeSyncSheet(); return; }
   const checked = [...document.querySelectorAll('#sync-modal-content .sync-cb:checked')];
   if (!checked.length) { closeSyncSheet(); return; }
+  /* P4-LOG-SYNCAPPLY-V1 */
+  try { window.logAction && window.logAction('personaje','sincronizar ficha', checked.length+' entradas'); } catch(_){}
 
   const mods = (typeof getCharMods === 'function') ? getCharMods() : {};
   let addedRace = 0, addedFeats = 0;
@@ -10698,6 +10889,8 @@ function confirmAddFeatureFromList() {
 
 /* ── APTITUDES CON USOS/DÍA ─────────────────────────────── */
 function addFeature(name = '', notes = '', maxUses = 0, usedCount = 0) {
+  /* P4-LOG-ADDFEATURE-V1 */
+  try { window.logAction && window.logAction('aptitud','aptitud añadida', (name||'(personalizada)')+(maxUses?' · '+maxUses+'/día':'')); } catch(_){}
   const container = document.getElementById('features-container');
   const div = document.createElement('div');
   div.className = 'feature-card';
@@ -10748,15 +10941,32 @@ function rebuildBubbles(input) {
 }
 
 function toggleBubble(bubble) {
+  const wasUsed = bubble.classList.contains('used');
   bubble.classList.toggle('used');
   bubble.title = bubble.classList.contains('used')
     ? t('tt.used.click')
     : t('tt.avail.click');
+  /* P4-LOG-FEATUSE-V1 */
+  try {
+    if(window.logAction){
+      const card = bubble.closest('.feature-card');
+      const nm = card ? (card.querySelector('.feature-name-input')||{}).value : '';
+      window.logAction('aptitud', (wasUsed?'uso recuperado':'uso gastado'), nm||'');
+    }
+  } catch(_){}
 }
 
 function resetBubbles(btn) {
   btn.closest('.feature-card').querySelectorAll('.tracker-bubble.used')
      .forEach(b => { b.classList.remove('used'); b.title = t('tt.avail.click'); });
+  /* P4-LOG-FEATRESET-V1 */
+  try {
+    if(window.logAction){
+      const card = btn.closest('.feature-card');
+      const nm = card ? (card.querySelector('.feature-name-input')||{}).value : '';
+      window.logAction('aptitud','usos restaurados', nm||'');
+    }
+  } catch(_){}
 }
 
 function toggleMagicCharges(cb) {
@@ -10794,6 +11004,8 @@ function _escHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<
 function _escAttr(s){ return _escHtml(s); }
 
 function addSlaAtWill(name='', cl='', dc='', desc='') {
+  /* P4-LOG-ADDSLA-V1 */
+  try { window.logAction && window.logAction('aptitud','SLA a voluntad añadida', name||'(sin nombre)'); } catch(_){}
   const container = document.getElementById('sla-atwill-container');
   if (!container) return;
   const div = document.createElement('div');
@@ -10827,6 +11039,8 @@ function rollSlaAtWill(btn) {
                  { hour:'2-digit', minute:'2-digit' });
   const msg  = t('sla.msg.trigger', { name });
   _appendSlaLog(time, name, msg, parts.join(' · '));
+  /* P4-LOG-SLAROLL-V1 */
+  try { window.logAction && window.logAction('aptitud','SLA disparada', name); } catch(_){}
 }
 
 function _appendSlaLog(time, name, msg, extra) {
@@ -10863,11 +11077,15 @@ function setCharPhoto(src) {
     img.style.display = 'block';
     if(ph)  ph.style.display  = 'none';
     if(clr) clr.style.display = 'flex';
+    /* P4-LOG-PHOTO-SET-V1 */
+    try { window.logAction && window.logAction('personaje','foto cambiada', (src.length||0)+'B'); } catch(_){}
   } else {
     img.src = '';
     img.style.display = 'none';
     if(ph)  ph.style.display  = 'flex';
     if(clr) clr.style.display = 'none';
+    /* P4-LOG-PHOTO-CLR-V1 */
+    try { window.logAction && window.logAction('personaje','foto borrada'); } catch(_){}
   }
 }
 // Expuesto para que el bridge nativo Android pueda entregar una imagen en data: URL
@@ -10930,6 +11148,8 @@ const CHAR_TRAIT_TYPES = [
 ];
 
 function addCharTrait(typeKey = 'combat', name = '', source = '', effect = '') {
+  /* P4-LOG-ADDTRAIT-V1 */
+  try { window.logAction && window.logAction('personaje','rasgo añadido', typeKey+(name?' · '+name:'')); } catch(_){}
   const container = document.getElementById('char-traits-container');
   const div = document.createElement('div');
   div.className = `char-trait-card ${typeKey}`;
@@ -10959,6 +11179,8 @@ function addCharTrait(typeKey = 'combat', name = '', source = '', effect = '') {
 }
 
 function addDrawback(name = '', effect = '') {
+  /* P4-LOG-ADDDRAW-V1 */
+  try { window.logAction && window.logAction('personaje','defecto añadido', name||'(personalizado)'); } catch(_){}
   const container = document.getElementById('drawback-container');
   if (!container) return;
   const div = document.createElement('div');
@@ -11739,6 +11961,8 @@ function addSessionEntry() {
   const today = new Date().toISOString().slice(0, 10);
   _sessionLog.push({ date: today, xp: 0, gold: 0, notes: '' });
   renderSessionLog();
+  /* P4-LOG-SESADD-V1 */
+  try { window.logAction && window.logAction('personaje','sesión añadida', today); } catch(_){}
 }
 
 function removeSessionEntry(idx) {
@@ -11891,6 +12115,8 @@ function clearAllConditions() {
   });
   renderConditionsSummary();
   if (typeof recalc === 'function') recalc();
+  /* P4-LOG-CLRCONDS-V1 */
+  try { window.logAction && window.logAction('combate','condiciones limpiadas'); } catch(_){}
 }
 
 /**
@@ -11933,6 +12159,13 @@ function initConditionsTimer() {
     panel.addEventListener('change', e => {
       if (e.target && e.target.id && e.target.id.startsWith('cond-')) {
         renderConditionsSummary();
+        /* P4-LOG-CONDTOGGLE-V1 */
+        try {
+          if(window.logAction){
+            const id = e.target.id.replace('cond-','');
+            window.logAction('combate','condición '+(e.target.checked?'activada':'desactivada'), id);
+          }
+        } catch(_){}
       }
     });
   }
@@ -11948,6 +12181,8 @@ function initConditionsTimer() {
       cb.checked = false;
       renderConditionsSummary();
       if (typeof recalc === 'function') recalc();
+      /* P4-LOG-CONDCHIP-V1 */
+      try { window.logAction && window.logAction('combate','condición quitada (chip)', k); } catch(_){}
     }
   });
 
@@ -11994,7 +12229,204 @@ function applyCharacter(data) {
 /* ═══════════════════════════════════════════════════════════════
    PERSISTENCE
    ═══════════════════════════════════════════════════════════════ */
+
+/* P1-SCHEMA-CONVERTER-MOBILE-TO-PC-V1
+   Convierte el JSON con shape Mobile (v2, identity{}, attrs{STR{base..}},
+   classes[], ...) al diccionario plano que espera el importer PC. */
+function _mobileSchemaToPc(mobileData){
+  if(!mobileData || typeof mobileData !== 'object') return mobileData;
+  const pcData = {};
+
+  /* Renombrados directos (mismo dato, otro nombre) */
+  const renameMap = {
+    epicMode:      '__epic_mode',
+    gestaltMode:   '__gestalt_mode',
+    synthFused:    '__synth_fused',
+    bloodlinePick: '__bloodline',
+    orderPick:     '__order',
+    schoolPick:    '__arcane_school',
+    mysteryPick:   '__oracle_mystery',
+    patronPick:    '__witch_patron',
+    weaknesses:    '__weaknesses',
+    photo:         '__char_photo',
+  };
+  Object.keys(renameMap).forEach(k=>{
+    if(mobileData[k] !== undefined) pcData[renameMap[k]] = mobileData[k];
+  });
+
+  /* Aplanado: identity {nombre, jugador, raza, ...} → 'char-name', 'char-player', ... */
+  if(mobileData.identity && typeof mobileData.identity === 'object'){
+    const idMap = {
+      nombre:     'char-name',
+      jugador:    'char-player',
+      raza:       'char-race',
+      alineamiento:'char-align',
+      deidad:     'char-deity',
+      tamano:     'char-size',
+      genero:     'char-gender',
+      edad:       'char-age',
+      altura:     'char-height',
+      peso:       'char-weight',
+      ojos:       'char-eyes',
+      pelo:       'char-hair',
+      piel:       'char-skin',
+      idiomas:    'char-languages',
+    };
+    Object.keys(mobileData.identity).forEach(k=>{
+      const pcKey = idMap[k] || ('char-'+k);
+      pcData[pcKey] = mobileData.identity[k];
+    });
+  }
+
+  /* xp {current, next, track} → xp-current, xp-next, xp-track */
+  if(mobileData.xp && typeof mobileData.xp === 'object'){
+    if(mobileData.xp.current !== undefined) pcData['xp-current'] = mobileData.xp.current;
+    if(mobileData.xp.next    !== undefined) pcData['xp-next']    = mobileData.xp.next;
+    if(mobileData.xp.track   !== undefined) pcData['xp-track']   = mobileData.xp.track;
+  }
+
+  /* attrs.STR {base, ...} → str-base, str-..., e idem DEX/CON/INT/SAB/CAR */
+  if(mobileData.attrs && typeof mobileData.attrs === 'object'){
+    const attrKeyMap = { STR:'str', DEX:'dex', CON:'con', INT:'int', SAB:'wis', WIS:'wis', CAR:'cha', CHA:'cha' };
+    Object.entries(mobileData.attrs).forEach(([attrName, sub])=>{
+      const prefix = attrKeyMap[attrName] || attrName.toLowerCase();
+      if(sub && typeof sub === 'object'){
+        Object.entries(sub).forEach(([subKey, val])=>{
+          pcData[`${prefix}-${subKey}`] = val;
+        });
+      }
+    });
+  }
+
+  /* hpCurrent → 'hp-current' */
+  if(mobileData.hpCurrent !== undefined) pcData['hp-current'] = mobileData.hpCurrent;
+  if(mobileData.hpMax     !== undefined) pcData['hp-max']     = mobileData.hpMax;
+
+  /* Mythic flat: mobile.mythic.* → __mythic_* */
+  if(mobileData.mythic && typeof mobileData.mythic === 'object'){
+    const m = mobileData.mythic;
+    if(m.active         !== undefined) pcData['__mythic_active']         = !!m.active;
+    if(m.tier           !== undefined) pcData['__mythic_tier']           = m.tier;
+    if(m.path           !== undefined) pcData['__mythic_path']           = m.path;
+    if(m.power_current  !== undefined) pcData['__mythic_power_current']  = m.power_current;
+    if(m.surges_used    !== undefined) pcData['__mythic_surges_used']    = m.surges_used;
+    if(m.feats_text     !== undefined) pcData['__mythic_feats_text']     = m.feats_text;
+    if(m.path_abilities !== undefined) pcData['__mythic_path_abilities'] = m.path_abilities;
+  }
+
+  /* Estructurados: classes[] → PC los lee como array JSON */
+  if(Array.isArray(mobileData.classes)){
+    pcData['__class_rows'] = mobileData.classes.map(c=>({
+      classKey:     c.classKey     || c.key  || '',
+      archetypeKey: c.archetypeKey || c.arch || '',
+      level:        parseInt(c.level, 10) || 0,
+      hp:           parseInt(c.hp,    10) || 0,
+      secondaryKey: c.secondaryKey || '',
+    }));
+  }
+
+  /* feats[]: PC espera blob HTML. Marcamos pendiente de render post-import.
+     Si renderFeats existe, el importer lo llamará tras aplicar el resto.
+     TODO: completar el render real cuando el equipo Mobile fije el contrato
+     exacto de cada feat object. */
+  if(Array.isArray(mobileData.feats)){
+    pcData.__pending_feats_render = mobileData.feats;
+  }
+
+  return pcData;
+}
+
+/* P1-SCHEMA-CONVERTER-PC-TO-MOBILE-V1
+   Inverso: del diccionario plano PC al shape Mobile (v2, identity{}, ...). */
+function _pcSchemaToMobile(pcData){
+  if(!pcData || typeof pcData !== 'object') return pcData;
+  const mobile = { v:2 };
+
+  /* Renombrados directos (inverso) */
+  const renameMap = {
+    __epic_mode:        'epicMode',
+    __gestalt_mode:     'gestaltMode',
+    __synth_fused:      'synthFused',
+    __bloodline:        'bloodlinePick',
+    __order:            'orderPick',
+    __arcane_school:    'schoolPick',
+    __oracle_mystery:   'mysteryPick',
+    __witch_patron:     'patronPick',
+    __weaknesses:       'weaknesses',
+    __char_photo:       'photo',
+  };
+  Object.keys(renameMap).forEach(k=>{
+    if(pcData[k] !== undefined) mobile[renameMap[k]] = pcData[k];
+  });
+
+  /* identity */
+  const idMap = {
+    'char-name':'nombre','char-player':'jugador','char-race':'raza',
+    'char-align':'alineamiento','char-deity':'deidad','char-size':'tamano',
+    'char-gender':'genero','char-age':'edad','char-height':'altura',
+    'char-weight':'peso','char-eyes':'ojos','char-hair':'pelo','char-skin':'piel',
+    'char-languages':'idiomas',
+  };
+  const identity = {};
+  Object.entries(idMap).forEach(([pcKey, mKey])=>{
+    if(pcData[pcKey] !== undefined) identity[mKey] = pcData[pcKey];
+  });
+  if(Object.keys(identity).length) mobile.identity = identity;
+
+  /* xp */
+  const xp = {};
+  if(pcData['xp-current'] !== undefined) xp.current = pcData['xp-current'];
+  if(pcData['xp-next']    !== undefined) xp.next    = pcData['xp-next'];
+  if(pcData['xp-track']   !== undefined) xp.track   = pcData['xp-track'];
+  if(Object.keys(xp).length) mobile.xp = xp;
+
+  /* attrs: rebuilder. Buscamos llaves prefix-* */
+  const attrPrefixes = { str:'STR', dex:'DEX', con:'CON', int:'INT', wis:'SAB', cha:'CAR' };
+  const attrs = {};
+  Object.entries(attrPrefixes).forEach(([prefix, attrName])=>{
+    const sub = {};
+    Object.keys(pcData).forEach(k=>{
+      if(k.startsWith(prefix+'-')){
+        const subKey = k.slice(prefix.length+1);
+        sub[subKey] = pcData[k];
+      }
+    });
+    if(Object.keys(sub).length) attrs[attrName] = sub;
+  });
+  if(Object.keys(attrs).length) mobile.attrs = attrs;
+
+  /* hp */
+  if(pcData['hp-current'] !== undefined) mobile.hpCurrent = pcData['hp-current'];
+  if(pcData['hp-max']     !== undefined) mobile.hpMax     = pcData['hp-max'];
+
+  /* mythic */
+  const myth = {};
+  if(pcData['__mythic_active']         !== undefined) myth.active         = pcData['__mythic_active'];
+  if(pcData['__mythic_tier']           !== undefined) myth.tier           = pcData['__mythic_tier'];
+  if(pcData['__mythic_path']           !== undefined) myth.path           = pcData['__mythic_path'];
+  if(pcData['__mythic_power_current']  !== undefined) myth.power_current  = pcData['__mythic_power_current'];
+  if(pcData['__mythic_surges_used']    !== undefined) myth.surges_used    = pcData['__mythic_surges_used'];
+  if(pcData['__mythic_feats_text']     !== undefined) myth.feats_text     = pcData['__mythic_feats_text'];
+  if(pcData['__mythic_path_abilities'] !== undefined) myth.path_abilities = pcData['__mythic_path_abilities'];
+  if(Object.keys(myth).length) mobile.mythic = myth;
+
+  /* classes[] */
+  if(Array.isArray(pcData.__class_rows)){
+    mobile.classes = pcData.__class_rows.map(r => ({
+      classKey:     r.classKey || '',
+      archetypeKey: r.archetypeKey || '',
+      level:        parseInt(r.level, 10) || 0,
+      hp:           parseInt(r.hp,    10) || 0,
+      secondaryKey: r.secondaryKey || '',
+    }));
+  }
+
+  return mobile;
+}
+
 function exportData() {
+  /* P4-LOG-EXPORT-START-V1 */
+  try { window.logAction && window.logAction('persistencia','exportar (inicio)'); } catch(_){}
   const data = {};
   document.querySelectorAll('input, select, textarea').forEach(el => {
     const key = el.id || el.name;
@@ -12160,8 +12592,28 @@ function exportData() {
   // R-25 · Synthesist fused toggle (visible sólo si arquetipo Synthesist)
   try { data['__synth_fused'] = !!document.getElementById('synth-fused')?.checked; } catch(e) { data['__synth_fused'] = false; }
 
+  /* P1-EXPORT-PC-C-STATE-V1 · embeber pc-c-state (rage powers, sneak, smite,
+     bardic) del localStorage en el JSON exportado para que viaje con la
+     ficha y no se quede pegado al navegador. */
+  try {
+    const _raw = localStorage.getItem('pc-c-state');
+    if (_raw) {
+      try { data['__pc_c_state'] = JSON.parse(_raw); }
+      catch(_) { data['__pc_c_state'] = _raw; }
+    }
+  } catch(_){}
+
+  /* P1-EXPORT-PCD-INV-COINS-V1 · embeber inventario D5 + monedas */
+  try {
+    const _raw = localStorage.getItem('pcd-inv-coins-v1');
+    if (_raw) {
+      try { data['__pcd_inv_coins'] = JSON.parse(_raw); }
+      catch(_) { data['__pcd_inv_coins'] = _raw; }
+    }
+  } catch(_){}
+
   /* T-10 fix PC: marcar __schema en el JSON exportado para poder migrar
-     fichas viejas en el futuro sin romper. Versión inicial = 1. */
+     fichas viejas en el futuro sin romper. Versión actual = 2. */
   data['__schema'] = STATE_SCHEMA_VERSION_PC;
 
   const json = JSON.stringify(data, null, 2);
@@ -12172,6 +12624,8 @@ function exportData() {
       && window.AndroidBridge && typeof AndroidBridge.saveCharacter === 'function') {
     const name = (document.getElementById('char-name')?.value || 'personaje').trim() || 'personaje';
     AndroidBridge.saveCharacter(json, name);
+    /* P4-LOG-EXPORT-END-A-V1 */
+    try { window.logAction && window.logAction('persistencia','exportar (Android bridge)', name); } catch(_){}
     return;
   }
   const blob = new Blob([json], {type:'application/json'});
@@ -12183,12 +12637,15 @@ function exportData() {
   a.click();
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+  /* P4-LOG-EXPORT-END-V1 */
+  try { window.logAction && window.logAction('persistencia','exportar (descarga)', 'personaje_pf1e.json · '+json.length+'B'); } catch(_){}
 }
 
 /* T-10 fix PC: schema versioning + migración para JSON exportado.
    Cada bump de schema aplica una transformación en cadena. Mostrar toast con
    los campos rellenados por defecto para que el usuario sepa qué cambió. */
-const STATE_SCHEMA_VERSION_PC = 1;
+/* P1-SCHEMA-VERSION-V2 */
+const STATE_SCHEMA_VERSION_PC = 2;
 function _migratePCv0toV1(obj){
   /* v1: defaults para campos añadidos en R-21..R-29 */
   const defaults = {
@@ -12203,12 +12660,41 @@ function _migratePCv0toV1(obj){
   obj._migratedFields = (obj._migratedFields||[]).concat(filled);
   return obj;
 }
+/* P1-MIGRATE-V1-TO-V2 · v2: alinear nombres PC con shape Mobile.
+   Si la ficha v1 trae los nombres "camelCase" (epicMode, gestaltMode, ...)
+   pero todavía no tiene la versión "__snake" (que es la que PC usa),
+   copiarlos. Es defensivo — el exportador PC ya escribe ambos cuando puede,
+   pero un JSON híbrido (editado a mano, p.ej.) podría tener sólo uno. */
+function _migratePCv1toV2(obj){
+  const pairs = [
+    ['epicMode',     '__epic_mode'],
+    ['gestaltMode',  '__gestalt_mode'],
+    ['synthFused',   '__synth_fused'],
+    ['bloodlinePick','__bloodline'],
+    ['orderPick',    '__order'],
+    ['schoolPick',   '__arcane_school'],
+    ['mysteryPick',  '__oracle_mystery'],
+    ['patronPick',   '__witch_patron'],
+    ['weaknesses',   '__weaknesses'],
+  ];
+  const filled = [];
+  pairs.forEach(([src, dst])=>{
+    if(obj[src] !== undefined && obj[dst] === undefined){
+      obj[dst] = obj[src];
+      filled.push(dst);
+    }
+  });
+  obj._migratedFields = (obj._migratedFields||[]).concat(filled);
+  return obj;
+}
 function migrateImportedDataPC(data){
   if(!data) return data;
   let schema = (typeof data.__schema === 'number') ? data.__schema : 0;
   let migrated = false;
   const fromVer = schema;
   if(schema < 1){ data = _migratePCv0toV1(data); schema = 1; migrated = true; }
+  /* P1-MIGRATE-CHAIN-V2 */
+  if(schema < 2){ data = _migratePCv1toV2(data); schema = 2; migrated = true; }
   data.__schema = STATE_SCHEMA_VERSION_PC;
   if(migrated){
     const filled = Array.isArray(data._migratedFields) ? data._migratedFields.filter((v,i,a)=>a.indexOf(v)===i) : [];
@@ -12233,11 +12719,65 @@ function migrateImportedDataPC(data){
 function importData(event) {
   const file = event.target.files[0];
   if(!file) return;
+  /* P4-LOG-IMPORT-START-V1 */
+  try { window.logAction && window.logAction('persistencia','importar (inicio)', file.name+' · '+file.size+'B'); } catch(_){}
   const reader = new FileReader();
   reader.onload = e => {
     try {
       let data = JSON.parse(e.target.result);
+      /* P1-IMPORT-SHAPE-DETECT-V1
+         Detectar shape Mobile (v:2 o presencia de `identity`) vs PC nativo
+         (presencia de `__schema` o de `char-name` flat). Si no es ninguno,
+         abortamos con toast en lugar de aplicar basura. */
+      const isMobileShape = (data && (data.v === 2 || (data.identity && typeof data.identity === 'object')));
+      const isPcShape     = (data && (data.__schema === 1 || data.__schema === 2 || data['char-name'] !== undefined));
+      if (isMobileShape && !isPcShape) {
+        data = _mobileSchemaToPc(data);
+        // Tras la conversión queda con shape PC; le aplicamos el migrador para
+        // que sea v2-compliant y se rellenen defaults.
+        data.__schema = 1;
+      } else if (!isPcShape && !isMobileShape) {
+        const lang = (document.documentElement.dataset.lang === 'en') ? 'en' : 'es';
+        const msg = (lang === 'en') ? 'Unrecognized format' : 'Formato no reconocido';
+        try {
+          if (typeof showToast === 'function') showToast(msg, 4000);
+          else if (typeof toast === 'function') toast(msg, 4000);
+          else alert(msg);
+        } catch(_){}
+        return;
+      }
       data = migrateImportedDataPC(data);
+
+      /* P1-IMPORT-PC-C-STATE-V1 · restaurar pc-c-state (rage, sneak, smite, bardic) */
+      try {
+        if (data.__pc_c_state !== undefined) {
+          const payload = (typeof data.__pc_c_state === 'string')
+            ? data.__pc_c_state
+            : JSON.stringify(data.__pc_c_state);
+          localStorage.setItem('pc-c-state', payload);
+          try { window.PCC_STATE = JSON.parse(payload); } catch(_){}
+        }
+      } catch(_){}
+
+      /* P1-IMPORT-PCD-INV-COINS-V1 · restaurar inventario D5 + monedas */
+      try {
+        if (data.__pcd_inv_coins !== undefined) {
+          const payload = (typeof data.__pcd_inv_coins === 'string')
+            ? data.__pcd_inv_coins
+            : JSON.stringify(data.__pcd_inv_coins);
+          localStorage.setItem('pcd-inv-coins-v1', payload);
+          try {
+            const p = JSON.parse(payload);
+            if (window.D5_INVENTORY && Array.isArray(p.inv)) {
+              window.D5_INVENTORY.length = 0;
+              p.inv.forEach(it => window.D5_INVENTORY.push(it));
+            }
+            if (window.D5_COINS && p.coins && typeof p.coins === 'object') {
+              Object.assign(window.D5_COINS, p.coins);
+            }
+          } catch(_){}
+        }
+      } catch(_){}
 
       // R-29 · Restaurar Modo Epic ANTES de crear las filas de clase para
       // que los nuevos inputs nazcan con max=30 y los niveles >20 no se clampeen.
@@ -12627,6 +13167,25 @@ function importData(event) {
       } catch(_){}
 
       recalc();
+
+      /* P1-IMPORT-PENDING-FEATS-RENDER-V1
+         Si el JSON era Mobile y trajo feats[] estructuradas, intentar
+         renderizarlas a HTML mediante renderFeats si existe. Si no existe,
+         dejar TODO documentado: no se pierden datos porque el objeto sigue
+         disponible bajo __pending_feats_render. */
+      try {
+        if (Array.isArray(data.__pending_feats_render)) {
+          if (typeof renderFeats === 'function') {
+            renderFeats(data.__pending_feats_render);
+          } else {
+            /* TODO: cuando se defina el renderer canónico (renderFeats), aplicar
+               aquí el array data.__pending_feats_render. De momento se queda en
+               la memoria del importador. */
+            console.warn('[P1] feats[] from Mobile import deferred — renderFeats() not available');
+          }
+        }
+      } catch(_){}
+
       // Restore per-level HP dice display (inputs created by buildHPDiceIfChanged inside recalc)
       if (data['__hp_dice_vals']) {
         try {
@@ -12638,8 +13197,12 @@ function importData(event) {
         } catch(e) {}
       }
       updateHPBar();
+      /* P4-LOG-IMPORT-OK-V1 */
+      try { window.logAction && window.logAction('persistencia','importar (éxito)', (data['char-name']||'')); } catch(_){}
     } catch(err) {
       toast(t('m.loadError') + ' ' + err.message, 5000);
+      /* P4-LOG-IMPORT-FAIL-V1 */
+      try { window.logAction && window.logAction('persistencia','importar (fallo)', err && err.message || String(err)); } catch(_){}
     }
   };
   reader.readAsText(file);
@@ -13191,6 +13754,8 @@ function applyTheme(id) {
   document.querySelectorAll('.theme-option').forEach(btn => {
     btn.setAttribute('aria-checked', btn.dataset.themeValue === id ? 'true' : 'false');
   });
+  /* P4-LOG-THEME-V1 */
+  try { window.logAction && window.logAction('ui','tema', id); } catch(_){}
 }
 function openThemeMenu() {
   const menu = document.getElementById('theme-menu');
@@ -13592,6 +14157,8 @@ function _btrUpdateCounts() {
 }
 function btrAddBuff(data) {
   data = data || {};
+  /* P4-LOG-BTRADD-V1 */
+  try { window.logAction && window.logAction('master','buff tracker añadido', (data.name||'(sin nombre)')+' · '+(data.duration||0)+(data.unit||'rd')); } catch(_){}
   const list = document.getElementById('buff-tracker-list');
   if (!list) return;
   const row = document.createElement('div');
@@ -13673,6 +14240,8 @@ function btrAddBuff(data) {
   if (typeof applyI18n === 'function') applyI18n(row);
 }
 function btrNextRound() {
+  /* P4-LOG-NEXTROUND-V1 */
+  try { window.logAction && window.logAction('combate','siguiente asalto'); } catch(_){}
   _btrMinTick = (_btrMinTick + 1) % 10;
   const tickMinutes = (_btrMinTick === 0); // every 10th click fires a minute tick
   document.querySelectorAll('#buff-tracker-list .buff-tracker-row').forEach(row => {
@@ -13994,6 +14563,8 @@ function _epicLevelInputs() {
 
 function applyEpicMode(on) {
   _epicModeOn = !!on;
+  /* P4-LOG-EPIC-V1 */
+  try { window.logAction && window.logAction('personaje','modo épico', on?'ON':'OFF'); } catch(_){}
   try { localStorage.setItem(EPIC_MODE_KEY, on ? '1' : '0'); } catch(e) {}
   const newMax = on ? 30 : 20;
   let needRecalc = false;
@@ -14040,6 +14611,8 @@ function _refreshGestaltVisibility() {
 
 function applyGestaltMode(on) {
   _gestaltModeOn = !!on;
+  /* P4-LOG-GESTALT-V1 */
+  try { window.logAction && window.logAction('personaje','modo gestalt', on?'ON':'OFF'); } catch(_){}
   try { localStorage.setItem(GESTALT_MODE_KEY, on ? '1' : '0'); } catch(e) {}
   const cb = document.getElementById('gestalt-mode');
   if (cb && cb.checked !== _gestaltModeOn) cb.checked = _gestaltModeOn;
@@ -14115,6 +14688,8 @@ let _masterModeOn = false;
 
 function setMasterMode(on) {
   _masterModeOn = !!on;
+  /* P4-LOG-MASTER-V1 */
+  try { window.logAction && window.logAction('master','modo máster', _masterModeOn?'ON':'OFF'); } catch(_){}
   try { localStorage.setItem(MASTER_MODE_KEY, on ? '1' : '0'); } catch(e) {}
   const btrPanel = document.getElementById('buff-tracker-panel');
   const iniPanel = document.getElementById('initiative-tracker-panel');
@@ -14688,6 +15263,8 @@ kbd{background:#222;color:#eee;border-radius:3px;padding:1px 5px;font-family:ui-
     if (!undoStack.length) return;
     const prev = undoStack.pop();
     if (!prev) return;
+    /* P4-LOG-UNDO-V1 */
+    try { window.logAction && window.logAction('persistencia','deshacer', 'stack: '+undoStack.length); } catch(_){}
     suspended = true;
     try {
       const data = JSON.parse(prev);
@@ -14794,6 +15371,8 @@ kbd{background:#222;color:#eee;border-radius:3px;padding:1px 5px;font-family:ui-
   }
 
   window.openBackupRestore = function(){
+    /* P4-LOG-BKOPEN-V1 */
+    try { window.logAction && window.logAction('persistencia','abrir lista backups'); } catch(_){}
     const list = listBackups();
     const cont = document.getElementById('backup-list');
     if (!cont) return;
@@ -14832,7 +15411,13 @@ kbd{background:#222;color:#eee;border-radius:3px;padding:1px 5px;font-family:ui-
         if (typeof recalc==='function') recalc();
       }
       closeBackupRestore();
-    } catch(e){ toast('Error restaurando: ' + e.message, 5000); }
+      /* P4-LOG-BKREST-V1 */
+      try { window.logAction && window.logAction('persistencia','backup restaurado', key); } catch(_){}
+    } catch(e){
+      toast('Error restaurando: ' + e.message, 5000);
+      /* P4-LOG-BKRESTERR-V1 */
+      try { window.logAction && window.logAction('persistencia','restaurar backup (fallo)', e && e.message || String(e)); } catch(_){}
+    }
   };
 })();
 
@@ -14994,6 +15579,8 @@ kbd{background:#222;color:#eee;border-radius:3px;padding:1px 5px;font-family:ui-
   };
 
   window.openAttrGen = function(){
+    /* P4-LOG-OPEN-ATTRGEN-V1 */
+    try { window.logAction && window.logAction('personaje','abrir generador atributos'); } catch(_){}
     document.getElementById('attr-gen-overlay').hidden = false;
     // Sincroniza values manual desde la ficha actual
     ATTRS6.forEach(a=>{
@@ -15113,6 +15700,8 @@ kbd{background:#222;color:#eee;border-radius:3px;padding:1px 5px;font-family:ui-
     if (!(await appConfirm('Añadir el equipo inicial básico de "'+classKey+'" a la ficha?', {title:'Equipo inicial'}))) return;
     const ok = applyStartingGear(classKey);
     if (ok) toast('Equipo inicial añadido. Revisa el inventario.');
+    /* P4-LOG-STARTGEAR-V1 */
+    try { window.logAction && window.logAction('equipo','equipo inicial aplicado', classKey+(ok?' · ok':' · vacío')); } catch(_){}
   };
 })();
 
@@ -15812,6 +16401,9 @@ window.rollWeaponFullAttack = function(btn){
       hpInp.value = String(next);
       try { hpInp.dispatchEvent(new Event('input', { bubbles:true })); } catch(_){}
       try { hpInp.dispatchEvent(new Event('change', { bubbles:true })); } catch(_){}
+      /* P2-HTK-BLOCK-CHIPS-V1: si Hard to Kill activo, NUNCA auto-marcar
+         Muriendo/Inconsciente desde el tick de sangrado (alineado con Mobile). */
+      if (_hasHardToKill()) return;
       if (!htk){
         if (next < 0){
           const dy = document.getElementById('cond-dying');
@@ -15822,8 +16414,25 @@ window.rollWeaponFullAttack = function(btn){
           if (un && !un.checked){ un.checked = true; try{ un.dispatchEvent(new Event('change',{bubbles:true})); }catch(_){}}
         }
       }
-      /* If Hard to Kill, NEVER auto-mark Dying/Unconscious from bleed tick. */
     } catch(e){ console.warn('PC-B bleed tick', e); }
+  }
+  /* P2-HTK-BLOCK-CHIPS-V1: guard global. Si un handler programatico intenta
+     marcar cond-dying/cond-unconscious mientras Hard to Kill esta activo, se revierte.
+     Los toggles manuales del jugador (isTrusted) siempre se respetan. */
+  function _installHtKChipGuard(){
+    if (window.__pcbHtkChipGuard) return;
+    ['cond-dying','cond-unconscious'].forEach(function(id){
+      const cb = document.getElementById(id);
+      if (!cb) return;
+      cb.addEventListener('change', function(ev){
+        try {
+          if (!cb.checked) return;
+          if (ev && ev.isTrusted) return;
+          if (_hasHardToKill()) cb.checked = false;
+        } catch(_){}
+      }, true);
+    });
+    window.__pcbHtkChipGuard = true;
   }
   function _hookBleedToNextRound(){
     if (window.__pcbBleedHooked) return;
@@ -15849,6 +16458,8 @@ window.rollWeaponFullAttack = function(btn){
     try { _installRecalcHook();  } catch(_){}
     try { _hookBleedToNextRound(); } catch(_){}
     try { _patchHPClamp(); } catch(_){}
+    /* P2-HTK-BLOCK-CHIPS-V1 */
+    try { _installHtKChipGuard(); } catch(_){}
   }
   if (document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', _init);
@@ -15861,6 +16472,8 @@ window.rollWeaponFullAttack = function(btn){
     try { _hookBleedToNextRound(); } catch(_){}
     try { _refreshCombatExpertiseGating(); } catch(_){}
     try { _refreshSpecialButtons(); } catch(_){}
+    /* P2-HTK-BLOCK-CHIPS-V1 */
+    try { _installHtKChipGuard(); } catch(_){}
   }, 1500);
 
   /* Expose for parent agents / debugging */
@@ -18183,6 +18796,712 @@ window.rollWeaponFullAttack = function(btn){
   PCActions.register('pc-inline-11', function(ev, el){ if(ev.target === el) closeAttrGen(); });
   PCActions.register('pc-inline-12', function(ev, el){ if(ev.target === el) closeBackupRestore(); });
   PCActions.register('pc-inline-13', function(ev, el){ if(ev.target === el) closeCheatsheet(); });
+})();
+</script>
+
+
+<script id="pc-p3-mobile-parity">
+/* P3-MOBILE-PARITY-V1 — Features paridad PC vs Mobile.
+   Sub-anchors: P3-SPELL-FILTER-V1, P3-SPELL-DC-BAR-V1, P3-MULTICASTER-SELECT-V1,
+   P3-DICE-CUSTOM-INLINE-V1, P3-DICE-HIST-ADV-CRIT-V1, P3-SETTINGS-V1.
+*/
+(function(){
+  'use strict';
+
+  function _q(sel, root){ return (root||document).querySelector(sel); }
+  function _qa(sel, root){ return Array.from((root||document).querySelectorAll(sel)); }
+  function _byId(id){ return document.getElementById(id); }
+  function _toast(msg){
+    try {
+      if (typeof window.showToast === 'function') { window.showToast(msg); return; }
+      if (typeof window.toast === 'function') { window.toast(msg); return; }
+    } catch(_){}
+    try {
+      let host = _byId('p3-toast-host');
+      if (!host){
+        host = document.createElement('div');
+        host.id = 'p3-toast-host';
+        host.style.cssText = 'position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:99999;display:flex;flex-direction:column;gap:6px;pointer-events:none;';
+        document.body.appendChild(host);
+      }
+      const t = document.createElement('div');
+      t.textContent = String(msg);
+      t.style.cssText = 'background:rgba(28,18,8,0.92);color:#f6e6c0;border:1px solid #5a3a18;padding:6px 12px;border-radius:6px;font:12px system-ui;box-shadow:0 4px 10px rgba(0,0,0,0.4);pointer-events:auto;';
+      host.appendChild(t);
+      setTimeout(function(){ try{ t.remove(); }catch(_){} }, 2800);
+    } catch(_){}
+  }
+  function _log(cat, msg, det){ try { if (window.logAction) window.logAction(cat, msg, det); } catch(_){} }
+
+  /* P3-SPELL-FILTER-V1 */
+  (function(){
+    let _filter = 'all';
+    window.__p3SpellFilter = function(){ return _filter; };
+    function _ensureBar(){
+      const body = _byId('spells-body');
+      if (!body) return null;
+      if (_byId('p3-spell-filter-bar')) return _byId('p3-spell-filter-bar');
+      const bar = document.createElement('div');
+      bar.id = 'p3-spell-filter-bar';
+      bar.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 8px;align-items:center;padding:6px 8px;background:rgba(0,0,0,0.04);border:1px solid var(--parchment-dk);border-radius:5px;';
+      const lbl = document.createElement('span');
+      lbl.style.cssText = 'font-size:11px;color:var(--leather-lt);font-weight:600;margin-right:4px;';
+      lbl.textContent = 'Filtro:';
+      bar.appendChild(lbl);
+      const opts = [
+        {k:'all',      label:'Todos',      icon:'*'},
+        {k:'known',    label:'Conocidos',  icon:'\u{1F4D8}'},
+        {k:'prepared', label:'Preparados', icon:'\u{1F4CB}'},
+        {k:'cast',     label:'Lanzados',   icon:'✦'}
+      ];
+      opts.forEach(function(o){
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'p3-spell-filter-chip';
+        b.dataset.sf = o.k;
+        b.textContent = o.icon + ' ' + o.label;
+        b.style.cssText = 'padding:3px 9px;font-size:11px;border-radius:14px;border:1px solid var(--leather-lt);cursor:pointer;background:var(--parchment);color:var(--leather-dk);';
+        b.addEventListener('click', function(){
+          _filter = o.k;
+          _updateChips();
+          _applyFilter();
+          _log('conjuros','filtro', o.k);
+        });
+        bar.appendChild(b);
+      });
+      const modeBar = body.querySelector('.spell-mode-bar');
+      if (modeBar && modeBar.nextSibling) modeBar.parentNode.insertBefore(bar, modeBar.nextSibling);
+      else body.insertBefore(bar, body.firstChild);
+      _updateChips();
+      return bar;
+    }
+    function _updateChips(){
+      _qa('#p3-spell-filter-bar .p3-spell-filter-chip').forEach(function(b){
+        const active = b.dataset.sf === _filter;
+        b.style.background = active ? 'var(--leather-dk)' : 'var(--parchment)';
+        b.style.color      = active ? 'var(--parchment)'  : 'var(--leather-dk)';
+        b.style.fontWeight = active ? '700' : '400';
+        b.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+    }
+    function _entryState(entry){
+      if (entry.closest && entry.closest('.sp-known-section')) return 'known';
+      if (entry.classList && (entry.classList.contains('cast') || entry.classList.contains('used'))) return 'cast';
+      const castCb = entry.querySelector && entry.querySelector('input[type="checkbox"].spell-cast, input[type="checkbox"][data-cast="1"]');
+      if (castCb && castCb.checked) return 'cast';
+      const nameInp = entry.querySelector && entry.querySelector('input[type="text"]');
+      const txt = nameInp ? String(nameInp.value||'').trim() : (entry.textContent||'').trim();
+      if (txt) return 'prepared';
+      return 'empty';
+    }
+    function _applyFilter(){
+      const entries = _qa('.spells-panel .spell-entries > *');
+      entries.forEach(function(e){
+        const st = _entryState(e);
+        let show = true;
+        if (_filter === 'all') show = true;
+        else if (_filter === 'known') show = (st === 'known' || st === 'prepared');
+        else if (_filter === 'prepared') show = (st === 'prepared' || st === 'cast');
+        else if (_filter === 'cast') show = (st === 'cast');
+        e.style.display = show ? '' : 'none';
+      });
+    }
+    window.__p3ApplySpellFilter = _applyFilter;
+    document.addEventListener('input', function(ev){
+      if (ev.target && ev.target.closest && ev.target.closest('.spells-panel .spell-entries')) {
+        setTimeout(_applyFilter, 50);
+      }
+    });
+    document.addEventListener('change', function(ev){
+      if (ev.target && ev.target.closest && ev.target.closest('.spells-panel .spell-entries')) {
+        setTimeout(_applyFilter, 50);
+      }
+    });
+    function _init(){
+      _ensureBar();
+      _applyFilter();
+      const header = _byId('spells-header');
+      if (header && !header.__p3Bound){
+        header.__p3Bound = true;
+        header.addEventListener('click', function(){
+          setTimeout(function(){ _ensureBar(); _applyFilter(); }, 80);
+        });
+      }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _init, {once:true});
+    else _init();
+    setTimeout(_init, 800);
+    setTimeout(_init, 2500);
+  })();
+
+  /* P3-SPELL-DC-BAR-V1 */
+  (function(){
+    function _ensureBar(){
+      const body = _byId('spells-body');
+      if (!body) return null;
+      if (_byId('p3-spell-dc-bar')) return _byId('p3-spell-dc-bar');
+      const bar = document.createElement('div');
+      bar.id = 'p3-spell-dc-bar';
+      bar.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:6px 10px;margin:6px 0 8px;background:linear-gradient(90deg,rgba(180,140,60,0.18),rgba(110,70,30,0.10));border:1px solid var(--leather-lt);border-radius:6px;font:12px system-ui;color:var(--leather-dk);';
+      bar.innerHTML = ''
+        + '<span style="font-weight:700;font-family:var(--ff-head,Cinzel,serif);">CD Conjuros:</span>'
+        + '<span class="p3-dc-pill" title="CD base = 10 + nivel del conjuro + mod atrib." style="padding:2px 8px;background:rgba(0,0,0,0.10);border-radius:10px;">Base <b id="p3-dc-base">10</b></span>'
+        + '<span class="p3-dc-pill" title="Atributo de lanzamiento" style="padding:2px 8px;background:rgba(0,0,0,0.10);border-radius:10px;">Atrib <b id="p3-dc-attr">—</b></span>'
+        + '<span class="p3-dc-pill" title="Modificador del atributo" style="padding:2px 8px;background:rgba(0,0,0,0.10);border-radius:10px;">Mod <b id="p3-dc-mod">+0</b></span>'
+        + '<span class="p3-dc-pill" title="Escuela elegida" style="padding:2px 8px;background:rgba(0,0,0,0.10);border-radius:10px;">Escuela <b id="p3-dc-school">—</b></span>'
+        + '<span class="p3-dc-pill" title="Nivel del lanzador" style="padding:2px 8px;background:rgba(0,0,0,0.10);border-radius:10px;">NL <b id="p3-dc-cl">1</b></span>';
+      const lvls = _byId('spell-levels-container');
+      if (lvls && lvls.parentNode) lvls.parentNode.insertBefore(bar, lvls);
+      else body.appendChild(bar);
+      return bar;
+    }
+    function _attrMod(attrKey){
+      try {
+        const el = _byId(attrKey + '-mod') || _byId(attrKey + '-modifier') || _byId('mod-' + attrKey);
+        if (el) { const v = parseInt(el.value || el.textContent || '0',10); if (!isNaN(v)) return v; }
+        const score = _byId(attrKey + '-score') || _byId(attrKey);
+        if (score) { const v = parseInt(score.value||'10',10); return Math.floor((v-10)/2); }
+      } catch(_){}
+      return 0;
+    }
+    function _refresh(){
+      const bar = _ensureBar();
+      if (!bar) return;
+      const cattrSel = _byId('cast-attr');
+      const attr = cattrSel ? cattrSel.value : 'int';
+      const ATTR_LABEL = {str:'FUE',dex:'DES',con:'CON',int:'INT',wis:'SAB',cha:'CAR'};
+      const mod = _attrMod(attr);
+      const base = 10 + mod;
+      const cl = parseInt((_byId('caster-level')||{}).value||'1',10) || 1;
+      const sch = (_byId('arcane-school-select')||{}).value || '';
+      const schLabel = sch || '—';
+      const sb = _byId('p3-dc-base'); if (sb) sb.textContent = String(base);
+      const sa = _byId('p3-dc-attr'); if (sa) sa.textContent = ATTR_LABEL[attr] || attr.toUpperCase();
+      const sm = _byId('p3-dc-mod');  if (sm) sm.textContent = (mod>=0?'+':'') + mod;
+      const ss = _byId('p3-dc-school'); if (ss) ss.textContent = schLabel;
+      const sc = _byId('p3-dc-cl'); if (sc) sc.textContent = String(cl);
+    }
+    window.__p3RefreshSpellDC = _refresh;
+    function _init(){
+      _ensureBar();
+      _refresh();
+      const header = _byId('spells-header');
+      if (header && !header.__p3DcBound){
+        header.__p3DcBound = true;
+        header.addEventListener('click', function(){ setTimeout(function(){ _ensureBar(); _refresh(); }, 80); });
+      }
+      ['cast-attr','caster-level','arcane-school-select','str-score','dex-score','con-score','int-score','wis-score','cha-score','str','dex','con','int','wis','cha'].forEach(function(id){
+        const el = _byId(id);
+        if (el && !el.__p3DcBound){
+          el.__p3DcBound = true;
+          el.addEventListener('change', _refresh);
+          el.addEventListener('input', _refresh);
+        }
+      });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _init, {once:true});
+    else _init();
+    setTimeout(_init, 800);
+    setTimeout(_init, 2500);
+    try {
+      const _origRecalc = window.recalc;
+      if (typeof _origRecalc === 'function' && !_origRecalc.__p3DcWrap){
+        window.recalc = function(){ const r = _origRecalc.apply(this, arguments); try { _refresh(); } catch(_){} return r; };
+        window.recalc.__p3DcWrap = true;
+      }
+    } catch(_){}
+  })();
+
+  /* P3-MULTICASTER-SELECT-V1 */
+  (function(){
+    function _mcRows(){
+      try {
+        if (typeof window._mcCasterClassRows === 'function') return window._mcCasterClassRows();
+        if (typeof getActiveClassRows === 'function'){
+          return getActiveClassRows().filter(function(r){
+            const cls = (typeof DB!=='undefined' && DB.classes) ? DB.classes[r.classKey] : null;
+            return cls && cls.spells_per_day && r.level > 0;
+          });
+        }
+      } catch(_){}
+      return [];
+    }
+    function _ensureBar(){
+      const body = _byId('spells-body');
+      if (!body) return null;
+      if (_byId('p3-multicaster-bar')) return _byId('p3-multicaster-bar');
+      const wrap = document.createElement('div');
+      wrap.id = 'p3-multicaster-bar';
+      wrap.style.cssText = 'display:none;align-items:center;gap:8px;margin:6px 0 8px;padding:6px 10px;background:rgba(60,30,10,0.06);border:1px dashed var(--leather-lt);border-radius:5px;font:12px system-ui;color:var(--leather-dk);';
+      wrap.innerHTML = ''
+        + '<span style="font-weight:700;">\u{1F3AD} Vista multi-caster:</span>'
+        + '<select id="pc-multicaster-select" style="min-width:160px;font-size:12px;"><option value="__all">— Todas —</option></select>'
+        + '<span style="font-size:10.5px;color:var(--leather-lt);font-style:italic;">Filtra qué clase caster ver</span>';
+      const meta = body.querySelector('.spell-meta');
+      if (meta && meta.parentNode) meta.parentNode.insertBefore(wrap, meta);
+      else body.insertBefore(wrap, body.firstChild);
+      const sel = _byId('pc-multicaster-select');
+      if (sel) sel.addEventListener('change', function(){
+        _applyView(this.value);
+        _log('conjuros','multicaster vista', this.value);
+      });
+      return wrap;
+    }
+    function _populate(){
+      const wrap = _ensureBar();
+      if (!wrap) return;
+      const sel = _byId('pc-multicaster-select');
+      if (!sel) return;
+      const rows = _mcRows();
+      if (rows.length < 2){
+        wrap.style.display = 'none';
+        return;
+      }
+      wrap.style.display = 'flex';
+      const prev = sel.value || '__all';
+      sel.innerHTML = '<option value="__all">— Todas —</option>';
+      rows.forEach(function(r){
+        const cls = (typeof DB!=='undefined' && DB.classes) ? DB.classes[r.classKey] : null;
+        const nm = (typeof tData==='function' && cls) ? (tData(cls,'name') || r.classKey) : ((cls && cls.name) || r.classKey);
+        const o = document.createElement('option');
+        o.value = r.classKey;
+        o.textContent = nm + ' (Nv ' + r.level + ')';
+        sel.appendChild(o);
+      });
+      sel.value = ([].slice.call(sel.options).some(function(o){return o.value===prev;})) ? prev : '__all';
+      _applyView(sel.value);
+    }
+    function _applyView(key){
+      _qa('#multi-caster-container .mc-block').forEach(function(blk){
+        const mcKey = blk.dataset.mcKey || (blk.querySelector('summary')||{}).textContent || '';
+        const match = (key === '__all') || (mcKey && mcKey.indexOf(key) !== -1);
+        blk.style.display = match ? '' : 'none';
+      });
+    }
+    window.__p3PopulateMC = _populate;
+    function _init(){
+      _populate();
+      const header = _byId('spells-header');
+      if (header && !header.__p3McBound){
+        header.__p3McBound = true;
+        header.addEventListener('click', function(){ setTimeout(_populate, 100); });
+      }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _init, {once:true});
+    else _init();
+    setTimeout(_init, 1000);
+    setTimeout(_init, 3000);
+    try {
+      const _orig = window.recalc;
+      if (typeof _orig === 'function' && !_orig.__p3McWrap){
+        window.recalc = function(){ const r = _orig.apply(this, arguments); try { _populate(); } catch(_){} return r; };
+        window.recalc.__p3McWrap = true;
+      }
+    } catch(_){}
+  })();
+
+  /* P3-DICE-CUSTOM-INLINE-V1 */
+  (function(){
+    function _ensure(){
+      if (_byId('p3-dice-custom-wrap')) return _byId('p3-dice-custom-wrap');
+      const stage = _q('.single-die-stage');
+      if (!stage) return null;
+      const wrap = document.createElement('div');
+      wrap.id = 'p3-dice-custom-wrap';
+      wrap.style.cssText = 'display:flex;gap:6px;align-items:center;justify-content:center;margin-top:6px;flex-wrap:wrap;';
+      wrap.innerHTML = ''
+        + '<input type="text" id="dice-custom-expr" placeholder="2d6+3" style="width:120px;font-family:ui-monospace,monospace;font-size:12px;padding:3px 5px;">'
+        + '<button type="button" id="dice-custom-roll" style="font-size:11px;padding:3px 9px;cursor:pointer;background:var(--leather);color:var(--parchment);border:1px solid var(--leather-dk);border-radius:4px;">\u{1F3B2} Tirar fórmula</button>';
+      if (stage.parentNode) stage.parentNode.insertBefore(wrap, stage.nextSibling);
+      const btn = _byId('dice-custom-roll');
+      const inp = _byId('dice-custom-expr');
+      function go(){
+        const raw = (inp.value||'').trim();
+        const m = raw.match(/^(\d+)?d(\d+)\s*([+\-]\s*\d+)?$/i);
+        if (!m){ _toast('Formato inválido. Usa NdM o NdM±X (ej: 2d6+3)'); return; }
+        const count = Math.max(1, Math.min(100, parseInt(m[1]||'1',10)));
+        const sides = Math.max(2, Math.min(1000, parseInt(m[2],10)));
+        const mod = m[3] ? parseInt(m[3].replace(/\s+/g,''),10) : 0;
+        const rolls = [];
+        for (let i=0;i<count;i++) rolls.push(1 + Math.floor(Math.random()*sides));
+        const sum = rolls.reduce(function(a,b){return a+b;},0);
+        const total = sum + mod;
+        const sign = mod>0?'+'+mod:mod<0?String(mod):'';
+        const text = count+'d'+sides+sign+' = '+total+' ['+rolls.join(',')+']';
+        _toast('\u{1F3B2} ' + text);
+        const info = _byId('last-roll-info');
+        if (info) info.innerHTML = '<b>' + count+'d'+sides+sign + ' = ' + total + '</b> <small style="color:var(--leather-lt)">[' + rolls.join(', ') + ']</small>';
+        _log('dados','custom inline', text);
+        if (window.__p3PushHistory) window.__p3PushHistory({type:'custom', expr:count+'d'+sides+sign, total:total, rolls:rolls, mod:mod});
+      }
+      btn.addEventListener('click', go);
+      inp.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); go(); } });
+      return wrap;
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _ensure, {once:true});
+    else _ensure();
+    setTimeout(_ensure, 500);
+  })();
+
+  /* P3-DICE-HIST-ADV-CRIT-V1 */
+  (function(){
+    const HISTORY = [];
+    const HMAX = 20;
+    let _advMode = 'none';
+    let _lastD20 = null;
+
+    function _ensurePanel(){
+      if (_byId('p3-dice-extras')) return _byId('p3-dice-extras');
+      const stage = _q('.single-die-stage');
+      if (!stage) return null;
+      const wrap = document.createElement('div');
+      wrap.id = 'p3-dice-extras';
+      wrap.style.cssText = 'margin-top:8px;padding:6px 8px;border:1px solid var(--parchment-dk);border-radius:5px;background:rgba(245,235,205,0.30);font:11.5px system-ui;color:var(--leather-dk);';
+      wrap.innerHTML = ''
+        + '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px;">'
+        +   '<label data-adv="none" style="display:flex;align-items:center;gap:3px;cursor:pointer;"><input type="radio" name="p3-adv" value="none" checked> Normal</label>'
+        +   '<label data-adv="adv" style="display:flex;align-items:center;gap:3px;cursor:pointer;"><input type="radio" name="p3-adv" value="adv"> ↑ Ventaja</label>'
+        +   '<label data-adv="dis" style="display:flex;align-items:center;gap:3px;cursor:pointer;"><input type="radio" name="p3-adv" value="dis"> ↓ Desventaja</label>'
+        +   '<button type="button" id="p3-roll-d20-adv" style="padding:2px 8px;cursor:pointer;background:var(--leather);color:var(--parchment);border:1px solid var(--leather-dk);border-radius:4px;font-size:11px;">Tirar d20</button>'
+        +   '<button type="button" id="p3-crit-confirm" disabled title="Habilita tras tirar un d20 con nat 20" style="padding:2px 8px;cursor:pointer;background:rgba(120,40,30,0.15);color:var(--leather-dk);border:1px solid var(--leather-lt);border-radius:4px;font-size:11px;opacity:0.55;">\u{1F3AF} Confirmar crítico</button>'
+        + '</div>'
+        + '<details id="p3-hist-details" style="margin-top:4px;">'
+        +   '<summary style="cursor:pointer;font-weight:600;">\u{1F4DC} Historial de tiradas <span id="p3-hist-count" style="font-weight:400;color:var(--leather-lt);">(0)</span></summary>'
+        +   '<ol id="p3-dice-history" style="margin:4px 0 0;padding-left:18px;max-height:160px;overflow:auto;font-size:11px;"></ol>'
+        +   '<button type="button" id="p3-hist-clear" style="margin-top:4px;font-size:10.5px;padding:2px 8px;cursor:pointer;background:rgba(0,0,0,0.04);border:1px solid var(--leather-lt);border-radius:3px;color:var(--leather-dk);">Vaciar historial</button>'
+        + '</details>';
+      if (stage.parentNode) stage.parentNode.appendChild(wrap);
+      _bind();
+      return wrap;
+    }
+    function _bind(){
+      _qa('input[name="p3-adv"]').forEach(function(r){
+        r.addEventListener('change', function(){
+          _advMode = this.value;
+          _log('dados','modo', _advMode);
+        });
+      });
+      const btn = _byId('p3-roll-d20-adv');
+      if (btn) btn.addEventListener('click', function(){
+        const a = 1 + Math.floor(Math.random()*20);
+        const b = 1 + Math.floor(Math.random()*20);
+        let used, mode, label;
+        if (_advMode === 'adv') { used = Math.max(a,b); mode='adv'; label='Ventaja'; }
+        else if (_advMode === 'dis') { used = Math.min(a,b); mode='dis'; label='Desventaja'; }
+        else { used = a; mode='none'; label='d20'; }
+        const text = label + ': [' + a + ', ' + b + '] -> ' + used + (used===20?' \u{1F3AF} NAT 20':(used===1?' \u{2620}️ pifia':''));
+        _toast('\u{1F3B2} ' + text);
+        const info = _byId('last-roll-info');
+        if (info) info.innerHTML = '<b>' + label + ' d20 = ' + used + '</b> <small style="color:var(--leather-lt)">[' + a + ', ' + b + ']</small>';
+        _pushHistory({type:'d20', mode:mode, total:used, rolls:[a,b]});
+        _lastD20 = { nat: used, total: used, atk: 0 };
+        _updateCritBtn();
+        _log('dados','d20'+(mode!=='none'?'/'+mode:''), text);
+      });
+      const cc = _byId('p3-crit-confirm');
+      if (cc) cc.addEventListener('click', function(){
+        if (!_lastD20 || _lastD20.nat !== 20) { _toast('Necesitas un nat 20 reciente'); return; }
+        const atkStr = window.prompt ? window.prompt('Bonificador de ataque para confirmar (ej: 8):','0') : '0';
+        if (atkStr === null) return;
+        const atk = parseInt(atkStr,10) || 0;
+        const d = 1 + Math.floor(Math.random()*20);
+        const total = d + atk;
+        const text = 'Confirmar crítico: 1d20('+d+') ' + (atk>=0?'+':'') + atk + ' = ' + total + (d===20?' \u{1F3AF}\u{1F3AF}':'');
+        _toast(text);
+        const info = _byId('last-roll-info');
+        if (info) info.innerHTML = '<b>Confirmar crítico: ' + total + '</b> <small style="color:var(--leather-lt)">1d20('+d+') +' + atk + '</small>';
+        _pushHistory({type:'crit-confirm', total:total, rolls:[d], mod:atk});
+        _log('dados','confirmar crítico', text);
+        _lastD20 = null;
+        _updateCritBtn();
+      });
+      const clr = _byId('p3-hist-clear');
+      if (clr) clr.addEventListener('click', function(){
+        HISTORY.length = 0;
+        _renderHistory();
+        _log('dados','historial vaciado');
+      });
+    }
+    function _updateCritBtn(){
+      const cc = _byId('p3-crit-confirm');
+      if (!cc) return;
+      const enable = !!(_lastD20 && _lastD20.nat === 20);
+      cc.disabled = !enable;
+      cc.style.opacity = enable ? '1' : '0.55';
+      cc.style.background = enable ? 'rgba(180,30,30,0.20)' : 'rgba(120,40,30,0.15)';
+      cc.title = enable ? 'Tirar segundo d20 + atk para confirmar' : 'Habilita tras tirar un d20 con nat 20';
+    }
+    function _pushHistory(entry){
+      const ts = new Date();
+      const stamp = String(ts.getHours()).padStart(2,'0')+':'+String(ts.getMinutes()).padStart(2,'0')+':'+String(ts.getSeconds()).padStart(2,'0');
+      HISTORY.unshift(Object.assign({ts:stamp}, entry));
+      if (HISTORY.length > HMAX) HISTORY.length = HMAX;
+      _renderHistory();
+    }
+    function _renderHistory(){
+      const ol = _byId('p3-dice-history');
+      const cnt = _byId('p3-hist-count');
+      if (cnt) cnt.textContent = '(' + HISTORY.length + ')';
+      if (!ol) return;
+      ol.innerHTML = HISTORY.map(function(h){
+        let body = '';
+        if (h.type === 'd20') {
+          body = h.mode === 'adv' ? 'd20↑ ' : h.mode === 'dis' ? 'd20↓ ' : 'd20 ';
+          body += '['+h.rolls.join(',')+'] -> <b>' + h.total + '</b>';
+        } else if (h.type === 'custom') {
+          body = h.expr + ' = <b>' + h.total + '</b> [' + h.rolls.join(',') + ']';
+        } else if (h.type === 'crit-confirm') {
+          body = 'Confirmar crítico = <b>' + h.total + '</b> [' + h.rolls.join(',') + '+' + h.mod + ']';
+        } else {
+          body = (h.expr||'?') + ' = <b>' + (h.total||0) + '</b>';
+        }
+        return '<li><small style="color:var(--leather-lt);">' + h.ts + '</small> &middot; ' + body + '</li>';
+      }).join('');
+    }
+    window.__p3PushHistory = _pushHistory;
+    function _hookSingleDie(){
+      const die = _byId('single-die');
+      if (!die || die.__p3Hooked) return;
+      die.__p3Hooked = true;
+      die.addEventListener('click', function(){
+        setTimeout(function(){
+          const numEl = _byId('single-die-number');
+          const typeEl = _byId('single-die-type');
+          const n = numEl ? parseInt(numEl.textContent,10) : NaN;
+          const type = typeEl ? (typeEl.textContent||'') : '';
+          if (!isNaN(n)){
+            _pushHistory({type:'custom', expr:type, total:n, rolls:[n]});
+            if (/^d20$/i.test(type)){
+              _lastD20 = { nat:n, total:n, atk:0 };
+              _updateCritBtn();
+            }
+          }
+        }, 1100);
+      });
+    }
+    function _init(){
+      _ensurePanel();
+      _hookSingleDie();
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _init, {once:true});
+    else _init();
+    setTimeout(_init, 500);
+  })();
+
+  /* P3-SETTINGS-V1 */
+  (function(){
+    const LS_KEY = 'pf1e-pc-p3-settings';
+    function _load(){
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        if (!raw) return {};
+        const obj = JSON.parse(raw);
+        return (obj && typeof obj === 'object') ? obj : {};
+      } catch(_){ return {}; }
+    }
+    function _save(s){ try { localStorage.setItem(LS_KEY, JSON.stringify(s)); } catch(_){} }
+    const SETTINGS = _load();
+    if (typeof SETTINGS.exportPhoto !== 'boolean') SETTINGS.exportPhoto = false;
+    window.__p3Settings = SETTINGS;
+
+    function _applyFontSize(v){
+      try { document.documentElement.dataset.fontSize = v || 'normal'; } catch(_){}
+      const map = { small:'13px', normal:'14px', large:'16px', xlarge:'18px' };
+      try { document.documentElement.style.fontSize = map[v] || ''; } catch(_){}
+    }
+    function _applyDaltonic(on){
+      try { document.body.classList.toggle('daltonic', !!on); } catch(_){}
+    }
+    function _injectDaltonicCSS(){
+      if (_byId('p3-daltonic-css')) return;
+      const st = document.createElement('style');
+      st.id = 'p3-daltonic-css';
+      st.textContent = ''
+        + 'body.daltonic { filter: saturate(0.85); }'
+        + 'body.daltonic .negative { color:#0072B2 !important; }'
+        + 'body.daltonic .positive { color:#D55E00 !important; }'
+        + 'body.daltonic [style*="color:var(--negative"] { color:#0072B2 !important; }'
+        + 'body.daltonic [style*="color: var(--negative"] { color:#0072B2 !important; }'
+        + 'body.daltonic [style*="color:var(--positive"] { color:#D55E00 !important; }'
+        + 'body.daltonic [style*="color: var(--positive"] { color:#D55E00 !important; }'
+        + 'body.daltonic .hp-bar-fill { background: linear-gradient(90deg,#D55E00,#F0E442) !important; }';
+      document.head.appendChild(st);
+    }
+
+    function _emptyStateImport(){
+      const empty = {};
+      try {
+        document.querySelectorAll('input,select,textarea').forEach(function(el){
+          if (!el.id) return;
+          if (el.type === 'checkbox' || el.type === 'radio') empty[el.id] = false;
+          else if (el.type === 'number') empty[el.id] = el.defaultValue || '';
+          else empty[el.id] = '';
+        });
+      } catch(_){}
+      empty['__char_photo'] = '';
+      return empty;
+    }
+
+    function _ensurePanel(){
+      if (_byId('p3-settings-panel')) return _byId('p3-settings-panel');
+      const panel = document.createElement('div');
+      panel.id = 'p3-settings-panel';
+      panel.className = 'panel full-row';
+      panel.innerHTML = ''
+        + '<h2 class="collapsible-header collapsed" id="p3-settings-header" style="cursor:pointer;">⚙ Ajustes y Datos</h2>'
+        + '<div class="collapsible-body hidden" id="p3-settings-body">'
+        +   '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px;">'
+        +     '<label style="font-size:12px;">Tamaño de fuente<br>'
+        +       '<select id="pc-fontsize" style="min-width:140px;font-size:12px;">'
+        +         '<option value="small">Pequeña</option>'
+        +         '<option value="normal" selected>Normal</option>'
+        +         '<option value="large">Grande</option>'
+        +         '<option value="xlarge">Muy grande</option>'
+        +       '</select>'
+        +     '</label>'
+        +     '<label style="font-size:12px;display:flex;align-items:center;gap:5px;padding:6px 0;">'
+        +       '<input type="checkbox" id="pc-daltonic"> Modo daltónico'
+        +     '</label>'
+        +     '<label style="font-size:12px;display:flex;align-items:center;gap:5px;padding:6px 0;">'
+        +       '<input type="checkbox" id="pc-export-photo"> Exportar foto en JSON'
+        +     '</label>'
+        +   '</div>'
+        +   '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">'
+        +     '<button type="button" id="p3-btn-clear-data" data-toast="datos-limpios" style="padding:5px 12px;background:rgba(180,30,30,0.15);border:1px solid var(--leather-dk);color:var(--leather-dk);border-radius:4px;cursor:pointer;font-size:12px;">\u{1F5D1} Limpiar todos los datos</button>'
+        +     '<button type="button" id="p3-btn-new-char" style="padding:5px 12px;background:rgba(60,100,60,0.15);border:1px solid var(--leather-dk);color:var(--leather-dk);border-radius:4px;cursor:pointer;font-size:12px;">\u{1F4CB} Nueva ficha</button>'
+        +   '</div>'
+        +   '<div style="font-size:10.5px;color:var(--leather-lt);margin-top:6px;font-style:italic;">"Limpiar datos" borra localStorage y recarga. "Nueva ficha" resetea los campos del DOM.</div>'
+        + '</div>';
+      const host = _byId('main-sheet') || document.body;
+      host.appendChild(panel);
+      _bind(panel);
+      return panel;
+    }
+    function _bind(panel){
+      const head = panel.querySelector('#p3-settings-header');
+      const body = panel.querySelector('#p3-settings-body');
+      if (head && body && !head.__p3Bound){
+        head.__p3Bound = true;
+        head.addEventListener('click', function(){
+          const collapsed = head.classList.toggle('collapsed');
+          body.classList.toggle('hidden', collapsed);
+        });
+      }
+      const fs = _byId('pc-fontsize');
+      if (fs){
+        fs.value = SETTINGS.fontSize || 'normal';
+        fs.addEventListener('change', function(){
+          SETTINGS.fontSize = this.value;
+          _applyFontSize(this.value);
+          _save(SETTINGS);
+          _log('ui','fontsize', this.value);
+        });
+      }
+      const dl = _byId('pc-daltonic');
+      if (dl){
+        dl.checked = !!SETTINGS.daltonic;
+        dl.addEventListener('change', function(){
+          SETTINGS.daltonic = !!this.checked;
+          _applyDaltonic(this.checked);
+          _save(SETTINGS);
+          _log('ui','daltonic', this.checked?'on':'off');
+        });
+      }
+      const ep = _byId('pc-export-photo');
+      if (ep){
+        ep.checked = !!SETTINGS.exportPhoto;
+        ep.addEventListener('change', function(){
+          SETTINGS.exportPhoto = !!this.checked;
+          _save(SETTINGS);
+          _log('ui','export-photo', this.checked?'on':'off');
+          _toast(this.checked ? 'La foto SI se incluira al exportar' : 'La foto NO se incluira al exportar');
+        });
+      }
+      const bClr = _byId('p3-btn-clear-data');
+      if (bClr) bClr.addEventListener('click', async function(){
+        let ok = false;
+        try {
+          ok = (typeof window.appConfirm === 'function')
+            ? await window.appConfirm('Esto BORRA todos los datos en localStorage (ajustes, temas custom, log, undo) y recarga la pagina. Continuar?', {title:'Limpiar todos los datos', danger:true})
+            : window.confirm('Esto BORRA todos los datos en localStorage. Continuar?');
+        } catch(_){ ok = false; }
+        if (!ok) return;
+        try { localStorage.clear(); } catch(_){}
+        _toast('datos-limpios');
+        _log('ui','limpiar todos los datos');
+        setTimeout(function(){ try { location.reload(); } catch(_){} }, 400);
+      });
+      const bNew = _byId('p3-btn-new-char');
+      if (bNew) bNew.addEventListener('click', async function(){
+        let ok = false;
+        try {
+          ok = (typeof window.appConfirm === 'function')
+            ? await window.appConfirm('Resetear la ficha al estado vacio (no afecta a tus ajustes ni temas). Continuar?', {title:'Nueva ficha', danger:true})
+            : window.confirm('Resetear la ficha al estado vacio. Continuar?');
+        } catch(_){ ok = false; }
+        if (!ok) return;
+        const empty = _emptyStateImport();
+        try {
+          if (typeof window.applyImportedData === 'function') {
+            window.applyImportedData(empty);
+          } else if (typeof window.importDataFromObject === 'function') {
+            window.importDataFromObject(empty);
+          } else {
+            document.querySelectorAll('input,select,textarea').forEach(function(el){
+              if (!el.id) return;
+              if (el.type === 'checkbox' || el.type === 'radio') el.checked = false;
+              else if (el.type === 'number') el.value = el.defaultValue || '';
+              else el.value = '';
+            });
+            try { if (typeof window.recalc==='function') window.recalc(); } catch(_){}
+          }
+          _toast('Nueva ficha lista');
+          _log('ui','nueva ficha');
+        } catch(e){
+          _toast('Error al resetear: '+(e && e.message||e));
+          _log('error','nueva ficha', e && e.message);
+        }
+      });
+    }
+    function _applyAll(){
+      _injectDaltonicCSS();
+      _applyFontSize(SETTINGS.fontSize || 'normal');
+      _applyDaltonic(!!SETTINGS.daltonic);
+    }
+    function _init(){
+      _applyAll();
+      _ensurePanel();
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _init, {once:true});
+    else _init();
+    setTimeout(_init, 600);
+
+    /* Hook exportData(): si exportPhoto OFF, vacia img.src antes y restaura. */
+    setTimeout(function(){
+      try {
+        const _origExport = window.exportData;
+        if (typeof _origExport !== 'function' || _origExport.__p3Wrap) return;
+        window.exportData = function(){
+          let saved = null;
+          const img = _byId('char-photo-img');
+          if (!SETTINGS.exportPhoto && img && img.src){
+            saved = img.src;
+            try { img.src = ''; } catch(_){}
+          }
+          let r;
+          try { r = _origExport.apply(this, arguments); }
+          finally {
+            if (saved !== null && img) {
+              try { img.src = saved; } catch(_){}
+            }
+          }
+          return r;
+        };
+        window.exportData.__p3Wrap = true;
+      } catch(_){}
+    }, 900);
+  })();
+
 })();
 </script>
 

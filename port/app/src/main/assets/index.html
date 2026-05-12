@@ -56988,11 +56988,13 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
           <label style="display:flex;align-items:center;gap:10px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)">
             <span style="flex:1">Combate Dos Armas</span>
             <!-- #ANCHOR:COMBAT-TWF-SELECT-V2 — opciones limpias. 2026-05-11 -->
+            <!-- M1-TWF-HEAVY-V1: añadida opción twf-heavy (offhand no-ligera -2/-6) -->
             <select id="combat-twf" class="combat-tactical" style="font:600 11px system-ui;padding:4px 6px;border-radius:6px;background:var(--surface);color:var(--ink);border:1px solid var(--line)">
               <option value="off" selected>Sin TWF</option>
               <option value="std">Sin dote (−4/−8)</option>
               <option value="twf">TWF con dote (−2/−2)</option>
               <option value="twf-light">TWF arma ligera (−2/−2)</option>
+              <option value="twf-heavy">TWF base + offhand no-ligera (−2/−6)</option>
               <option value="itwf">+Improved TWF (1 atq extra offhand a BAB−5)</option>
               <option value="gtwf">+Greater TWF (2 atqs extras offhand a BAB−5/−10)</option>
             </select>
@@ -57660,6 +57662,11 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
     <label style="display:flex;align-items:center;gap:10px;margin:10px 0">
       <input type="checkbox" id="settings-export-photo"> <span>🖼 Incluir foto en el export JSON (puede crecer mucho)</span>
     </label>
+    <!-- /* M4-EXPORT-PC-TOGGLE */ Exportar JSON en formato PC (Mobile→PC schema converter) -->
+    <label style="display:flex;align-items:center;gap:10px;margin:10px 0" id="settings-export-pc-label">
+      <input type="checkbox" id="settings-export-pc"> <span>📤 Exportar para PC (formato compatible con la ficha de escritorio)</span>
+    </label>
+    <div style="font-size:11px;color:var(--ink-muted);margin:0 0 8px 26px;font-style:italic;line-height:1.4">Convierte el JSON al formato plano que usa la ficha de PC. Por defecto se exporta el JSON nativo de mobile.</div>
     <button class="btn-secondary" id="settings-restore-backup" style="width:100%;margin-top:8px;display:flex;align-items:center;justify-content:space-between">
       <span>🔄 Restaurar backup automático</span>
       <span class="more-chev" aria-hidden="true">›</span>
@@ -58343,6 +58350,83 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
+/* M3-LS-MIGRATION-V1: migración one-shot ficha-* → pf1e-*.
+   Esta IIFE corre ANTES que cualquier otro JS de la app. Si ve el flag
+   'pf1e-migrated-v1'='1' no hace nada. En caso contrario copia todas las
+   claves conocidas con prefijo ficha-* al equivalente pf1e-*.
+   El valor antiguo se mantiene para read-fallback en caso de rollback parcial.
+
+   Además expone helpers globales:
+     window._lsGet(newKey, oldKey?)   → read new, fallback old.
+     window._lsSet(newKey, val, oldKey?) → write new, opcionalmente borra old. */
+(function _m3LsMigrate(){
+  'use strict';
+  try{
+    if(typeof localStorage === 'undefined' || !localStorage) return;
+  }catch(_){ return; }
+  window._lsGet = function(newKey, oldKey){
+    try{
+      var v = localStorage.getItem(newKey);
+      if(v != null) return v;
+      if(oldKey){
+        var ov = localStorage.getItem(oldKey);
+        return ov;
+      }
+      return null;
+    }catch(_){ return null; }
+  };
+  window._lsSet = function(newKey, val, oldKey){
+    try{ localStorage.setItem(newKey, val); }catch(_){}
+    if(oldKey){ try{ localStorage.removeItem(oldKey); }catch(_){} }
+  };
+  try{
+    var FLAG = 'pf1e-migrated-v1';
+    if(localStorage.getItem(FLAG) === '1') return;
+    var pairs = [
+      ['ficha-mobile-state-v1','pf1e-mobile-state-v1'],
+      ['ficha-mobile-backup-1','pf1e-mobile-backup-1'],
+      ['ficha-mobile-backup-2','pf1e-mobile-backup-2'],
+      ['ficha-mobile-backup-3','pf1e-mobile-backup-3'],
+      ['ficha-mobile-settings','pf1e-mobile-settings'],
+      ['ficha-theme','pf1e-theme'],
+      ['ficha-lang','pf1e-lang'],
+      ['ficha-tab','pf1e-tab'],
+      ['ficha-custom-skills','pf1e-custom-skills'],
+      ['ficha-cm-themes','pf1e-cm-themes'],
+      ['ficha-dice-history','pf1e-dice-history'],
+      ['ficha-attrs-state','pf1e-attrs-state'],
+      ['ficha-wizard-seen','pf1e-wizard-seen'],
+      ['ficha-action-log','pf1e-action-log']
+    ];
+    for(var i=0;i<pairs.length;i++){
+      var oldK = pairs[i][0], newK = pairs[i][1];
+      try{
+        if(localStorage.getItem(newK) != null) continue;
+        var v = localStorage.getItem(oldK);
+        if(v != null) localStorage.setItem(newK, v);
+      }catch(_){}
+    }
+    try{
+      var subKeys = [];
+      for(var j=0;j<localStorage.length;j++){
+        var k = localStorage.key(j);
+        if(typeof k === 'string' && k.indexOf('ficha-sub-')===0) subKeys.push(k);
+      }
+      for(var s=0;s<subKeys.length;s++){
+        var oldS = subKeys[s];
+        var newS = 'pf1e-sub-' + oldS.substring('ficha-sub-'.length);
+        try{
+          if(localStorage.getItem(newS) != null) continue;
+          var vs = localStorage.getItem(oldS);
+          if(vs != null) localStorage.setItem(newS, vs);
+        }catch(_){}
+      }
+    }catch(_){}
+    try{ localStorage.setItem(FLAG, '1'); }catch(_){}
+  }catch(_){}
+})();
+/* /M3-LS-MIGRATION-V1 */
+
 /* 2026-05-08: log de acciones global accesible desde "Acerca de · v1.0".
    - window.logAction(category, msg, details?) — registra evento timestamped.
    - capped a 500 entradas; exceso se descarta por la cabeza.
@@ -58351,7 +58435,8 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
 (function(){
   'use strict';
   if (window.logAction) return; // ya inicializado
-  const KEY = 'ficha-action-log';
+  /* M3-LS-RENAME-ACTIONLOG: clave bajo prefijo pf1e-*. */
+  const KEY = 'pf1e-action-log';
   const MAX = 500;
   let buffer;
   try {
@@ -58577,8 +58662,10 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
     // Aplica tema antes de construir
     applyLoaderTheme();
     // Lee tema persistido si lo hubiera (al boot, init aún no ha corrido)
+    /* M3-LS-READFALLBACK: lee de pf1e-theme con fallback a ficha-theme. */
     try{
-      const t = localStorage.getItem('ficha-theme');
+      const t = (window._lsGet ? window._lsGet('pf1e-theme','ficha-theme')
+                               : localStorage.getItem('pf1e-theme'));
       if(t) document.documentElement.dataset.theme = t;
       applyLoaderTheme();
     }catch(e){}
@@ -59105,9 +59192,10 @@ function openCondDetail(name){
 }
 
 /* ─── DICE: estado, historial, ventaja/desventaja, crítico ─── */
-/* 2026-05-11: historial persistente en localStorage (clave 'ficha-dice-history'),
-   cap 50 entradas, debounce 400ms al guardar. */
-const DICE_HISTORY_KEY = 'ficha-dice-history';
+/* 2026-05-11: historial persistente en localStorage (clave 'pf1e-dice-history'),
+   cap 50 entradas, debounce 400ms al guardar.
+   M3-LS-RENAME-DICE: renombrada de 'ficha-dice-history'. */
+const DICE_HISTORY_KEY = 'pf1e-dice-history';
 const DICE_HISTORY_MAX = 50;
 const DICE_HISTORY = (function(){
   try{
@@ -59293,7 +59381,7 @@ function renderThemes(){
       if(r.dataset.real==='1'){
         const _prevTheme = document.documentElement.dataset.theme || 'pergamino';
         document.documentElement.dataset.theme = r.dataset.theme;
-        try{localStorage.setItem('ficha-theme',r.dataset.theme);}catch(e){}
+        try{localStorage.setItem('pf1e-theme',r.dataset.theme);}catch(e){}
         try{ window.logAction && window.logAction('ajustes','tema cambiado', _prevTheme+'→'+r.dataset.theme); }catch(_){}
         applyDarkClass();
         if(typeof applyLoaderTheme==='function') applyLoaderTheme();
@@ -59314,9 +59402,9 @@ function renderThemes(){
       if(i>=0) THEMES.splice(i,1);
       // remove from localStorage
       try{
-        let lib = JSON.parse(localStorage.getItem('ficha-cm-themes')||'[]');
+        let lib = JSON.parse(localStorage.getItem('pf1e-cm-themes')||'[]');
         lib = lib.filter(t=>t.slug!==slug);
-        localStorage.setItem('ficha-cm-themes', JSON.stringify(lib));
+        localStorage.setItem('pf1e-cm-themes', JSON.stringify(lib));
       }catch(e){}
       // remove style tag
       const styleTag = document.getElementById('cm-style-'+slug);
@@ -59324,7 +59412,7 @@ function renderThemes(){
       // if it was the active theme, fall back to pergamino
       if(document.documentElement.dataset.theme===id){
         document.documentElement.dataset.theme='pergamino';
-        try{localStorage.setItem('ficha-theme','pergamino');}catch(e){}
+        try{localStorage.setItem('pf1e-theme','pergamino');}catch(e){}
       }
       renderThemes();
       try{ window.logAction && window.logAction('ui','toast: Tema eliminado'); }catch(_){}
@@ -59400,11 +59488,25 @@ function refreshHP(){
 }
 function setHP(v){
   /* BUG-5 fix: permitir HP negativo hasta -CON (muerte). Antes Math.max(0,...)
-     bloqueaba la deteccion de Muriendo en calcConditionsAuto (hp < -CON). */
+     bloqueaba la deteccion de Muriendo en calcConditionsAuto (hp < -CON).
+     M1-HTK-EXPAND-V1: Hard to Kill (Mythic) expande el piso a -2×CON_score. */
   let minByCon = -10;
   try{
     const a = (typeof ATTRS !== 'undefined') ? ATTRS.find(x=>x[0]==='CON') : null;
-    if(a){ const conScore = parseInt(a[2],10); if(!isNaN(conScore)) minByCon = -conScore; }
+    if(a){
+      const conScore = parseInt(a[2],10);
+      if(!isNaN(conScore)){
+        minByCon = -conScore;
+        try{
+          if(typeof _MYTHIC_STATE !== 'undefined' && _MYTHIC_STATE.active){
+            const featsStr = String(_MYTHIC_STATE.feats||'').toLowerCase();
+            if(/hard[-\s]?to[-\s]?kill/i.test(featsStr)){
+              minByCon = -2 * conScore;
+            }
+          }
+        }catch(_){}
+      }
+    }
   }catch(_){}
   const upper = (typeof HP_MAX === 'number' ? HP_MAX : 0) + (typeof hpTemp === 'number' ? hpTemp : 0);
   hp = Math.max(minByCon, Math.min(upper, v));
@@ -59731,7 +59833,7 @@ function applyLang(lang){
   // search placeholder
   const si = document.getElementById('skill-search');
   if(si) si.placeholder = lang==='en' ? 'Search skill…' : 'Buscar habilidad…';
-  try{localStorage.setItem('ficha-lang',lang);}catch(e){}
+  try{localStorage.setItem('pf1e-lang',lang);}catch(e){}
 }
 document.getElementById('btn-lang').addEventListener('click',()=>{
   const cur = document.documentElement.dataset.lang || 'es';
@@ -61168,7 +61270,8 @@ let DB = {};
 async function loadDB() {
   /* 2026-05-07: añadido 'spells' al catálogo (564 conjuros PF1e Core).
      Fallback inline FALLBACK_SPELLS si fetch falla. */
-  const files = ['classes','archetypes','special_abilities','feats','races','skills','equipment','items','domains','bloodlines','orders','arcane_schools','oracle_mysteries','witch_patrons','sizes','eidolon_evolutions','spells'];
+  /* M1-LOADDB-DBS-V1: añadidos animal_companions, animal_tricks, eidolon_subtypes */
+  const files = ['classes','archetypes','special_abilities','feats','races','skills','equipment','items','domains','bloodlines','orders','arcane_schools','oracle_mysteries','witch_patrons','sizes','eidolon_evolutions','spells','animal_companions','animal_tricks','eidolon_subtypes'];
   const res = {};
   const failed = [];
   await Promise.all(files.map(async f => {
@@ -61213,6 +61316,10 @@ async function loadDB() {
       if(Array.isArray(r.spells)) return r.spells;
       return [];
     })(),
+    /* M1-LOADDB-DBS-V1: animal companions/tricks + eidolon subtypes */
+    animal_companions: (res.animal_companions && res.animal_companions.length) ? res.animal_companions : (fb('FALLBACK_ANIMAL_COMPANIONS') || []),
+    animal_tricks:     (res.animal_tricks)     ? res.animal_tricks     : (fb('FALLBACK_ANIMAL_TRICKS')     || {tricks:[],packages:[]}),
+    eidolon_subtypes:  (res.eidolon_subtypes && res.eidolon_subtypes.length) ? res.eidolon_subtypes : (fb('FALLBACK_EIDOLON_SUBTYPES') || []),
   };
   /* P-03: telemetría de carga */
   const counts = {
@@ -66676,7 +66783,7 @@ function bindFormSheets(){
    1. Extrae el bloque y los pares --token: valor.
    2. Para cada hex de 3 o 6 dígitos, calcula --token-rgb y lo añade.
    3. Renombra el selector a [data-theme="cm-<slug>"] y lo inyecta como <style>.
-   4. Persiste en localStorage 'ficha-cm-themes'.
+   4. Persiste en localStorage 'pf1e-cm-themes' (migrado desde 'ficha-cm-themes').
    5. Añade el tema al swatch list y lo activa. */
 function hexToRgb(hex){
   hex = hex.trim();
@@ -66739,13 +66846,13 @@ function injectChromancerTheme(slug, css){
 }
 function loadStoredChromancerThemes(){
   try{
-    const lib = JSON.parse(localStorage.getItem('ficha-cm-themes')||'[]');
+    const lib = JSON.parse(localStorage.getItem('pf1e-cm-themes')||'[]');
     lib.forEach(t=>injectChromancerTheme(t.slug, t.css));
     return lib;
   }catch(e){ return []; }
 }
 function saveStoredChromancerThemes(lib){
-  try{ localStorage.setItem('ficha-cm-themes', JSON.stringify(lib)); }catch(e){}
+  try{ localStorage.setItem('pf1e-cm-themes', JSON.stringify(lib)); }catch(e){}
 }
 function saveChromancerTheme(){
   const nameInp = document.getElementById('theme-add-name');
@@ -66757,7 +66864,7 @@ function saveChromancerTheme(){
   injectChromancerTheme(parsed.slug, parsed.css);
   // persist
   let lib = [];
-  try{ lib = JSON.parse(localStorage.getItem('ficha-cm-themes')||'[]'); }catch(e){}
+  try{ lib = JSON.parse(localStorage.getItem('pf1e-cm-themes')||'[]'); }catch(e){}
   lib = lib.filter(t=>t.slug!==parsed.slug);
   lib.push(parsed);
   saveStoredChromancerThemes(lib);
@@ -66766,7 +66873,7 @@ function saveChromancerTheme(){
   renderThemes();
   // activate
   document.documentElement.dataset.theme = 'cm-'+parsed.slug;
-  try{ localStorage.setItem('ficha-theme','cm-'+parsed.slug); }catch(e){}
+  try{ localStorage.setItem('pf1e-theme','cm-'+parsed.slug); }catch(e){}
   applyDarkClass();
   if(typeof applyLoaderTheme==='function') applyLoaderTheme();
   closeSheet(document.getElementById('sheet-theme-add'));
@@ -66794,7 +66901,7 @@ function ageCatModFor(abbr){
 }
 /* ─── DOMINIO 1 · ATRIBUTOS ─── */
 /* Estado por-atributo. Slots editables (8) + acm calculado.
-   Persistencia en localStorage bajo "ficha-attrs-state". */
+   Persistencia en localStorage bajo "pf1e-attrs-state" (migrado desde "ficha-attrs-state"). */
 const ATTR_SLOTS = ['base','racial','enhance','inherent','misc','temp','dmg','drain'];
 const ATTR_STATE = (function(){
   const seed = {};
@@ -66804,7 +66911,7 @@ const ATTR_STATE = (function(){
     seed[abbr] = { base: total - racial, racial, enhance:0, inherent:0, misc:0, temp:0, dmg:0, drain:0 };
   });
   try{
-    const raw = localStorage.getItem('ficha-attrs-state');
+    const raw = localStorage.getItem('pf1e-attrs-state');
     if(raw){
       const saved = JSON.parse(raw);
       Object.keys(seed).forEach(k=>{
@@ -66815,7 +66922,7 @@ const ATTR_STATE = (function(){
   return seed;
 })();
 function persistAttrState(){
-  try{ localStorage.setItem('ficha-attrs-state', JSON.stringify(ATTR_STATE)); }catch(e){}
+  try{ localStorage.setItem('pf1e-attrs-state', JSON.stringify(ATTR_STATE)); }catch(e){}
 }
 function attrModFromTotal(total){
   if(total===0) return -5; // paralizado/petrificado
@@ -67216,6 +67323,48 @@ I18N.en.subSentidos = 'Senses';
 I18N.es.subResumen = 'Resumen';
 I18N.en.subResumen = 'Summary';
 
+/* M3-I18N-MISSING-KEYS: 28 claves usadas en HTML como data-i18n que faltaban
+   en I18N.es / I18N.en. Se definen aquí en bloque único para evitar dispersión.
+   Si M1/M2/M4 ya añaden alguna, este bloque tiene prioridad (asignación directa). */
+(function _m3AddMissingI18N(){
+  try{
+    if(typeof I18N==='undefined' || !I18N.es || !I18N.en) return;
+    var ES = {
+      'subSentidos':'Sentidos',
+      'subResumen':'Resumen',
+      'cardWeaknesses':'Debilidades / Vulnerabilidades',
+      'dtype.fire':'Fuego','dtype.cold':'Frío','dtype.acid':'Ácido',
+      'dtype.electricity':'Electricidad','dtype.sonic':'Sónico','dtype.force':'Fuerza',
+      'dtype.negative':'Negativa','dtype.positive':'Positiva',
+      'dtype.piercing':'Perforante','dtype.slashing':'Cortante','dtype.bludgeoning':'Contundente',
+      'wk.silver':'Plata','wk.coldiron':'Hierro Frío','wk.wood':'Madera',
+      'wk.sun':'Sol','wk.holy':'Sagrado','wk.custom':'Personalizada',
+      'wk.ph.note':'Nota de la vulnerabilidad...',
+      'btn.addWeakness':'+ Añadir vulnerabilidad',
+      'catAll':'Todas','catBase':'Base','catPrestige':'Prestigio',
+      'catUnchained':'Unchained','catNpc':'PNJ','catSpecial':'Especial'
+    };
+    var EN = {
+      'subSentidos':'Senses',
+      'subResumen':'Summary',
+      'cardWeaknesses':'Weaknesses / Vulnerabilities',
+      'dtype.fire':'Fire','dtype.cold':'Cold','dtype.acid':'Acid',
+      'dtype.electricity':'Electricity','dtype.sonic':'Sonic','dtype.force':'Force',
+      'dtype.negative':'Negative','dtype.positive':'Positive',
+      'dtype.piercing':'Piercing','dtype.slashing':'Slashing','dtype.bludgeoning':'Bludgeoning',
+      'wk.silver':'Silver','wk.coldiron':'Cold Iron','wk.wood':'Wood',
+      'wk.sun':'Sunlight','wk.holy':'Holy','wk.custom':'Custom',
+      'wk.ph.note':'Vulnerability note...',
+      'btn.addWeakness':'+ Add weakness',
+      'catAll':'All','catBase':'Base','catPrestige':'Prestige',
+      'catUnchained':'Unchained','catNpc':'NPC','catSpecial':'Special'
+    };
+    Object.keys(ES).forEach(function(k){ I18N.es[k] = ES[k]; });
+    Object.keys(EN).forEach(function(k){ I18N.en[k] = EN[k]; });
+  }catch(_){}
+})();
+/* /M3-I18N-MISSING-KEYS */
+
 /* ─── DARK-THEME CLASS ─── */
 /* Marca body.theme-dark cuando el tema activo tiene fondo oscuro.
    Los CSS overrides usan esta clase en lugar de listar cada tema. */
@@ -67263,7 +67412,7 @@ function init(){
   cmLib.forEach(t=>{ THEMES.push({id:'cm-'+t.slug,n:t.name,sub:'Chromancer · custom',cls:'swatch-pergamino',real:1,custom:true}); });
   try{
     const validIds = new Set(THEMES.map(t=>t.id));
-    const t = localStorage.getItem('ficha-theme');
+    const t = localStorage.getItem('pf1e-theme');
     if(t && (validIds.has(t) || /^cm-/.test(t))) document.documentElement.dataset.theme = t;
     else document.documentElement.dataset.theme = 'pergamino';
   }catch(e){ document.documentElement.dataset.theme = 'pergamino'; }
@@ -67296,13 +67445,13 @@ function init(){
   try{ CombatEngine.apply(); }catch(e){console.error(e)}
   try{ bindSaveRolls(); }catch(e){console.error(e)}
   let initLang = 'es';
-  try{ const l = localStorage.getItem('ficha-lang'); if(l==='es'||l==='en') initLang=l; }catch(e){}
+  try{ const l = localStorage.getItem('pf1e-lang'); if(l==='es'||l==='en') initLang=l; }catch(e){}
   if(initLang!=='es') applyLang(initLang);
   // restore active tab + subtab
   try{
-    const savedTab = localStorage.getItem('ficha-tab');
+    const savedTab = localStorage.getItem('pf1e-tab');
     if(savedTab) setTab(savedTab);
-    const savedSub = localStorage.getItem('ficha-sub-'+(savedTab||'personaje'));
+    const savedSub = localStorage.getItem('pf1e-sub-'+(savedTab||'personaje'));
     if(savedSub){
       const page = document.querySelector(`.tab-page[data-tab="${savedTab||'personaje'}"]`);
       const chip = page && page.querySelector(`.subchip[data-sub="${savedSub}"]`);
@@ -67314,13 +67463,13 @@ function init(){
 }
 // persist tab+subtab on change
 const __origSetTab = setTab;
-window.setTab = function(name){ __origSetTab(name); try{ localStorage.setItem('ficha-tab',name); }catch(e){} };
+window.setTab = function(name){ __origSetTab(name); try{ localStorage.setItem('pf1e-tab',name); }catch(e){} };
 document.querySelectorAll('.tab-btn').forEach(b=>{
-  b.addEventListener('click',()=>{ try{ localStorage.setItem('ficha-tab',b.dataset.tab); }catch(e){} });
+  b.addEventListener('click',()=>{ try{ localStorage.setItem('pf1e-tab',b.dataset.tab); }catch(e){} });
 });
 document.querySelectorAll('.tab-page').forEach(page=>{
   page.querySelectorAll('.subchip').forEach(c=>{
-    c.addEventListener('click',()=>{ try{ localStorage.setItem('ficha-sub-'+page.dataset.tab,c.dataset.sub); }catch(e){} });
+    c.addEventListener('click',()=>{ try{ localStorage.setItem('pf1e-sub-'+page.dataset.tab,c.dataset.sub); }catch(e){} });
   });
 });
 
@@ -67466,11 +67615,11 @@ if(__raza){
 
   let CUSTOM_SKILLS = [];
   try{
-    const raw = localStorage.getItem('ficha-custom-skills');
+    const raw = localStorage.getItem('pf1e-custom-skills');
     if(raw) CUSTOM_SKILLS = JSON.parse(raw) || [];
   }catch(e){ CUSTOM_SKILLS = []; }
   function saveCustomSkills(){
-    try{ localStorage.setItem('ficha-custom-skills', JSON.stringify(CUSTOM_SKILLS)); }catch(e){}
+    try{ localStorage.setItem('pf1e-custom-skills', JSON.stringify(CUSTOM_SKILLS)); }catch(e){}
   }
 
   const SKILL_STATE = {};
@@ -68048,12 +68197,36 @@ if(__raza){
 /* ─── /DOMINIO 3 · HABILIDADES ─── */
 
 /* ─── DOMINIO 5 · EQUIPO Y PESO ─── */
+/* M1-SIZE-EXPAND-V1: tabla expandida a las 9 categorías RAW PF1e
+   (fine, diminutive, tiny, small, medium, large, huge, gargantuan, colossal).
+   Antes el mobile colapsaba fine/dim/tiny → "Diminuto" y huge/garg/col → "Enorme".
+   Se conservan las claves españolas para compatibilidad con consumidores
+   existentes (_calculatePeso, recomputeCAAuto, weapon dmg) y se añaden las
+   claves canónicas en inglés con atk/ac/cmb. mult sigue siendo el factor
+   de capacidad de carga RAW PF1e (×1/8 fine ... ×16 colossal). */
+const _SIZE_MODS = {
+  fine:       {atk:+8, ac:+8, cmb:-8, mult:0.125},
+  diminutive: {atk:+4, ac:+4, cmb:-4, mult:0.25 },
+  tiny:       {atk:+2, ac:+2, cmb:-2, mult:0.5  },
+  small:      {atk:+1, ac:+1, cmb:-1, mult:0.75 },
+  medium:     {atk: 0, ac: 0, cmb: 0, mult:1.00 },
+  large:      {atk:-1, ac:-1, cmb:+1, mult:2.00 },
+  huge:       {atk:-2, ac:-2, cmb:+2, mult:4.00 },
+  gargantuan: {atk:-4, ac:-4, cmb:+4, mult:8.00 },
+  colossal:   {atk:-8, ac:-8, cmb:+8, mult:16.00},
+};
 const D5_SIZE = {
-  'Diminuto':  {mult:0.25, atk:+2},
-  'Pequeño':   {mult:0.75, atk:+1},
-  'Mediano':   {mult:1.00, atk: 0},
-  'Grande':    {mult:2.00, atk:-1},
-  'Enorme':    {mult:4.00, atk:-2},
+  /* aliases en español: las 3 antiguas se mantienen para retro-compat,
+     pero ahora hay entradas individuales para cada categoría */
+  'Fino':       _SIZE_MODS.fine,
+  'Minúsculo':  _SIZE_MODS.diminutive,
+  'Diminuto':   _SIZE_MODS.tiny,        /* antes colapsaba fine/dim/tiny: ahora apunta a tiny RAW */
+  'Pequeño':    _SIZE_MODS.small,
+  'Mediano':    _SIZE_MODS.medium,
+  'Grande':     _SIZE_MODS.large,
+  'Enorme':     _SIZE_MODS.huge,        /* antes colapsaba huge/garg/col: ahora apunta a huge RAW */
+  'Gargantuesco': _SIZE_MODS.gargantuan,
+  'Colosal':    _SIZE_MODS.colossal,
 };
 
 const D5_INVENTORY = [
@@ -68081,8 +68254,9 @@ function D5_getFUE(){
 function D5_getSize(){
   /* P-16/P-38 fix: prioriza #m-size con value="medium|large|...", fallback al
      legacy walk de selects con texto español. Devuelve siempre un nombre español
-     en D5_SIZE (consumidores como _calculatePeso esperan ese formato). */
-  const sizeNamesEs = {fine:'Diminuto', diminutive:'Diminuto', tiny:'Diminuto', small:'Pequeño', medium:'Mediano', large:'Grande', huge:'Enorme', gargantuan:'Enorme', colossal:'Enorme'};
+     en D5_SIZE (consumidores como _calculatePeso esperan ese formato).
+     M1-SIZE-EXPAND-V1: mapeo 1-a-1 a las 9 categorías PF1e (sin colapsar). */
+  const sizeNamesEs = {fine:'Fino', diminutive:'Minúsculo', tiny:'Diminuto', small:'Pequeño', medium:'Mediano', large:'Grande', huge:'Enorme', gargantuan:'Gargantuesco', colossal:'Colosal'};
   const ms = document.getElementById('m-size');
   if(ms && ms.value){
     if(sizeNamesEs[ms.value]) return sizeNamesEs[ms.value];
@@ -68096,7 +68270,8 @@ function D5_getSize(){
 function D5_getSizeKey(){
   const ms = document.getElementById('m-size');
   if(ms && ms.value) return ms.value;
-  const sizeMapEs = {'Diminuto':'tiny','Pequeño':'small','Pequeno':'small','Mediano':'medium','Grande':'large','Enorme':'huge','Gargantuesco':'gargantuan','Colosal':'colossal'};
+  /* M1-SIZE-EXPAND-V1: mapa español→clave canónica con las 9 categorías */
+  const sizeMapEs = {'Fino':'fine','Minúsculo':'diminutive','Minusculo':'diminutive','Diminuto':'tiny','Pequeño':'small','Pequeno':'small','Mediano':'medium','Grande':'large','Enorme':'huge','Gargantuesco':'gargantuan','Colosal':'colossal'};
   return sizeMapEs[D5_getSize()] || 'medium';
 }
 function D5_getRawBAB(){
@@ -68135,9 +68310,11 @@ function D5_getCombatTacticals(w, isMelee, isRanged, isOffhand, is2H){
     paDmg = Math.abs(paPenalty) * 2;
   }
   /* #ANCHOR:D5-TACTICALS-TWF-V2 — modos TWF separados, iterativos sin acumular dups. 2026-05-11 */
+  /* M1-TWF-HEAVY-V1: nuevo modo twf-heavy (offhand no-ligera): -2 main / -6 off */
   const twfMode = document.getElementById('combat-twf')?.value || 'off';
   let twfMain = 0, twfOff = 0;
   if(twfMode === 'std'){ twfMain = -4; twfOff = -8; }
+  else if(twfMode === 'twf-heavy'){ twfMain = -2; twfOff = -6; }
   else if(twfMode === 'twf' || twfMode === 'twf-light' || twfMode === 'itwf' || twfMode === 'gtwf'){
     twfMain = -2; twfOff = -2;
   }
@@ -68446,7 +68623,11 @@ function D5_computeWeaponDamage(w){
     } else {
       mult = is2H ? 1.5 : (w.hands===0.5 || isOffhand ? 0.5 : 1);
     }
-    strBonus = Math.floor(fueMod * mult);
+    /* M1-STR-NEG-V1: STR negativa NO se amplifica con 2H ni con offhand.
+       PF1e RAW: la penalización por STR negativa aplica al daño tal cual
+       (sin ×1.5 ni ×0.5). Solo el bonus positivo escala con el multiplicador.
+       Ejemplo: STR -3 con arma a 2H sigue siendo -3, no -5. */
+    strBonus = (fueMod >= 0) ? Math.floor(fueMod * mult) : fueMod;
   }
   const t = D5_getCombatTacticals(w, isMelee, isRanged, isOffhand, is2H);
   const buffDmg = (_BUFF_MOD_TOTALS?.dmg) || 0;
@@ -69375,7 +69556,14 @@ const CombatEngine = (function(){
   function calcInit(mods){
     const misc = parseInt((document.getElementById('m-init-misc')||{}).value,10)||0;
     const improved = hasFeatByName(/iniciativa\s+mejorada|improved\s+initiative/i) ? 4 : 0;
-    return (mods.dex|0) + misc + improved + (_BUFF_MOD_TOTALS.init||0);
+    /* M1-INIT-DEAFENED-V1: Ensordecido aplica -4 a iniciativa (PF1e RAW) */
+    let deafenedPen = 0;
+    try{
+      const chip = document.querySelector('.cond-chip[data-cond="Ensordecido"].active, .cond-chip[data-cond="cond-deafened"].active, .cond-chip[data-cond="Deafened"].active');
+      if(chip) deafenedPen = -4;
+      else if(window.__autoConds && (window.__autoConds.has('Ensordecido') || window.__autoConds.has('Deafened'))) deafenedPen = -4;
+    }catch(_){}
+    return (mods.dex|0) + misc + improved + (_BUFF_MOD_TOTALS.init||0) + deafenedPen;
   }
 
   function calcConditionsAuto(){
@@ -69602,7 +69790,9 @@ window.LANGUAGES = {
   exoticos:['Acuán','Auran','Ignan','Terran','Silvano','Druídico','Subcomún','Necril','Tien','Varisiano','Osiriano','Hallit','Skald','Kelish','Vudrani','Shoanti','Tengu']
 };
 
-const STATE_KEY = 'ficha-mobile-state-v1';
+/* M3-LS-RENAME-STATE: clave unificada bajo prefijo pf1e-*. La migración
+   one-shot al inicio del script copia el valor antiguo si existe. */
+const STATE_KEY = 'pf1e-mobile-state-v1';
 /* 2026-05-11: STATE_VERSION consolidado (antes existían STATE_VERSION=1 y
    STATE_SCHEMA_VERSION=2 divergentes). Ahora todo usa esta constante. */
 const STATE_VERSION = 2;
@@ -69812,7 +70002,7 @@ function snapshotState(){
       s.skillsD3 = sk;
     }
     try{
-      const raw = localStorage.getItem('ficha-custom-skills');
+      const raw = localStorage.getItem('pf1e-custom-skills');
       s.customSkills = raw ? JSON.parse(raw) : [];
     }catch(_){ s.customSkills = []; }
     /* N-02 fix: settings tipográficos (fontSize, daltonic) viven aparte en
@@ -69930,7 +70120,7 @@ function applyState(state){
   /* A-06 fix: restaurar custom skills + rangos/misc de D3_SKILLS */
   try{
     if(Array.isArray(state.customSkills)){
-      localStorage.setItem('ficha-custom-skills', JSON.stringify(state.customSkills));
+      localStorage.setItem('pf1e-custom-skills', JSON.stringify(state.customSkills));
     }
     if(state.skillsD3 && window.D3_SKILLS && window.D3_SKILLS.state){
       Object.keys(state.skillsD3).forEach(id=>{
@@ -70141,7 +70331,8 @@ let __saveTimer = null;
    Cada cambio breaking en la estructura debe incrementar este número.
    2026-05-11: consolidado con STATE_VERSION. Alias para compat. */
 const STATE_SCHEMA_VERSION = STATE_VERSION;
-const STATE_BACKUP_KEYS = ['ficha-mobile-backup-1','ficha-mobile-backup-2','ficha-mobile-backup-3'];
+/* M3-LS-RENAME-BACKUPS: claves de backup rotatorio bajo prefijo pf1e-*. */
+const STATE_BACKUP_KEYS = ['pf1e-mobile-backup-1','pf1e-mobile-backup-2','pf1e-mobile-backup-3'];
 let __lastBackupAt = 0;
 const BACKUP_INTERVAL_MS = 5 * 60 * 1000; /* máximo 1 backup cada 5 min */
 
@@ -70271,7 +70462,11 @@ window.addEventListener('beforeunload', ()=>saveStateNow('beforeunload'));
 
 function loadStoredState(){
   try{
-    const raw = localStorage.getItem(STATE_KEY);
+    /* M3-LS-READFALLBACK: si pf1e-mobile-state-v1 no está, intenta ficha-mobile-state-v1. */
+    let raw = localStorage.getItem(STATE_KEY);
+    if(!raw){
+      try{ raw = localStorage.getItem('ficha-mobile-state-v1'); }catch(_){}
+    }
     if(!raw) return null;
     const obj = JSON.parse(raw);
     return migrateState(obj);
@@ -70343,6 +70538,186 @@ function migrateState(obj){
   return obj;
 }
 
+/* M4-SCHEMA-CONVERTER-BEGIN
+   Conversor de schema PC <-> Mobile. PC = dict plano con IDs literales y blobs HTML;
+   Mobile = STATE rico (identity, attrs, classes[], xp{}, mythic{}). Best-effort:
+   blobs HTML opacos NO se parsean, se anotan en _unparsedBlobs y se avisa por toast. */
+function _pcSchemaToMobile(pcData){
+  if(!pcData || typeof pcData !== 'object') return null;
+  const M = {};
+  const pick = k => Object.prototype.hasOwnProperty.call(pcData,k) ? pcData[k] : undefined;
+  const asNum = v => { const n = parseInt(v,10); return Number.isFinite(n) ? n : 0; };
+  const asStr = v => (v==null) ? '' : String(v);
+  /* Flags directos */
+  if(pick('__epic_mode')      !== undefined) M.epicMode    = !!pcData.__epic_mode;
+  if(pick('__gestalt_mode')   !== undefined) M.gestaltMode = !!pcData.__gestalt_mode;
+  if(pick('__synth_fused')    !== undefined) M.synthFused  = !!pcData.__synth_fused;
+  if(pick('__bloodline')      !== undefined) M.bloodlinePick = asStr(pcData.__bloodline);
+  if(pick('__order')          !== undefined) M.orderPick     = asStr(pcData.__order);
+  if(pick('__arcane_school')  !== undefined) M.schoolPick    = asStr(pcData.__arcane_school);
+  if(pick('__oracle_mystery') !== undefined) M.mysteryPick   = asStr(pcData.__oracle_mystery);
+  if(pick('__witch_patron')   !== undefined) M.patronPick    = asStr(pcData.__witch_patron);
+  if(pick('__weaknesses')     !== undefined) M.weaknesses    = asStr(pcData.__weaknesses);
+  if(pick('__char_photo')     !== undefined) M.photo         = pcData.__char_photo;
+  /* Identidad reagrupada */
+  M.identity = {
+    nombre:       asStr(pick('char-name')),
+    jugador:      asStr(pick('char-player')),
+    raza:         asStr(pick('char-race')),
+    deidad:       asStr(pick('char-deity')),
+    alineamiento: asStr(pick('char-alignment') || pick('al-r')),
+    edad:         asStr(pick('char-age')),
+    altura:       asStr(pick('char-height')),
+    peso:         asStr(pick('char-weight')),
+    tamano:       asStr(pick('char-size')),
+    historia:     asStr(pick('char-history') || pick('char-bio') || pick('in-historia')),
+    personalidad: asStr(pick('char-personality') || pick('in-personalidad')),
+    ideales:      asStr(pick('char-ideals') || pick('in-ideales')),
+  };
+  if(!M.identity.nombre  && pick('__char_name'))   M.identity.nombre  = asStr(pcData.__char_name);
+  if(!M.identity.jugador && pick('__char_player')) M.identity.jugador = asStr(pcData.__char_player);
+  if(!M.identity.raza    && pick('__char_race'))   M.identity.raza    = asStr(pcData.__char_race);
+  /* XP */
+  M.xp = { current: asNum(pick('xp-current')), next: asNum(pick('xp-next')), track: asStr(pick('xp-track')) || 'medium' };
+  /* Atributos STR/DEX/CON/INT/SAB/CAR */
+  const ATTR_KEY = { str:'STR', dex:'DEX', con:'CON', int:'INT', sab:'SAB', car:'CAR' };
+  M.attrs = {};
+  ['str','dex','con','int','sab','car'].forEach(prefix => {
+    M.attrs[ATTR_KEY[prefix]] = {
+      base:      asNum(pick(prefix+'-base')),
+      racial:    asNum(pick(prefix+'-racial')),
+      mejora:    asNum(pick(prefix+'-mejora')    || pick(prefix+'-enhance')),
+      inherente: asNum(pick(prefix+'-inherente') || pick(prefix+'-inherent')),
+      misc:      asNum(pick(prefix+'-misc')),
+      temp:      asNum(pick(prefix+'-temp')),
+      dano:      asNum(pick(prefix+'-dano')      || pick(prefix+'-damage')),
+      drenaje:   asNum(pick(prefix+'-drenaje')   || pick(prefix+'-drain')),
+    };
+  });
+  /* HP */
+  if(pick('hp-current') !== undefined) M.hpCurrent = asNum(pcData['hp-current']);
+  if(pick('hp-temp')    !== undefined) M.hpTemp    = asNum(pcData['hp-temp']);
+  if(pick('hp-nonleth') !== undefined) M.hpNonleth = asNum(pcData['hp-nonleth']);
+  /* Mythic (7 campos) */
+  const hasMythic = ['__mythic_active','__mythic_tier','__mythic_path','__mythic_power_current',
+                     '__mythic_surges_used','__mythic_feats_text','__mythic_path_abilities']
+                    .some(k => pick(k) !== undefined);
+  if(hasMythic){
+    M.mythic = {
+      active:        !!pick('__mythic_active'),
+      tier:          asNum(pick('__mythic_tier')),
+      path:          asStr(pick('__mythic_path')),
+      powerCurrent:  asNum(pick('__mythic_power_current')),
+      surgesUsed:    asNum(pick('__mythic_surges_used')),
+      feats:         asStr(pick('__mythic_feats_text')),
+      pathAbilities: asStr(pick('__mythic_path_abilities')),
+    };
+  }
+  /* Classes: si __class_rows es array JSON, copiar tal cual. */
+  const cr = pick('__class_rows');
+  if(Array.isArray(cr)) M.classes = cr.map(c => Object.assign({}, c));
+  else if(typeof cr === 'string' && cr.trim().startsWith('[')){
+    try{ const arr = JSON.parse(cr); if(Array.isArray(arr)) M.classes = arr.map(c=>({...c})); }catch(_){}
+  }
+  /* Blobs HTML opacos: NO parseamos. TODO documentado, _unparsedBlobs para toast. */
+  // TODO: parse __feats_html -> feats[]; __weapons_html -> weapons[]; __armor_html -> armor[];
+  //       __items_html/__inventory_html -> items[]; __spells_html -> spellsCast[];
+  //       __notes_data/__session_log -> notesList[]; __buff_tracker -> buffs[];
+  //       __combat_tracker -> initList[]; __comp_*_html -> compData.
+  const HTML_BLOBS = ['__feats_html','__weapons_html','__armor_html','__items_html',
+                      '__inventory_html','__spells_html','__notes_data','__session_log',
+                      '__buff_tracker','__combat_tracker','__comp_familiar_html',
+                      '__comp_animal_html','__comp_eidolon_html','__comp_invocadas_html'];
+  const unparsed = [];
+  HTML_BLOBS.forEach(k => { const v = pick(k); if(v != null && typeof v === 'string' && v.length > 0) unparsed.push(k); });
+  if(unparsed.length) M._unparsedBlobs = unparsed;
+  try{ M.__schema = (typeof STATE_SCHEMA_VERSION !== 'undefined') ? STATE_SCHEMA_VERSION : 2; M.v = M.__schema; }
+  catch(_){ M.__schema = 2; M.v = 2; }
+  M._convertedFromPc = true;
+  return M;
+}
+function _mobileSchemaToPc(mobileState){
+  if(!mobileState || typeof mobileState !== 'object') return null;
+  const P = {};
+  const id = mobileState.identity || {};
+  const setIf = (k,v) => { if(v !== undefined && v !== null && v !== '') P[k] = v; };
+  /* Identidad */
+  setIf('char-name', id.nombre); setIf('char-player', id.jugador); setIf('char-race', id.raza);
+  setIf('char-deity', id.deidad); setIf('char-alignment', id.alineamiento);
+  setIf('char-age', id.edad); setIf('char-height', id.altura); setIf('char-weight', id.peso);
+  setIf('char-size', id.tamano); setIf('char-history', id.historia);
+  setIf('char-personality', id.personalidad); setIf('char-ideals', id.ideales);
+  /* XP */
+  if(mobileState.xp){
+    P['xp-current'] = mobileState.xp.current|0;
+    P['xp-next']    = mobileState.xp.next|0;
+    P['xp-track']   = mobileState.xp.track || 'medium';
+  }
+  /* Atributos */
+  const ATTR_KEY = { STR:'str', DEX:'dex', CON:'con', INT:'int', SAB:'sab', CAR:'car' };
+  const at = mobileState.attrs || {};
+  Object.keys(ATTR_KEY).forEach(K => {
+    const prefix = ATTR_KEY[K]; const a = at[K] || {};
+    P[prefix+'-base']=a.base|0; P[prefix+'-racial']=a.racial|0; P[prefix+'-mejora']=a.mejora|0;
+    P[prefix+'-inherente']=a.inherente|0; P[prefix+'-misc']=a.misc|0; P[prefix+'-temp']=a.temp|0;
+    P[prefix+'-dano']=a.dano|0; P[prefix+'-drenaje']=a.drenaje|0;
+  });
+  /* HP */
+  if(mobileState.hpCurrent != null) P['hp-current'] = mobileState.hpCurrent|0;
+  if(mobileState.hpTemp    != null) P['hp-temp']    = mobileState.hpTemp|0;
+  if(mobileState.hpNonleth != null) P['hp-nonleth'] = mobileState.hpNonleth|0;
+  /* Flags directos */
+  if(mobileState.epicMode      != null) P.__epic_mode      = !!mobileState.epicMode;
+  if(mobileState.gestaltMode   != null) P.__gestalt_mode   = !!mobileState.gestaltMode;
+  if(mobileState.synthFused    != null) P.__synth_fused    = !!mobileState.synthFused;
+  if(mobileState.bloodlinePick != null) P.__bloodline      = mobileState.bloodlinePick;
+  if(mobileState.orderPick     != null) P.__order          = mobileState.orderPick;
+  if(mobileState.schoolPick    != null) P.__arcane_school  = mobileState.schoolPick;
+  if(mobileState.mysteryPick   != null) P.__oracle_mystery = mobileState.mysteryPick;
+  if(mobileState.patronPick    != null) P.__witch_patron   = mobileState.patronPick;
+  if(mobileState.weaknesses    != null) P.__weaknesses     = mobileState.weaknesses;
+  if(mobileState.photo         != null) P.__char_photo     = mobileState.photo;
+  /* Mythic */
+  if(mobileState.mythic){
+    const m = mobileState.mythic;
+    P.__mythic_active=!!m.active; P.__mythic_tier=m.tier|0; P.__mythic_path=m.path||'';
+    P.__mythic_power_current=m.powerCurrent|0; P.__mythic_surges_used=m.surgesUsed|0;
+    P.__mythic_feats_text=m.feats||''; P.__mythic_path_abilities=m.pathAbilities||'';
+  }
+  /* Classes: array JSON estructurado */
+  if(Array.isArray(mobileState.classes)) P.__class_rows = mobileState.classes.map(c => Object.assign({}, c));
+  /* Arrays mobile -> JSON crudo en __*_data (PC no parseará automáticamente). */
+  // TODO: render mobile feats[]/weapons[]/armor[] -> __feats_html/__weapons_html/__armor_html.
+  if(Array.isArray(mobileState.feats))      P.__feats_data    = mobileState.feats.map(f=>({...f}));
+  if(Array.isArray(mobileState.weapons))    P.__weapons_data  = mobileState.weapons.map(w=>({...w}));
+  if(Array.isArray(mobileState.armor))      P.__armor_data    = mobileState.armor.map(a=>({...a}));
+  if(Array.isArray(mobileState.buffs))      P.__buffs_data    = mobileState.buffs.map(b=>({...b}));
+  if(Array.isArray(mobileState.adjusts))    P.__adjusts_data  = mobileState.adjusts.map(a=>({...a}));
+  if(Array.isArray(mobileState.notesList))  P.__notes_data    = mobileState.notesList.map(n=>({...n}));
+  if(Array.isArray(mobileState.initList))   P.__combat_tracker = mobileState.initList.map(i=>({...i}));
+  if(Array.isArray(mobileState.spellsCast)) P.__spells_data   = mobileState.spellsCast.map(s=>({...s}));
+  P.__schema = 1; P._convertedFromMobile = true;
+  return P;
+}
+/* M4-DETECT-SHAPE: 'mobile' | 'pc' | 'unknown' */
+function _detectSchemaShape(obj){
+  if(!obj || typeof obj !== 'object') return 'unknown';
+  if(obj.identity && typeof obj.identity === 'object') return 'mobile';
+  if(obj.__schema === 2) return 'mobile';
+  if(typeof obj.v === 'number' && (obj.attrs || obj.classes)) return 'mobile';
+  if(Object.prototype.hasOwnProperty.call(obj,'char-name'))   return 'pc';
+  if(Object.prototype.hasOwnProperty.call(obj,'__char_name')) return 'pc';
+  if(obj.__schema === 1) return 'pc';
+  const keys = Object.keys(obj);
+  if(keys.some(k => k.startsWith('__') && k.endsWith('_html'))) return 'pc';
+  if(keys.some(k => /^(str|dex|con|int|sab|car)-base$/.test(k))) return 'pc';
+  return 'unknown';
+}
+window._pcSchemaToMobile = _pcSchemaToMobile;
+window._mobileSchemaToPc = _mobileSchemaToPc;
+window._detectSchemaShape = _detectSchemaShape;
+/* M4-SCHEMA-CONVERTER-END */
+
 function isAndroid(){
   try{ return !!(window.AndroidBridge && AndroidBridge.isAndroid && AndroidBridge.isAndroid()); }catch(e){ return false; }
 }
@@ -70369,8 +70744,23 @@ function exportCharacter(){
         exportObj = Object.assign({}, window.STATE, { photo: null });
       }
     }catch(_){}
+    /* M4-EXPORT-PC-HOOK: si el toggle "Exportar para PC" está activo, convertir
+       STATE -> schema PC (flat dict) antes de serializar y añadir sufijo al nombre. */
+    let _exportForPc = false;
+    try{ _exportForPc = localStorage.getItem('pf1e-export-pc') === '1'; }catch(_){}
+    let pcConverted = null;
+    if(_exportForPc && typeof _mobileSchemaToPc === 'function'){
+      try{
+        pcConverted = _mobileSchemaToPc(exportObj);
+        if(pcConverted) exportObj = pcConverted;
+      }catch(e){
+        console.warn('M4 export PC fail', e);
+        if(typeof toast==='function') toast('No se pudo convertir a formato PC, exportando nativo');
+      }
+    }
     const json = JSON.stringify(exportObj, null, 2);
-    const fn = suggestedFilename();
+    let fn = suggestedFilename();
+    if(pcConverted) fn = fn.replace(/\.json$/, '-pc.json');
     if(isAndroid()){
       try{ AndroidBridge.saveCharacter(json, fn); if(typeof toast==='function') toast(I18N_msg('exportOk')); return; }
       catch(e){ console.warn('AndroidBridge.saveCharacter fail',e); }
@@ -70387,14 +70777,46 @@ function exportCharacter(){
 function importCharacter(jsonStr){
   try{
     const obj = typeof jsonStr==='string'?JSON.parse(jsonStr):jsonStr;
-    const migrated = migrateState(obj);
+    /* M4-IMPORT-HOOK: detectar shape (mobile vs PC) y convertir si es PC. */
+    let workObj = obj;
+    let _shape = 'unknown';
+    try{ _shape = (typeof _detectSchemaShape === 'function') ? _detectSchemaShape(obj) : 'unknown'; }catch(_){}
+    if(_shape === 'pc'){
+      try{
+        if(typeof _pcSchemaToMobile === 'function'){
+          const converted = _pcSchemaToMobile(obj);
+          if(converted){
+            workObj = converted;
+            try{ window.logAction && window.logAction('import','schema PC detectado, convertido a Mobile'); }catch(_){}
+            /* Avisar de blobs HTML que no se pudieron parsear. */
+            try{
+              if(Array.isArray(converted._unparsedBlobs) && converted._unparsedBlobs.length){
+                const lang = (document.documentElement.dataset.lang === 'en') ? 'en' : 'es';
+                const list = converted._unparsedBlobs.slice(0,3).join(', ') + (converted._unparsedBlobs.length>3 ? '…' : '');
+                const msg = (lang==='en')
+                  ? `PC sheet imported — these HTML blobs could not be parsed: ${list}`
+                  : `Ficha PC importada — estos blobs HTML no pudieron parsearse: ${list}`;
+                if(typeof toast==='function') setTimeout(()=>toast(msg, 5500), 600);
+              }
+            }catch(_){}
+          }
+        }
+      }catch(e){
+        console.warn('M4 PC->Mobile convert fail', e);
+        try{ window.logAction && window.logAction('error','conversión PC->Mobile falló', e.message); }catch(_){}
+      }
+    } else if(_shape === 'unknown'){
+      try{ window.logAction && window.logAction('error','importCharacter: formato no reconocido', JSON.stringify(Object.keys(obj||{}).slice(0,8))); }catch(_){}
+      if(typeof toast==='function') toast('Formato no reconocido'); return;
+    }
+    const migrated = migrateState(workObj);
     if(!migrated){
       try{ window.logAction && window.logAction('import','migración de ficha falló'); }catch(_){}
       if(typeof toast==='function') toast(I18N_msg('importFail')); return;
     }
     applyState(migrated);
     saveStateDebounced('imported');
-    try{ window.logAction && window.logAction('import','ficha importada', (obj.identidad && (obj.identidad.nombre||obj.nombre))||'?'); }catch(_){}
+    try{ window.logAction && window.logAction('import','ficha importada', (workObj.identity && workObj.identity.nombre) || (obj.identidad && (obj.identidad.nombre||obj.nombre)) || '?'); }catch(_){}
     if(typeof toast==='function') toast(I18N_msg('importOk'));
   }catch(e){
     try{ window.logAction && window.logAction('error','importCharacter falló', e.message); }catch(_){}
@@ -70630,7 +71052,7 @@ function wireSettingsClear(){
     if(ok){
       try{ window.logAction && window.logAction('ajustes','datos limpiados'); }catch(_){}
       try{ localStorage.removeItem(STATE_KEY); }catch(e){}
-      try{ localStorage.removeItem('ficha-theme'); localStorage.removeItem('ficha-lang'); localStorage.removeItem('ficha-tab'); }catch(e){}
+      try{ localStorage.removeItem('pf1e-theme'); localStorage.removeItem('pf1e-lang'); localStorage.removeItem('pf1e-tab'); localStorage.removeItem('ficha-theme'); localStorage.removeItem('ficha-lang'); localStorage.removeItem('ficha-tab'); }catch(e){}
       window.STATE = blankState();
       if(typeof toast==='function') toast(I18N_msg('settingsCleared'));
       setTimeout(()=>location.reload(), 600);
@@ -70665,12 +71087,23 @@ function wireSettingsClear(){
     });
   }
 
+  /* M4-EXPORT-PC-WIRE: toggle "Exportar para PC" — persiste en localStorage. */
+  const expPc = document.getElementById('settings-export-pc');
+  if(expPc){
+    try{ expPc.checked = localStorage.getItem('pf1e-export-pc') === '1'; }catch(_){}
+    expPc.addEventListener('change', ()=>{
+      try{ localStorage.setItem('pf1e-export-pc', expPc.checked ? '1' : '0'); }catch(_){}
+      try{ window.logAction && window.logAction('ajustes','export PC', expPc.checked ? 'on' : 'off'); }catch(_){}
+    });
+  }
+
   /* 2026-05-11: botón "Restaurar backup automático" — abre lista de backups. */
   const restoreBtn = document.getElementById('settings-restore-backup');
   if(restoreBtn) restoreBtn.addEventListener('click', async function(ev){
     ev.stopImmediatePropagation();
     try{ window.logAction && window.logAction('ajustes','restaurar backup','abrir'); }catch(_){}
-    const KEYS = (window.STATE_BACKUP_KEYS) || ['ficha-mobile-backup-1','ficha-mobile-backup-2','ficha-mobile-backup-3'];
+    /* M3-LS-RENAME-BACKUPS: fallback ahora apunta a pf1e-*. */
+    const KEYS = (window.STATE_BACKUP_KEYS) || ['pf1e-mobile-backup-1','pf1e-mobile-backup-2','pf1e-mobile-backup-3'];
     const backups = KEYS.map((k,i) => {
       try{
         const raw = localStorage.getItem(k);
@@ -72696,10 +73129,15 @@ function wireSummonerArchetypes(){
 }
 
 /* M-06: Settings persistentes (idioma/tema/tamaño fuente/daltónico) */
-const SETTINGS_KEY = 'ficha-mobile-settings';
+/* M3-LS-RENAME-SETTINGS: clave de settings de mobile bajo prefijo pf1e-*. */
+const SETTINGS_KEY = 'pf1e-mobile-settings';
 function loadSettings(){
   try{
-    const raw = localStorage.getItem(SETTINGS_KEY);
+    /* M3-LS-READFALLBACK: lee pf1e-mobile-settings con fallback al nombre viejo. */
+    let raw = localStorage.getItem(SETTINGS_KEY);
+    if(!raw){
+      try{ raw = localStorage.getItem('ficha-mobile-settings'); }catch(_){}
+    }
     if(raw){
       const s = JSON.parse(raw);
       return Object.assign({lang:'es', theme:null, fontSize:'normal', daltonic:false, epicMode:false}, s);
@@ -72823,7 +73261,7 @@ function wireSettingsControls(){
     cur.theme = themeSel.value;
     saveSettings(cur);
     document.documentElement.dataset.theme = cur.theme;
-    try{localStorage.setItem('ficha-theme', cur.theme);}catch(e){}
+    try{localStorage.setItem('pf1e-theme', cur.theme);}catch(e){}
     try{ if(typeof applyDarkClass==='function') applyDarkClass(); }catch(e){}
     try{ if(typeof renderThemes==='function') renderThemes(); }catch(e){}
   });
@@ -73233,7 +73671,8 @@ function wireXPInputs(){
      - dex    ← min(DES_mod, max_dex_min_armadura)
      - size   ← SIZE_AC[size] (Mediano=0, Pequeño=+1, Grande=−1, etc.)
    nat/deflect/dodge se dejan al usuario (son bonos misceláneos). */
-const SIZE_AC_MOD = {'Diminuto':+2,'Pequeño':+1,'Mediano':0,'Grande':-1,'Enorme':-2};
+/* M1-SIZE-EXPAND-V1: 9 categorías RAW PF1e (antes colapsado a 5) */
+const SIZE_AC_MOD = {'Fino':+8,'Minúsculo':+4,'Diminuto':+2,'Pequeño':+1,'Mediano':0,'Grande':-1,'Enorme':-2,'Gargantuesco':-4,'Colosal':-8};
 
 function recomputeCAAuto(){
   try{
@@ -73625,10 +74064,10 @@ function init6(){
        (flag persistente), auto-abrir el wizard de creación de PJ a los 600ms.
        Así el usuario virgen no tiene que descubrir el botón en el menú. */
     try{
-      const seen = localStorage.getItem('ficha-wizard-seen') === '1';
+      const seen = localStorage.getItem('pf1e-wizard-seen') === '1';
       if(!seen && typeof _openWizard === 'function'){
         setTimeout(()=>{
-          try{ _openWizard(); localStorage.setItem('ficha-wizard-seen','1'); }catch(_){}
+          try{ _openWizard(); localStorage.setItem('pf1e-wizard-seen','1'); }catch(_){}
         }, 600);
       }
     }catch(_){}
@@ -75511,6 +75950,518 @@ if(document.readyState==='complete' || document.readyState==='interactive'){
     }
   });
 
+})();
+</script>
+
+<!-- /* M2-MAIN-V1 */ Features Mobile que solo tenía PC: TS-roll-btn, SR check, Concentration, Dispel, Starting gear, Touch attacks, Coin gems+peso, Undo button. -->
+<style>
+/* M2-CSS-V1 */
+.m2-roll-btn{display:inline-flex;align-items:center;justify-content:center;min-width:42px;min-height:36px;padding:4px 10px;border-radius:8px;border:1px solid var(--accent,#c08040);background:var(--accent-soft,rgba(192,128,64,0.12));color:var(--accent,#c08040);font:600 14px system-ui;cursor:pointer;margin-left:8px}
+.m2-roll-btn:hover{background:rgba(192,128,64,0.22)}
+.m2-roll-btn:active{transform:scale(0.96)}
+.m2-mini-card{border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:10px;background:var(--surface-2)}
+.m2-mini-title{font:700 13px 'Cinzel',serif;color:var(--ink);margin-bottom:6px}
+.m2-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.m2-info{font:11px/1.4 system-ui;color:var(--ink-muted);margin-top:4px}
+.m2-touch-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.save-row .m2-roll-btn{grid-column:2;justify-self:end;margin-left:0;margin-top:4px}
+</style>
+<script>
+/* M2-MAIN — Features Mobile que solo tenía PC. Anchors únicos M2-XXX. */
+(function(){
+  'use strict';
+
+  /* M2-HELPERS-V1 */
+  function _m2Toast(msg){ try{ if(typeof toast === 'function') toast(msg); }catch(_){ try{ console.log(msg); }catch(__){} } }
+  function _m2Log(cat, act, detail){ try{ window.logAction && window.logAction(cat, act, detail); }catch(_){} }
+  function _m2Sign(n){ n = parseInt(n,10) || 0; return (n>=0?'+':'') + n; }
+  function _m2D20(){ return Math.floor(Math.random()*20) + 1; }
+  function _m2GetAttrMod(abbr){
+    try{
+      if(typeof window.getAttrMod === 'function') return window.getAttrMod(abbr) | 0;
+      if(typeof ATTRS !== 'undefined'){
+        const r = ATTRS.find(x=>x && x[0]===abbr);
+        if(r) return parseInt(r[3],10) || 0;
+      }
+    }catch(_){}
+    return 0;
+  }
+  function _m2GetBAB(){
+    try{
+      if(typeof D5_getBAB === 'function') return D5_getBAB() | 0;
+      if(typeof D5_getRawBAB === 'function') return D5_getRawBAB() | 0;
+      const t = document.getElementById('m-bab');
+      if(t){ const v = parseInt(String(t.textContent||'').replace(/[^\-0-9]/g,''),10); if(!isNaN(v)) return v; }
+    }catch(_){}
+    return 0;
+  }
+  function _m2GetBuffAtk(){ try{ return (window._BUFF_MOD_TOTALS && _BUFF_MOD_TOTALS.atk) | 0; }catch(_){ return 0; } }
+  function _m2GetCondAtk(){ try{ if(typeof _COND_ATK !== 'undefined') return _COND_ATK|0; }catch(_){} return 0; }
+  function _m2PrimaryCaster(){
+    try{
+      if(typeof CLASSES_DATA === 'undefined' || !CLASSES_DATA.length) return null;
+      for(const cl of CLASSES_DATA){
+        const cid = (typeof canonicalClassId === 'function') ? canonicalClassId(cl.name) : '';
+        const info = (typeof PF1E_CASTER_INFO !== 'undefined') ? (PF1E_CASTER_INFO[cid] || {mode:'none'}) : {mode:'none'};
+        if(info.mode && info.mode !== 'none'){
+          return {cls: cl, info, cid, cl: parseInt(cl.level,10) || 0};
+        }
+      }
+    }catch(_){}
+    return null;
+  }
+  async function _m2Prompt(message, defaultValue, opts){
+    try{ if(typeof appPrompt === 'function') return await appPrompt(message, defaultValue, opts||{}); }catch(_){}
+    try{ return window.prompt(message, defaultValue||''); }catch(_){ return null; }
+  }
+  function _m2Roll(expr, label, isAttack){
+    try{
+      if(typeof performRoll === 'function'){
+        performRoll({expr: expr, label: label || expr, isAttack: !!isAttack});
+        return null;
+      }
+    }catch(_){}
+    const m = String(expr).match(/(\d+)d(\d+)([+-]\d+)?/);
+    if(!m) return null;
+    const n=+m[1], d=+m[2], mod=m[3]?parseInt(m[3],10):0;
+    let rolls=[], total=0;
+    for(let i=0;i<n;i++){ const r = Math.floor(Math.random()*d)+1; rolls.push(r); total += r; }
+    total += mod;
+    _m2Toast((label||expr) + ': [' + rolls.join(',') + ']' + (mod?(mod>0?' +'+mod:' '+mod):'') + ' = ' + total);
+    return total;
+  }
+
+  /* M2-F1-SAVE-ROLL-BTN-V1 — Botón al final de cada .save-row[data-save]. */
+  function _m2InjectSaveRollButtons(){
+    const SAVE_LABELS = {fort:'Fortaleza', ref:'Reflejos', will:'Voluntad'};
+    document.querySelectorAll('.save-row[data-save]').forEach(row=>{
+      if(row.querySelector('.m2-save-roll')) return;
+      const k = row.dataset.save;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'm2-roll-btn m2-save-roll';
+      btn.textContent = '🎲';
+      btn.setAttribute('aria-label', 'Tirar TS ' + (SAVE_LABELS[k]||k));
+      btn.title = 'Tirar TS ' + (SAVE_LABELS[k]||k);
+      btn.addEventListener('click', (ev)=>{
+        ev.stopPropagation();
+        const mod = parseInt(row.dataset.saveTotal||'0', 10) || 0;
+        const label = SAVE_LABELS[k] || k;
+        const expr = '1d20' + _m2Sign(mod);
+        _m2Log('combate','TS (botón) ' + label, expr);
+        _m2Roll(expr, 'TS ' + label, false);
+      });
+      row.appendChild(btn);
+    });
+  }
+  function _m2ScheduleSaveRollWire(){ setTimeout(_m2InjectSaveRollButtons, 100); }
+
+  /* M2-F2-SR-CHECK-V1 — Botón "🛡 Check SR" cerca del input de Resistencia magia. */
+  function _m2FindSRInput(){
+    try{
+      const labels = document.querySelectorAll('.field-label');
+      for(const lab of labels){
+        const tx = (lab.textContent||'').trim().toLowerCase();
+        if(tx === 'resistencia magia' || tx === 'spell resistance'){
+          const inp = lab.parentElement ? lab.parentElement.querySelector('input') : null;
+          if(inp) return inp;
+        }
+      }
+    }catch(_){}
+    return null;
+  }
+  function _m2InjectSRButton(){
+    const inp = _m2FindSRInput();
+    if(!inp) return false;
+    const parent = inp.parentElement;
+    if(!parent || parent.querySelector('.m2-sr-btn')) return true;
+    if(!inp.id) inp.id = 'm2-sr-input';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn-secondary m2-sr-btn';
+    btn.style.cssText = 'margin-top:6px;width:100%;font:600 12px system-ui';
+    btn.textContent = '🛡 Check SR';
+    btn.addEventListener('click', async ()=>{
+      const ownSR = parseInt(inp.value, 10) || 0;
+      const caster = _m2PrimaryCaster();
+      const ownCL = caster ? caster.cl : 0;
+      const v = await _m2Prompt('Nivel lanzador del enemigo (NL):', '', {title:'Check Resistencia a Conjuros', type:'number', placeholder:'Ej. 7'});
+      if(v === null || v === '' || typeof v === 'undefined') return;
+      const enemyCL = parseInt(v, 10) || 0;
+      const roll = _m2D20();
+      const total = roll + enemyCL;
+      const ok = total >= ownSR;
+      const txt = `SR ${ownSR} vs NL ${enemyCL}+d20[${roll}]=${total} → ${ok?'⚠ atraviesa':'✓ SR resiste'}`;
+      _m2Log('combate','Check SR', txt);
+      _m2Toast(txt);
+      _m2Roll('1d20' + _m2Sign(ownCL), 'Check SR propio (NL+d20 vs SR enemiga)', false);
+    });
+    parent.appendChild(btn);
+    return true;
+  }
+
+  /* M2-F3-CONCENTRATION-V1 — Card mini con input mod + botón. */
+  function _m2ConcentrationMod(){
+    const caster = _m2PrimaryCaster();
+    if(!caster) return 0;
+    const attr = caster.info.attr || 'INT';
+    return (caster.cl|0) + _m2GetAttrMod(attr);
+  }
+  function _m2InjectConcentrationCard(){
+    const ofensiva = document.querySelector('.sub-page[data-sub="ofensiva"]');
+    if(!ofensiva) return false;
+    if(ofensiva.querySelector('#m2-concentration-card')) return true;
+    const card = document.createElement('div');
+    card.id = 'm2-concentration-card';
+    card.className = 'card m2-mini-card';
+    const defMod = _m2ConcentrationMod();
+    card.innerHTML = `
+      <div class="m2-mini-title">🎯 Concentración</div>
+      <div class="m2-row">
+        <label class="field" style="flex:1;min-width:120px"><span class="field-label">Mod concentración</span>
+          <input class="field-input" id="m2-conc-mod" type="number" inputmode="numeric" value="${defMod}">
+        </label>
+        <button type="button" class="btn-primary" id="m2-conc-roll" style="font:600 12px system-ui;min-height:40px">🎯 Tirada concentración</button>
+      </div>
+      <div class="m2-info">Auto-calc = NL + mod habilidad de lanzamiento. Editable para bonos extra (Combat Casting, etc.).</div>
+    `;
+    const after = ofensiva.querySelector('#combat-maneuvers-card') || ofensiva.lastElementChild;
+    if(after && after.parentElement === ofensiva) ofensiva.insertBefore(card, after.nextSibling);
+    else ofensiva.appendChild(card);
+    const modInp = card.querySelector('#m2-conc-mod');
+    const btn = card.querySelector('#m2-conc-roll');
+    function refresh(){ if(modInp && modInp.dataset.userEdited !== '1') modInp.value = _m2ConcentrationMod(); }
+    modInp.addEventListener('input', ()=>{ modInp.dataset.userEdited = '1'; });
+    document.addEventListener('class-changed', refresh);
+    document.addEventListener('attr-changed', refresh);
+    window.addEventListener('attr-changed', refresh);
+    btn.addEventListener('click', async ()=>{
+      const v = await _m2Prompt('DC concentración (15 + nivel conjuro + daño recibido):', '15', {title:'Tirada concentración', type:'number', placeholder:'Ej. 17'});
+      if(v === null || v === '' || typeof v === 'undefined') return;
+      const dc = parseInt(v, 10) || 0;
+      const mod = parseInt(modInp.value, 10) || 0;
+      const roll = _m2D20();
+      const total = roll + mod;
+      const ok = total >= dc;
+      _m2Log('conjuro','concentración', `d20[${roll}]${_m2Sign(mod)}=${total} vs DC ${dc} → ${ok?'OK':'FALLA'}`);
+      _m2Toast(`Concentración: d20[${roll}]${_m2Sign(mod)}=${total} vs CD ${dc} → ${ok?'✓ mantenido':'✗ fallado'}`);
+      _m2Roll('1d20' + _m2Sign(mod), 'Concentración (CD ' + dc + ')', false);
+    });
+    return true;
+  }
+
+  /* M2-F4-DISPEL-V1 — Card mini Dispel Magic. */
+  function _m2InjectDispelCard(){
+    const ofensiva = document.querySelector('.sub-page[data-sub="ofensiva"]');
+    if(!ofensiva) return false;
+    if(ofensiva.querySelector('#m2-dispel-card')) return true;
+    const card = document.createElement('div');
+    card.id = 'm2-dispel-card';
+    card.className = 'card m2-mini-card';
+    card.innerHTML = `
+      <div class="m2-mini-title">✨ Disipar magia</div>
+      <div class="m2-row">
+        <button type="button" class="btn-primary" id="m2-dispel-btn" style="font:600 12px system-ui;width:100%;min-height:40px">✨ Disipar magia</button>
+      </div>
+      <div class="m2-info">Pide NL del efecto a disipar. Tira 1d20 + NL propio vs CD 11 + NL enemigo.</div>
+    `;
+    const after = ofensiva.querySelector('#m2-concentration-card') || ofensiva.querySelector('#combat-cleave-card') || ofensiva.lastElementChild;
+    if(after && after.parentElement === ofensiva) ofensiva.insertBefore(card, after.nextSibling);
+    else ofensiva.appendChild(card);
+    card.querySelector('#m2-dispel-btn').addEventListener('click', async ()=>{
+      const caster = _m2PrimaryCaster();
+      if(!caster){ _m2Toast('No eres caster: no puedes disipar.'); return; }
+      const myCL = caster.cl;
+      const v = await _m2Prompt('NL del efecto a disipar (CL enemigo):', '', {title:'Disipar magia', type:'number', placeholder:'Ej. 5'});
+      if(v === null || v === '' || typeof v === 'undefined') return;
+      const enemyCL = parseInt(v, 10) || 0;
+      const dc = 11 + enemyCL;
+      const roll = _m2D20();
+      const total = roll + myCL;
+      const ok = total >= dc;
+      _m2Log('conjuro','disipar magia', `d20[${roll}]+NL ${myCL}=${total} vs CD ${dc} → ${ok?'OK':'FALLA'}`);
+      _m2Toast(`Disipar: d20[${roll}]+NL${myCL}=${total} vs CD ${dc} (11+${enemyCL}) → ${ok?'✓ disipa':'✗ falla'}`);
+      _m2Roll('1d20' + _m2Sign(myCL), 'Disipar magia (CD ' + dc + ')', false);
+    });
+    return true;
+  }
+
+  /* M2-F5-STARTING-GEAR-V1 — Botón "🎒 Equipo inicial por clase" en subtab armas. */
+  function _m2FallbackStartingGear(classKey){
+    const SUGG = {
+      barbarian: [{n:'Hacha de batalla',die:'1d8',th:20,m:2,ranged:false},{n:'Cota de mallas',ac:5}],
+      fighter:   [{n:'Espada larga',die:'1d8',th:19,m:2,ranged:false},{n:'Cota de mallas',ac:5},{n:'Escudo de acero',ac:2,shield:true}],
+      rogue:     [{n:'Espada corta',die:'1d6',th:19,m:2,ranged:false},{n:'Daga',die:'1d4',th:19,m:2,ranged:false},{n:'Armadura de cuero',ac:2}],
+      monk:      [{n:'Bastón',die:'1d6',th:20,m:2,ranged:false}],
+      wizard:    [{n:'Bastón',die:'1d6',th:20,m:2,ranged:false}],
+      sorcerer:  [{n:'Daga',die:'1d4',th:19,m:2,ranged:false}],
+      cleric:    [{n:'Mangual',die:'1d8',th:20,m:2,ranged:false},{n:'Cota de mallas',ac:5},{n:'Escudo de acero',ac:2,shield:true}],
+      druid:     [{n:'Cimitarra',die:'1d6',th:18,m:2,ranged:false},{n:'Pieles',ac:3}],
+      bard:      [{n:'Espada larga',die:'1d8',th:19,m:2,ranged:false},{n:'Armadura de cuero',ac:2}],
+      paladin:   [{n:'Espada larga',die:'1d8',th:19,m:2,ranged:false},{n:'Cota de mallas',ac:5},{n:'Escudo de acero',ac:2,shield:true}],
+      ranger:    [{n:'Arco largo',die:'1d8',th:20,m:3,ranged:true},{n:'Espada corta',die:'1d6',th:19,m:2,ranged:false},{n:'Armadura de cuero',ac:2}]
+    };
+    return SUGG[(classKey||'').toLowerCase()] || null;
+  }
+  function _m2ApplyStartingGear(){
+    let cls = null, gear = null;
+    try{ cls = (typeof CLASSES_DATA!=='undefined' && CLASSES_DATA[0]) ? CLASSES_DATA[0] : null; }catch(_){}
+    if(!cls){ _m2Toast('Sin clase activa. Define una clase primero.'); return; }
+    try{
+      const key = cls.classKey || '';
+      const db = (typeof DB !== 'undefined' && DB && DB.classes) ? DB.classes : ((window.DB && window.DB.classes) || null);
+      if(db){
+        const entry = db[key] || db[(cls.name||'').toLowerCase()] || null;
+        gear = entry ? (entry.starting_gear || entry.starting_equipment || null) : null;
+      }
+    }catch(_){}
+    let usedFallback = false;
+    if(!gear || !Array.isArray(gear) || !gear.length){
+      gear = _m2FallbackStartingGear(cls.classKey || cls.name);
+      usedFallback = true;
+    }
+    if(!gear || !gear.length){ _m2Toast('No hay equipo inicial definido para ' + (cls.name||'esa clase')); return; }
+    try{ if(typeof pushUndoSnapshot === 'function') pushUndoSnapshot('Aplicar equipo inicial ' + (cls.name||'')); }catch(_){}
+    let weaponsAdded = 0, armorAdded = 0, itemsAdded = 0;
+    gear.forEach(it=>{
+      const name = it.n || it.name || it.label || 'Objeto';
+      const isArmor = (it.ac !== undefined) || it.type === 'armor' || it.type === 'shield';
+      const isWeapon = (it.die !== undefined) || it.type === 'weapon' || it.damage_die;
+      try{
+        if(isArmor && typeof ARMOR_DATA !== 'undefined'){
+          const id = ((ARMOR_DATA[ARMOR_DATA.length-1]?.id)||0) + 1;
+          const ac = parseInt(it.ac, 10) || 0;
+          const isShield = !!it.shield || it.type==='shield';
+          ARMOR_DATA.push({
+            id, name, type: isShield ? 'Escudo' : 'Armadura',
+            armor_type: isShield ? 'shield' : (ac >= 5 ? 'medium' : 'light'),
+            ac_bonus: ac, max_dex: 99, acp: 0, arcane_failure: 0,
+            weight: parseFloat(it.weight)||5, equipped: false,
+            ac: '+'+ac, maxDex: '+99', penalty: '0', spell: '0%'
+          });
+          armorAdded++;
+        } else if(isWeapon && typeof WEAPONS_DATA !== 'undefined'){
+          const id = ((WEAPONS_DATA[WEAPONS_DATA.length-1]?.id)||0) + 1;
+          const die = it.die || it.damage_die || '1d6';
+          const th = parseInt(it.th, 10) || 20;
+          const m = parseInt(it.m, 10) || 2;
+          const ranged = !!it.ranged;
+          WEAPONS_DATA.push({
+            id, name, type: ranged ? 'Distancia' : 'CaC',
+            style: ranged ? 'ranged' : 'melee1h',
+            damage_die: die, crit_threat: th, crit_mult: m,
+            enh: 0, misc: 0, weight: parseFloat(it.weight)||3, hands: 1, notes: '',
+            atk: '+0', dmg: die, crit: `${th===20?'20':th+'-20'}/×${m}`
+          });
+          weaponsAdded++;
+        } else if(typeof D5_INVENTORY !== 'undefined'){
+          const id = ((D5_INVENTORY[D5_INVENTORY.length-1]?.id)||0) + 1;
+          D5_INVENTORY.push({id, cat:'gear', name, qty: parseInt(it.qty,10)||1, weight: parseFloat(it.weight)||0, value: parseFloat(it.value)||0, desc: it.desc||''});
+          itemsAdded++;
+        }
+      }catch(e){ console.warn('M2 startingGear push fail', e); }
+    });
+    try{ if(typeof renderWeapons === 'function') renderWeapons(); }catch(_){}
+    try{ if(typeof renderArmor === 'function') renderArmor(); }catch(_){}
+    try{ if(typeof D5_renderInventory === 'function') D5_renderInventory(); }catch(_){}
+    try{ if(typeof D5_recompute === 'function') D5_recompute(); }catch(_){}
+    try{ if(typeof D5_refreshWeaponRolls === 'function') D5_refreshWeaponRolls(); }catch(_){}
+    try{ if(typeof saveStateDebounced === 'function') saveStateDebounced('m2-starting-gear'); }catch(_){}
+    _m2Log('equipo','equipo inicial aplicado', `${cls.name}: ${weaponsAdded}arma/${armorAdded}armadura/${itemsAdded}items${usedFallback?' (fallback)':''}`);
+    _m2Toast(`🎒 Equipo inicial: +${weaponsAdded} arma, +${armorAdded} armadura, +${itemsAdded} items${usedFallback?' (sugerencia)':''}`);
+  }
+  function _m2InjectStartingGearBtn(){
+    const armasPage = document.querySelector('.sub-page[data-sub="armas"]');
+    if(!armasPage) return false;
+    if(armasPage.querySelector('#m2-starting-gear-btn')) return true;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'm2-starting-gear-btn';
+    btn.className = 'btn-secondary';
+    btn.style.cssText = 'width:100%;margin-top:8px;background:rgba(192,128,64,0.10);color:var(--accent);border-color:var(--accent);font:600 12px system-ui';
+    btn.textContent = '🎒 Equipo inicial por clase';
+    btn.addEventListener('click', _m2ApplyStartingGear);
+    armasPage.appendChild(btn);
+    return true;
+  }
+
+  /* M2-F6-TOUCH-ATTACKS-V1 — Card "🤚 Ataques de toque" en Ofensiva. */
+  function _m2InjectTouchCard(){
+    const ofensiva = document.querySelector('.sub-page[data-sub="ofensiva"]');
+    if(!ofensiva) return false;
+    if(ofensiva.querySelector('#m2-touch-card')) return true;
+    const card = document.createElement('div');
+    card.id = 'm2-touch-card';
+    card.className = 'card m2-mini-card';
+    card.innerHTML = `
+      <div class="m2-mini-title">🤚 Ataques de toque</div>
+      <div class="m2-touch-grid">
+        <button type="button" class="btn-secondary" id="m2-touch-melee" style="font:600 12px system-ui;min-height:40px">🎯 Toque CaC</button>
+        <button type="button" class="btn-secondary" id="m2-touch-ranged" style="font:600 12px system-ui;min-height:40px">🎯 Toque distancia</button>
+      </div>
+      <div class="m2-info">CaC = BAB + FUE + buffs + cond. Distancia = BAB + DES + buffs + cond. (CA de toque del objetivo se asume desconocida.)</div>
+    `;
+    const after = ofensiva.querySelector('#combat-maneuvers-card') || ofensiva.lastElementChild;
+    if(after && after.parentElement === ofensiva) ofensiva.insertBefore(card, after.nextSibling);
+    else ofensiva.appendChild(card);
+    function rollTouch(isMelee){
+      const bab = _m2GetBAB();
+      const attrAbbr = isMelee ? 'FUE' : 'DES';
+      const attrMod = _m2GetAttrMod(attrAbbr);
+      const buff = _m2GetBuffAtk();
+      const cond = _m2GetCondAtk();
+      const total = bab + attrMod + buff + cond;
+      const label = isMelee ? 'Toque CaC' : 'Toque distancia';
+      _m2Log('combate', label, `BAB${_m2Sign(bab)}+${attrAbbr}${_m2Sign(attrMod)}+buff${_m2Sign(buff)}+cond${_m2Sign(cond)}=${total}`);
+      _m2Roll('1d20' + _m2Sign(total), label, true);
+    }
+    card.querySelector('#m2-touch-melee').addEventListener('click', ()=>rollTouch(true));
+    card.querySelector('#m2-touch-ranged').addEventListener('click', ()=>rollTouch(false));
+    return true;
+  }
+
+  /* M2-F7-COIN-GEMS-V1 — Input gemas + display peso de monedas. */
+  function _m2InjectCoinExtras(){
+    const invPage = document.querySelector('.sub-page[data-sub="inventario"]');
+    if(!invPage) return false;
+    let coinCard = null;
+    invPage.querySelectorAll('.eq-card').forEach(c=>{
+      const nm = c.querySelector('.eq-name');
+      if(nm && /Monedas/i.test(nm.textContent||'')) coinCard = c;
+    });
+    if(!coinCard){
+      const ci = invPage.querySelector('.coin-in');
+      if(ci) coinCard = ci.closest('.eq-card');
+    }
+    if(!coinCard) return false;
+    if(coinCard.querySelector('#m2-coin-extras')) return true;
+    try{ if(typeof D5_COINS !== 'undefined' && typeof D5_COINS.gems === 'undefined') D5_COINS.gems = 0; }catch(_){}
+    const wrap = document.createElement('div');
+    wrap.id = 'm2-coin-extras';
+    wrap.style.cssText = 'margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:end';
+    wrap.innerHTML = `
+      <label class="field" style="margin:0"><span class="field-label">💎 Gemas/Joyas (po)</span>
+        <input class="field-input" id="m2-coin-gems" type="number" inputmode="numeric" value="0" min="0">
+      </label>
+      <div id="m2-coin-weight-display" style="font:600 12px system-ui;color:var(--ink-muted);text-align:right;padding:6px 4px">⚖ Peso monedas: <b id="m2-coin-weight" style="color:var(--ink);font-family:'Cinzel',serif;font-size:16px">0.0</b> lb</div>
+    `;
+    coinCard.appendChild(wrap);
+    const gemsInp = wrap.querySelector('#m2-coin-gems');
+    const wEl = wrap.querySelector('#m2-coin-weight');
+    function refresh(){
+      try{
+        if(typeof D5_COINS === 'undefined') return;
+        gemsInp.value = D5_COINS.gems || 0;
+        const total = (D5_COINS.pp||0)+(D5_COINS.po||0)+(D5_COINS.pe||0)+(D5_COINS.pc||0);
+        wEl.textContent = (total/50).toFixed(1);
+      }catch(_){}
+    }
+    gemsInp.addEventListener('input', ()=>{
+      try{
+        if(typeof D5_COINS === 'undefined') return;
+        D5_COINS.gems = Math.max(0, parseInt(gemsInp.value,10) || 0);
+        _m2Log('equipo','gemas/joyas cambiado', D5_COINS.gems);
+        if(typeof saveStateDebounced === 'function') saveStateDebounced('m2-coin-gems');
+      }catch(_){}
+    });
+    document.querySelectorAll('.coin-in').forEach(inp=>{
+      inp.addEventListener('input', refresh);
+      inp.addEventListener('change', refresh);
+    });
+    document.addEventListener('weight-changed', refresh);
+    document.addEventListener('state-loaded', refresh);
+    refresh();
+    return true;
+  }
+
+  /* M2-F8-UNDO-BTN-V1 — Botón "↶ Undo" en sheet-overflow (Ctrl+Z ya wired en main). */
+  function _m2InjectUndoButton(){
+    const sheet = document.getElementById('sheet-overflow');
+    if(!sheet) return false;
+    const list = sheet.querySelector('.overflow-list');
+    if(!list) return false;
+    if(list.querySelector('#m2-undo-btn')) return true;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'm2-undo-btn';
+    btn.className = 'over-row';
+    btn.setAttribute('data-action','undoSheet');
+    btn.innerHTML = `
+      <span class="more-icon">↶</span>
+      <span class="over-info"><span class="over-label">Deshacer (Ctrl+Z)</span><span class="over-desc">Revierte el último cambio guardado</span></span>
+    `;
+    btn.addEventListener('click', ()=>{
+      try{
+        if(typeof performUndo === 'function') performUndo();
+        else _m2Toast('Undo no disponible');
+      }catch(e){ _m2Toast('Undo error'); }
+    });
+    list.insertBefore(btn, list.firstChild);
+    return true;
+  }
+
+  /* M2-F9-CASTING-OVERRIDE-CHECK-V1 — Asegura que el select casting-override se renderice por clase caster. */
+  function _m2CheckCastingOverrideUI(){
+    try{
+      let container = document.getElementById('classes-list');
+      if(!container){
+        const someCard = document.querySelector('.class-card[data-id]');
+        container = someCard ? someCard.parentElement : null;
+      }
+      if(!container) return;
+      const cards = container.querySelectorAll('.class-card[data-id]');
+      let needsRerender = false;
+      cards.forEach(card=>{
+        const cid = card.dataset.id;
+        const cl = (typeof CLASSES_DATA !== 'undefined') ? CLASSES_DATA.find(x=>String(x.id)===cid) : null;
+        if(!cl) return;
+        const ccid = (typeof canonicalClassId === 'function') ? canonicalClassId(cl.name) : '';
+        const info = (typeof PF1E_CASTER_INFO !== 'undefined') ? (PF1E_CASTER_INFO[ccid] || {mode:'none'}) : {mode:'none'};
+        if(info.mode && info.mode !== 'none'){
+          if(!card.querySelector('.class-casting-override')) needsRerender = true;
+        }
+      });
+      if(needsRerender && typeof renderClasses === 'function'){
+        try{ renderClasses(); _m2Log('clase','re-render casting override',''); }catch(_){}
+      }
+    }catch(_){}
+  }
+
+  /* M2-INIT-V1 — Init defensivo: ejecuta cada inyector con try/catch, reintenta tras eventos clave. */
+  function _m2InitAll(){
+    try{ _m2InjectSaveRollButtons(); }catch(e){ console.warn('M2-F1 fail', e); }
+    try{ _m2InjectSRButton(); }catch(e){ console.warn('M2-F2 fail', e); }
+    try{ _m2InjectConcentrationCard(); }catch(e){ console.warn('M2-F3 fail', e); }
+    try{ _m2InjectDispelCard(); }catch(e){ console.warn('M2-F4 fail', e); }
+    try{ _m2InjectStartingGearBtn(); }catch(e){ console.warn('M2-F5 fail', e); }
+    try{ _m2InjectTouchCard(); }catch(e){ console.warn('M2-F6 fail', e); }
+    try{ _m2InjectCoinExtras(); }catch(e){ console.warn('M2-F7 fail', e); }
+    try{ _m2InjectUndoButton(); }catch(e){ console.warn('M2-F8 fail', e); }
+    try{ _m2CheckCastingOverrideUI(); }catch(e){ console.warn('M2-F9 fail', e); }
+  }
+
+  function _m2Boot(){
+    _m2InitAll();
+    setTimeout(_m2InitAll, 800);
+    setTimeout(_m2InitAll, 2000);
+    ['class-changed','state-loaded','feats-changed','race-changed'].forEach(ev=>{
+      document.addEventListener(ev, ()=>setTimeout(_m2InitAll, 200));
+    });
+    document.addEventListener('attr-changed', _m2ScheduleSaveRollWire);
+    window.addEventListener('attr-changed', _m2ScheduleSaveRollWire);
+  }
+
+  if(document.readyState === 'complete' || document.readyState === 'interactive'){
+    setTimeout(_m2Boot, 200);
+  } else {
+    document.addEventListener('DOMContentLoaded', ()=>setTimeout(_m2Boot, 200));
+  }
+
+  window._M2 = {
+    initAll: _m2InitAll,
+    applyStartingGear: _m2ApplyStartingGear,
+    refreshSaveRollButtons: _m2InjectSaveRollButtons
+  };
 })();
 </script>
 
