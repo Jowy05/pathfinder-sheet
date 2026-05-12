@@ -57018,7 +57018,7 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
             <input type="checkbox" id="combat-expertise" class="combat-tactical" disabled> <span style="flex:1">Pericia de combate</span>
             <span style="font:11px/1 system-ui;color:var(--ink-muted)">−1/+1 CA dodge por cada 4 BAB (máx ±5)</span>
           </label>
-          <!-- /* G2-FULLATK */ Toggle full attack vs single attack -->
+          <!-- /* G2-FULLATK-V1 */ Toggle full attack vs single attack -->
           <label style="display:flex;align-items:center;gap:10px;padding:8px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--surface-2)" id="combat-full-attack-label" title="Si está activado, las armas muestran todos los ataques iterativos (full attack). Si está apagado, sólo 1 ataque (acción estándar).">
             <input type="checkbox" id="combat-full-attack" class="combat-tactical" checked> <span style="flex:1">Acción completa (ataques iterativos)</span>
             <span style="font:11px/1 system-ui;color:var(--ink-muted)">OFF = 1 atq · ON = full attack</span>
@@ -57026,7 +57026,7 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
         </div>
       </div>
 
-      <!-- /* G2-MANEUVER */ Card de maniobras de combate -->
+      <!-- /* G2-MANEUVER-V1 */ Card de maniobras de combate -->
       <div class="card" id="combat-maneuvers-card">
         <h3 class="card-title"><span class="ornament">❦</span><span>🤼 Maniobras de combate</span><span class="ornament">❦</span></h3>
         <div style="font:11px/1.3 system-ui;color:var(--ink-muted);margin-bottom:8px">Tira 1d20 + CMB vs CMD del enemigo. Modificadores especiales por dotes "mejoradas".</div>
@@ -57044,7 +57044,7 @@ const FALLBACK_SPELLS = {"_schema":"pf1e_spells_v1","_generated":"2026-05-07T09:
         <div id="maneuver-output" style="margin-top:8px;font:13px/1.4 system-ui;color:var(--ink-muted)"></div>
       </div>
 
-      <!-- /* G2-CLEAVE */ Card de ataques especiales -->
+      <!-- /* G2-CLEAVE-V1 */ Card de ataques especiales -->
       <div class="card" id="combat-cleave-card">
         <h3 class="card-title"><span class="ornament">❦</span><span>⚔ Ataques especiales</span><span class="ornament">❦</span></h3>
         <div style="font:11px/1.3 system-ui;color:var(--ink-muted);margin-bottom:8px">Cleave / Gran Cleave / Whirlwind Attack. Sólo se muestran las dotes que tengas.</div>
@@ -59327,6 +59327,7 @@ function renderThemes(){
         try{localStorage.setItem('ficha-theme','pergamino');}catch(e){}
       }
       renderThemes();
+      try{ window.logAction && window.logAction('ui','toast: Tema eliminado'); }catch(_){}
       toast('Tema eliminado');
     });
   });
@@ -59474,7 +59475,7 @@ document.querySelectorAll('.bottom-sheet').forEach(s=>{
     handle.addEventListener('touchmove',ev=>{
       if(startY===null) return;
       dy = ev.touches[0].clientY - startY;
-      if(dy>0){ s.style.transform='translateY('+dy+'px)'; s.style.transition='none'; }
+      if(dy>0){ s.style.transform=`translateY(${dy}px)`; s.style.transition='none'; }
     },{passive:true});
     handle.addEventListener('touchend',()=>{
       s.style.transition='';
@@ -61010,13 +61011,13 @@ function injectPickerSheets(){
   const _mysteryData = _toBindData(DB?.oracle_mysteries, MYSTERIES);
   const _patronData = _toBindData(DB?.witch_patrons, PATRONS);
   /* #ANCHOR:GRANTS-INJECT-BIND-V1 — al elegir opción, inyectar grants nativos. */
-  bindPicker('sheet-arcane-school', _schoolData, v=>{SCHOOL_PICK=v; try{ _applySchoolGrants(v); }catch(_){}    if(typeof toast==='function') toast('Escuela: '+v);});
-  bindPicker('sheet-bloodline',     _bloodData,  v=>{BLOODLINE_PICK=v; try{ _applyBloodlineGrants(v); }catch(_){} if(typeof toast==='function') toast('Linaje: '+v);});
-  bindPicker('sheet-domain-1',      _domainData, v=>{DOMAIN_PICKS[0]=v; try{ _applyDomainGrants(v,0); }catch(_){} if(typeof toast==='function') toast('Dominio 1: '+v);});
-  bindPicker('sheet-domain-2',      _domainData, v=>{DOMAIN_PICKS[1]=v; try{ _applyDomainGrants(v,1); }catch(_){} if(typeof toast==='function') toast('Dominio 2: '+v);});
-  bindPicker('sheet-mystery',       _mysteryData,v=>{MYSTERY_PICK=v; try{ _applyMysteryGrants(v); }catch(_){}   if(typeof toast==='function') toast('Misterio: '+v);});
-  bindPicker('sheet-patron',        _patronData, v=>{PATRON_PICK=v; try{ _applyPatronGrants(v); }catch(_){}     if(typeof toast==='function') toast('Patrón: '+v);});
-  bindPicker('sheet-order',         _orderData,  v=>{ORDER_PICK=v; try{ _applyOrderGrants(v); }catch(_){}        if(typeof toast==='function') toast('Orden: '+v);});
+  bindPicker('sheet-arcane-school', _schoolData, v=>{SCHOOL_PICK=v; try{ _applySchoolGrants(v); }catch(_){}    try{ window.logAction && window.logAction('clase','Escuela arcana', v); }catch(_){} if(typeof toast==='function') toast('Escuela: '+v);});
+  bindPicker('sheet-bloodline',     _bloodData,  v=>{BLOODLINE_PICK=v; try{ _applyBloodlineGrants(v); }catch(_){} try{ window.logAction && window.logAction('clase','Linaje', v); }catch(_){} if(typeof toast==='function') toast('Linaje: '+v);});
+  bindPicker('sheet-domain-1',      _domainData, v=>{DOMAIN_PICKS[0]=v; try{ _applyDomainGrants(v,0); }catch(_){} try{ window.logAction && window.logAction('clase','Dominio 1', v); }catch(_){} if(typeof toast==='function') toast('Dominio 1: '+v);});
+  bindPicker('sheet-domain-2',      _domainData, v=>{DOMAIN_PICKS[1]=v; try{ _applyDomainGrants(v,1); }catch(_){} try{ window.logAction && window.logAction('clase','Dominio 2', v); }catch(_){} if(typeof toast==='function') toast('Dominio 2: '+v);});
+  bindPicker('sheet-mystery',       _mysteryData,v=>{MYSTERY_PICK=v; try{ _applyMysteryGrants(v); }catch(_){}   try{ window.logAction && window.logAction('clase','Misterio', v); }catch(_){} if(typeof toast==='function') toast('Misterio: '+v);});
+  bindPicker('sheet-patron',        _patronData, v=>{PATRON_PICK=v; try{ _applyPatronGrants(v); }catch(_){}     try{ window.logAction && window.logAction('clase','Patrón', v); }catch(_){} if(typeof toast==='function') toast('Patrón: '+v);});
+  bindPicker('sheet-order',         _orderData,  v=>{ORDER_PICK=v; try{ _applyOrderGrants(v); }catch(_){}        try{ window.logAction && window.logAction('clase','Orden', v); }catch(_){} if(typeof toast==='function') toast('Orden: '+v);});
 }
 
 document.addEventListener('attr-changed', ()=>{
@@ -61050,8 +61051,10 @@ document.addEventListener('attr-changed', (ev) => {
     });
     if(totalDelta !== 0){
       const sign = totalDelta >= 0 ? '+' : '';
+      const _msg = `CON ${delta>=0?'+':''}${delta} → PG totales ${sign}${totalDelta}`;
+      try{ window.logAction && window.logAction('ui','toast: '+_msg.slice(0,60)); }catch(_){}
       if(typeof toast === 'function'){
-        toast(`CON ${delta>=0?'+':''}${delta} → PG totales ${sign}${totalDelta}`);
+        toast(_msg);
       }
       if(typeof renderClasses === 'function') renderClasses();
       if(typeof CombatEngine !== 'undefined' && CombatEngine.apply) CombatEngine.apply();
@@ -61219,7 +61222,7 @@ async function loadDB() {
     skills: DB.skills.length, equipment: DB.equipment.length, items: DB.items.length,
     domains: DB.domains.length, bloodlines: DB.bloodlines.length, orders: DB.orders.length
   };
-  console.log('[loadDB]', counts, failed.length?'FALLOS: '+failed.join(', '):'OK');
+  try{ window.logAction && window.logAction('debug', '[loadDB] '+JSON.stringify(counts)+(failed.length?(' FALLOS: '+failed.join(', ')):' OK')); }catch(_){}
   window.__DB_STATS = {counts, failed};
   try{
     const eqW = (DB.equipment && Array.isArray(DB.equipment.weapons)) ? DB.equipment.weapons.length : '?';
@@ -61950,9 +61953,13 @@ function _lvlupApply(){
   if(_LVLUP_STATE.hpRolled > 0 && typeof HP_MAX !== 'undefined'){
     HP_MAX = HP_MAX + _LVLUP_STATE.hpRolled;
     if(typeof refreshHP === 'function') refreshHP();
+    try{ window.logAction && window.logAction('nivel','PG máx aplicado', '+'+_LVLUP_STATE.hpRolled); }catch(_){}
     if(typeof toast === 'function') toast(`✓ +${_LVLUP_STATE.hpRolled} PG máx`);
     if(typeof saveStateDebounced === 'function') saveStateDebounced('lvlup-apply');
-  } else if(typeof toast === 'function') toast('Nivel aplicado');
+  } else {
+    try{ window.logAction && window.logAction('nivel','Nivel aplicado'); }catch(_){}
+    if(typeof toast === 'function') toast('Nivel aplicado');
+  }
 }
 
 // fillPicker variant that supports 3-element tuples [name, desc, key]
@@ -62296,7 +62303,8 @@ function renderSlots(){
       if(i >= 0 && SLOT_STATE[i] && SLOT_STATE[i].userOverride){
         SLOT_STATE[i].userOverride = false;
         if(typeof rebuildSpellSystem==='function') rebuildSpellSystem();
-        if(typeof toast==='function') toast('Slot Nv '+i+': override resetado');
+        try{ window.logAction && window.logAction('conjuros','slot override reset', `Nv ${i}`); }catch(_){}
+        if(typeof toast==='function') toast(`Slot Nv ${i}: override resetado`);
       }
     });
   });
@@ -63965,12 +63973,15 @@ function renderComp(which='familiar', idx){
       });
     });
     c.querySelectorAll('[data-comp-del]').forEach(b=>{
-      b.addEventListener('click',(e)=>{
+      b.addEventListener('click', async (e)=>{
         e.stopPropagation();
         const i = +b.dataset.compDel;
         if(!list[i]) return;
         const _delName = list[i].n||'sin nombre';
-        if(!confirm(`¿Eliminar "${_delName}"?`)) return;
+        const ok = (typeof appConfirm === 'function')
+          ? await appConfirm(`¿Eliminar "${_delName}"?`, {title:'Eliminar compañero', okText:'Eliminar', cancelText:'Cancelar', danger:true})
+          : confirm(`¿Eliminar "${_delName}"?`);
+        if(!ok) return;
         list.splice(i,1);
         try{ window.logAction && window.logAction('ajustes','compañero eliminado', which+': '+_delName); }catch(_){}
         CURRENT_COMP_IDX = -1;
@@ -64146,23 +64157,25 @@ function renderComp(which='familiar', idx){
     }));
     /* HP: + Curar / − Daño usan input #acomp-hp-amt */
     const _hpAmtEl = c.querySelector('#acomp-hp-amt');
-    const _readHpAmt = ()=>{
+    const _readHpAmt = async ()=>{
       const v = _hpAmtEl ? parseInt(_hpAmtEl.value,10) : NaN;
       if(isFinite(v) && v>0) return v;
-      const s = (typeof prompt==='function') ? prompt('Cantidad:') : null;
+      const s = (typeof appPrompt === 'function')
+        ? await appPrompt('Cantidad:', {okText:'Aceptar', cancelText:'Cancelar'})
+        : ((typeof prompt==='function') ? prompt('Cantidad:') : null);
       const n = parseInt(s,10);
       return (isFinite(n) && n>0) ? n : 0;
     };
-    c.querySelector('[data-acomp-hp-sub]')?.addEventListener('click',()=>{
-      const amt = _readHpAmt();
+    c.querySelector('[data-acomp-hp-sub]')?.addEventListener('click', async ()=>{
+      const amt = await _readHpAmt();
       if(!amt) return;
       d.hpDmg = (parseInt(d.hpDmg,10)||0) + amt;
       try{ window.logAction && window.logAction('compAnimal','daño aplicado', amt); }catch(_){}
       renderComp(which);
       if(typeof saveStateDebounced==='function') saveStateDebounced('acomp-hp-dmg');
     });
-    c.querySelector('[data-acomp-hp-add]')?.addEventListener('click',()=>{
-      const amt = _readHpAmt();
+    c.querySelector('[data-acomp-hp-add]')?.addEventListener('click', async ()=>{
+      const amt = await _readHpAmt();
       if(!amt) return;
       d.hpDmg = Math.max(0, (parseInt(d.hpDmg,10)||0) - amt);
       try{ window.logAction && window.logAction('compAnimal','curar', amt); }catch(_){}
@@ -64451,6 +64464,7 @@ function renderComp(which='familiar', idx){
         d.evol.push(`[${slug}] ${name} (${cost}pt${cost===1?'':'s'})`);
         /* Actualiza también el contador de puntos usados (mejor UX) */
         d.puntosEvolUsados = (parseInt(d.puntosEvolUsados,10)||0) + cost;
+        try{ window.logAction && window.logAction('compEidolon','evolución añadida', `${name} (${cost}pt)`); }catch(_){}
         if(typeof toast==='function') toast(`Añadida: ${name}`);
         if(typeof saveStateDebounced==='function') saveStateDebounced('eid-evo-add');
         renderComp(which);
@@ -64697,6 +64711,7 @@ function _showSuggestedConditions(saveType, conds, total){
       }
     });
     if(applied){
+      try{ window.logAction && window.logAction('combate','condición aplicada (sugerida)', condName); }catch(_){}
       if(typeof toast==='function') toast(`Condición ${condName} aplicada`);
     } else if(typeof toast==='function') toast(`No encontré chip para "${condName}", abrir Combate > Condiciones`);
     banner.remove();
@@ -65508,7 +65523,7 @@ function applyBuffPack(pack){
   try{ renderBuffs(); }catch(_){}
   try{ if(typeof CombatEngine!=='undefined') CombatEngine.apply(); }catch(_){}
   try{ if(typeof saveStateDebounced==='function') saveStateDebounced('buff-pack-add'); }catch(_){}
-  try{ if(typeof toast==='function') toast('📦 '+pack.name+' aplicado'); }catch(_){}
+  try{ if(typeof toast==='function') toast(`📦 ${pack.name} aplicado`); }catch(_){}
 }
 
 /* G5-BUFF-PACKS-RENDER: render del listado dentro del sheet sheet-buff-packs */
@@ -65580,7 +65595,8 @@ function renderBuffs(){
       if(!b) return;
       b.remaining = Math.max(0, (b.remaining||0) - 1);
       if(b.remaining === 0){
-        toast('⌛ '+b.name+' ha expirado');
+        try{ window.logAction && window.logAction('combate','buff expirado', b.name); }catch(_){}
+        toast(`⌛ ${b.name} ha expirado`);
         setTimeout(()=>_buffRemove(i), 600);
       } else {
         renderBuffs();
@@ -65898,6 +65914,7 @@ function applyDH(amount, opts){
         try{ updateCondBadge(); updateSummaryConds(); }catch(e){}
         try{ if(typeof rebuildBuffModTotals==='function') rebuildBuffModTotals(); }catch(e){}
         try{ if(typeof CombatEngine!=='undefined') CombatEngine.apply(); }catch(e){}
+        try{ window.logAction && window.logAction('combate','inconsciente por no-letal', hpNonlethal+'/'+hp); }catch(_){}
         if(typeof toast==='function') toast('Inconsciente: daño no letal supera PG');
       }
     }
@@ -65921,7 +65938,7 @@ function _confirmTextsDynamic(){
     if(typeof snapshotState==='function'){ snapshotState(); }
     const nombre = (window.STATE?.identity?.nombre || 'ficha').toString().trim().toLowerCase()
       .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'') || 'ficha';
-    fn = 'ficha-'+nombre+'.json';
+    fn = `ficha-${nombre}.json`;
     if(window.STATE){
       const bytes = JSON.stringify(window.STATE).length;
       bytesStr = ' (~'+(bytes<1024?bytes+' B':(bytes/1024).toFixed(1)+' KB')+')';
@@ -65954,6 +65971,7 @@ function bindCustomAdds(){
       SKILLS.push({n:name,a:'INT',cls:0,r:0,t:0});
       skIn.value='';
       renderSkills(document.getElementById('skill-search').value||'');
+      try{ window.logAction && window.logAction('habilidades','habilidad personalizada añadida', name); }catch(_){}
       toast('Habilidad añadida');
     });
   }
@@ -66474,6 +66492,7 @@ function bindFormSheets(){
         const mc = document.querySelector('.cond-chip[data-cond="Muriendo"]');
         if(mc && mc.classList.contains('active')) mc.click();
         _resetStabilizeCount();
+        try{ window.logAction && window.logAction('combate','estabilizado', `1d20(${d20})${sign}${conMod}=${total} vs CD ${cd}`); }catch(_){}
         if(typeof toast === 'function') toast('Estabilizado');
       } else {
         window._STAB_COUNT = (window._STAB_COUNT||0) + 1;
@@ -66530,7 +66549,9 @@ function bindFormSheets(){
     const v = parseInt(document.getElementById('dh-amount').value,10)||0;
     applyDH(v);
     closeSheet(document.getElementById('sheet-hp-edit'));
-    toast(({dmg:'Daño aplicado',nonlethal:'No letal aplicado',heal:'Curación aplicada','cure-nonlethal':'No letal curado',temp:'PG temp añadidos'})[DH_MODE]+' (' + v + ')');
+    const _dhMsg = ({dmg:'Daño aplicado',nonlethal:'No letal aplicado',heal:'Curación aplicada','cure-nonlethal':'No letal curado',temp:'PG temp añadidos'})[DH_MODE]+' (' + v + ')';
+    try{ window.logAction && window.logAction('pg', _dhMsg.slice(0,60)); }catch(_){}
+    toast(_dhMsg);
   });
   // Cond detail toggle
   const cdt = document.getElementById('cond-detail-toggle');
@@ -66631,6 +66652,7 @@ function bindFormSheets(){
       const sign = (cl + featBonus) >= 0 ? '+' : '';
       out.textContent = `1d20${sign}${cl + featBonus} = ${total} (1d20[${roll}] + NL ${cl}${featBonus?` + dote ${featBonus}`:''})`;
     }
+    try{ window.logAction && window.logAction('conjuro','penetración mágica', `1d20[${roll}]+NL${cl}${featBonus?'+'+featBonus:''}=${total}`); }catch(_){}
     if(typeof toast === 'function') toast(`Penetración: ${total}`);
   });
 }
@@ -66741,7 +66763,7 @@ function saveChromancerTheme(){
   if(typeof applyLoaderTheme==='function') applyLoaderTheme();
   closeSheet(document.getElementById('sheet-theme-add'));
   cssInp.value=''; nameInp.value='';
-  toast('Tema "'+parsed.name+'" añadido');
+  toast(`Tema "${parsed.name}" añadido`);
 }
 
 /* ─── ATRIBUTOS: columna mock de Categoría de edad (Maduro/Anciano/Venerable) ─── */
@@ -67152,6 +67174,7 @@ function openFreeBonusPicker(raceName){
             const card = grid.querySelector('.attr-card[data-attr="'+attr+'"]');
             if(card && typeof recalcAttrCard==='function') recalcAttrCard(card);
           }
+          try{ window.logAction && window.logAction('atributos','+2 racial libre aplicado', attr); }catch(_){}
           if(typeof toast==='function') toast('+2 '+attr+' aplicado');
         }
         try{ dlg.close(); }catch(_){ dlg.removeAttribute('open'); }
@@ -67255,7 +67278,7 @@ function init(){
   try{ bindNewSheets(); }catch(e){console.error(e)}
   try{ bindFormSheets(); }catch(e){console.error(e)}
   try{ bindCustomAdds(); }catch(e){console.error(e)}
-  /* G5-SAVES-ITEMS-INIT */
+  /* G5-SAVES-ITEMS-INIT-V1 */
   try{ wireSavesItems(); }catch(e){console.error(e)}
   try{ bindAgeCat(); }catch(e){console.error(e)}
   try{ if(typeof D5_init==='function') D5_init(); }catch(e){console.error(e)}
@@ -67688,6 +67711,7 @@ if(__raza){
             e.target.value = String(v);
             if(typeof toast === 'function' && !window._SKILL_CAP_WARNED){
               window._SKILL_CAP_WARNED = true;
+              try{ window.logAction && window.logAction('habilidades','cap de rangos alcanzado', 'máx '+cap); }catch(_){}
               toast(`Cap de rangos: máx ${cap} por habilidad (= nivel total)`);
               setTimeout(()=>{ window._SKILL_CAP_WARNED = false; }, 4000);
             }
@@ -67767,11 +67791,13 @@ if(__raza){
     };
     document.getElementById('d3-take10').onclick = ()=>{
       const v = total + 10;
+      try{ window.logAction && window.logAction('habilidades','tomar 10', s.n+'='+v); }catch(_){}
       if(typeof window.toast==='function') window.toast('Tomar 10: '+v+' · '+s.n);
       if(typeof window.pushHistory==='function') window.pushHistory({total:v, die:'T10', label:s.n+' · Tomar 10'});
     };
     document.getElementById('d3-take20').onclick = ()=>{
       const v = total + 20;
+      try{ window.logAction && window.logAction('habilidades','tomar 20', s.n+'='+v); }catch(_){}
       if(typeof window.toast==='function') window.toast('Tomar 20: '+v+' · '+s.n);
       if(typeof window.pushHistory==='function') window.pushHistory({total:v, die:'T20', label:s.n+' · Tomar 20'});
     };
@@ -68201,7 +68227,7 @@ function D5_getIterativeAttacks(w){
       if(rawBab >= 11) attacks.push(fmt(rawBab - 10 + extras));
     }
   }
-  /* G2-FULLATK */
+  /* G2-FULLATK-V1 */
   /* Full attack vs single attack toggle.
      Si el checkbox #combat-full-attack está OFF, el PJ está usando
      una acción estándar (1 atq), no full attack. Devuelve sólo el
@@ -68572,6 +68598,7 @@ function D5_renderInventory(){
     it.qty = Math.max(0, (it.qty||0) - 1);
     D5_renderInventory();
     if(typeof D5_recompute === 'function') D5_recompute();
+    try{ window.logAction && window.logAction('inventario','poción bebida', `${it.name} +${healed} PG (${formula})`); }catch(_){}
     if(typeof toast === 'function') toast(`🧪 ${it.name}: +${healed} PG (${formula}). Quedan ${it.qty}.`);
     if(typeof saveStateDebounced === 'function') saveStateDebounced('drink-potion');
   }));
@@ -68582,6 +68609,7 @@ function D5_renderInventory(){
     it.qty = Math.max(0, (it.qty||0) - 1);
     D5_renderInventory();
     if(typeof D5_recompute === 'function') D5_recompute();
+    try{ window.logAction && window.logAction('inventario','item usado', `${it.name} (quedan ${it.qty})`); }catch(_){}
     if(typeof toast === 'function') toast(`▶ ${it.name}: usado · quedan ${it.qty}`);
     if(typeof saveStateDebounced === 'function') saveStateDebounced('use-item');
   }));
@@ -70260,6 +70288,7 @@ function migrateState(obj){
       const tail = (lang==='en') ? ` (${filled.length} new fields filled)` : ` (${filled.length} campos completados)`;
       body = filled.length<=4 ? ` · ${filled.join(', ')}` : tail;
     }
+    try{ window.logAction && window.logAction('importar','ficha migrada', `v${fromVer}→v${STATE_SCHEMA_VERSION} (${filled.length} campos)`); }catch(_){}
     setTimeout(()=>toast(head + body, 4500), 800);
     delete obj._migratedFields;
   }
@@ -70271,7 +70300,7 @@ function isAndroid(){
 }
 function suggestedFilename(){
   const n = (window.STATE?.identity?.nombre || 'ficha').toString().trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'') || 'ficha';
-  return 'ficha-'+n+'.json';
+  return `ficha-${n}.json`;
 }
 function exportCharacter(){
   try{ window.logAction && window.logAction('export','exportar ficha JSON'); }catch(_){}
@@ -70392,6 +70421,7 @@ function applyPhoto(dataUrl){
   if(av2){ av2.style.background = `center/cover no-repeat url('${dataUrl}')`; av2.textContent=''; av2.dataset.photoSet='1'; }
   document.dispatchEvent(new CustomEvent('photo-changed',{detail:{dataUrl}}));
   saveStateDebounced('photo');
+  try{ window.logAction && window.logAction('personaje','foto cambiada'); }catch(_){}
   if(typeof toast==='function') toast(I18N_msg('photoChanged'));
 }
 function _getStoredPhoto(){
@@ -70411,6 +70441,7 @@ function removePhoto(){
   const av2 = document.querySelector('#sheet-identidad .id-photo, #sheet-identidad .avatar-id, #sheet-identidad [data-avatar-large]');
   if(av2){ av2.style.background = ''; delete av2.dataset.photoSet; }
   saveStateDebounced('photo-remove');
+  try{ window.logAction && window.logAction('personaje','foto eliminada'); }catch(_){}
   if(typeof toast==='function') toast(I18N_msg('photoRemoved'));
 }
 window.applyPhoto = applyPhoto;
@@ -71025,6 +71056,7 @@ function _openSpellsCatalog(targetLvl){
         prepared: (typeof CASTING_MODE !== 'undefined' && CASTING_MODE === 'spont'), cast: false
       });
       if(typeof renderSpells === 'function') renderSpells();
+      try{ window.logAction && window.logAction('conjuro','conjuro añadido (catálogo)', `${name} (Nv ${lvl||'?'})`); }catch(_){}
       if(typeof toast === 'function') toast(`Conjuro añadido: ${name} (Nv ${lvl||'?'})`);
       if(typeof saveStateDebounced === 'function') saveStateDebounced('spell-catalog');
       dlg.close();
@@ -71168,6 +71200,7 @@ function _populateBuffTemplates(){
     set('buff-dur', t.dur);
     set('buff-qty', t.qty);
     set('buff-notes', t.notes);
+    try{ window.logAction && window.logAction('combate','plantilla buff cargada', t.n); }catch(_){}
     if(typeof toast === 'function') toast(`Plantilla "${t.n}" cargada`);
   }));
 }
@@ -71647,6 +71680,7 @@ async function _wizApply(){
   /* 7. Recalc + autosave */
   if(typeof CombatEngine!=='undefined' && CombatEngine.apply) CombatEngine.apply();
   if(typeof saveStateDebounced==='function') saveStateDebounced('wizard-apply');
+  try{ window.logAction && window.logAction('personaje','personaje creado (wizard)', _WIZ_STATE.name || 'Personaje'); }catch(_){}
   if(typeof toast==='function') toast(`✨ ${_WIZ_STATE.name || 'Personaje'} creado`);
   /* Cerrar wizard */
   const dlg = document.getElementById('sheet-newchar-wizard');
@@ -71782,6 +71816,7 @@ function _openWeaponCatalog(){
     WEAPONS_DATA.push(newW);
     if(typeof D5_refreshWeaponRolls==='function') D5_refreshWeaponRolls(); else { renderWeapons(); rebindRolls(); }
     if(typeof D5_recompute==='function') D5_recompute();
+    try{ window.logAction && window.logAction('arma','arma añadida (catálogo)', newW.name); }catch(_){}
     if(typeof toast==='function') toast('Arma añadida: ' + newW.name);
     if(typeof saveStateDebounced==='function') saveStateDebounced('weap-catalog');
   });
@@ -71825,6 +71860,7 @@ function _openArmorCatalog(){
     ARMOR_DATA.push(newA);
     if(typeof renderArmor==='function') renderArmor();
     if(typeof D5_recompute==='function') D5_recompute();
+    try{ window.logAction && window.logAction('armadura','armadura añadida (catálogo)', newA.name); }catch(_){}
     if(typeof toast==='function') toast('Armadura añadida: ' + newA.name);
     if(typeof saveStateDebounced==='function') saveStateDebounced('armor-catalog');
   });
@@ -71995,6 +72031,7 @@ function wireRollAllHd(){
         if(typeof HP_MAX !== 'undefined' && typeof setHP==='function'){ hp = HP_MAX; refreshHP(); }
       }catch(e){}
     },50);
+    try{ window.logAction && window.logAction('pg','PG regenerados (rerolear HD)', total); }catch(_){}
     if(typeof toast==='function') toast('PG regenerados: '+total);
     /* Mostrar desglose en el sheet de dados */
     try{
@@ -72101,8 +72138,10 @@ function nextRoundDecrement(){
   try{ if(typeof rebuildBuffModTotals==='function') rebuildBuffModTotals(); }catch(e){}
   try{ if(typeof CombatEngine!=='undefined') CombatEngine.apply(); }catch(e){}
   renderSummaryBuffs();
-  if(expired.length && typeof toast==='function') toast('Caducados: '+expired.join(', '));
-  else if(typeof toast==='function') toast('Asalto siguiente');
+  if(expired.length){
+    try{ window.logAction && window.logAction('combate','buffs caducados', expired.join(', ')); }catch(_){}
+    if(typeof toast==='function') toast('Caducados: '+expired.join(', '));
+  } else if(typeof toast==='function') toast('Asalto siguiente');
   if(typeof saveStateDebounced==='function') saveStateDebounced('round-decrement');
   /* #ANCHOR:INVOCADAS-AUTO-DECREMENT-V1 — auto-decrementar duración de invocadas
      con el init tracker. Si llega a duracionRondas marca como expirada. 2026-05-11 */
@@ -72473,6 +72512,7 @@ function renderSLAs(){
       const ts = new Date().toLocaleTimeString();
       log.textContent = `[${ts}] ${s.n} (CL ${s.cl||'?'}, DC ${s.dc||'?'}) — lanzado`;
     }
+    try{ window.logAction && window.logAction('conjuro','SLA lanzado', s.n+(s.cl?(' CL'+s.cl):'')); }catch(_){}
     if(typeof toast==='function') toast('SLA lanzado: '+s.n);
   }));
 }
@@ -72569,6 +72609,7 @@ function wireGestaltMode(){
     }catch(_){}
     if(typeof CombatEngine!=='undefined' && CombatEngine.apply) CombatEngine.apply();
     if(typeof renderClasses === 'function') renderClasses();
+    try{ window.logAction && window.logAction('ajustes','modo Gestalt', _GESTALT_MODE?'on':'off'); }catch(_){}
     if(typeof toast === 'function') toast(_GESTALT_MODE ? '🧬 Modo Gestalt activado' : 'Modo Gestalt desactivado');
     if(typeof saveStateDebounced === 'function') saveStateDebounced('gestalt-mode');
   });
@@ -72581,6 +72622,7 @@ function wireSummonerArchetypes(){
   if(synthCb) synthCb.addEventListener('change', ()=>{
     _SYNTH_FUSED = synthCb.checked;
     if(typeof CombatEngine!=='undefined' && CombatEngine.apply) CombatEngine.apply();
+    try{ window.logAction && window.logAction('ajustes','Synthesist fusionado', _SYNTH_FUSED?'on':'off'); }catch(_){}
     if(typeof toast === 'function') toast(_SYNTH_FUSED ? '🔗 Eidolón fusionado' : 'Synthesist separado');
     if(typeof saveStateDebounced === 'function') saveStateDebounced('synth-fused');
   });
@@ -73087,6 +73129,7 @@ function refreshXPBar(){
       if(pctEl) pctEl.style.color = 'var(--positive)';
       if(pctEl && !pctEl.dataset.notified){
         pctEl.dataset.notified = '1';
+        try{ window.logAction && window.logAction('nivel','XP cruzado: subes de nivel', cur+'/'+next); }catch(_){}
         if(typeof toast==='function') toast('¡Subes de nivel! Pulsa el banner para abrir el asistente.');
         /* UX-J05 Fase J: disparar el banner de subida con CTA al wizard
            directamente al cruzar XP, no solo cuando el usuario edita el
@@ -73186,8 +73229,8 @@ function recomputeCAAuto(){
   }catch(e){ console.warn('recomputeCAAuto', e); }
 }
 
-/* G2-MANEUVER */
-/* G2-CLEAVE */
+/* G2-MANEUVER-V1 */
+/* G2-CLEAVE-V1 */
 /* Maniobras de combate y ataques especiales.
    Cada botón data-maneuver tira 1d20 + CMB con modificadores por dotes "mejoradas".
    Cleave / Great Cleave / Whirlwind detectados por FEATS regex; sólo se muestran
@@ -73295,15 +73338,19 @@ function recomputeCAAuto(){
       if(typeof performRoll === 'function'){
         performRoll({expr: '1d20'+baseAtk, label: `${main.weapon.name} · ${labelES} atq 1`, isAttack: true});
       }
-      setTimeout(()=>{
-        const ok = (typeof confirm === 'function') ? confirm(`¿Impactaste con el primer ataque de ${labelES}? Aceptar = tirar ataque extra al siguiente enemigo adyacente.`) : false;
+      setTimeout(async ()=>{
+        const ok = (typeof appConfirm === 'function')
+          ? await appConfirm(`¿Impactaste con el primer ataque de ${labelES}? Aceptar = tirar ataque extra al siguiente enemigo adyacente.`, {title:labelES, okText:'Impacté', cancelText:'Fallé'})
+          : ((typeof confirm === 'function') ? confirm(`¿Impactaste con el primer ataque de ${labelES}? Aceptar = tirar ataque extra al siguiente enemigo adyacente.`) : false);
         if(ok){
           if(typeof performRoll === 'function'){
             performRoll({expr: '1d20'+baseAtk, label: `${main.weapon.name} · ${labelES} atq extra`, isAttack: true});
           }
           if(key === 'greatcleave'){
-            setTimeout(()=>{
-              const ok2 = (typeof confirm === 'function') ? confirm('Great Cleave: ¿Impactaste también? Aceptar = otra cadena.') : false;
+            setTimeout(async ()=>{
+              const ok2 = (typeof appConfirm === 'function')
+                ? await appConfirm('Great Cleave: ¿Impactaste también? Aceptar = otra cadena.', {title:'Great Cleave', okText:'Impacté', cancelText:'Fallé'})
+                : ((typeof confirm === 'function') ? confirm('Great Cleave: ¿Impactaste también? Aceptar = otra cadena.') : false);
               if(ok2 && typeof performRoll === 'function'){
                 performRoll({expr: '1d20'+baseAtk, label: `${main.weapon.name} · Gran Cleave atq extra`, isAttack: true});
               }
@@ -73314,21 +73361,25 @@ function recomputeCAAuto(){
       return;
     }
     if(key === 'whirlwind'){
-      let n = 1;
-      try{
-        const raw = (typeof prompt === 'function') ? prompt('Whirlwind Attack: ¿cuántos enemigos adyacentes?', '2') : '2';
-        n = Math.max(1, Math.min(20, parseInt(raw,10)||1));
-      }catch(_){ n = 2; }
-      if(out) out.innerHTML = `<b>Whirlwind</b> · ${n} atq, uno por enemigo adyacente. Tirando ${n}×1d20${baseAtk}…`;
-      try{ window.logAction && window.logAction('combate','whirlwind', main.weapon.name+' n='+n+' atk='+baseAtk); }catch(_){}
-      for(let i=0;i<n;i++){
-        const idx = i;
-        setTimeout(()=>{
-          if(typeof performRoll === 'function'){
-            performRoll({expr: '1d20'+baseAtk, label: `${main.weapon.name} · Whirlwind atq ${idx+1}/${n}`, isAttack: true});
-          }
-        }, 300*idx);
-      }
+      (async ()=>{
+        let n = 1;
+        try{
+          const raw = (typeof appPrompt === 'function')
+            ? await appPrompt('Whirlwind Attack: ¿cuántos enemigos adyacentes?', {defaultValue:'2', okText:'Aceptar', cancelText:'Cancelar', title:'Whirlwind'})
+            : ((typeof prompt === 'function') ? prompt('Whirlwind Attack: ¿cuántos enemigos adyacentes?', '2') : '2');
+          n = Math.max(1, Math.min(20, parseInt(raw,10)||1));
+        }catch(_){ n = 2; }
+        if(out) out.innerHTML = `<b>Whirlwind</b> · ${n} atq, uno por enemigo adyacente. Tirando ${n}×1d20${baseAtk}…`;
+        try{ window.logAction && window.logAction('combate','whirlwind', main.weapon.name+' n='+n+' atk='+baseAtk); }catch(_){}
+        for(let i=0;i<n;i++){
+          const idx = i;
+          setTimeout(()=>{
+            if(typeof performRoll === 'function'){
+              performRoll({expr: '1d20'+baseAtk, label: `${main.weapon.name} · Whirlwind atq ${idx+1}/${n}`, isAttack: true});
+            }
+          }, 300*idx);
+        }
+      })();
       return;
     }
   }
@@ -73366,7 +73417,7 @@ function recomputeCAAuto(){
     });
   }
 
-  /* G2-FULLATK */
+  /* G2-FULLATK-V1 */
   /* #combat-full-attack ya tiene class="combat-tactical", así que
      wireCombatTacticals dispara D5_refreshWeaponRolls al cambiar.
      Aquí sólo añadimos log dedicado. */
@@ -73493,7 +73544,7 @@ function init6(){
   wireSettingsControls();
   wireRoundButton();
   wireCombatTacticals();
-  /* G2-MANEUVER */ /* G2-CLEAVE */ /* G2-FULLATK */
+  /* G2-MANEUVER-V1 */ /* G2-CLEAVE-V1 */ /* G2-FULLATK-V1 */
   try{ if(typeof wireG2Maneuvers === 'function') wireG2Maneuvers(); }catch(_){}
   try{ if(typeof wireG2FullAttackToggle === 'function') wireG2FullAttackToggle(); }catch(_){}
   wireMythic();
@@ -73581,9 +73632,9 @@ if(document.readyState==='complete' || document.readyState==='interactive'){
 /* ─── /DOMINIO 6 · DATOS Y PERSISTENCIA ─── */
 </script>
 
-<!-- /* G3-BLOCK-START */ Class abilities activables (Lay on Hands, Smite, Channel, Bardic, Rage Powers, Bloodline, Versatile) -->
+<!-- /* G3-BLOCK-START-V1 */ Class abilities activables (Lay on Hands, Smite, Channel, Bardic, Rage Powers, Bloodline, Versatile) -->
 <style>
-/* G3-CSS */
+/* G3-CSS-V1 */
 .g3-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
 .g3-btn{display:inline-flex;align-items:center;gap:4px;padding:6px 10px;border-radius:8px;border:1px solid var(--leather-dk,#7a4a1f);background:rgba(255,200,100,0.10);color:var(--ink,#222);font:600 12px system-ui;cursor:pointer;min-height:32px}
 .g3-btn:hover{background:rgba(255,200,100,0.20)}
@@ -73819,9 +73870,11 @@ if(document.readyState==='complete' || document.readyState==='interactive'){
     card.insertAdjacentHTML('beforeend', html);
     const hb = card.querySelector('[data-g3-loh-heal]');
     const db = card.querySelector('[data-g3-loh-dmg]');
-    if(hb) hb.addEventListener('click', function(ev){
+    if(hb) hb.addEventListener('click', async function(ev){
       if(ev.shiftKey){
-        const ans = prompt('Curar a quién? (texto informativo, sólo afecta al PJ)', 'PJ');
+        const ans = (typeof appPrompt === 'function')
+          ? await appPrompt('Curar a quién? (texto informativo, sólo afecta al PJ)', {defaultValue:'PJ', okText:'Curar', cancelText:'Cancelar', title:'Lay on Hands'})
+          : prompt('Curar a quién? (texto informativo, sólo afecta al PJ)', 'PJ');
         if(ans === null) return;
       }
       _g3LohHeal();
@@ -74297,7 +74350,7 @@ if(document.readyState==='complete' || document.readyState==='interactive'){
     return false;
   }
 
-  /* G3-INIT */
+  /* G3-INIT-V1 */
   function _g3Init(){
     /* Intenta enganchar a window.renderClassFeatures. Si no está, sondea unos segundos. */
     if(_g3InstallHook()){
@@ -74333,7 +74386,7 @@ if(document.readyState==='complete' || document.readyState==='interactive'){
     });
   }
 
-  /* G3-EXPORT */
+  /* G3-EXPORT-V1 */
   window._G3 = {
     refresh: _g3RefreshClassFeatures,
     augment: _g3AugmentClassFeatures,
@@ -74354,7 +74407,7 @@ if(document.readyState==='complete' || document.readyState==='interactive'){
   }
 
 })();
-/* G3-BLOCK-END */
+/* G3-BLOCK-END-V1 */
 </script>
 
 <!-- #ANCHOR:P10-MOBILE-WEAKNESSES-JS-V1 — Vulnerabilidades como chips dinámicos -->
@@ -74890,7 +74943,7 @@ if(document.readyState==='complete' || document.readyState==='interactive'){
 })();
 </script>
 
-<!-- /* G4-ROOT */ Race traits mecánicos + Class skills auto + Spellbook separado + Sneak Attack -->
+<!-- /* G4-ROOT-V1 */ Race traits mecánicos + Class skills auto + Spellbook separado + Sneak Attack -->
 <script>
 (function(){
   'use strict';
@@ -75372,6 +75425,7 @@ if(document.readyState==='complete' || document.readyState==='interactive'){
           const rolls = [];
           for(let i=0;i<n;i++){ const r = Math.floor(Math.random()*6)+1; rolls.push(r); total+=r; }
           const expr = n + 'd6 = [' + rolls.join(',') + '] = ' + total;
+          try{ window.logAction && window.logAction('combate','sneak attack tirado', expr); }catch(_){}
           if(typeof toast === 'function') toast('Sneak: ' + expr);
           if(typeof window.performRoll === 'function') window.performRoll({expr:n+'d6', label:'Sneak Attack'});
         });
